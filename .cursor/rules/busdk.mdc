@@ -1,0 +1,95 @@
+---
+description: "Main Design for busdk/busdk"
+alwaysApply: true
+globs: ["*"]
+---
+
+You are Cursor AI working inside a Git repository whose only purpose is to
+implement the BusDK superproject repository at `busdk/busdk`. This repository
+must not implement any accounting logic and must not contain any BusDK module
+source code directly. Its job is to bundle the `bus` dispatcher and all `bus-*`
+modules as Git submodules, pinning compatible versions, and providing a single
+root `Makefile` that can build and install the entire BusDK CLI toolchain from
+one command in a reproducible and script-friendly way.
+
+Implement the superproject with a simple, predictable layout. All submodules
+must live at the repository root. Add Git submodules for these repositories
+and place them at these exact paths: `bus`, `bus-accounts`, `bus-assets`,
+`bus-attachments`, `bus-bank`, `bus-budget`, `bus-entities`, `bus-inventory`,
+`bus-invoices`, `bus-journal`, `bus-payroll`, `bus-period`, `bus-reconcile`,
+`bus-reports`, `bus-validate`, `bus-vat`, `bus-filing`, `bus-filing-prh`, and
+`bus-filing-vero`. The superproject must treat the submodule commit SHAs as the
+authoritative version pins; do not add any separate lockfile.
+
+The repository must include exactly one orchestration entrypoint: a root
+`Makefile`. The Makefile must provide a stable developer and user interface
+for fetching submodules, building all tools, and installing them into a chosen
+prefix. The Makefile must be readable, maintainable, and should not require any
+external tools beyond a standard POSIX shell, `git`, a Go toolchain, and POSIX
+`make`. Avoid clever or obscure Make features; prefer straightforward shell
+loops so the Makefile works on common Linux and macOS environments.
+
+Define the public Makefile contract precisely. The default target must print a
+short help text that shows the available targets and the most important
+variables. Provide at least these targets with these semantics: `init` must
+initialize and fetch all submodules as pinned by the superproject, using
+recursive submodule init/update so a fresh clone can be made ready in one
+command. `update` must sync and update submodules to the pinned commits (it
+must not advance submodules to newer upstream commits). `upgrade` must be an
+explicit opt-in target that updates submodules to the latest commit on their
+configured remote tracking branches (for maintainers who intentionally want to
+move the pins), and it must not run as part of `init`, `update`, `build`, or
+`install`. `status` must print `git submodule status --recursive` so the pinned
+state is visible. `build` must compile every BusDK tool into a deterministic
+local build directory. `install` must install the compiled binaries into a
+configurable prefix. `clean` must remove local build artifacts but must not
+delete submodules. `distclean` must remove local build artifacts and also
+deinitialize submodules to return the working tree to a “fresh clone” state.
+
+Define the build and install behavior precisely. The build output directory
+must default to `./bin` at the superproject root, and the install location must
+default to a user-writable prefix. Use `PREFIX ?= $(HOME)/.local` and
+`BINDIR ?= $(PREFIX)/bin` as defaults, and ensure `make install` creates the
+destination directory if missing. The build must produce one executable per
+tool with these exact names: `bus`, `bus-accounts`, `bus-assets`,
+`bus-attachments`, `bus-bank`, `bus-budget`, `bus-entities`, `bus-inventory`,
+`bus-invoices`, `bus-journal`, `bus-payroll`, `bus-period`, `bus-reconcile`,
+`bus-reports`, `bus-validate`, `bus-vat`, `bus-filing`, `bus-filing-prh`, and
+`bus-filing-vero`. The `install` target must install exactly these binaries.
+The install method should prefer `install -m 0755` to copy from `./bin` into
+`$(BINDIR)` so builds are reusable and the install step is fast.
+
+Make the compilation approach consistent and future-proof. Assume each module
+repository is an idiomatic Go project with a `go.mod` at the repository root
+and an entrypoint at `cmd/<binary>/main.go` where `<binary>` matches the repo
+name for `bus-*` modules and is `bus` for the dispatcher. The `build` target
+must compile each tool by running Go within its submodule directory. Use `GO ?=
+go` and allow `GOFLAGS` and `CGO_ENABLED` to be passed through from the
+environment. Prefer `go install` with an explicit `GOBIN` set to the superproject
+build directory so the output paths are uniform. The build commands must fail
+fast if any module fails to compile, and the error output must make it clear
+which module failed.
+
+The Makefile must provide a single “one command does everything” flow. Implement
+a `bootstrap` target (or `all`, but prefer `bootstrap`) that runs `init`,
+`build`, and `install` in that order. The `bootstrap` target must be safe for a
+fresh clone and must not perform `upgrade`. The Makefile help text must show a
+typical usage example like running `make bootstrap` and optionally overriding
+`PREFIX`.
+
+Write documentation in `README.md` only, and keep it strictly about this
+superproject. Document what this repository is for, and explicitly state that
+module development happens in the individual `bus-*` repositories while this
+repo only pins versions and builds/installs the toolchain. Document the
+submodule layout at the repository root. Document the common workflows: clone
+and run `make
+bootstrap`; updating submodules to pinned commits with `make update`; and how
+maintainers intentionally move pins with `make upgrade` followed by committing
+the resulting submodule SHA changes. Document the build output directory and
+the install prefix variables. Keep the README concise, practical, and focused.
+
+Do not add any Go source code, no CLI binaries, no network features, no package
+manager integration, and no additional build systems beyond this one Makefile.
+Keep the repository minimal, clear, and aligned with the goal of being the
+single reproducible entrypoint for building and installing the complete BusDK
+CLI toolchain.
