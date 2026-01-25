@@ -1,37 +1,20 @@
-# BusDK Superproject
+# BusDK (Business Development Kit)
 
 [![License](https://img.shields.io/github/license/busdk/busdk)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/busdk/busdk)](https://github.com/busdk/busdk/releases)
 
-BusDK is the **superproject** that pins the `bus` dispatcher and all `bus-*` modules as Git submodules, then provides one reproducible entrypoint (`Makefile`) to fetch, build, and install the entire CLI toolchain. Use it when you want **one command** to install a consistent set of BusDK tools without juggling module versions yourself.
-
-This repository does **not** contain module source code beyond the pinned submodule checkouts; module development happens in the individual `bus-*` repositories.
-
-## Table of contents
-
-- [Status](#status)
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Install](#install)
-- [Usage](#usage)
-- [Repository layout](#repository-layout)
-- [Workflows](#workflows)
-- [Tests](#tests)
-- [Roadmap](#roadmap)
-- [Support](#support)
-- [Contributing](#contributing)
-- [Authors and credits](#authors-and-credits)
-- [License](#license)
+BusDK is a modular, CLI-first toolkit for running a business with Git-native, auditable data. It stores business datasets as UTF-8 CSV backed by Frictionless Table Schema (JSON), favoring simple primitives, deterministic behavior, and workflows that work well for both humans and automation. This repository is the one-command entrypoint to install the full BusDK toolchain.
 
 ## Status
 
-Active and maintained. The superproject focuses on stability and reproducible builds.
+Pre-release and actively maintained. Interfaces, schemas, and file conventions may still evolve.
 
 ## Features
 
-- One `Makefile` to initialize, build, and install all BusDK tools
-- Automatic module discovery (`bus` and any `bus-*` directories with a `Makefile`)
-- Stable pins via submodule SHAs (no separate lockfile)
-- Consistent build output and install locations across modules
+- One command to install a consistent set of BusDK CLI tools
+- Modular subcommands for accounts, journal, invoices, VAT, reports, and more
+- Git-friendly, schema-validated CSV datasets with deterministic outputs
+- Reproducible builds with consistent output and install paths
 
 ## Prerequisites
 
@@ -41,13 +24,11 @@ Active and maintained. The superproject focuses on stability and reproducible bu
 
 ## Install
 
-The root `Makefile` is the only entrypoint for building and installing the
-toolchain. You can use the one-step bootstrap target or run the steps
-individually.
-
-From a fresh clone (init + build + install):
+Clone the repository and run the bootstrap target. This initializes modules, builds all tools, and installs them.
 
 ```bash
+git clone https://github.com/busdk/busdk
+cd busdk
 make bootstrap
 ```
 
@@ -84,7 +65,7 @@ After installation, ensure `$(PREFIX)/bin` is on your `PATH`, then run:
 bus --help
 ```
 
-Expected output includes the global help header for the dispatcher and a list of available subcommands.
+Expected output includes the dispatcher help header and a list of available subcommands.
 
 Each module also installs a standalone binary, for example:
 
@@ -92,25 +73,31 @@ Each module also installs a standalone binary, for example:
 bus-journal --help
 ```
 
+## Documentation and resources
+
+- Specifications and documentation: `https://docs.busdk.com`
+- Project website: `https://busdk.com`
+- GitHub organization and modules: `https://github.com/busdk`
+
 ## Repository layout
 
-Each submodule lives at the repository root (`bus` and `bus-*`). New modules are picked up automatically by the root `Makefile` if the directory contains its own `Makefile`. The pinned submodule SHAs in this superproject are the authoritative version pins.
+This repository focuses on building and installing the BusDK toolchain. Module development happens in the individual `bus-*` repositories; they are included here as pinned Git submodules at the repository root. The root `Makefile` discovers modules automatically and delegates build and install to each module.
 
 ## Workflows
 
-- **Initialize submodules** (fresh clone):
+- **Initialize modules** (fresh clone):
 
 ```bash
 make init
 ```
 
-- **Sync submodules to the pinned commits** (does not advance pins):
+- **Sync modules to the pinned commits** (does not advance pins):
 
 ```bash
 make update
 ```
 
-- **Show pinned submodule SHAs**:
+- **Show pinned module SHAs**:
 
 ```bash
 make status
@@ -142,7 +129,7 @@ git commit
 make clean
 ```
 
-- **Return to a “fresh clone” state** (cleans + deinitializes submodules):
+- **Return to a “fresh clone” state** (cleans + deinitializes modules):
 
 ```bash
 make distclean
@@ -157,7 +144,7 @@ make distclean
 
 ## Tests
 
-The superproject itself has no test suite. Run tests in the individual modules as needed, for example:
+The root repository has no test suite. Run tests in individual modules as needed, for example:
 
 ```bash
 make -C bus-journal test
@@ -165,8 +152,8 @@ make -C bus-journal test
 
 ## Roadmap
 
-- Improve contributor guidance for submodule pin updates
-- Add a release checklist for coordinated multi-module updates
+- Improve contributor guidance for coordinated module pin updates
+- Add a release checklist for multi-module releases
 
 ## Support
 
@@ -174,7 +161,7 @@ Use the GitHub issue tracker for questions and bug reports: `https://github.com/
 
 ## Contributing
 
-Contributions to this superproject are welcome (submodule pin updates, build orchestration, documentation). For module behavior changes, please contribute to the relevant `bus-*` repository instead.
+Contributions to this repository are welcome (build orchestration, documentation, pin updates). For module behavior changes, please contribute to the relevant `bus-*` repository instead.
 
 ## Authors and credits
 
