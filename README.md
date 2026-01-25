@@ -41,21 +41,39 @@ Active and maintained. The superproject focuses on stability and reproducible bu
 
 ## Install
 
-From a fresh clone:
+The root `Makefile` is the only entrypoint for building and installing the
+toolchain. You can use the one-step bootstrap target or run the steps
+individually.
+
+From a fresh clone (init + build + install):
 
 ```bash
 make bootstrap
 ```
 
+Step-by-step (equivalent to bootstrap):
+
+```bash
+make init
+make build
+make install
+```
+
 Defaults:
 
 - Builds into `./bin`
-- Installs into `$(HOME)/.local/bin`
+- Installs into `$(HOME)/.local/bin` (from `BINDIR`)
 
 To install into a different prefix:
 
 ```bash
 make bootstrap PREFIX=/opt/busdk
+```
+
+To build without installing:
+
+```bash
+make build
 ```
 
 ## Usage
