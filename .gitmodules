@@ -1,0 +1,76 @@
+[submodule "bus"]
+	path = bus
+	url = git@github.com:busdk/bus.git
+	branch = 2-core-bus-command
+[submodule "bus-accounts"]
+	path = bus-accounts
+	url = git@github.com:busdk/bus-accounts.git
+	branch = 1-initial-accounts-subcommand
+[submodule "bus-assets"]
+	path = bus-assets
+	url = git@github.com:busdk/bus-assets.git
+	branch = 1-bus-assets
+[submodule "bus-attachments"]
+	path = bus-attachments
+	url = git@github.com:busdk/bus-attachments.git
+	branch = 1-bus-attachments
+[submodule "bus-bank"]
+	path = bus-bank
+	url = git@github.com:busdk/bus-bank.git
+	branch = 1-bus-bank
+[submodule "bus-budget"]
+	path = bus-budget
+	url = git@github.com:busdk/bus-budget.git
+	branch = 1-bus-budget
+[submodule "bus-entities"]
+	path = bus-entities
+	url = git@github.com:busdk/bus-entities.git
+	branch = 1-bus-entities
+[submodule "bus-inventory"]
+	path = bus-inventory
+	url = git@github.com:busdk/bus-inventory.git
+	branch = 1-bus-inventory
+[submodule "bus-invoices"]
+	path = bus-invoices
+	url = git@github.com:busdk/bus-invoices.git
+	branch = 1-bus-invoices
+[submodule "bus-journal"]
+	path = bus-journal
+	url = git@github.com:busdk/bus-journal.git
+	branch = 1-initial-version
+[submodule "bus-payroll"]
+	path = bus-payroll
+	url = git@github.com:busdk/bus-payroll.git
+	branch = 1-bus-payroll
+[submodule "bus-period"]
+	path = bus-period
+	url = git@github.com:busdk/bus-period.git
+	branch = 1-bus-period
+[submodule "bus-reconcile"]
+	path = bus-reconcile
+	url = git@github.com:busdk/bus-reconcile.git
+	branch = 1-bus-reconcile
+[submodule "bus-reports"]
+	path = bus-reports
+	url = git@github.com:busdk/bus-reports.git
+	branch = 1-bus-reports
+[submodule "bus-validate"]
+	path = bus-validate
+	url = git@github.com:busdk/bus-validate.git
+	branch = 1-bus-validate
+[submodule "bus-vat"]
+	path = bus-vat
+	url = git@github.com:busdk/bus-vat.git
+	branch = 1-bus-vat
+[submodule "bus-filing"]
+	path = bus-filing
+	url = git@github.com:busdk/bus-filing.git
+	branch = 1-bus-filing
+[submodule "bus-filing-prh"]
+	path = bus-filing-prh
+	url = git@github.com:busdk/bus-filing-prh.git
+	branch = 1-bus-filing-prh
+[submodule "bus-filing-vero"]
+	path = bus-filing-vero
+	url = git@github.com:busdk/bus-filing-vero.git
+	branch = 1-bus-filing-vero
