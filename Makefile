@@ -2,33 +2,13 @@
 
 GO ?= go
 
-MODULES_DIR := .
 BIN_DIR ?= bin
 
 PREFIX ?= $(HOME)/.local
 BINDIR ?= $(PREFIX)/bin
 INSTALL ?= install
 
-TOOLS := \
-	bus \
-	bus-accounts \
-	bus-assets \
-	bus-attachments \
-	bus-bank \
-	bus-budget \
-	bus-entities \
-	bus-inventory \
-	bus-invoices \
-	bus-journal \
-	bus-payroll \
-	bus-period \
-	bus-reconcile \
-	bus-reports \
-	bus-validate \
-	bus-vat \
-	bus-filing \
-	bus-filing-prh \
-	bus-filing-vero
+MODULE_DIRS := $(sort $(foreach d,$(wildcard bus bus-*),$(if $(wildcard $(d)/Makefile),$(d),)))
 
 .PHONY: help init update upgrade status bootstrap build install clean distclean
 
@@ -71,21 +51,48 @@ bootstrap: init build install
 
 build:
 	@set -eu; \
-	mkdir -p "$(BIN_DIR)"; \
-	for tool in $(TOOLS); do \
-		mod="$(MODULES_DIR)/$$tool"; \
-		printf "==> %s\n" "$$tool"; \
-		( cd "$$mod" && GOBIN="$(abspath $(BIN_DIR))" "$(GO)" install ./cmd/$$tool ); \
+	for mod in $(MODULE_DIRS); do \
+		if [ -f "$$mod/Makefile" ]; then \
+			printf "==> %s\n" "$$mod"; \
+			"$(MAKE)" -C "$$mod" build \
+			BIN_DIR="$(abspath $(BIN_DIR))" \
+			PREFIX="$(PREFIX)" \
+			BINDIR="$(BINDIR)" \
+			GO="$(GO)" \
+			GOFLAGS="$(GOFLAGS)" \
+			CGO_ENABLED="$(CGO_ENABLED)"; \
+		fi; \
 	done
 
-install: build
+install:
 	@set -eu; \
-	mkdir -p "$(BINDIR)"; \
-	for tool in $(TOOLS); do \
-		"$(INSTALL)" -m 0755 "$(BIN_DIR)/$$tool" "$(BINDIR)/$$tool"; \
+	for mod in $(MODULE_DIRS); do \
+		if [ -f "$$mod/Makefile" ]; then \
+			printf "==> %s\n" "$$mod"; \
+			"$(MAKE)" -C "$$mod" install \
+			BIN_DIR="$(abspath $(BIN_DIR))" \
+			PREFIX="$(PREFIX)" \
+			BINDIR="$(BINDIR)" \
+			GO="$(GO)" \
+			GOFLAGS="$(GOFLAGS)" \
+			CGO_ENABLED="$(CGO_ENABLED)"; \
+		fi; \
 	done
 
 clean:
+	@set -eu; \
+	for mod in $(MODULE_DIRS); do \
+		if [ -f "$$mod/Makefile" ]; then \
+			printf "==> %s\n" "$$mod"; \
+			"$(MAKE)" -C "$$mod" clean \
+			BIN_DIR="$(abspath $(BIN_DIR))" \
+			PREFIX="$(PREFIX)" \
+			BINDIR="$(BINDIR)" \
+			GO="$(GO)" \
+			GOFLAGS="$(GOFLAGS)" \
+			CGO_ENABLED="$(CGO_ENABLED)"; \
+		fi; \
+	done
 	rm -rf "$(BIN_DIR)"
 
 distclean: clean
