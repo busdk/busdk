@@ -74,3 +74,7 @@
 	path = bus-filing-vero
 	url = git@github.com:busdk/bus-filing-vero.git
 	branch = 1-bus-filing-vero
+[submodule "bus-loans"]
+	path = bus-loans
+	url = git@github.com:busdk/bus-loans.git
+	branch = main
