@@ -77,4 +77,16 @@
 [submodule "bus-loans"]
 	path = bus-loans
 	url = git@github.com:busdk/bus-loans.git
+	branch = 1-bus-loans
+[submodule "docs"]
+	path = docs
+	url = git@github.com:busdk/docs.git
 	branch = main
+[submodule "bus-pdf"]
+	path = bus-pdf
+	url = git@github.com:busdk/bus-pdf.git
+	branch = 1-bus-pdf
+[submodule "bus-init"]
+	path = bus-init
+	url = git@github.com:busdk/bus-init.git
+	branch = 1-bus-init
