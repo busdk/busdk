@@ -215,6 +215,41 @@ jobs:
 
           This release ships the official BusDK CLI binaries for the \`bus\` dispatcher and included modules.
 
+          ### Install (this release)
+
+          Quick install using the release script:
+
+          \`\`\`sh
+          curl -fsS https://github.com/busdk/busdk/releases/download/${VERSION}/install.sh | sh
+          \`\`\`
+
+          Uninstall:
+
+          \`\`\`sh
+          curl -fsS https://github.com/busdk/busdk/releases/download/${VERSION}/install.sh | sh -s -- --uninstall
+          \`\`\`
+
+          Manual install:
+
+          \`\`\`sh
+          tar -xzf busdk-${VERSION}-<os>-<arch>.tar.gz
+          install -m 0755 bus* /usr/local/bin/
+          \`\`\`
+
+          Verify the install:
+
+          \`\`\`sh
+          bus --help
+          bus-journal --help
+          \`\`\`
+
+          Verify downloads:
+
+          \`\`\`sh
+          shasum -a 256 busdk-${VERSION}-<os>-<arch>.tar.gz
+          cat busdk-${VERSION}-<os>-<arch>.tar.gz.sha256
+          \`\`\`
+
           ### Availability and business model
 
           BusDK binaries are published free of charge so anyone can download and run the tools. The full source code and documentation are available to subscribers while their subscription is active. Subscriber-accessible code and docs are provided under the MIT License, so once you have access you may use, modify, and redistribute them under MIT terms. Subscriptions fund ongoing development, maintenance, and timely updates, and are the simplest official way to stay current.
