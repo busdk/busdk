@@ -85,6 +85,17 @@ This repository focuses on building and installing the BusDK toolchain. Module d
 
 ## Workflows
 
+- **Release pipeline (GitHub Actions)**:
+
+Create a secret named `BUSDK_SUBMODULES_TOKEN` in the BusDK GitHub repository settings at `Settings → Secrets and variables → Actions`. Use a **personal access token** (PAT), either classic or fine-grained, with read access to this repository and all private `bus-*` submodule repositories so the release workflow can fetch submodules.
+
+Required token permissions:
+
+- **Classic PAT**: `repo` scope (read access to private repositories).
+- **Fine-grained PAT**: Repository access to this repo **and** every private `bus-*` repo, with **Contents: Read** permission.
+
+Tags like `v0.1.0` trigger a release build and publish.
+
 - **Initialize modules** (fresh clone):
 
 ```bash

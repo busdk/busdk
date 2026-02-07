@@ -90,3 +90,7 @@
 	path = bus-init
 	url = git@github.com:busdk/bus-init.git
 	branch = 1-bus-init
+[submodule "bus-data"]
+	path = bus-data
+	url = git@github.com:busdk/bus-data.git
+	branch = 1-bus-data

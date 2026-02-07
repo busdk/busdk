@@ -1,0 +1,79 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    env:
+      SUBMODULES_TOKEN: ${{ secrets.BUSDK_SUBMODULES_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: false
+          token: ${{ secrets.BUSDK_SUBMODULES_TOKEN }}
+
+      - name: Configure private submodule access
+        run: |
+          git config --global url."https://x-access-token:${SUBMODULES_TOKEN}@github.com/".insteadOf "git@github.com:"
+          git config --global url."https://x-access-token:${SUBMODULES_TOKEN}@github.com/".insteadOf "https://github.com/"
+
+      - name: Init submodules
+        run: git submodule update --init --recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Build all modules
+        run: make build
+
+      - name: Package artifacts
+        run: |
+          VERSION="${{ github.ref_name }}"
+          OS="${{ runner.os }}"
+          ARCH="$(uname -m)"
+          ARTIFACT="busdk-${VERSION}-${OS}-${ARCH}.tar.gz"
+          tar -czf "$ARTIFACT" -C bin .
+          shasum -a 256 "$ARTIFACT" > "${ARTIFACT}.sha256"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{ matrix.os }}
+          path: |
+            busdk-*.tar.gz
+            busdk-*.tar.gz.sha256
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/*.sha256
