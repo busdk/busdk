@@ -1,0 +1,4 @@
+id,date,amount,currency,description
+txn-001,2025-01-05,1250.00,EUR,Initial deposit
+txn-002,2025-01-10,-42.50,EUR,Office supplies
+txn-003,2025-01-12,-199.99,EUR,Software subscription

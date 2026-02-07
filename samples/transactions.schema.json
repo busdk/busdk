@@ -1,0 +1,45 @@
+{
+  "dialect": {
+    "delimiter": ","
+  },
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "pattern": "^[A-Za-z0-9._:-]+$"
+      }
+    },
+    {
+      "name": "date",
+      "type": "date",
+      "format": "%Y-%m-%d",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "amount",
+      "type": "number",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "enum": [
+          "EUR"
+        ]
+      }
+    },
+    {
+      "name": "description",
+      "type": "string"
+    }
+  ],
+  "primaryKey": "id"
+}
