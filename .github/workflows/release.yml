@@ -29,6 +29,27 @@ jobs:
           submodules: false
           token: ${{ secrets.BUSDK_SUBMODULES_TOKEN }}
 
+      - name: Validate submodule token
+        run: |
+          if [ -z "${SUBMODULES_TOKEN:-}" ]; then
+            echo "BUSDK_SUBMODULES_TOKEN is missing or empty." >&2
+            echo "Create the secret and ensure it has access to all private submodules." >&2
+            exit 1
+          fi
+
+      - name: Normalize submodule URLs to HTTPS
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path(".gitmodules")
+          if not path.exists():
+            raise SystemExit("missing .gitmodules")
+          data = path.read_text()
+          data = data.replace("git@github.com:", "https://github.com/")
+          data = data.replace("ssh://git@github.com/", "https://github.com/")
+          path.write_text(data)
+          PY
+
       - name: Configure private submodule access
         run: |
           git config --global url."https://x-access-token:${SUBMODULES_TOKEN}@github.com/".insteadOf "git@github.com:"
@@ -44,6 +65,9 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.22"
+
+      - name: Run module tests
+        run: make test
 
       - name: Build all modules
         run: make build

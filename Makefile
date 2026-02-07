@@ -10,7 +10,7 @@ INSTALL ?= install
 
 MODULE_DIRS := $(sort $(foreach d,$(wildcard bus bus-*),$(if $(wildcard $(d)/Makefile),$(d),)))
 
-.PHONY: help init update upgrade status bootstrap build install clean distclean
+.PHONY: help init update upgrade status bootstrap test build install clean distclean
 
 help:
 	@printf "BusDK superproject\n\n"
@@ -19,6 +19,7 @@ help:
 	@printf "  update      Sync submodules to pinned commits\n"
 	@printf "  upgrade     (maintainers) Advance pins to latest remotes\n"
 	@printf "  status      Show pinned submodule SHAs\n"
+	@printf "  test        Run module test suites\n"
 	@printf "  build       Build all tools into ./%s\n" "$(BIN_DIR)"
 	@printf "  install     Install tools into %s\n" "$(BINDIR)"
 	@printf "  clean       Remove local build artifacts\n"
@@ -48,6 +49,21 @@ status:
 	git submodule status --recursive
 
 bootstrap: init build install
+
+test:
+	@set -eu; \
+	for mod in $(MODULE_DIRS); do \
+		if [ -f "$$mod/Makefile" ]; then \
+			printf "==> %s\n" "$$mod"; \
+			"$(MAKE)" -C "$$mod" test \
+			BIN_DIR="$(abspath $(BIN_DIR))" \
+			PREFIX="$(PREFIX)" \
+			BINDIR="$(BINDIR)" \
+			GO="$(GO)" \
+			GOFLAGS="$(GOFLAGS)" \
+			CGO_ENABLED="$(CGO_ENABLED)"; \
+		fi; \
+	done
 
 build:
 	@set -eu; \

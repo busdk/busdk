@@ -6,6 +6,13 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   exit 1
 fi
 
+make test
+
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "working tree changed after tests; aborting" >&2
+  exit 1
+fi
+
 latest_tag="$(git tag --list 'v*' --sort=-v:refname | { read -r first || true; printf '%s' "$first"; })"
 
 if [ -z "$latest_tag" ]; then
