@@ -98,36 +98,36 @@ Tags like `v0.1.0` trigger a release build and publish.
 
 - **Install script (curl | bash)**:
 
-The release assets include an `install.sh` that supports install, upgrade (rerun), and uninstall. Because releases are private, you must provide `GITHUB_TOKEN` (a PAT with read access to this repo) when using the script.
+The release assets include an `install.sh` that supports install, upgrade (rerun), and uninstall. GitHub also provides auto-generated source archives (`.tar.gz`/`.zip`) for each release. Release assets are public for this repository, so a token is not required. If assets are ever marked private, provide `GITHUB_TOKEN` (a PAT with read access) when using the script.
 
 ```bash
-curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... bash
+curl -fsS https://github.com/busdk/busdk/releases/download/v0.0.4/install.sh | bash
 ```
 
 Install a specific tag:
 
 ```bash
-curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... bash -s -- v0.1.0
+curl -fsS https://github.com/busdk/busdk/releases/download/v0.1.0/install.sh | bash
 ```
 
 Uninstall:
 
 ```bash
-curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... bash -s -- --uninstall
+curl -fsS https://github.com/busdk/busdk/releases/download/v0.0.4/install.sh | bash -s -- --uninstall
 ```
 
 Install location overrides (also respected for uninstall):
 
 ```bash
 PREFIX=/opt/busdk BINDIR=/opt/busdk/bin \
-  curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... bash
+  curl -fsS https://github.com/busdk/busdk/releases/download/v0.0.4/install.sh | bash
 ```
 
 Packaging with `DESTDIR`:
 
 ```bash
 DESTDIR=/tmp/pkg PREFIX=/usr \
-  curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... bash
+  curl -fsS https://github.com/busdk/busdk/releases/download/v0.0.4/install.sh | bash
 ```
 
 - **Initialize modules** (fresh clone):

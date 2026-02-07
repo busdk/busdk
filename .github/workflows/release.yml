@@ -100,7 +100,7 @@ jobs:
           
           notes:
             - Re-running the install overwrites existing binaries (upgrade).
-            - Private releases require GITHUB_TOKEN with read access.
+            - Releases are public; GITHUB_TOKEN is only needed for private assets.
             - Override install path with PREFIX/BINDIR; use DESTDIR for packaging.
           USAGE
           }
@@ -125,18 +125,16 @@ jobs:
             shift
           done
           
-          require_token() {
-            if [ -z "${GITHUB_TOKEN:-}" ]; then
-              echo "GITHUB_TOKEN is required to access private releases." >&2
-              echo "Set it to a PAT with read access to ${REPO}." >&2
-              exit 1
-            fi
-          }
-          
           fetch_latest_version() {
-            require_token
+            if [ -n "${GITHUB_TOKEN:-}" ]; then
+              curl -fsSL \
+                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/${REPO}/releases/latest" \
+                | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p'
+              return
+            fi
             curl -fsSL \
-              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github+json" \
               "https://api.github.com/repos/${REPO}/releases/latest" \
               | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p'
@@ -214,40 +212,68 @@ jobs:
           cat > RELEASE_NOTES.md <<'EOF'
           # BusDK Release
 
-          This release contains prebuilt BusDK binaries only (no source archives).
+          This release provides prebuilt BusDK binaries for each supported
+          platform. GitHub also provides auto-generated source archives
+          (`.tar.gz`/`.zip`) for each tag.
 
-          ## Install (private releases)
+          ## Install
 
-          The install script requires a `GITHUB_TOKEN` (PAT with read access).
+          Quick install using the release script:
 
           ```sh
-          curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... sh
+          curl -fsS https://github.com/busdk/busdk/releases/download/<tag>/install.sh | sh
           ```
 
           Install a specific tag:
 
           ```sh
-          curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... sh -s -- v0.1.0
+          curl -fsS https://github.com/busdk/busdk/releases/download/v0.1.0/install.sh | sh
           ```
 
           Uninstall:
 
           ```sh
-          curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... sh -s -- --uninstall
+          curl -fsS https://github.com/busdk/busdk/releases/download/<tag>/install.sh | sh -s -- --uninstall
           ```
 
           Override install path:
 
           ```sh
           PREFIX=/opt/busdk BINDIR=/opt/busdk/bin \
-            curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... sh
+            curl -fsS https://github.com/busdk/busdk/releases/download/<tag>/install.sh | sh
           ```
 
           Packaging with `DESTDIR`:
 
           ```sh
           DESTDIR=/tmp/pkg PREFIX=/usr \
-            curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... sh
+            curl -fsS https://github.com/busdk/busdk/releases/download/<tag>/install.sh | sh
+          ```
+
+          ## Manual install
+
+          Download the tarball for your OS/arch, extract, and copy the binaries
+          onto your `PATH`:
+
+          ```sh
+          tar -xzf busdk-<tag>-<os>-<arch>.tar.gz
+          install -m 0755 bus* /usr/local/bin/
+          ```
+
+          Verify the install:
+
+          ```sh
+          bus --help
+          bus-journal --help
+          ```
+
+          ## Verify downloads
+
+          Checksums are published alongside the release assets:
+
+          ```sh
+          shasum -a 256 busdk-<tag>-<os>-<arch>.tar.gz
+          cat busdk-<tag>-<os>-<arch>.tar.gz.sha256
           ```
 
           ## Licensing note
