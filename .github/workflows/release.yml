@@ -209,83 +209,35 @@ jobs:
     steps:
       - name: Generate release notes
         run: |
-          cat > RELEASE_NOTES.md <<'EOF'
-          # BusDK Release
+          VERSION="${{ github.ref_name }}"
+          cat > RELEASE_NOTES.md <<EOF
+          ## BusDK ${VERSION} — Release notes
 
-          This release provides prebuilt BusDK binaries for each supported
-          platform. GitHub also provides auto-generated source archives
-          (`.tar.gz`/`.zip`) for each tag.
+          This release ships the official BusDK CLI binaries for the \`bus\` dispatcher and included modules.
 
-          ## Install
+          ### Availability and business model
 
-          Quick install using the release script:
+          BusDK binaries are published free of charge so anyone can download and run the tools. The full source code and documentation are available to subscribers while their subscription is active. Subscriber-accessible code and docs are provided under the MIT License, so once you have access you may use, modify, and redistribute them under MIT terms. Subscriptions fund ongoing development, maintenance, and timely updates, and are the simplest official way to stay current.
 
-          ```sh
-          curl -fsS https://github.com/busdk/busdk/releases/download/<tag>/install.sh | sh
-          ```
+          ### Source code licensing (subscribers)
 
-          Install a specific tag:
+          All source code and documentation provided to subscribers is licensed under the MIT License (see the \`LICENSE\` file in the source repository). MIT allows redistribution, including public redistribution, and does not require an ongoing subscription to keep using what you already received.
 
-          ```sh
-          curl -fsS https://github.com/busdk/busdk/releases/download/v0.1.0/install.sh | sh
-          ```
+          ### Binary release license (free to use)
 
-          Uninstall:
+          The downloadable binaries in this GitHub Release are provided under the following terms (“BusDK Binary Release Terms”):
 
-          ```sh
-          curl -fsS https://github.com/busdk/busdk/releases/download/<tag>/install.sh | sh -s -- --uninstall
-          ```
+          1. Grant of rights: You may download, run, and use these binaries free of charge for any purpose, including commercial use. You may also copy and redistribute the unmodified binaries and this release text, provided you keep this “Binary release license” section intact.
 
-          Override install path:
+          2. No source code grant: These binaries do not include source code. Source code and documentation access is provided separately to subscribers under the MIT License.
 
-          ```sh
-          PREFIX=/opt/busdk BINDIR=/opt/busdk/bin \
-            curl -fsS https://github.com/busdk/busdk/releases/download/<tag>/install.sh | sh
-          ```
+          3. Trademarks: This license does not grant any right to use BusDK trademarks, logos, or branding in a way that suggests endorsement or official status for modified or third-party distributions.
 
-          Packaging with `DESTDIR`:
+          4. No warranty: THE BINARIES ARE PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
-          ```sh
-          DESTDIR=/tmp/pkg PREFIX=/usr \
-            curl -fsS https://github.com/busdk/busdk/releases/download/<tag>/install.sh | sh
-          ```
+          5. Limitation of liability: IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE BINARIES OR THE USE OR OTHER DEALINGS IN THE BINARIES.
 
-          ## Manual install
-
-          Download the tarball for your OS/arch, extract, and copy the binaries
-          onto your `PATH`:
-
-          ```sh
-          tar -xzf busdk-<tag>-<os>-<arch>.tar.gz
-          install -m 0755 bus* /usr/local/bin/
-          ```
-
-          Verify the install:
-
-          ```sh
-          bus --help
-          bus-journal --help
-          ```
-
-          ## Verify downloads
-
-          Checksums are published alongside the release assets:
-
-          ```sh
-          shasum -a 256 busdk-<tag>-<os>-<arch>.tar.gz
-          cat busdk-<tag>-<os>-<arch>.tar.gz.sha256
-          ```
-
-          ## Licensing note
-
-          Pre-built BusDK CLI tools are freeware and free to use. Full source code
-          access and use is available for commercial users under the MIT license
-          with a paid contract and subscription model. For source licensing,
-          contact info@hg.fi.
-
-          ## Documentation
-
-          Documentation and specifications: https://docs.busdk.com
+          If you need the corresponding source code and full documentation, obtain access via an active subscription (details: info@hg.fi).
           EOF
 
       - name: Download build artifacts
