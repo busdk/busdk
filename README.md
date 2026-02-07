@@ -103,33 +103,33 @@ The release assets include an `install.sh` that supports install, upgrade (rerun
 Quick install using the release script:
 
 ```bash
-curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | bash
+curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh | bash
 ```
 
 Install a specific tag:
 
 ```bash
-curl -fsS https://github.com/busdk/busdk/releases/download/v0.1.0/install.sh | bash
+curl -fsSL https://github.com/busdk/busdk/releases/download/v0.1.0/install.sh | bash
 ```
 
 Uninstall:
 
 ```bash
-curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | bash -s -- --uninstall
+curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh | bash -s -- --uninstall
 ```
 
 Install location overrides (also respected for uninstall):
 
 ```bash
 PREFIX=/opt/busdk BINDIR=/opt/busdk/bin \
-  curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | bash
+  curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh | bash
 ```
 
 Packaging with `DESTDIR`:
 
 ```bash
 DESTDIR=/tmp/pkg PREFIX=/usr \
-  curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | bash
+  curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh | bash
 ```
 
 - **Initialize modules** (fresh clone):

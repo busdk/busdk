@@ -220,13 +220,13 @@ jobs:
           Quick install using the release script:
 
           \`\`\`sh
-          curl -fsS https://github.com/busdk/busdk/releases/download/${VERSION}/install.sh | sh
+          curl -fsSL https://github.com/busdk/busdk/releases/download/${VERSION}/install.sh | sh
           \`\`\`
 
           Uninstall:
 
           \`\`\`sh
-          curl -fsS https://github.com/busdk/busdk/releases/download/${VERSION}/install.sh | sh -s -- --uninstall
+          curl -fsSL https://github.com/busdk/busdk/releases/download/${VERSION}/install.sh | sh -s -- --uninstall
           \`\`\`
 
           Manual install:
