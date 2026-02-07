@@ -215,6 +215,8 @@ jobs:
 
           This release ships the official BusDK CLI binaries for the \`bus\` dispatcher and included modules.
 
+          Docs: https://docs.busdk.com
+
           ### Install (this release)
 
           Quick install using the release script:
