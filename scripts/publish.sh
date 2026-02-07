@@ -35,5 +35,5 @@ else
 fi
 
 git tag "$next_tag"
-echo "Created tag $next_tag"
-echo "Push with: git push origin $next_tag"
+git push origin "$next_tag"
+echo "Created and pushed tag $next_tag"
