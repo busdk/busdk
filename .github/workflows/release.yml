@@ -53,6 +53,121 @@ jobs:
           tar -czf "$ARTIFACT" -C bin .
           shasum -a 256 "$ARTIFACT" > "${ARTIFACT}.sha256"
 
+      - name: Generate install script
+        run: |
+          cat > install.sh <<'EOF'
+          #!/usr/bin/env sh
+          set -eu
+          
+          REPO="busdk/busdk"
+          MODE="install"
+          VERSION=""
+          
+          usage() {
+            cat >&2 <<'USAGE'
+          usage:
+            install.sh [--version <tag>]         Install or upgrade to a tag
+            install.sh <tag>                     Install or upgrade to a tag
+            install.sh --uninstall               Remove installed binaries
+          
+          notes:
+            - Re-running the install overwrites existing binaries (upgrade).
+            - Private releases require GITHUB_TOKEN with read access.
+            - Override install path with PREFIX/BINDIR; use DESTDIR for packaging.
+          USAGE
+          }
+          
+          while [ $# -gt 0 ]; do
+            case "$1" in
+              --uninstall|uninstall)
+                MODE="uninstall"
+                ;;
+              --version)
+                shift
+                VERSION="${1:-}"
+                ;;
+              -h|--help)
+                usage
+                exit 0
+                ;;
+              *)
+                VERSION="$1"
+                ;;
+            esac
+            shift
+          done
+          
+          require_token() {
+            if [ -z "${GITHUB_TOKEN:-}" ]; then
+              echo "GITHUB_TOKEN is required to access private releases." >&2
+              echo "Set it to a PAT with read access to ${REPO}." >&2
+              exit 1
+            fi
+          }
+          
+          fetch_latest_version() {
+            require_token
+            curl -fsSL \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${REPO}/releases/latest" \
+              | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p'
+          }
+          
+          PREFIX="${PREFIX:-$HOME/.local}"
+          BINDIR="${BINDIR:-$PREFIX/bin}"
+          DESTDIR="${DESTDIR:-}"
+          TARGET_DIR="${DESTDIR}${BINDIR}"
+          
+          if [ "$MODE" = "uninstall" ]; then
+            rm -f "$TARGET_DIR/bus" "$TARGET_DIR"/bus-*
+            echo "Removed BusDK binaries from $TARGET_DIR"
+            exit 0
+          fi
+          
+          if [ -z "$VERSION" ]; then
+            VERSION="$(fetch_latest_version)"
+            if [ -z "$VERSION" ]; then
+              echo "unable to determine latest release tag" >&2
+              exit 1
+            fi
+          fi
+          
+          OS="$(uname -s)"
+          ARCH="$(uname -m)"
+          
+          case "$OS" in
+            Linux) OS="Linux" ;;
+            Darwin) OS="macOS" ;;
+            *) echo "unsupported OS: $OS" >&2; exit 1 ;;
+          esac
+          
+          ARTIFACT="busdk-${VERSION}-${OS}-${ARCH}.tar.gz"
+          URL="https://github.com/${REPO}/releases/download/${VERSION}/${ARTIFACT}"
+          
+          TMP_DIR="$(mktemp -d)"
+          trap 'rm -rf "$TMP_DIR"' EXIT
+          
+          if [ -n "${GITHUB_TOKEN:-}" ]; then
+            curl -fsSL -H "Authorization: Bearer ${GITHUB_TOKEN}" -o "$TMP_DIR/$ARTIFACT" "$URL"
+          else
+            curl -fsSL -o "$TMP_DIR/$ARTIFACT" "$URL"
+          fi
+          
+          tar -xzf "$TMP_DIR/$ARTIFACT" -C "$TMP_DIR"
+          
+          mkdir -p "$TARGET_DIR"
+          
+          for bin in "$TMP_DIR"/bus*; do
+            if [ -f "$bin" ]; then
+              install -m 0755 "$bin" "$TARGET_DIR/"
+            fi
+          done
+          
+          echo "Installed BusDK binaries to $TARGET_DIR"
+          EOF
+          chmod +x install.sh
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -60,6 +175,7 @@ jobs:
           path: |
             busdk-*.tar.gz
             busdk-*.tar.gz.sha256
+            install.sh
 
   release:
     needs: build
@@ -77,3 +193,5 @@ jobs:
           files: |
             dist/*.tar.gz
             dist/*.sha256
+            dist/install.sh
+          fail_on_unmatched_files: true
