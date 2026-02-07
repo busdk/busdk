@@ -154,6 +154,12 @@ make status
 make build
 ```
 
+- **Skip selected modules** (space-separated shell globs):
+
+```bash
+make build SKIP_MODULES="bus-filing*"
+```
+
 - **Install tools into `$(BINDIR)`**:
 
 ```bash
@@ -186,6 +192,7 @@ make distclean
 - `BINDIR`: install directory (default: `$(PREFIX)/bin`)
 - `BIN_DIR`: local build output directory (default: `bin`)
 - `GO`: Go tool to use (default: `go`)
+- `SKIP_MODULES`: space-separated module names or shell globs to skip in root targets (default skips `bus-filing`, `bus-filing-prh`, `bus-filing-vero`)
 
 ## Tests
 

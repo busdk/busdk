@@ -9,6 +9,7 @@ BINDIR ?= $(PREFIX)/bin
 INSTALL ?= install
 
 MODULE_DIRS := $(sort $(foreach d,$(wildcard bus bus-*),$(if $(wildcard $(d)/Makefile),$(d),)))
+SKIP_MODULES ?= bus-filing bus-filing-prh bus-filing-vero
 
 .PHONY: help init update upgrade status bootstrap test build install clean distclean
 
@@ -30,6 +31,7 @@ help:
 	@printf "  BIN_DIR=%s\n" "$(BIN_DIR)"
 	@printf "  PREFIX=%s\n" "$(PREFIX)"
 	@printf "  BINDIR=%s\n\n" "$(BINDIR)"
+	@printf "  SKIP_MODULES=%s\n\n" "$(SKIP_MODULES)"
 	@printf "Example:\n"
 	@printf "  make bootstrap\n"
 	@printf "  make bootstrap PREFIX=/opt/busdk\n"
@@ -53,6 +55,14 @@ bootstrap: init build install
 test:
 	@set -eu; \
 	for mod in $(MODULE_DIRS); do \
+		skip=0; \
+		for pat in $(SKIP_MODULES); do \
+			case "$$mod" in $$pat) skip=1;; esac; \
+		done; \
+		if [ "$$skip" -eq 1 ]; then \
+			printf "==> %s (skipped)\n" "$$mod"; \
+			continue; \
+		fi; \
 		if [ -f "$$mod/Makefile" ]; then \
 			printf "==> %s\n" "$$mod"; \
 			"$(MAKE)" -C "$$mod" test \
@@ -68,6 +78,14 @@ test:
 build:
 	@set -eu; \
 	for mod in $(MODULE_DIRS); do \
+		skip=0; \
+		for pat in $(SKIP_MODULES); do \
+			case "$$mod" in $$pat) skip=1;; esac; \
+		done; \
+		if [ "$$skip" -eq 1 ]; then \
+			printf "==> %s (skipped)\n" "$$mod"; \
+			continue; \
+		fi; \
 		if [ -f "$$mod/Makefile" ]; then \
 			printf "==> %s\n" "$$mod"; \
 			"$(MAKE)" -C "$$mod" build \
@@ -83,6 +101,14 @@ build:
 install:
 	@set -eu; \
 	for mod in $(MODULE_DIRS); do \
+		skip=0; \
+		for pat in $(SKIP_MODULES); do \
+			case "$$mod" in $$pat) skip=1;; esac; \
+		done; \
+		if [ "$$skip" -eq 1 ]; then \
+			printf "==> %s (skipped)\n" "$$mod"; \
+			continue; \
+		fi; \
 		if [ -f "$$mod/Makefile" ]; then \
 			printf "==> %s\n" "$$mod"; \
 			"$(MAKE)" -C "$$mod" install \
@@ -98,6 +124,14 @@ install:
 clean:
 	@set -eu; \
 	for mod in $(MODULE_DIRS); do \
+		skip=0; \
+		for pat in $(SKIP_MODULES); do \
+			case "$$mod" in $$pat) skip=1;; esac; \
+		done; \
+		if [ "$$skip" -eq 1 ]; then \
+			printf "==> %s (skipped)\n" "$$mod"; \
+			continue; \
+		fi; \
 		if [ -f "$$mod/Makefile" ]; then \
 			printf "==> %s\n" "$$mod"; \
 			"$(MAKE)" -C "$$mod" clean \
