@@ -5,6 +5,12 @@
 
 BusDK is a modular, CLI-first toolkit for running a business with Git-native, auditable data. It stores business datasets as UTF-8 CSV backed by Frictionless Table Schema (JSON), favoring simple primitives, deterministic behavior, and workflows that work well for both humans and automation. This repository is the one-command entrypoint to install the full BusDK toolchain.
 
+## Quick install
+
+```bash
+curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh | bash
+```
+
 ## Status
 
 Pre-release and actively maintained. Interfaces, schemas, and file conventions may still evolve.
@@ -16,13 +22,29 @@ Pre-release and actively maintained. Interfaces, schemas, and file conventions m
 - Git-friendly, schema-validated CSV datasets with deterministic outputs
 - Reproducible builds with consistent output and install paths
 
-## Prerequisites
+## Usage
+
+After installation, ensure `$(PREFIX)/bin` is on your `PATH`, then run:
+
+```bash
+bus --help
+```
+
+Expected output includes the dispatcher help header and a list of available subcommands.
+
+Each module also installs a standalone binary, for example:
+
+```bash
+bus-journal --help
+```
+
+## Install from source
+
+Prerequisites:
 
 - `git` with submodule support
 - POSIX `make`
 - Go toolchain available as `go`
-
-## Install
 
 Clone the repository and run the bootstrap target. This initializes modules, builds all tools, and installs them.
 
@@ -57,22 +79,6 @@ To build without installing:
 make build
 ```
 
-## Usage
-
-After installation, ensure `$(PREFIX)/bin` is on your `PATH`, then run:
-
-```bash
-bus --help
-```
-
-Expected output includes the dispatcher help header and a list of available subcommands.
-
-Each module also installs a standalone binary, for example:
-
-```bash
-bus-journal --help
-```
-
 ## Documentation and resources
 
 - Specifications and documentation: `https://docs.busdk.com`
@@ -99,12 +105,6 @@ Tags like `v0.1.0` trigger a release build and publish.
 - **Install script (curl | bash)**:
 
 The release assets include an `install.sh` that supports install, upgrade (rerun), and uninstall. GitHub also provides auto-generated source archives (`.tar.gz`/`.zip`) for each release. Release assets are public for this repository, so a token is not required. If assets are ever marked private, provide `GITHUB_TOKEN` (a PAT with read access) when using the script.
-
-Quick install using the release script:
-
-```bash
-curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh | bash
-```
 
 Install a specific tag:
 
