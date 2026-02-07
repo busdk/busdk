@@ -181,6 +181,55 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Generate release notes
+        run: |
+          cat > RELEASE_NOTES.md <<'EOF'
+          # BusDK Release
+
+          This release contains prebuilt BusDK binaries only (no source archives).
+
+          ## Install (private releases)
+
+          The install script requires a `GITHUB_TOKEN` (PAT with read access).
+
+          ```sh
+          curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... sh
+          ```
+
+          Install a specific tag:
+
+          ```sh
+          curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... sh -s -- v0.1.0
+          ```
+
+          Uninstall:
+
+          ```sh
+          curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... sh -s -- --uninstall
+          ```
+
+          Override install path:
+
+          ```sh
+          PREFIX=/opt/busdk BINDIR=/opt/busdk/bin \
+            curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... sh
+          ```
+
+          Packaging with `DESTDIR`:
+
+          ```sh
+          DESTDIR=/tmp/pkg PREFIX=/usr \
+            curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... sh
+          ```
+
+          ## Licensing note
+
+          Pre-built BusDK CLI tools are freeware and free to use. Full source code
+          access and use is available for commercial users under the MIT license
+          with a paid contract and subscription model. For source licensing,
+          contact info@hg.fi.
+          EOF
+
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -190,8 +239,10 @@ jobs:
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
+          body_path: RELEASE_NOTES.md
           files: |
             dist/*.tar.gz
             dist/*.sha256
             dist/install.sh
+            RELEASE_NOTES.md
           fail_on_unmatched_files: true

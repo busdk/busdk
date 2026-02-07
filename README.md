@@ -96,6 +96,40 @@ Required token permissions:
 
 Tags like `v0.1.0` trigger a release build and publish.
 
+- **Install script (curl | bash)**:
+
+The release assets include an `install.sh` that supports install, upgrade (rerun), and uninstall. Because releases are private, you must provide `GITHUB_TOKEN` (a PAT with read access to this repo) when using the script.
+
+```bash
+curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... bash
+```
+
+Install a specific tag:
+
+```bash
+curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... bash -s -- v0.1.0
+```
+
+Uninstall:
+
+```bash
+curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... bash -s -- --uninstall
+```
+
+Install location overrides (also respected for uninstall):
+
+```bash
+PREFIX=/opt/busdk BINDIR=/opt/busdk/bin \
+  curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... bash
+```
+
+Packaging with `DESTDIR`:
+
+```bash
+DESTDIR=/tmp/pkg PREFIX=/usr \
+  curl -fsS https://github.com/busdk/busdk/releases/latest/download/install.sh | GITHUB_TOKEN=... bash
+```
+
 - **Initialize modules** (fresh clone):
 
 ```bash
@@ -181,3 +215,7 @@ Maintained by the BusDK maintainers. Module authors and contributors are credite
 ## License
 
 See [LICENSE](LICENSE).
+
+## Commercial licensing
+
+Pre-built BusDK CLI tools are freeware and free to use. Full source code access and use is available for commercial users under the MIT license with a paid contract and subscription model. For source licensing, contact `info@hg.fi`.
