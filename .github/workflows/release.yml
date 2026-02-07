@@ -204,7 +204,9 @@ jobs:
             install.sh
 
   release:
-    needs: build
+    needs:
+      - build
+      - tag-submodules
     runs-on: ubuntu-latest
     steps:
       - name: Generate release notes
@@ -291,3 +293,70 @@ jobs:
             dist/install.sh
             RELEASE_NOTES.md
           fail_on_unmatched_files: true
+
+  tag-submodules:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      SUBMODULES_TOKEN: ${{ secrets.BUSDK_SUBMODULES_TOKEN }}
+      GIT_TERMINAL_PROMPT: "0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: false
+          token: ${{ secrets.BUSDK_SUBMODULES_TOKEN }}
+
+      - name: Validate submodule token
+        run: |
+          if [ -z "${SUBMODULES_TOKEN:-}" ]; then
+            echo "BUSDK_SUBMODULES_TOKEN is missing or empty." >&2
+            echo "Create the secret and ensure it has access to all private submodules." >&2
+            exit 1
+          fi
+
+      - name: Normalize submodule URLs to HTTPS
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path(".gitmodules")
+          if not path.exists():
+            raise SystemExit("missing .gitmodules")
+          data = path.read_text()
+          data = data.replace("git@github.com:", "https://github.com/")
+          data = data.replace("ssh://git@github.com/", "https://github.com/")
+          path.write_text(data)
+          PY
+
+      - name: Configure private submodule access
+        run: |
+          git config --global url."https://x-access-token:${SUBMODULES_TOKEN}@github.com/".insteadOf "git@github.com:"
+          git config --global url."https://x-access-token:${SUBMODULES_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
+          git config --global url."https://x-access-token:${SUBMODULES_TOKEN}@github.com/".insteadOf "https://github.com/"
+
+      - name: Init submodules
+        run: |
+          git submodule sync --recursive
+          git submodule update --init --recursive
+
+      - name: Tag submodules with release tag
+        run: |
+          VERSION="${{ github.ref_name }}"
+          git submodule foreach --recursive '
+            set -eu
+            TAG="${VERSION}"
+            HEAD_SHA="$(git rev-parse HEAD)"
+            if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+              TAG_SHA="$(git rev-parse "refs/tags/${TAG}")"
+              if [ "$TAG_SHA" = "$HEAD_SHA" ]; then
+                echo "$name: tag ${TAG} already exists at ${HEAD_SHA}"
+                exit 0
+              fi
+              echo "$name: tag ${TAG} exists at ${TAG_SHA}, expected ${HEAD_SHA}" >&2
+              exit 1
+            fi
+            git tag "${TAG}"
+            git push origin "refs/tags/${TAG}"
+            echo "$name: pushed tag ${TAG} at ${HEAD_SHA}"
+          '
