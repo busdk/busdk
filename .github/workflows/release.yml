@@ -228,6 +228,10 @@ jobs:
           access and use is available for commercial users under the MIT license
           with a paid contract and subscription model. For source licensing,
           contact info@hg.fi.
+
+          ## Documentation
+
+          Documentation and specifications: https://docs.busdk.com
           EOF
 
       - name: Download build artifacts
