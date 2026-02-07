@@ -20,6 +20,7 @@ jobs:
           - macos-latest
     env:
       SUBMODULES_TOKEN: ${{ secrets.BUSDK_SUBMODULES_TOKEN }}
+      GIT_TERMINAL_PROMPT: "0"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,10 +32,13 @@ jobs:
       - name: Configure private submodule access
         run: |
           git config --global url."https://x-access-token:${SUBMODULES_TOKEN}@github.com/".insteadOf "git@github.com:"
+          git config --global url."https://x-access-token:${SUBMODULES_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
           git config --global url."https://x-access-token:${SUBMODULES_TOKEN}@github.com/".insteadOf "https://github.com/"
 
       - name: Init submodules
-        run: git submodule update --init --recursive
+        run: |
+          git submodule sync --recursive
+          git submodule update --init --recursive
 
       - name: Set up Go
         uses: actions/setup-go@v5
