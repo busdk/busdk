@@ -1,0 +1,12 @@
+{
+  "profile": "tabular-data-package",
+  "resources": [
+    {
+      "name": "transactions",
+      "path": "transactions.csv",
+      "schema": {
+        "path": "transactions.schema.json"
+      }
+    }
+  ]
+}
