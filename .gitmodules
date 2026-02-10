@@ -98,3 +98,7 @@
 	path = bus-bfl
 	url = git@github.com:busdk/bus-bfl.git
 	branch = 1-bus-bfl
+[submodule "bus-dev"]
+	path = bus-dev
+	url = git@github.com:busdk/bus-dev.git
+	branch = 1-bus-dev
