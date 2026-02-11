@@ -8,7 +8,7 @@ echo bus-*|tr ' ' '\n'|while read DIR; do
     echo "----- $DIR -----"
     (
       cd $DIR
-      ./scripts/work.sh < /dev/null
+      bus dev work < /dev/null
     )
     echo "----- $DIR -----"
     echo
