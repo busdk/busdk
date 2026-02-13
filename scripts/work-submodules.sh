@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 #set -x
 
 echo bus-*|tr ' ' '\n'|while read DIR; do 
-  if test -e "$DIR/scripts/work.sh"; then
+  if test -e "$DIR/PLAN.md"; then
     echo "----- $DIR -----"
     (
       cd $DIR
