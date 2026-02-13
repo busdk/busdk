@@ -65,6 +65,12 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.22"
+          cache: false
+
+      - name: Configure Git for module tests
+        run: |
+          git config --global user.email "ci@busdk"
+          git config --global user.name "CI"
 
       - name: Run module tests
         run: make test
