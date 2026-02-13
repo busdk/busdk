@@ -121,3 +121,4 @@
 [submodule "bus-preferences"]
 	path = bus-preferences
 	url = git@github.com:busdk/bus-preferences.git
+	branch = main
