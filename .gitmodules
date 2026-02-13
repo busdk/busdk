@@ -106,3 +106,18 @@
 	path = bus-config
 	url = git@github.com:busdk/bus-config.git
 	branch = main
+[submodule "bus-api"]
+	path = bus-api
+	url = git@github.com:busdk/bus-api.git
+	branch = main
+[submodule "bus-agent"]
+	path = bus-agent
+	url = git@github.com:busdk/bus-agent.git
+	branch = main
+[submodule "bus-sheets"]
+	path = bus-sheets
+	url = git@github.com:busdk/bus-sheets.git
+	branch = main
+[submodule "bus-preferences"]
+	path = bus-preferences
+	url = git@github.com:busdk/bus-preferences.git
