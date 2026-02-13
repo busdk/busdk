@@ -7,8 +7,9 @@ echo bus-*|tr ' ' '\n'|while read DIR; do
   if test -e "$DIR/scripts/work.sh"; then
     echo "----- $DIR -----"
     (
+      set -e
       cd $DIR
-      bus dev work stage commit < /dev/null
+      bus dev spec plan stage commit < /dev/null
     )
     echo "----- $DIR -----"
     echo
