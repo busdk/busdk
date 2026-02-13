@@ -102,3 +102,7 @@
 	path = bus-dev
 	url = git@github.com:busdk/bus-dev.git
 	branch = 1-bus-dev
+[submodule "bus-config"]
+	path = bus-config
+	url = git@github.com:busdk/bus-config.git
+	branch = main
