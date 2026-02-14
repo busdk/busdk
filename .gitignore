@@ -32,3 +32,6 @@ go.work.sum
 .idea/
 .vscode/
 bin/
+
+# bus-dev per-directory lock (runtime artifact)
+.bus-dev.lock
