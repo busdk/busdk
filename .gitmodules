@@ -2,6 +2,10 @@
 	path = bus
 	url = git@github.com:busdk/bus.git
 	branch = 2-core-bus-command
+[submodule "docs"]
+	path = docs
+	url = git@github.com:busdk/docs.git
+	branch = main
 [submodule "bus-accounts"]
 	path = bus-accounts
 	url = git@github.com:busdk/bus-accounts.git
@@ -78,10 +82,6 @@
 	path = bus-loans
 	url = git@github.com:busdk/bus-loans.git
 	branch = 1-bus-loans
-[submodule "docs"]
-	path = docs
-	url = git@github.com:busdk/docs.git
-	branch = main
 [submodule "bus-pdf"]
 	path = bus-pdf
 	url = git@github.com:busdk/bus-pdf.git
@@ -105,20 +105,24 @@
 [submodule "bus-config"]
 	path = bus-config
 	url = git@github.com:busdk/bus-config.git
-	branch = main
+	branch = 1-bus-config
 [submodule "bus-api"]
 	path = bus-api
 	url = git@github.com:busdk/bus-api.git
-	branch = main
+	branch = 1-bus-api
 [submodule "bus-agent"]
 	path = bus-agent
 	url = git@github.com:busdk/bus-agent.git
-	branch = main
+	branch = 1-bus-agent
 [submodule "bus-sheets"]
 	path = bus-sheets
 	url = git@github.com:busdk/bus-sheets.git
-	branch = main
+	branch = 1-bus-sheets
 [submodule "bus-preferences"]
 	path = bus-preferences
 	url = git@github.com:busdk/bus-preferences.git
-	branch = main
+	branch = 1-bus-preferences
+[submodule "bus-run"]
+	path = bus-run
+	url = git@github.com:busdk/bus-run.git
+	branch = 1-bus-run
