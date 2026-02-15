@@ -126,3 +126,7 @@
 	path = bus-run
 	url = git@github.com:busdk/bus-run.git
 	branch = 1-bus-run
+[submodule "busdk.com"]
+	path = busdk.com
+	url = git@github.com:busdk/busdk.com.git
+	branch = main
