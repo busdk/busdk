@@ -6,6 +6,10 @@
 	path = docs
 	url = git@github.com:busdk/docs.git
 	branch = main
+[submodule "busdk.com"]
+	path = busdk.com
+	url = git@github.com:busdk/busdk.com.git
+	branch = main
 [submodule "bus-accounts"]
 	path = bus-accounts
 	url = git@github.com:busdk/bus-accounts.git
@@ -126,7 +130,7 @@
 	path = bus-run
 	url = git@github.com:busdk/bus-run.git
 	branch = 1-bus-run
-[submodule "busdk.com"]
-	path = busdk.com
-	url = git@github.com:busdk/busdk.com.git
-	branch = main
+[submodule "bus-balances"]
+	path = bus-balances
+	url = git@github.com:busdk/bus-balances.git
+	branch = 1-bus-balances
