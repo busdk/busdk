@@ -4,6 +4,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# Make TSV numeric output deterministic (avoid comma decimals in some locales)
+export LC_ALL=C
+
 have() { command -v "$1" >/dev/null 2>&1; }
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -12,7 +15,7 @@ die() { echo "error: $*" >&2; exit 1; }
 # -----------------------------------------------------------------------------
 : "${CURSOR_ADMIN_API_KEY:?CURSOR_ADMIN_API_KEY is required (Cursor Admin API key)}"
 
-# Required tooling for this script (we keep everything in this same script)
+# Required tooling
 have git     || die "git not found"
 have curl    || die "curl not found"
 have jq      || die "jq not found"
@@ -27,40 +30,40 @@ SNAPSHOT="$(TZ="$SNAPSHOT_TZ" date '+%Y-%m-%d %H:%M %Z')"
 tmp_dates="$(mktemp)"
 tmp_pairs="$(mktemp)"
 tmp_modules="$(mktemp)"
+tmp_modules_human="$(mktemp)"
 tmp_usage_ndjson="$(mktemp)"
 tmp_usage_ndjson_sorted="$(mktemp)"
-trap 'rm -f "$tmp_dates" "$tmp_pairs" "$tmp_modules" "$tmp_usage_ndjson" "$tmp_usage_ndjson_sorted"' EXIT
+trap 'rm -f "$tmp_dates" "$tmp_pairs" "$tmp_modules" "$tmp_modules_human" "$tmp_usage_ndjson" "$tmp_usage_ndjson_sorted"' EXIT
 
 # -----------------------------------------------------------------------------
 # Manual costs (USD)
 # -----------------------------------------------------------------------------
 CHATGPT_PLUS_USD="${CHATGPT_PLUS_USD:-21.76}"
-EXTRA_COSTS_USD="${EXTRA_COSTS_USD:-0}" # add any other costs here (USD), e.g. 12.34
+EXTRA_COSTS_USD="${EXTRA_COSTS_USD:-0}"
 
 # -----------------------------------------------------------------------------
 # Human labor cost model (USD)
 # -----------------------------------------------------------------------------
-HUMAN_LABOR_PROJECT_BASE_USD="${HUMAN_LABOR_PROJECT_BASE_USD:-0}"   # one-time project overhead, distributed across modules
-HUMAN_LABOR_MODULE_BASE_USD="${HUMAN_LABOR_MODULE_BASE_USD:-0}"     # fixed overhead per module
-HUMAN_LABOR_IMPL_PER_COMMIT_USD="${HUMAN_LABOR_IMPL_PER_COMMIT_USD:-6.785714285714286}"       # implementation effort per commit
-HUMAN_LABOR_REVIEW_PER_COMMIT_USD="${HUMAN_LABOR_REVIEW_PER_COMMIT_USD:-6.195652173913044}"   # PR review effort per commit (future)
-HUMAN_LABOR_UPKEEP_PER_COMMIT_USD="${HUMAN_LABOR_UPKEEP_PER_COMMIT_USD:-6}"   # upkeep/bugfix provision per commit (future)
+HUMAN_LABOR_PROJECT_BASE_USD="${HUMAN_LABOR_PROJECT_BASE_USD:-0}"
+HUMAN_LABOR_MODULE_BASE_USD="${HUMAN_LABOR_MODULE_BASE_USD:-0}"
+HUMAN_LABOR_IMPL_PER_COMMIT_USD="${HUMAN_LABOR_IMPL_PER_COMMIT_USD:-6.785714285714286}"
+HUMAN_LABOR_REVIEW_PER_COMMIT_USD="${HUMAN_LABOR_REVIEW_PER_COMMIT_USD:-6.195652173913044}"
+HUMAN_LABOR_UPKEEP_PER_COMMIT_USD="${HUMAN_LABOR_UPKEEP_PER_COMMIT_USD:-6}"
 
 # -----------------------------------------------------------------------------
-# Cursor token price knobs (optional sanity-check; NOT used as authoritative billing)
+# Cursor token price knobs (optional sanity-check; NOT authoritative billing)
 # -----------------------------------------------------------------------------
-CURSOR_RATE_INPUT_USD_PER_1M="${CURSOR_RATE_INPUT_USD_PER_1M:-1.25}"   # input + cache write
-CURSOR_RATE_OUTPUT_USD_PER_1M="${CURSOR_RATE_OUTPUT_USD_PER_1M:-6.00}"  # output
-CURSOR_RATE_CACHE_READ_USD_PER_1M="${CURSOR_RATE_CACHE_READ_USD_PER_1M:-0.25}" # cache read
+CURSOR_RATE_INPUT_USD_PER_1M="${CURSOR_RATE_INPUT_USD_PER_1M:-1.25}"
+CURSOR_RATE_OUTPUT_USD_PER_1M="${CURSOR_RATE_OUTPUT_USD_PER_1M:-6.00}"
+CURSOR_RATE_CACHE_READ_USD_PER_1M="${CURSOR_RATE_CACHE_READ_USD_PER_1M:-0.25}"
 
 # -----------------------------------------------------------------------------
-# Cursor usage fetch range (required fetch; range has defaults)
+# Cursor usage fetch range
 # -----------------------------------------------------------------------------
 CURSOR_USAGE_PAGE_SIZE="${CURSOR_USAGE_PAGE_SIZE:-1000}"
 CURSOR_USAGE_START_DATE="${CURSOR_USAGE_START_DATE:-}"
 CURSOR_USAGE_END_DATE="${CURSOR_USAGE_END_DATE:-}"
 
-# Admin API appears to enforce pageSize max (requesting >1000 has produced 400s).
 if [ "$CURSOR_USAGE_PAGE_SIZE" -gt 1000 ]; then CURSOR_USAGE_PAGE_SIZE=1000; fi
 if [ "$CURSOR_USAGE_PAGE_SIZE" -lt 1 ]; then CURSOR_USAGE_PAGE_SIZE=1; fi
 
@@ -72,9 +75,14 @@ echo "# cwd: $(pwd)"
 echo
 
 # ---------------------------------------------------------------------------
-# Per-module metrics
+# Per-module metrics (git) -> tmp_modules
 # ---------------------------------------------------------------------------
-echo "# per-module (tsv): module	commits	active_days	avg_commits_per_active_day	first_date	last_date	human_labor_usd_est"
+echo "# per-module base + human labor (tsv): module	commits	active_days	avg_commits_per_active_day	first_date	last_date	human_labor_usd_est"
+
+: > "$tmp_modules"
+: > "$tmp_modules_human"
+: > "$tmp_dates"
+: > "$tmp_pairs"
 
 git submodule foreach --quiet '
   commits="$(git rev-list --count HEAD 2>/dev/null || echo 0)"
@@ -82,8 +90,8 @@ git submodule foreach --quiet '
 
   if [ -n "$dates" ]; then
     active_days="$(printf "%s\n" "$dates" | LC_ALL=C sort -u | wc -l | tr -d " ")"
-    last_date="$(printf "%s\n" "$dates" | head -n 1)"
-    first_date="$(printf "%s\n" "$dates" | tail -n 1)"
+    last_date="$(printf "%s\n" "$dates" | head -n 1)"  # newest
+    first_date="$(printf "%s\n" "$dates" | tail -n 1)" # oldest
   else
     active_days="0"
     last_date=""
@@ -91,7 +99,7 @@ git submodule foreach --quiet '
   fi
 
   if [ "$active_days" -gt 0 ]; then
-    avg="$(awk -v c="$commits" -v d="$active_days" "BEGIN{printf \"%.2f\", c/d}")"
+    avg="$(LC_ALL=C awk -v c="$commits" -v d="$active_days" "BEGIN{printf \"%.2f\", c/d}")"
   else
     avg="0.00"
   fi
@@ -104,7 +112,7 @@ git submodule foreach --quiet '
   fi
 '
 
-python3 - "$tmp_modules" <<PY
+python3 - "$tmp_modules" > "$tmp_modules_human" <<PY
 import sys
 path = sys.argv[1]
 
@@ -147,12 +155,13 @@ for _, parts in out:
     print("\t".join(parts))
 PY
 
+cat "$tmp_modules_human"
+
 echo
 
 # ---------------------------------------------------------------------------
-# Daily distributions + derived totals (same as before)
+# Daily distributions + derived totals (git)
 # ---------------------------------------------------------------------------
-
 commits_per_day_tsv="$(
   if [ -s "$tmp_dates" ]; then
     grep -Eo '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' "$tmp_dates" \
@@ -217,7 +226,7 @@ if [ -s "$tmp_dates" ]; then
   date_last="$(grep -Eo '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' "$tmp_dates" | LC_ALL=C sort | tail -n 1 || true)"
 fi
 
-echo "# totals (derived)"
+echo "# totals (derived; git)"
 echo "total_commits_sum	${total_commits_sum}"
 echo "total_active_days_union	${total_active_days_union}"
 echo "avg_commits_per_day	${avg_commits_per_day}"
@@ -239,12 +248,9 @@ if [ -n "$active_modules_per_day_tsv" ]; then printf "%s\n" "$active_modules_per
 echo
 
 # ---------------------------------------------------------------------------
-# Cursor Costs (Admin API) — REQUIRED and authoritative for cost analysis
+# Cursor Costs (Admin API)
 # ---------------------------------------------------------------------------
 
-# Retries:
-# - for 429 and 5xx: retry with exponential backoff
-# - for other non-200: fail (print body)
 CURL_MAX_RETRIES="${CURL_MAX_RETRIES:-8}"
 CURL_RETRY_BASE_SLEEP_SEC="${CURL_RETRY_BASE_SLEEP_SEC:-1}"
 
@@ -273,7 +279,6 @@ curl_json() {
       return 0
     fi
 
-    # Retry on 429 and 5xx
     if [ "$status" = "429" ] || [[ "$status" =~ ^5[0-9][0-9]$ ]]; then
       if [ "$attempt" -ge "$CURL_MAX_RETRIES" ]; then
         echo "error: Cursor Admin API request failed after retries" >&2
@@ -290,7 +295,6 @@ curl_json() {
       continue
     fi
 
-    # Fail on other errors
     echo "error: Cursor Admin API request failed" >&2
     echo "url: $url" >&2
     echo "http_status: $status" >&2
@@ -353,7 +357,7 @@ echo "# costs"
 echo "chatgpt_plus_usd	${CHATGPT_PLUS_USD}"
 echo "extra_costs_usd	${EXTRA_COSTS_USD}"
 
-# --- /teams/spend (kept) ---
+# /teams/spend (kept)
 spend_json="$(curl_json "https://api.cursor.com/teams/spend" '{}')"
 
 cursor_spend_usd="$(printf "%s" "$spend_json" | jq -r '([.teamMemberSpend[].spendCents] | add // 0) / 100')"
@@ -364,7 +368,7 @@ echo "cursor_team_spend_usd	${cursor_spend_usd}"
 echo "cursor_team_included_usd	${cursor_included_usd}"
 echo "cursor_team_total_usd	${cursor_total_usd_spend}"
 
-# --- /teams/filtered-usage-events (required; used for cost analysis) ---
+# /teams/filtered-usage-events (authoritative for tokens+cost in range)
 echo
 echo "# cursor usage events (Admin API): filtered-usage-events"
 echo "cursor_usage_fetch_tz	${SNAPSHOT_TZ}"
@@ -376,34 +380,42 @@ echo "cursor_usage_fetch_page_size	${CURSOR_USAGE_PAGE_SIZE}"
 
 : > "$tmp_usage_ndjson"
 
+# Robust jq selector for events array (API shape drift tolerant)
+events_jq='(
+  if (.usageEventsDisplay|type)=="array" then .usageEventsDisplay
+  elif (.usageEventsDisplay|type)=="object" then (.usageEventsDisplay.events // .usageEventsDisplay.items // .usageEventsDisplay.usageEvents // [])
+  elif (.usageEvents|type)=="array" then .usageEvents
+  elif (.usageEvents|type)=="object" then (.usageEvents.events // .usageEvents.items // .usageEvents.usageEvents // [])
+  else []
+  end
+)'
+
 page=1
 total_count=0
 seen_count=0
+first_resp=""
 
 while :; do
   body="$(printf '{"pageSize":%s,"startDate":%s,"endDate":%s,"page":%s}' \
     "$CURSOR_USAGE_PAGE_SIZE" "$start_ms" "$end_ms" "$page")"
 
   resp="$(curl_json "https://api.cursor.com/teams/filtered-usage-events" "$body")"
+  if [ "$page" -eq 1 ]; then first_resp="$resp"; fi
 
   if [ "$page" -eq 1 ]; then
-    total_count="$(printf "%s" "$resp" | jq -r '.totalUsageEventsCount // 0')"
+    total_count="$(printf "%s" "$resp" | jq -r '.totalUsageEventsCount // .totalCount // .total // 0')"
     echo "cursor_usage_events_total_count	${total_count}"
   fi
 
-  # Append events
-  got="$(printf "%s" "$resp" | jq -r '.usageEventsDisplay | length')"
-  printf "%s" "$resp" | jq -c '.usageEventsDisplay[]?' >> "$tmp_usage_ndjson"
+  got="$(printf "%s" "$resp" | jq -r "$events_jq | length")"
+  printf "%s" "$resp" | jq -c "$events_jq[]?" >> "$tmp_usage_ndjson"
   seen_count=$((seen_count + got))
 
   echo "cursor_usage_events_page_${page}_rows	${got}"
 
-  # Stop conditions:
-  # 1) short page => last page
   if [ "$got" -lt "$CURSOR_USAGE_PAGE_SIZE" ]; then
     break
   fi
-  # 2) total count satisfied (when API provides it)
   if [ "$total_count" -gt 0 ] && [ "$seen_count" -ge "$total_count" ]; then
     break
   fi
@@ -414,13 +426,31 @@ done
 echo "cursor_usage_events_seen_count	${seen_count}"
 echo
 
-# Deterministic ordering for analysis output (independent of pagination/network)
+# If API says there are events but we extracted none, fail loudly + debug
+if [ "$seen_count" -eq 0 ] && [ "$total_count" -gt 0 ]; then
+  echo "error: Cursor API returned totalUsageEventsCount=${total_count} but extracted 0 events." >&2
+  echo "error: This usually means the response field name/shape changed again." >&2
+  if [ "${DEBUG_CURSOR_API:-0}" = "1" ] && [ -n "$first_resp" ]; then
+    echo "debug: first page keys:" >&2
+    printf "%s" "$first_resp" | jq -r 'keys' >&2 || true
+    echo "debug: usageEventsDisplay type:" >&2
+    printf "%s" "$first_resp" | jq -r '.usageEventsDisplay|type? // "missing"' >&2 || true
+    echo "debug: usageEvents type:" >&2
+    printf "%s" "$first_resp" | jq -r '.usageEvents|type? // "missing"' >&2 || true
+    echo "debug: extracted events type/len:" >&2
+    printf "%s" "$first_resp" | jq -r "$events_jq | (type|tostring) + \" len=\" + ((length|tostring))" >&2 || true
+  else
+    echo "hint: re-run with DEBUG_CURSOR_API=1 to print response keys/types." >&2
+  fi
+  exit 1
+fi
+
 LC_ALL=C sort "$tmp_usage_ndjson" > "$tmp_usage_ndjson_sorted"
 mv "$tmp_usage_ndjson_sorted" "$tmp_usage_ndjson"
 
-# Analyze usage events deterministically and emit:
-# - key/value facts
-# - TSV blocks for dashboards
+# ---------------------------------------------------------------------------
+# Analyze usage events deterministically (unchanged in spirit)
+# ---------------------------------------------------------------------------
 usage_analysis="$(
   python3 - "$tmp_usage_ndjson" <<PY
 import json, math
@@ -485,13 +515,11 @@ def parse_cost(ev):
     tu = ev.get("tokenUsage") or {}
     token_cost = cents_to_usd(tu.get("totalCents") or 0)
 
-    ub = ev.get("usageBasedCosts")
-    ubv = fnum(ub)
+    ubv = fnum(ev.get("usageBasedCosts"))
     if ubv is None:
         ubv = 0.0
 
-    rc = ev.get("requestsCosts")
-    rcv = fnum(rc)
+    rcv = fnum(ev.get("requestsCosts"))
     if rcv is None:
         rcv = 0.0
 
@@ -533,7 +561,6 @@ with open(path, "r", encoding="utf-8") as f:
 
 rows = len(events)
 
-# Always emit facts, even if rows=0 (deterministic “empty” output)
 distinct_users=set()
 distinct_models=set()
 distinct_kinds=set()
@@ -657,7 +684,7 @@ max_mode_share = pct(max_mode_yes, rows)
 cost_per_1m_tokens = (cost_total / tok_total) * 1_000_000.0 if tok_total else 0.0
 est_cost_per_1m_tokens = (cost_est_total / tok_total) * 1_000_000.0 if tok_total else 0.0
 
-# Top 10 events by cost (deterministic tie-break: tokens desc, ts asc)
+# Top 10 events by cost (deterministic tie-break)
 top_events = []
 for ev in events:
     c = parse_cost(ev)
@@ -804,11 +831,98 @@ PY
 printf "%s\n" "$usage_analysis"
 echo
 
-cursor_total_usd_usage="$(
-  printf "%s\n" "$usage_analysis" | awk -F'\t' '$1=="cursor_usage_total_cost_usd"{print $2; exit}'
-)"
-if [ -z "$cursor_total_usd_usage" ]; then cursor_total_usd_usage="0"; fi
+cursor_total_usd_usage="$(printf "%s\n" "$usage_analysis" | awk -F'\t' '$1=="cursor_usage_total_cost_usd"{print $2; exit}')"
+cursor_usage_tok_in="$(printf "%s\n" "$usage_analysis" | awk -F'\t' '$1=="cursor_usage_tokens_input"{print $2; exit}')"
+cursor_usage_tok_out="$(printf "%s\n" "$usage_analysis" | awk -F'\t' '$1=="cursor_usage_tokens_output"{print $2; exit}')"
+cursor_usage_tok_cw="$(printf "%s\n" "$usage_analysis" | awk -F'\t' '$1=="cursor_usage_tokens_cache_write"{print $2; exit}')"
+cursor_usage_tok_cr="$(printf "%s\n" "$usage_analysis" | awk -F'\t' '$1=="cursor_usage_tokens_cache_read"{print $2; exit}')"
 
+: "${cursor_total_usd_usage:=0}"
+: "${cursor_usage_tok_in:=0}"
+: "${cursor_usage_tok_out:=0}"
+: "${cursor_usage_tok_cw:=0}"
+: "${cursor_usage_tok_cr:=0}"
+
+# ---------------------------------------------------------------------------
+# Per-module Cursor allocation (commit-share, deterministic) — THE FIXED PART
+# ---------------------------------------------------------------------------
+python3 - "$tmp_modules_human" "$cursor_total_usd_usage" "$cursor_usage_tok_in" "$cursor_usage_tok_out" "$cursor_usage_tok_cw" "$cursor_usage_tok_cr" <<'PY'
+import sys, math
+
+modules_path = sys.argv[1]
+total_cost_usd = float(sys.argv[2])
+tok_in = int(sys.argv[3])
+tok_out = int(sys.argv[4])
+tok_cw = int(sys.argv[5])
+tok_cr = int(sys.argv[6])
+
+def alloc_int_total(total: int, weights: dict, keys: list):
+    if total <= 0 or not keys:
+        return {k: 0 for k in keys}
+    wsum = sum(max(0, int(weights.get(k, 0))) for k in keys)
+    if wsum <= 0:
+        exact = {k: total / float(len(keys)) for k in keys}
+    else:
+        exact = {k: total * (max(0, int(weights.get(k, 0))) / float(wsum)) for k in keys}
+    base = {k: int(math.floor(exact[k])) for k in keys}
+    rem = total - sum(base.values())
+    fracs = sorted(keys, key=lambda k: (-(exact[k] - base[k]), k))
+    for i in range(rem):
+        base[fracs[i % len(fracs)]] += 1
+    return base
+
+def alloc_cost_usd(total_usd: float, weights: dict, keys: list):
+    total_micro = int(round((total_usd or 0.0) * 1_000_000))
+    alloc_micro = alloc_int_total(total_micro, weights, keys)
+    return {k: alloc_micro[k] / 1_000_000.0 for k in keys}
+
+# Read module rows (already include human labor at col 6)
+rows = []
+with open(modules_path, "r", encoding="utf-8") as f:
+    for line in f:
+        line = line.rstrip("\n")
+        if not line:
+            continue
+        parts = line.split("\t")
+        name = parts[0].strip()
+        commits = int(float(parts[1] or 0))
+        rows.append(parts)
+
+# Stable order
+rows.sort(key=lambda p: p[0])
+
+keys = [r[0] for r in rows]
+weights = {r[0]: int(float(r[1] or 0)) for r in rows}
+
+alloc_in  = alloc_int_total(tok_in,  weights, keys)
+alloc_out = alloc_int_total(tok_out, weights, keys)
+alloc_cw  = alloc_int_total(tok_cw,  weights, keys)
+alloc_cr  = alloc_int_total(tok_cr,  weights, keys)
+alloc_cost = alloc_cost_usd(total_cost_usd, weights, keys)
+
+print("# per-module (allocated by commit-share; tsv): module\tcommits\tactive_days\tavg_commits_per_active_day\tfirst_date\tlast_date\thuman_labor_usd_est\tcursor_cost_usd_alloc\tcursor_tokens_total_alloc\tcursor_input\tcursor_output\tcursor_cache_write\tcursor_cache_read\ttokens_per_commit\tcursor_cost_per_commit_usd")
+print("module\tcommits\tactive_days\tavg_commits_per_active_day\tfirst_date\tlast_date\thuman_labor_usd_est\tcursor_cost_usd_alloc\tcursor_tokens_total_alloc\tcursor_input\tcursor_output\tcursor_cache_write\tcursor_cache_read\ttokens_per_commit\tcursor_cost_per_commit_usd")
+
+for p in rows:
+    name = p[0]
+    commits = int(float(p[1] or 0))
+    tin = alloc_in[name]
+    tout = alloc_out[name]
+    tcw = alloc_cw[name]
+    tcr = alloc_cr[name]
+    ttot = tin + tout + tcw + tcr
+    cost = alloc_cost[name]
+    tpc = (ttot / float(commits)) if commits > 0 else 0.0
+    cpc = (cost / float(commits)) if commits > 0 else 0.0
+
+    # p already has: module commits active_days avg first last human_labor
+    print(
+        f"{p[0]}\t{p[1]}\t{p[2]}\t{p[3]}\t{p[4]}\t{p[5]}\t{p[6]}\t"
+        f"{cost:.6f}\t{ttot}\t{tin}\t{tout}\t{tcw}\t{tcr}\t{tpc:.2f}\t{cpc:.6f}"
+    )
+PY
+
+echo
 echo "# cursor cost source used for overall totals"
 echo "cursor_total_usd_source	filtered-usage-events"
 echo "cursor_total_usd	${cursor_total_usd_usage}"
@@ -817,13 +931,12 @@ echo
 # ---------------------------------------------------------------------------
 # Human labor totals (project-level)
 # ---------------------------------------------------------------------------
-
 human_per_commit_total_usd="$(
   awk -v a="$HUMAN_LABOR_IMPL_PER_COMMIT_USD" -v b="$HUMAN_LABOR_REVIEW_PER_COMMIT_USD" -v c="$HUMAN_LABOR_UPKEEP_PER_COMMIT_USD" \
     'BEGIN{ printf "%.2f", (a+0)+(b+0)+(c+0) }'
 )"
 module_count="$(
-  if [ -s "$tmp_modules" ]; then wc -l < "$tmp_modules" | tr -d " "; else echo 0; fi
+  if [ -s "$tmp_modules_human" ]; then wc -l < "$tmp_modules_human" | tr -d " "; else echo 0; fi
 )"
 human_module_base_total_usd="$(
   awk -v base="$HUMAN_LABOR_MODULE_BASE_USD" -v n="$module_count" \
@@ -859,7 +972,6 @@ echo
 # ---------------------------------------------------------------------------
 # Overall totals
 # ---------------------------------------------------------------------------
-
 overall_total_cost_usd="$(
   awk -v a="$cursor_total_usd_usage" -v b="$CHATGPT_PLUS_USD" -v c="$EXTRA_COSTS_USD" \
     'BEGIN{ printf "%.2f", (a+0) + (b+0) + (c+0) }'
