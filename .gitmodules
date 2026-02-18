@@ -134,3 +134,11 @@
 	path = bus-balances
 	url = git@github.com:busdk/bus-balances.git
 	branch = 1-bus-balances
+[submodule "bus-books"]
+	path = bus-books
+	url = git@github.com:busdk/bus-books.git
+	branch = 1-bus-books
+[submodule "bus-replay"]
+	path = bus-replay
+	url = git@github.com:busdk/bus-replay.git
+	branch = 1-bus-replay
