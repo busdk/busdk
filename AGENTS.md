@@ -59,16 +59,19 @@ Apply this section only when editing CLI module repositories or shared CLI parsi
 
 1. Follow TDD (failing test first or tight lockstep).
 2. Every production change requires automated tests.
-3. Regressions must get a reproducing and protecting test.
-4. Coverage for changed code must not regress; changed lines/branches should be exercised.
-5. Tests must be deterministic, isolated, and CI-repeatable.
-6. Quality gates must pass: build, tests, formatting, linting/static checks, and security/secret checks.
-7. Maintain backward compatibility unless a linked issue explicitly allows breaking change with migration path.
-8. Update docs in same change set (README and operational/developer docs as needed).
-9. If any required item is missing, work is not done.
-10. Keep traceability: link implementation/tests/commits to the canonical issue URL when available.
-11. Exceptions must be approved in the linked issue with explicit scope/risk and a concrete follow-up issue.
-12. Always update end-to-end (e2e) tests to cover new features; new functionality is not done until e2e coverage is added.
+3. Every bug fix must include both:
+   1. Unit test coverage for the defect path.
+   2. End-to-end (e2e) coverage that reproduces the user-visible failure and protects the fix.
+4. Regressions must get a reproducing and protecting test.
+5. Coverage for changed code must not regress; changed lines/branches should be exercised.
+6. Tests must be deterministic, isolated, and CI-repeatable.
+7. Quality gates must pass: build, tests, formatting, linting/static checks, and security/secret checks.
+8. Maintain backward compatibility unless a linked issue explicitly allows breaking change with migration path.
+9. Update docs in same change set (README and operational/developer docs as needed).
+10. If any required item is missing, work is not done.
+11. Keep traceability: link implementation/tests/commits to the canonical issue URL when available.
+12. Exceptions must be approved in the linked issue with explicit scope/risk and a concrete follow-up issue.
+13. Always update end-to-end (e2e) tests to cover new features; new functionality is not done until e2e coverage is added.
 
 ## Go Language And Project Conventions (When Go Code Exists)
 
