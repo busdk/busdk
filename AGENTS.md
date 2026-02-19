@@ -53,6 +53,7 @@ Apply this section only when editing CLI module repositories or shared CLI parsi
 3. Help/version behavior must be deterministic and concise.
 4. Structured outputs go to stdout (or `--output`), diagnostics/human text to stderr.
 5. Implement parsing as a small testable module returning parsed flags + remaining args.
+6. Global flag tests should verify at least: repeated verbosity (`-vv`, repeated `--verbose`), `--` passthrough, quiet/verbose conflict (exit 2), invalid color/format (exit 2), `-C` working-directory behavior, and `--output` write/truncate semantics.
 
 ## Definition Of Done
 
@@ -65,6 +66,9 @@ Apply this section only when editing CLI module repositories or shared CLI parsi
 7. Maintain backward compatibility unless a linked issue explicitly allows breaking change with migration path.
 8. Update docs in same change set (README and operational/developer docs as needed).
 9. If any required item is missing, work is not done.
+10. Keep traceability: link implementation/tests/commits to the canonical issue URL when available.
+11. Exceptions must be approved in the linked issue with explicit scope/risk and a concrete follow-up issue.
+12. Always update end-to-end (e2e) tests to cover new features; new functionality is not done until e2e coverage is added.
 
 ## Go Language And Project Conventions (When Go Code Exists)
 
@@ -124,6 +128,8 @@ For this superproject specifically, README must emphasize:
 3. Do not auto-stage files unless explicitly asked.
 4. Use small, meaningful, imperative commit messages.
 5. Never push, tag, or run remote synchronization as part of this workflow.
+6. If hooks/checks reject a commit, report the failure and apply the minimal correction before retrying.
+7. If staged scope is too broad, prefer splitting into smaller logical commits.
 
 ## Deletion Safety Rule
 
@@ -132,3 +138,28 @@ For this superproject specifically, README must emphasize:
 3. If untracked, use `rm` (`-r`/`-f` only when necessary).
 4. Use non-interactive deletion commands in scripts.
 5. After deletion, update references/imports/scripts accordingly.
+6. If a target path is already absent, treat it as a warning and continue.
+
+## Context Memory Rule
+
+1. When discussions establish durable project context, preferences, or workflow rules, write or refine `AGENTS.md` files to preserve them.
+2. Add/update `AGENTS.md` in the most specific relevant directory (repository root or a context subdirectory) so guidance applies at the right scope.
+3. Revisit and refine existing `AGENTS.md` files as context evolves, including this rule itself.
+4. Standing permission: add these rules in any subdirectory within this BusDK super-project and its submodules when needed to preserve context-aware information.
+5. Scope constraint: each context-specific `AGENTS.md` must contain only guidance relevant to that directory subtree.
+6. Treat user-stated durable workflow preferences as persistent by default and record them in the most relevant `AGENTS.md` in the same change set.
+7. Automatically update `AGENTS.md` files when the user provides new durable guidance or when you learn workflow rules that should be remembered.
+
+## Documentation Paths (All Modules)
+
+1. Documentation site workspace root is `./docs`.
+2. For any BusDK module repository name `{NAME}` (including `bus` and `bus-*`, for example `bus` or `bus-books`):
+   1. Module SDD location is `./docs/docs/sdd/{NAME}/`.
+   2. End-user module documentation location is `./docs/docs/modules/{NAME}/`.
+3. When implementation changes alter behavior, update the corresponding docs in these locations in the same change set.
+4. Do not defer documentation updates to a follow-up change; include doc updates in `./docs/docs` immediately with the behavior change.
+
+## Gitignore Rule
+
+1. The `.bus/` directory is a tracked project directory; never add `.bus` or `.bus/` ignore rules to `.gitignore` files in this superproject or its modules.
+2. Runtime lock artifacts such as `.bus-dev.lock` may be ignored.
