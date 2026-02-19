@@ -72,6 +72,8 @@ Apply this section only when editing CLI module repositories or shared CLI parsi
 11. Keep traceability: link implementation/tests/commits to the canonical issue URL when available.
 12. Exceptions must be approved in the linked issue with explicit scope/risk and a concrete follow-up issue.
 13. Always update end-to-end (e2e) tests to cover new features; new functionality is not done until e2e coverage is added.
+14. Every user-visible behavior change (feature, bug fix, CLI/output/validation change, migration/replay behavior change) MUST include updated or new e2e coverage in the same change set.
+15. If no existing e2e harness can cover the change, add one; do not mark work done without e2e unless the user explicitly approves a temporary exception.
 
 ## Go Language And Project Conventions (When Go Code Exists)
 
@@ -94,6 +96,7 @@ Apply this section when touching Go files.
    2. Internal reusable code: `internal/...`
    3. Public importable packages only in `pkg/` when intentionally external.
    4. Tests alongside code; fixtures in `testdata/`.
+10. Currency and money calculations must use decimal-safe arithmetic only (for example scaled integer cents or exact decimal/rational types). Do not use binary floating-point (`float32`/`float64`) for business money logic.
 
 ## Diverse Test Strategy (Risk-Based, Optional Amplification)
 
