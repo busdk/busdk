@@ -155,12 +155,16 @@ For this superproject specifically, README must emphasize:
 5. Scope constraint: each context-specific `AGENTS.md` must contain only guidance relevant to that directory subtree.
 6. Treat user-stated durable workflow preferences as persistent by default and record them in the most relevant `AGENTS.md` in the same change set.
 7. Automatically update `AGENTS.md` files when the user provides new durable guidance or when you learn workflow rules that should be remembered.
-8. When the user provides `BUGS.Update.md` and/or `FEATURE_REQUESTS.Update.md`, merge their contents into canonical `BUGS.md` and `FEATURE_REQUESTS.md` in the same turn, then remove the update files.
-9. Whenever `BUGS.Update.md` or `FEATURE_REQUESTS.Update.md` appears in the repository, automatically merge the contents into `BUGS.md` and/or `FEATURE_REQUESTS.md` and remove the update file(s) in the same turn.
-10. For import/extract/replay data handling, prefer canonical BusDK/master-data keys. If input structure is non-canonical, require explicit user-defined/configured column mapping (for example profile/`--map`) rather than implicit assumptions.
-11. For any cross-module data/path/key usage, resolve through the owning module’s Go library/API (path/key accessors) instead of hardcoding foreign module file names, keys, or locations.
-12. Do not hardcode source-field/header alias mappings as long-term behavior. Mapping preferences must be project-level configurable (profiles/config files/flags), with deterministic validation diagnostics for missing/unknown/ambiguous mappings.
-13. Schema data is a valid preferred place for mapping configuration when supported (for example schema-declared field mappings/metadata), as long as behavior remains deterministic and override order is documented.
+8. Persist newly learned durable project context immediately: when important recurring constraints, preferences, or workflow decisions are discovered during work, record them in the most relevant `AGENTS.md` in the same change set.
+9. Durable user workflow guidance MUST be written to the most relevant `AGENTS.md` in the same session when learned (do not defer memory updates).
+10. Prefer working inside the target module directory (`./bus` or `./bus-*`) for module implementation and tests; use superproject-root commands only for explicit superproject tasks.
+11. When the user provides `BUGS.Update.md` and/or `FEATURE_REQUESTS.Update.md`, merge their contents into canonical `BUGS.md` and `FEATURE_REQUESTS.md` in the same turn, then remove the update files.
+12. Whenever `BUGS.Update.md` or `FEATURE_REQUESTS.Update.md` appears in the repository, automatically merge the contents into `BUGS.md` and/or `FEATURE_REQUESTS.md` and remove the update file(s) in the same turn.
+13. For import/extract/replay data handling, prefer canonical BusDK/master-data keys. If input structure is non-canonical, require explicit user-defined/configured column mapping (for example profile/`--map`) rather than implicit assumptions.
+14. For any cross-module data/path/key usage, resolve through the owning module’s Go library/API (path/key accessors) instead of hardcoding foreign module file names, keys, or locations.
+15. Do not hardcode source-field/header alias mappings as long-term behavior. Mapping preferences must be project-level configurable (profiles/config files/flags), with deterministic validation diagnostics for missing/unknown/ambiguous mappings.
+16. Schema data is a valid preferred place for mapping configuration when supported (for example schema-declared field mappings/metadata), as long as behavior remains deterministic and override order is documented.
+17. When mentioning the `bus` GitHub repository in documentation or README text, inline-link to `https://github.com/busdk/bus`.
 
 ## Documentation Paths (All Modules)
 
