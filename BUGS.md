@@ -2,7 +2,7 @@
 
 Track **defects and blockers** that affect this repo's replay or parity work: actual bugs in our software or in BusDK/tooling when they block us. **Nice-to-have features and enhancement requests** are in **[FEATURE_REQUESTS.md](FEATURE_REQUESTS.md)**.
 
-**Last reviewed:** 2026-02-20 (retested in current workspace after replay updates and merged `BUGS.Update.md`).
+**Last reviewed:** 2026-02-20 (retested in current workspace and merged latest `BUGS.Update.md`).
 
 ---
 
@@ -11,6 +11,16 @@ Track **defects and blockers** that affect this repo's replay or parity work: ac
 - No currently confirmed active defects after 2026-02-20 module fixes in this workspace.
 
 ## Implemented / removed from active list (2026-02-20 re-check)
+
+- `bus status readiness` period-state gate false-negative fixed:
+  - `latest_period` / `latest_state` now supports both legacy `period,state` rows and append-only `bus-period` rows (`period_id,state,recorded_at,...`).
+  - Effective state is selected per period by latest `recorded_at`, then latest period is selected for requested year.
+  - Covered by `bus-status/internal/status/status_test.go` and `bus-status/tests/e2e_bus_status.sh` (append-only history case).
+
+- `bus status readiness --compliance` silent no-op fixed:
+  - Non-compliance mode now emits legal gates as `not_applicable` with explicit `"compliance mode disabled"` observed value and empty `regulatory_demands`.
+  - Compliance mode (`--compliance`) actively evaluates legal gates and populates `regulatory_demands`.
+  - Covered by `bus-status/internal/status/status_test.go` and `bus-status/tests/e2e_bus_status.sh` (compliance vs non-compliance JSON assertions).
 
 - `bus invoices list` filter regression fixed:
   - `list` now honors list filters both before and after subcommand token:

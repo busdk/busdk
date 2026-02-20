@@ -6,7 +6,7 @@ Privacy rule for request write-ups:
 - Keep examples/repro snippets sanitized (no real customer names/emails/IBANs/account numbers/invoice numbers/local paths).
 - Prefer placeholders and aggregated outputs over raw customer-linked row dumps.
 
-Last reviewed: 2026-02-20 (tooling revalidated and merged `FEATURE_REQUESTS.Update.md`).
+Last reviewed: 2026-02-20 (tooling revalidated and merged latest `FEATURE_REQUESTS.Update.md`).
 
 Goal note:
 - Target workflow is Bus-only for bookkeeping/audit operations.
@@ -14,9 +14,22 @@ Goal note:
 
 ## Active requests
 
-- No currently confirmed active feature requests after 2026-02-20 implementation pass in this workspace.
+- No open feature requests at this time.
 
 ## Implemented / removed from active list (2026-02-20 re-check)
+
+- FR54 implemented:
+  - `bus-invoices` supports explicit legacy-safe replay mode via `--legacy-replay` for mutating commands.
+  - Strict mode (default):
+    - keeps strict pre-validation-before-write behavior,
+    - rejects `add` and `import` rows where `due_date` is earlier than `issue_date` with deterministic guidance to rerun with `--legacy-replay`.
+  - Legacy replay mode:
+    - preserves legacy non-normalized date rows deterministically,
+    - emits deterministic stderr warnings for preserved `due_date < issue_date` rows.
+  - Covered by:
+    - unit tests in `bus-invoices/cmd/bus-invoices/run_test.go`,
+    - e2e coverage in `bus-invoices/tests/e2e_bus_invoices.sh`,
+    - help/docs updates in `bus-invoices/README.md`, `docs/docs/modules/bus-invoices.md`, and `docs/docs/sdd/bus-invoices.md`.
 
 - FR46 implemented:
   - `bus-assets lifecycle` provides native fixed-asset continuity flow:
