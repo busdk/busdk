@@ -146,3 +146,7 @@
 	path = bus-status
 	url = git@github.com:busdk/bus-status.git
 	branch = 1-bus-status
+[submodule "bus-shell"]
+	path = bus-shell
+	url = git@github.com:busdk/bus-shell.git
+	branch = 1-bus-shell
