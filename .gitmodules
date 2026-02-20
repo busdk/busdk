@@ -142,3 +142,7 @@
 	path = bus-replay
 	url = git@github.com:busdk/bus-replay.git
 	branch = 1-bus-replay
+[submodule "bus-status"]
+	path = bus-status
+	url = git@github.com:busdk/bus-status.git
+	branch = 1-bus-status
