@@ -223,8 +223,8 @@ Maintained by the BusDK maintainers. Module authors and contributors are credite
 
 ## License
 
-See [LICENSE](LICENSE).
+See [LICENSE.md](LICENSE.md).
 
 ## Commercial licensing
 
-Pre-built BusDK CLI tools are freeware and free to use. Full source code access and use is available for commercial users under the MIT license with a paid contract and subscription model. For source licensing, contact `info@hg.fi`.
+Pre-built BusDK CLI tools are freeware and free to use. Full source code access and use is available under FSL-1.1-MIT (Functional Source License 1.1, MIT Future License). For source licensing, contact `info@hg.fi`.
