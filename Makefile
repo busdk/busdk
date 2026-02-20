@@ -10,8 +10,10 @@ INSTALL ?= install
 
 MODULE_DIRS := $(sort $(foreach d,$(wildcard bus bus-*),$(if $(wildcard $(d)/Makefile),$(d),)))
 SKIP_MODULES ?= bus-filing bus-filing-prh bus-filing-vero
+COMMA := ,
+SKIP_PATTERNS := $(strip $(subst $(COMMA), ,$(SKIP_MODULES)))
 
-.PHONY: help init update upgrade status bootstrap test build install clean distclean
+.PHONY: help init update upgrade status bootstrap test e2e build install clean distclean
 
 help:
 	@printf "BusDK superproject\n\n"
@@ -21,6 +23,7 @@ help:
 	@printf "  upgrade     (maintainers) Advance pins to latest remotes\n"
 	@printf "  status      Show pinned submodule SHAs\n"
 	@printf "  test        Run module test suites\n"
+	@printf "  e2e         Run module end-to-end suites (when target exists)\n"
 	@printf "  build       Build all tools into ./%s\n" "$(BIN_DIR)"
 	@printf "  install     Install tools into %s\n" "$(BINDIR)"
 	@printf "  clean       Remove local build artifacts\n"
@@ -56,7 +59,7 @@ test:
 	@set -eu; \
 	for mod in $(MODULE_DIRS); do \
 		skip=0; \
-		for pat in $(SKIP_MODULES); do \
+		for pat in $(SKIP_PATTERNS); do \
 			case "$$mod" in $$pat) skip=1;; esac; \
 		done; \
 		if [ "$$skip" -eq 1 ]; then \
@@ -73,13 +76,45 @@ test:
 			GOFLAGS="$(GOFLAGS)" \
 			CGO_ENABLED="$(CGO_ENABLED)"; \
 		fi; \
-	done
+		done
+
+e2e:
+	@set -eu; \
+	ran=0; \
+	for mod in $(MODULE_DIRS); do \
+		skip=0; \
+		for pat in $(SKIP_PATTERNS); do \
+			case "$$mod" in $$pat) skip=1;; esac; \
+		done; \
+		if [ "$$skip" -eq 1 ]; then \
+			printf "==> %s (skipped)\n" "$$mod"; \
+			continue; \
+		fi; \
+		if [ ! -f "$$mod/Makefile" ]; then \
+			printf "==> %s (skipped: no Makefile)\n" "$$mod"; \
+			continue; \
+		fi; \
+		if ! "$(MAKE)" -C "$$mod" -n e2e >/dev/null 2>&1; then \
+			printf "==> %s (skipped: no e2e target)\n" "$$mod"; \
+			continue; \
+		fi; \
+		printf "==> %s\n" "$$mod"; \
+		"$(MAKE)" -C "$$mod" e2e \
+		BIN_DIR="$(abspath $(BIN_DIR))" \
+		PREFIX="$(PREFIX)" \
+		BINDIR="$(BINDIR)" \
+		GO="$(GO)" \
+		GOFLAGS="$(GOFLAGS)" \
+		CGO_ENABLED="$(CGO_ENABLED)"; \
+		ran=$$((ran + 1)); \
+	done; \
+	printf "e2e: ran %d module(s)\n" "$$ran"
 
 build:
 	@set -eu; \
 	for mod in $(MODULE_DIRS); do \
 		skip=0; \
-		for pat in $(SKIP_MODULES); do \
+		for pat in $(SKIP_PATTERNS); do \
 			case "$$mod" in $$pat) skip=1;; esac; \
 		done; \
 		if [ "$$skip" -eq 1 ]; then \
@@ -102,7 +137,7 @@ install:
 	@set -eu; \
 	for mod in $(MODULE_DIRS); do \
 		skip=0; \
-		for pat in $(SKIP_MODULES); do \
+		for pat in $(SKIP_PATTERNS); do \
 			case "$$mod" in $$pat) skip=1;; esac; \
 		done; \
 		if [ "$$skip" -eq 1 ]; then \
@@ -125,7 +160,7 @@ clean:
 	@set -eu; \
 	for mod in $(MODULE_DIRS); do \
 		skip=0; \
-		for pat in $(SKIP_MODULES); do \
+		for pat in $(SKIP_PATTERNS); do \
 			case "$$mod" in $$pat) skip=1;; esac; \
 		done; \
 		if [ "$$skip" -eq 1 ]; then \
