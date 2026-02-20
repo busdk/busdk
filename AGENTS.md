@@ -169,11 +169,15 @@ For this superproject specifically, README must emphasize:
 ## Documentation Paths (All Modules)
 
 1. Documentation site workspace root is `./docs`.
-2. For any BusDK module repository name `{NAME}` (including `bus` and `bus-*`, for example `bus` or `bus-books`):
+2. When editing any file under `./docs`, follow `./docs/AGENTS.md` as the
+   authoritative subtree rule set in addition to this root file.
+3. For any BusDK module repository name `{NAME}` (including `bus` and `bus-*`, for example `bus` or `bus-books`):
    1. Module SDD location is `./docs/docs/sdd/{NAME}/`.
    2. End-user module documentation location is `./docs/docs/modules/{NAME}/`.
-3. When implementation changes alter behavior, update the corresponding docs in these locations in the same change set.
-4. Do not defer documentation updates to a follow-up change; include doc updates in `./docs/docs` immediately with the behavior change.
+4. When implementation changes alter behavior, update the corresponding docs in these locations in the same change set.
+5. Do not defer documentation updates to a follow-up change; include doc updates in `./docs/docs` immediately with the behavior change.
+6. Documentation readability DoD for non-SDD end-user docs: prefer short paragraphs, avoid repeated wording, and keep pages task-oriented. Move deep implementation detail to `./docs/docs/sdd/*` or split into focused non-SDD topic pages when needed.
+7. Documentation style rule for non-SDD end-user docs: avoid bullet lists by default; use paragraphs unless a list/table is the only clear way to present structured data.
 
 ## Gitignore Rule
 
