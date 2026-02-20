@@ -1,10 +1,17 @@
 .DEFAULT_GOAL := help
 
+SHELL ?= sh
 GO ?= go
 
 BIN_DIR ?= bin
 
-PREFIX ?= $(HOME)/.local
+ifeq ($(strip $(HOME)),)
+HOME_DIR := $(subst \,/,$(USERPROFILE))
+else
+HOME_DIR := $(HOME)
+endif
+
+PREFIX ?= $(HOME_DIR)/.local
 BINDIR ?= $(PREFIX)/bin
 INSTALL ?= install
 
@@ -38,6 +45,7 @@ help:
 	@printf "Example:\n"
 	@printf "  make bootstrap\n"
 	@printf "  make bootstrap PREFIX=/opt/busdk\n"
+	@printf "  make bootstrap PREFIX=/c/busdk BINDIR=/c/busdk/bin\n"
 
 init:
 	git submodule update --init --recursive

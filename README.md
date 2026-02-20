@@ -46,6 +46,11 @@ Prerequisites:
 - POSIX `make`
 - Go toolchain available as `go`
 
+Windows notes:
+- Use Git for Windows with **Git Bash** (or MSYS2 with GNU `make` + `bash`).
+- Run all `make` commands from that POSIX shell.
+- On Windows, prefer POSIX-style paths for overrides (for example `/c/busdk/bin`).
+
 Clone the repository and run the bootstrap target. This initializes modules, builds all tools, and installs them.
 
 ```bash
@@ -65,12 +70,18 @@ make install
 Defaults:
 
 - Builds into `./bin`
-- Installs into `$(HOME)/.local/bin` (from `BINDIR`)
+- Installs into `$(HOME)/.local/bin` (or `$(USERPROFILE)/.local/bin` when `HOME` is unset)
 
 To install into a different prefix:
 
 ```bash
 make bootstrap PREFIX=/opt/busdk
+```
+
+Windows example:
+
+```bash
+make bootstrap PREFIX=/c/busdk BINDIR=/c/busdk/bin
 ```
 
 To build without installing:
@@ -190,7 +201,7 @@ make distclean
 
 ### Variables
 
-- `PREFIX`: install prefix (default: `$(HOME)/.local`)
+- `PREFIX`: install prefix (default: `$(HOME)/.local`, or `$(USERPROFILE)/.local` when `HOME` is unset)
 - `BINDIR`: install directory (default: `$(PREFIX)/bin`)
 - `BIN_DIR`: local build output directory (default: `bin`)
 - `GO`: Go tool to use (default: `go`)
