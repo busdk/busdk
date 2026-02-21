@@ -2,6 +2,9 @@
 
 SHELL ?= sh
 GO ?= go
+GOFLAGS ?=
+CGO_ENABLED ?= 0
+BUILD_STATIC ?= 1
 
 BIN_DIR ?= bin
 
@@ -19,6 +22,7 @@ MODULE_DIRS := $(sort $(foreach d,$(wildcard bus bus-*),$(if $(wildcard $(d)/Mak
 SKIP_MODULES ?=
 COMMA := ,
 SKIP_PATTERNS := $(strip $(subst $(COMMA), ,$(SKIP_MODULES)))
+MODULE_MAKE_VARS := BIN_DIR="$(abspath $(BIN_DIR))" PREFIX="$(PREFIX)" BINDIR="$(BINDIR)" GO="$(GO)" GOFLAGS="$(GOFLAGS)" CGO_ENABLED="$(CGO_ENABLED)" BUILD_STATIC="$(BUILD_STATIC)"
 
 .PHONY: help init update upgrade status bootstrap test e2e build install clean distclean
 
@@ -38,6 +42,9 @@ help:
 	@printf "  bootstrap   init + build + install\n\n"
 	@printf "Variables:\n"
 	@printf "  GO=%s\n" "$(GO)"
+	@printf "  GOFLAGS=%s\n" "$(GOFLAGS)"
+	@printf "  CGO_ENABLED=%s\n" "$(CGO_ENABLED)"
+	@printf "  BUILD_STATIC=%s\n" "$(BUILD_STATIC)"
 	@printf "  BIN_DIR=%s\n" "$(BIN_DIR)"
 	@printf "  PREFIX=%s\n" "$(PREFIX)"
 	@printf "  BINDIR=%s\n\n" "$(BINDIR)"
@@ -76,13 +83,7 @@ test:
 		fi; \
 		if [ -f "$$mod/Makefile" ]; then \
 			printf "==> %s\n" "$$mod"; \
-			"$(MAKE)" -C "$$mod" test \
-			BIN_DIR="$(abspath $(BIN_DIR))" \
-			PREFIX="$(PREFIX)" \
-			BINDIR="$(BINDIR)" \
-			GO="$(GO)" \
-			GOFLAGS="$(GOFLAGS)" \
-			CGO_ENABLED="$(CGO_ENABLED)"; \
+			"$(MAKE)" -C "$$mod" test $(MODULE_MAKE_VARS); \
 		fi; \
 		done
 
@@ -107,13 +108,7 @@ e2e:
 			continue; \
 		fi; \
 		printf "==> %s\n" "$$mod"; \
-		"$(MAKE)" -C "$$mod" e2e \
-		BIN_DIR="$(abspath $(BIN_DIR))" \
-		PREFIX="$(PREFIX)" \
-		BINDIR="$(BINDIR)" \
-		GO="$(GO)" \
-		GOFLAGS="$(GOFLAGS)" \
-		CGO_ENABLED="$(CGO_ENABLED)"; \
+		"$(MAKE)" -C "$$mod" e2e $(MODULE_MAKE_VARS); \
 		ran=$$((ran + 1)); \
 	done; \
 	printf "e2e: ran %d module(s)\n" "$$ran"
@@ -131,13 +126,7 @@ build:
 		fi; \
 		if [ -f "$$mod/Makefile" ]; then \
 			printf "==> %s\n" "$$mod"; \
-			"$(MAKE)" -C "$$mod" build \
-			BIN_DIR="$(abspath $(BIN_DIR))" \
-			PREFIX="$(PREFIX)" \
-			BINDIR="$(BINDIR)" \
-			GO="$(GO)" \
-			GOFLAGS="$(GOFLAGS)" \
-			CGO_ENABLED="$(CGO_ENABLED)"; \
+			"$(MAKE)" -C "$$mod" build $(MODULE_MAKE_VARS); \
 		fi; \
 	done
 
@@ -153,14 +142,15 @@ install:
 			continue; \
 		fi; \
 		if [ -f "$$mod/Makefile" ]; then \
+			bin_name=$${mod##*/}; \
+			src="$$mod/bin/$$bin_name"; \
+			dst="$(DESTDIR)$(BINDIR)/$$bin_name"; \
+			if [ -f "$$src" ] && [ -f "$$dst" ] && [ "$$dst" -nt "$$src" ]; then \
+				printf "==> %s (up-to-date)\n" "$$mod"; \
+				continue; \
+			fi; \
 			printf "==> %s\n" "$$mod"; \
-			"$(MAKE)" -C "$$mod" install \
-			BIN_DIR="$(abspath $(BIN_DIR))" \
-			PREFIX="$(PREFIX)" \
-			BINDIR="$(BINDIR)" \
-			GO="$(GO)" \
-			GOFLAGS="$(GOFLAGS)" \
-			CGO_ENABLED="$(CGO_ENABLED)"; \
+			"$(MAKE)" -C "$$mod" install $(MODULE_MAKE_VARS); \
 		fi; \
 	done
 
@@ -177,13 +167,7 @@ clean:
 		fi; \
 		if [ -f "$$mod/Makefile" ]; then \
 			printf "==> %s\n" "$$mod"; \
-			"$(MAKE)" -C "$$mod" clean \
-			BIN_DIR="$(abspath $(BIN_DIR))" \
-			PREFIX="$(PREFIX)" \
-			BINDIR="$(BINDIR)" \
-			GO="$(GO)" \
-			GOFLAGS="$(GOFLAGS)" \
-			CGO_ENABLED="$(CGO_ENABLED)"; \
+			"$(MAKE)" -C "$$mod" clean $(MODULE_MAKE_VARS); \
 		fi; \
 	done
 	rm -rf "$(BIN_DIR)"
