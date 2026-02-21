@@ -1,0 +1,5 @@
+Synthetic bank evidence row: synth-b-026
+Booked date: 2024-11-28
+Counterparty: Owner transfer
+Amount: +200.00 EUR
+Message: Synthetic owner contribution

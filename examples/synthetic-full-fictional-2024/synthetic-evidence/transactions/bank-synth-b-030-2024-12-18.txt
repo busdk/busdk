@@ -1,0 +1,5 @@
+Synthetic bank evidence row: synth-b-030
+Booked date: 2024-12-18
+Counterparty: Used Gear Market Oy
+Amount: +400.00 EUR
+Message: Synthetic asset disposal proceeds a1001

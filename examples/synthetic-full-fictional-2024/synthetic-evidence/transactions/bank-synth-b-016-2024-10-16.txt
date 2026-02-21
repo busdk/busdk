@@ -1,0 +1,6 @@
+Synthetic bank evidence row: synth-b-016
+Booked date: 2024-10-16
+Counterparty: Meridian Compute Oy
+Reference: 900700001
+Amount: +263.55 EUR
+Message: Synthetic reference payment S-9007

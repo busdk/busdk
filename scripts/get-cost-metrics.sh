@@ -38,7 +38,7 @@ trap 'rm -f "$tmp_dates" "$tmp_pairs" "$tmp_modules" "$tmp_modules_human" "$tmp_
 # -----------------------------------------------------------------------------
 # Manual costs (USD)
 # -----------------------------------------------------------------------------
-CHATGPT_PLUS_USD="${CHATGPT_PLUS_USD:-21.76}"
+CHATGPT_PRO_USD="${CHATGPT_PRO_USD:-220}"
 EXTRA_COSTS_USD="${EXTRA_COSTS_USD:-0}"
 
 # -----------------------------------------------------------------------------
@@ -354,7 +354,7 @@ PY
 fi
 
 echo "# costs"
-echo "chatgpt_plus_usd	${CHATGPT_PLUS_USD}"
+echo "CHATGPT_PRO_USD	${CHATGPT_PRO_USD}"
 echo "extra_costs_usd	${EXTRA_COSTS_USD}"
 
 # /teams/spend (kept)
@@ -973,7 +973,7 @@ echo
 # Overall totals
 # ---------------------------------------------------------------------------
 overall_total_cost_usd="$(
-  awk -v a="$cursor_total_usd_usage" -v b="$CHATGPT_PLUS_USD" -v c="$EXTRA_COSTS_USD" \
+  awk -v a="$cursor_total_usd_usage" -v b="$CHATGPT_PRO_USD" -v c="$EXTRA_COSTS_USD" \
     'BEGIN{ printf "%.2f", (a+0) + (b+0) + (c+0) }'
 )"
 echo "overall_total_cost_usd	${overall_total_cost_usd}"

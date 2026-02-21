@@ -1,0 +1,6 @@
+Synthetic bank evidence row: synth-b-015
+Booked date: 2024-08-19
+Counterparty: Driftline Data Oy
+Reference: 910600001
+Amount: -80.32 EUR
+Message: Synthetic purchase payment P-9106

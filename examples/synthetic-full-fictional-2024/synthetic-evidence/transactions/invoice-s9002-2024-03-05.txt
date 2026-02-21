@@ -1,0 +1,4 @@
+Synthetic transaction evidence
+ID: invoice-s9002-2024-03-05
+Source: fictional test scenario
+Contains no real customer or banking data.

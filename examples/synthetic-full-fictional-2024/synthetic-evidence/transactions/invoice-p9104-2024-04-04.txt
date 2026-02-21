@@ -1,0 +1,7 @@
+Synthetic evidence: Purchase invoice P-9104
+Date: 2024-04-04
+Vendor: Vertex Hosting Oy
+Service: Backup storage allocation
+Net: 95.00 EUR
+VAT 25.5%: 24.23 EUR
+Gross: 119.23 EUR

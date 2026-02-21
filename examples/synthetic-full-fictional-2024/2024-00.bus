@@ -1,0 +1,85 @@
+#!/usr/bin/env bus
+
+
+# Workspace bootstrap
+config init
+config set \
+  --base-currency=EUR \
+  --fiscal-year-start=2024-01-01 \
+  --fiscal-year-end=2024-12-31 \
+  --vat-registered=true \
+  --vat-reporting-period=monthly
+
+accounts init
+journal init
+period init
+vat init
+bank init
+reconcile init
+invoices init
+assets init
+attachments init
+
+# Minimal chart for a complete synthetic accounting flow.
+accounts add --code 1700 --name "Accounts receivable" --type asset
+accounts add --code 1763 --name "VAT receivable" --type asset
+accounts add --code 1910 --name "Main bank account" --type asset
+accounts add --code 1911 --name "Holvi bank account" --type asset
+accounts add --code 1912 --name "PayPal bank account" --type asset
+accounts add --code 1998 --name "Internal transfer clearing" --type asset
+accounts add --code 1999 --name "Suspense account" --type asset
+accounts add --code 2010 --name "Owner contributions" --type equity
+accounts add --code 2060 --name "Owner withdrawals" --type equity
+accounts add --code 2200 --name "Retained earnings" --type equity
+accounts add --code 2300 --name "Current year earnings" --type equity
+accounts add --code 2370 --name "Owner loan liability" --type liability
+accounts add --code 2931 --name "VAT payable" --type liability
+accounts add --code 3000 --name "Service sales" --type income
+accounts add --code 3002 --name "Business transfer income (VAT 0%)" --type income
+accounts add --code 3200 --name "Legacy retained earnings compatibility" --type equity
+accounts add --code 4000 --name "Service purchases" --type expense
+accounts add --code 6800 --name "Depreciation expense" --type expense
+accounts add --code 8680 --name "Asset disposal loss" --type expense
+accounts add --code 1160 --name "Equipment and machinery" --type asset
+accounts add --code 1162 --name "Accumulated depreciation" --type asset
+accounts add --code 3990 --name "Asset disposal gain" --type income
+accounts add --code 8564 --name "Bank charges" --type expense
+accounts validate
+
+# Full year period model
+period add --period 2024-01 --retained-earnings-account 2200
+period add --period 2024-02 --retained-earnings-account 2200
+period add --period 2024-03 --retained-earnings-account 2200
+period add --period 2024-04 --retained-earnings-account 2200
+period add --period 2024-05 --retained-earnings-account 2200
+period add --period 2024-06 --retained-earnings-account 2200
+period add --period 2024-07 --retained-earnings-account 2200
+period add --period 2024-08 --retained-earnings-account 2200
+period add --period 2024-09 --retained-earnings-account 2200
+period add --period 2024-10 --retained-earnings-account 2200
+period add --period 2024-11 --retained-earnings-account 2200
+period add --period 2024-12 --retained-earnings-account 2200
+
+period open --period 2024-01
+period open --period 2024-02
+period open --period 2024-03
+period open --period 2024-04
+period open --period 2024-05
+period open --period 2024-06
+period open --period 2024-07
+period open --period 2024-08
+period open --period 2024-09
+period open --period 2024-10
+period open --period 2024-11
+period open --period 2024-12
+period validate
+
+# Opening balance
+attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/opening-2024-01-01.txt" --desc "Synthetic opening balance voucher evidence"
+journal add --date 2024-01-01 --desc "Synthetic opening balance" --debit 1910=1500.00 --credit 2200=1500.00 --source-id opening:2024-01-01:synthetic:1
+
+# Bank import marker
+bank import-log add --import-id synth-bank-2024 --source-path synthetic-bank-2024.csv --imported-at 2026-02-21T12:00:00Z
+bank import-log add --import-id synth-op-main-2024 --source-path synthetic-op-main-2024.csv --imported-at 2026-02-21T12:01:00Z
+bank import-log add --import-id synth-holvi-2024 --source-path synthetic-holvi-2024.csv --imported-at 2026-02-21T12:02:00Z
+bank import-log add --import-id synth-paypal-2024 --source-path synthetic-paypal-2024.csv --imported-at 2026-02-21T12:03:00Z

@@ -1,0 +1,6 @@
+Synthetic annual VAT review evidence
+Authority context: Verohallinto filing workpaper (fictional)
+Scope: 2024-01-01..2024-12-31
+Prepared date: 2025-01-20
+Reference: VAT-TEST-2024-ANNUAL
+This file is synthetic test evidence only.

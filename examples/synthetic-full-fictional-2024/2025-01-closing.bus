@@ -1,0 +1,37 @@
+#!/usr/bin/env bus
+
+
+invoices validate
+
+# Note:
+# True close->reopen->correction->reclose demonstration is intentionally omitted
+# because current period command flow does not support reopening closed periods.
+# FR56 in FEATURE_REQUESTS.md is the requested capability that would enable
+# this exact example pattern deterministically.
+
+# VAT outputs in realistic filing sequence (cash basis, monthly filer).
+# 2025-01-12: File VAT for period 2024-12.
+vat -f tsv -o "vat-report-2024-12.tsv" report --source reconcile --basis cash --period 2024-12
+attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-application-2024-12.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-12"
+# 2025-01-20: Internal annual VAT review and FI payload generation for FY2024.
+vat -f tsv -o "vat-report-2024-year.tsv" report --source reconcile --basis cash --from 2024-01-01 --to 2024-12-31
+vat -f tsv -o "vat-fi-file-2024-year.tsv" fi-file --source reconcile --basis cash --from 2024-01-01 --to 2024-12-31
+attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-annual-review-2024.txt" --desc "Synthetic annual VAT review evidence for FY2024"
+
+# Derived annual outputs in realistic year-end package order.
+# 2025-01-30: Working-paper trial balance and journal control (pre-lock draft package).
+reports -o "trial-balance-2024.csv" trial-balance --as-of 2024-12-31 --format csv
+journal -f tsv -o "journal-balance-2024-12-31.tsv" balance --as-of 2024-12-31
+# 2025-01-30: Income statement draft (pre-lock).
+reports -o "profit-loss-2024.csv" profit-and-loss --period 2024 --format csv --layout-id pma-full
+reports -o "tuloslaskelma-2024.pdf" profit-and-loss --period 2024 --format pdf --layout-id pma
+# 2025-01-30: Balance sheet draft and statutory PDF (pre-lock).
+reports -o "balance-sheet-2024-12-31.csv" balance-sheet --as-of 2024-12-31 --format csv --layout-id kpa
+reports -o "tase-2024-12-31.pdf" balance-sheet --as-of 2024-12-31 --format pdf --layout-id kpa
+
+# 2025-01-31: Close + lock final period (finalization control step).
+attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/close-lock-2024-12-31.txt" --desc "Synthetic closing control evidence 2024-12"
+period close --period 2024-12 --post-date 2024-12-31
+period lock --period 2024-12
+
+validate

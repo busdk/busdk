@@ -1,0 +1,5 @@
+Synthetic evidence: Asset depreciation and disposal a1001
+Date: 2024-12-18
+Asset: Laptop Workstation A1001
+Depreciation booking and disposal decision approved
+Disposal proceeds: 400.00 EUR

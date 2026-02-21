@@ -1,0 +1,21 @@
+#!/usr/bin/env bus
+
+
+# Synthetic full-year replay for testing Bus workflows.
+# This file uses only fictional parties, invoice IDs, references, and amounts.
+# No production/customer data is included.
+
+2024-00.bus
+2024-01.bus
+2024-02.bus
+2024-03.bus
+2024-04.bus
+2024-05.bus
+2024-06.bus
+2024-07.bus
+2024-08.bus
+2024-09.bus
+2024-10.bus
+2024-11.bus
+2024-12.bus
+2025-01-closing.bus

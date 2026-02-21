@@ -1,0 +1,18 @@
+#!/usr/bin/env bus
+
+
+# 2024-08-05: Purchase invoice P-9106 received
+attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-p9106-2024-08-05.txt" --desc "Synthetic invoice evidence P-9106"
+invoices add --type purchase --invoice-id p9106 --number P-9106 --status sent --invoice-date 2024-08-05 --due-date 2024-08-19 --customer "Driftline Data Oy"
+invoices p9106 add --line-no 1 --desc "Security scanning service" --quantity 1 --unit-price 64.00 --vat-rate 0.255
+invoices p9106 validate
+
+# 2024-08-12: File VAT for period 2024-07
+vat -f tsv -o "vat-report-2024-07.tsv" report --source reconcile --basis cash --period 2024-07
+attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-application-2024-07.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-07"
+
+# 2024-08-19: Payment of P-9106
+attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-015-2024-08-19.txt" --desc "Synthetic bank evidence synth-b-015"
+bank add --bank-id synth-b-015 --import-id synth-bank-2024 --booked-date 2024-08-19 --value-date 2024-08-19 --amount -80.32 --currency EUR --counterparty-name "Driftline Data Oy" --counterparty-iban FI1012345600000015 --reference 910600001 --message "Synthetic purchase payment P-9106" --source-id bank_row:synth-b-015
+reconcile allocate --bank-id synth-b-015 --invoice p9106=80.32
+journal add --date 2024-08-19 --desc "Synthetic purchase payment P-9106" --debit 4000=64.00 --debit 1763=16.32 --credit 1910=80.32 --source-id bank_row:synth-b-015:journal:1

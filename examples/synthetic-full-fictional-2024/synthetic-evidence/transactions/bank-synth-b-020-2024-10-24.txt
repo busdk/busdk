@@ -1,0 +1,6 @@
+Synthetic bank evidence row: synth-b-020
+Booked date: 2024-10-24
+Counterparty: FictionalPay Settlement Services Oy
+Reference: 990019002
+Amount: -7.50 EUR
+Message: Synthetic payout fee batch 2024-10-24

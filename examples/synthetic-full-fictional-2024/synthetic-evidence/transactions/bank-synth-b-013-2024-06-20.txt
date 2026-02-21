@@ -1,0 +1,6 @@
+Synthetic bank evidence row: synth-b-013
+Booked date: 2024-06-20
+Counterparty: Cobalt Networks Oy
+Reference: 910500001
+Amount: -65.26 EUR
+Message: Synthetic purchase payment P-9105

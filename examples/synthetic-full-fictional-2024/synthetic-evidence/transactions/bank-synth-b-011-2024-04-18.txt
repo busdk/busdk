@@ -1,0 +1,6 @@
+Synthetic bank evidence row: synth-b-011
+Booked date: 2024-04-18
+Counterparty: Vertex Hosting Oy
+Reference: 910400001
+Amount: -119.23 EUR
+Message: Synthetic purchase payment P-9104

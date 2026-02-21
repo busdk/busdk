@@ -1,0 +1,6 @@
+Synthetic bank evidence row: synth-b-014
+Booked date: 2024-07-22
+Counterparty: Summit Forge Oy
+Reference: 900600001
+Amount: +225.90 EUR
+Message: Synthetic reference payment S-9006
