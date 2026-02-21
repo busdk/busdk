@@ -2,15 +2,19 @@
 
 Track **defects and blockers** that affect this repo's replay or parity work: actual bugs in our software or in BusDK/tooling when they block us. **Nice-to-have features and enhancement requests** are in **[FEATURE_REQUESTS.md](FEATURE_REQUESTS.md)**.
 
-**Last reviewed:** 2026-02-20 (retested in current workspace and merged latest `BUGS.Update.md`).
+**Last reviewed:** 2026-02-21 (retested; reconcile cash purchase-side VAT signed-evidence fix merged).
 
 ---
 
 ## Active issues
 
-- No currently confirmed active defects after 2026-02-20 module fixes in this workspace.
+- None currently tracked.
 
 ## Implemented / removed from active list (2026-02-20 re-check)
+
+- `bus vat report --source reconcile --basis cash` purchase-side input VAT drop fixed:
+  - Reconcile cash allocation now normalizes signed purchase invoice evidence when purchase invoice gross is encoded negative (line-level outflow sign convention), so matched purchase cash events contribute deductible input VAT instead of being rejected/skipped as non-positive gross.
+  - Covered by `bus-vat/internal/vat/reconcile_test.go` (`TestLoadReconcileRows_NormalizesSignedPurchaseInvoiceEvidence`) and `bus-vat/tests/e2e_bus_vat.sh` (`reconcile_purchase_line_signed` scenario).
 
 - `bus status readiness` period-state gate false-negative fixed:
   - `latest_period` / `latest_state` now supports both legacy `period,state` rows and append-only `bus-period` rows (`period_id,state,recorded_at,...`).
