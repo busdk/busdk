@@ -150,3 +150,7 @@
 	path = bus-shell
 	url = git@github.com:busdk/bus-shell.git
 	branch = 1-bus-shell
+[submodule "bus-secrets"]
+	path = bus-secrets
+	url = git@github.com:busdk/bus-secrets.git
+	branch = 1-bus-secrets

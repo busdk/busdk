@@ -21,16 +21,7 @@ cp -a ./bus-accounts/AGENTS.md "./$NAME/AGENTS.md"
 cp -a ./bus-accounts/.gitignore "./$NAME/.gitignore"
 cp -a ./bus-accounts/.bus "./$NAME/.bus"
 cp -a ./bus-accounts/Makefile "./$NAME/Makefile"
-
-cat > "./$NAME/.bus/dev/test.sh" <<EOF
-#!/bin/sh
-set -e
-make test
-./tests/e2e_bus_${SHORT_NAME}.sh
-EOF
-
-chmod +x "./$NAME/.bus/dev/test.sh"
+cp -a ./bus-accounts/Makefile.local "./$NAME/Makefile.local"
 
 touch "./docs/docs/sdd/$NAME.md"
 touch "./docs/docs/modules/$NAME.md"
-
