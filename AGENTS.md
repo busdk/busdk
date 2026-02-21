@@ -169,6 +169,8 @@ For this superproject specifically, README must emphasize:
 17. When mentioning the `bus` GitHub repository in documentation or README text, inline-link to `https://github.com/busdk/bus`.
 18. For bug-fix work, prefer adding multiple related regression tests (unit/e2e) beyond the minimal reproducer whenever nearby behavior coverage is thin, to reduce recurrence risk.
 19. When active entries exist in `FEATURE_REQUESTS.md`, refine them into concrete module execution checklists in the corresponding `bus-{NAME}/PLAN.md` files in the same turn, including explicit unit-test, e2e-test, and docs update work items.
+20. When writing or refining task plans (for example `PLAN.md`), each task MUST be end-to-end and self-contained: include implementation, documentation updates, unit tests, and e2e tests in the same task; do not split these across separate tasks.
+21. When `go.mod` dependencies or local `replace` directives change in a module, update that module's `Makefile.local` `MODULE_BIN_DEPS` in the same change set so it stays aligned with `go.mod`.
 
 ## Documentation Paths (All Modules)
 

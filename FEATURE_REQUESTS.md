@@ -103,15 +103,36 @@ Goal note:
       - no bank-specific hardcoding required in default mode,
       - optional bank profiles can improve confidence but parser must still run in generic fallback mode.
 
+- FR56 - `bus period` deterministic reopen/reclose workflow for closed periods
+  - Symptom:
+    - Current period flow supports `open -> close -> lock`, but does not provide a deterministic/legal-safe reopen path for already closed periods.
+    - Replay examples needing a controlled correction cycle (`close -> reopen -> correcting voucher -> reclose`) cannot be modeled natively.
+  - Impact:
+    - Correction handling must be approximated with ad-hoc workarounds instead of explicit lifecycle controls.
+    - Audit trail for post-close corrections is weaker than needed in formal close processes.
+  - Expected:
+    - Explicit reopen command flow with controls, e.g.:
+      - `bus period reopen --period YYYY-MM --reason <code/text> --approved-by <id>`
+      - optional `--max-open-days` policy gate.
+    - Deterministic status transitions:
+      - `closed -> reopened -> closed` (and `locked` handling policy explicit).
+    - Built-in audit metadata:
+      - reopen timestamp, actor, reason, linked correction voucher IDs, reclose timestamp.
+    - Deterministic reporting:
+      - period history output includes reopen/reclose events and correction deltas.
+
 ## Resolved / removed from active list (revalidated 2026-02-21)
 
 - FR45 implemented: `bus status readiness --year ... --compliance fi --format json|tsv` returns deterministic gates and regulatory demand sections.
-- FR47 implemented: `bus-reconcile propose` supports `--target-kind`, `--exclude-exact-journal`, `--exclude-already-matched`, and scoped selectors.
-- FR48 implemented: `bus-journal account-activity` supports `--from/--to` and `--period YYYY-MM` scopes.
+- FR47 implemented: `bus reconcile propose` includes `--target-kind`, `--exclude-exact-journal`, `--exclude-already-matched`, and scoped selectors.
+- FR48 implemented: `bus journal account-activity` accepts explicit date ranges and month-style period values.
+- FR52 implemented: `bus reconcile post --kind invoice_payment` supports partial-payment planning/output with `posted_amount` and `open_amount`.
+- FR53 implemented: `bus bank coverage --year YYYY` exists and returns deterministic per-row coverage states (current correctness defect tracked in `BUGS.md`).
+- FR38 implemented: `bus-vat fi-file` emits FI VAT filing payload fields.
+- FR39 implemented: `bus-vat explain` provides row-level FI VAT field trace.
+- FR41 implemented at command level: `bus-vat period-profile` exists.
+- FR42 implemented: VAT output includes explicit rounding policy metadata.
+- FR43 implemented: `bus-journal account-activity` exists.
 - FR49 implemented: `bus-bank add` and `bus-bank import-log add` exist.
 - FR50 implemented: `bus-reports mapping add|upsert` exists.
 - FR51 implemented: `bus-invoices add` and `<invoice-id> add` now expose replay-needed flags (`--number`, `--status`, `--currency`, `--total-net`, `--line-no`, `--upsert`).
-- FR52 implemented: `bus-reconcile post --kind invoice_payment` supports deterministic partial-payment posting with posted/open status tracking.
-- FR53 implemented: deterministic posting coverage report exists in `bus-bank coverage`.
-- FR54 implemented: legacy-safe replay mode exists in `bus-invoices` (`--legacy-replay`) for add/import flows with deterministic warnings.
-- FR55 implemented: universal statement parser + deterministic verification engine exists in `bus-bank statement extract|verify` with provenance and mismatch diagnostics.
