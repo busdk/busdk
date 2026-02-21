@@ -30,10 +30,12 @@ Merged guidance from `.cursor/rules/*.mdc`.
    2. Required targets: `init`, `update`, `upgrade`, `status`, `build`, `install`, `clean`, `distclean`, `bootstrap`.
    3. `bootstrap` runs `init`, `build`, `install` only.
 9. Paths and variables:
-   1. `BIN_DIR` defaults to `./bin`.
+   1. Module-local build outputs use literal `./bin` paths (no `BIN_DIR` variable).
    2. `PREFIX ?= $(HOME)/.local`
    3. `BINDIR ?= $(PREFIX)/bin`
-   4. Pass through `GO ?= go`, `GOFLAGS`, `CGO_ENABLED`.
+   4. Support `DESTDIR ?=` for staged installs; install/uninstall paths use `$(DESTDIR)$(BINDIR)`.
+   5. Module Makefiles must provide `test-docker` using a standard per-module `Dockerfile` and `docker run` with the parent directory mounted at `/workspace`.
+   6. Pass through `GO ?= go`, `GOFLAGS`, `CGO_ENABLED`.
 10. Do not add alternative build systems, package-manager integrations, network features, or CLI binaries in this superproject.
 
 ## CLI Global Flag Standard (When Implementing `bus-*` CLI Modules)
@@ -165,6 +167,8 @@ For this superproject specifically, README must emphasize:
 15. Do not hardcode source-field/header alias mappings as long-term behavior. Mapping preferences must be project-level configurable (profiles/config files/flags), with deterministic validation diagnostics for missing/unknown/ambiguous mappings.
 16. Schema data is a valid preferred place for mapping configuration when supported (for example schema-declared field mappings/metadata), as long as behavior remains deterministic and override order is documented.
 17. When mentioning the `bus` GitHub repository in documentation or README text, inline-link to `https://github.com/busdk/bus`.
+18. For bug-fix work, prefer adding multiple related regression tests (unit/e2e) beyond the minimal reproducer whenever nearby behavior coverage is thin, to reduce recurrence risk.
+19. When active entries exist in `FEATURE_REQUESTS.md`, refine them into concrete module execution checklists in the corresponding `bus-{NAME}/PLAN.md` files in the same turn, including explicit unit-test, e2e-test, and docs update work items.
 
 ## Documentation Paths (All Modules)
 

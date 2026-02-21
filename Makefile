@@ -16,7 +16,7 @@ BINDIR ?= $(PREFIX)/bin
 INSTALL ?= install
 
 MODULE_DIRS := $(sort $(foreach d,$(wildcard bus bus-*),$(if $(wildcard $(d)/Makefile),$(d),)))
-SKIP_MODULES ?= bus-filing bus-filing-prh bus-filing-vero
+SKIP_MODULES ?=
 COMMA := ,
 SKIP_PATTERNS := $(strip $(subst $(COMMA), ,$(SKIP_MODULES)))
 
