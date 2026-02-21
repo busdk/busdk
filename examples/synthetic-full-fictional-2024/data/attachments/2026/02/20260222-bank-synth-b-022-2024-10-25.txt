@@ -1,0 +1,5 @@
+Synthetic bank evidence row: synth-b-022
+Booked date: 2024-10-25
+Counterparty: Own account transfer
+Amount: +300.00 EUR
+Message: Synthetic internal transfer from OP

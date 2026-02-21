@@ -2,22 +2,22 @@
 
 
 # 2024-12-05: Owner loan received (non-VAT financing event)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-028-2024-12-05.txt" --desc "Synthetic bank evidence synth-b-028"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-028-2024-12-05.txt" --desc "Synthetic bank evidence synth-b-028"
 bank add --bank-id synth-b-028 --import-id synth-op-main-2024 --booked-date 2024-12-05 --value-date 2024-12-05 --amount 1000.00 --currency EUR --counterparty-name "Owner loan transfer" --counterparty-iban FI1012345600000028 --reference 100000028 --message "Synthetic owner loan received" --source-id bank_row:synth-b-028
 journal add --date 2024-12-05 --desc "Synthetic owner loan received" --debit 1910=1000.00 --credit 2370=1000.00 --source-id bank_row:synth-b-028:journal:1
 
 # 2024-12-10: Business transfer invoice S-9010 (VAT 0%)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-s9010-2024-12-10.txt" --desc "Synthetic invoice evidence S-9010"
+attachments add "../synthetic-evidence/transactions/invoice-s9010-2024-12-10.txt" --desc "Synthetic invoice evidence S-9010"
 invoices add --type sales --invoice-id s9010 --number S-9010 --status sent --invoice-date 2024-12-10 --due-date 2024-12-24 --customer "Heusala Example Group Oy"
 invoices s9010 add --line-no 1 --desc "Business transfer agreement (hosting portfolio)" --quantity 1 --unit-price 10000.00 --vat-rate 0.0
 invoices s9010 validate
 
 # 2024-12-12: File VAT for period 2024-11
 vat -f tsv -o "vat-report-2024-11.tsv" report --source reconcile --basis cash --period 2024-11
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-application-2024-11.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-11"
+attachments add "../synthetic-evidence/vat-application-2024-11.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-11"
 
 # 2024-12-18: Year-end asset depreciation + disposal workflow
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/asset-depr-dispose-a1001-2024-12-18.txt" --desc "Synthetic asset depreciation and disposal evidence a1001"
+attachments add "../synthetic-evidence/transactions/asset-depr-dispose-a1001-2024-12-18.txt" --desc "Synthetic asset depreciation and disposal evidence a1001"
 assets depreciate --period 2024-12 -f csv -o "assets-depr-2024-12.csv"
 journal add --date 2024-12-18 --desc "Synthetic depreciation booking a1001" --debit 6800=300.00 --credit 1162=300.00 --source-id asset:a1001:depr:2024-12
 
@@ -27,16 +27,16 @@ journal add --date 2024-12-18 --desc "Synthetic asset disposal booking a1001" --
 assets validate
 
 # 2024-12-20: Bank service charge
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-009-2024-12-20.txt" --desc "Synthetic bank evidence synth-b-009"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-009-2024-12-20.txt" --desc "Synthetic bank evidence synth-b-009"
 bank add --bank-id synth-b-009 --import-id synth-bank-2024 --booked-date 2024-12-20 --value-date 2024-12-20 --amount -5.00 --currency EUR --counterparty-name "Demo Cooperative Bank" --counterparty-iban FI1012345600000999 --reference 990000001 --message "Synthetic monthly bank fee" --source-id bank_row:synth-b-009
 journal add --date 2024-12-20 --desc "Synthetic bank service fee" --debit 8564=5.00 --credit 1910=5.00 --source-id bank_row:synth-b-009:journal:1
 
 # 2024-12-27: Partial payment for business transfer invoice S-9010 (reference pattern)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-029-2024-12-27.txt" --desc "Synthetic bank evidence synth-b-029"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-029-2024-12-27.txt" --desc "Synthetic bank evidence synth-b-029"
 bank add --bank-id synth-b-029 --import-id synth-op-main-2024 --booked-date 2024-12-27 --value-date 2024-12-27 --amount 2500.00 --currency EUR --counterparty-name "Heusala Example Group Oy" --counterparty-iban FI1012345600000029 --reference 901000101 --message "Synthetic partial payment for business transfer invoice S-9010" --source-id bank_row:synth-b-029
 reconcile allocate --bank-id synth-b-029 --invoice s9010=2500.00
 journal add --date 2024-12-27 --desc "Synthetic business transfer partial receipt (VAT 0%)" --debit 1910=2500.00 --credit 3002=2500.00 --source-id bank_row:synth-b-029:journal:1
 
 # 2024-12-30: Year-end adjustment voucher before final close
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/adjustment-2024-12-30.txt" --desc "Synthetic year-end adjustment voucher evidence"
+attachments add "../synthetic-evidence/transactions/adjustment-2024-12-30.txt" --desc "Synthetic year-end adjustment voucher evidence"
 journal add --date 2024-12-30 --desc "Synthetic year-end adjustment voucher" --debit 8564=1.00 --credit 1910=1.00 --source-id adjustment:2024-12-30:1

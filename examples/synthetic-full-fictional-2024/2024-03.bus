@@ -2,29 +2,29 @@
 
 
 # 2024-03-05: Sales invoice S-9002 issued
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-s9002-2024-03-05.txt" --desc "Synthetic invoice evidence S-9002"
+attachments add "../synthetic-evidence/transactions/invoice-s9002-2024-03-05.txt" --desc "Synthetic invoice evidence S-9002"
 invoices add --type sales --invoice-id s9002 --number S-9002 --status sent --invoice-date 2024-03-05 --due-date 2024-03-19 --customer "Aurora Fabrication Oy"
 invoices s9002 add --line-no 1 --desc "Infrastructure setup package" --quantity 1 --unit-price 250.00 --vat-rate 0.255
 invoices s9002 validate
 
 # 2024-03-08: Purchase invoice P-9102 received
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-p9102-2024-03-08.txt" --desc "Synthetic invoice evidence P-9102"
+attachments add "../synthetic-evidence/transactions/invoice-p9102-2024-03-08.txt" --desc "Synthetic invoice evidence P-9102"
 invoices add --type purchase --invoice-id p9102 --number P-9102 --status sent --invoice-date 2024-03-08 --due-date 2024-03-22 --customer "Signal Harbor Oy"
 invoices p9102 add --line-no 1 --desc "Monitoring and backup tooling" --quantity 1 --unit-price 120.00 --vat-rate 0.255
 invoices p9102 validate
 
 # 2024-03-12: File VAT for period 2024-02
 vat -f tsv -o "vat-report-2024-02.tsv" report --source reconcile --basis cash --period 2024-02
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-application-2024-02.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-02"
+attachments add "../synthetic-evidence/vat-application-2024-02.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-02"
 
 # 2024-03-12: Customer payment for S-9002
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-003-2024-03-12.txt" --desc "Synthetic bank evidence synth-b-003"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-003-2024-03-12.txt" --desc "Synthetic bank evidence synth-b-003"
 bank add --bank-id synth-b-003 --import-id synth-bank-2024 --booked-date 2024-03-12 --value-date 2024-03-12 --amount 313.75 --currency EUR --counterparty-name "Aurora Fabrication Oy" --counterparty-iban FI1012345600000003 --reference 900200001 --message "Synthetic reference payment S-9002" --source-id bank_row:synth-b-003
 reconcile allocate --bank-id synth-b-003 --invoice s9002=313.75
 journal add --date 2024-03-12 --desc "Synthetic sales receipt S-9002" --debit 1910=313.75 --credit 3000=250.00 --credit 2931=63.75 --source-id bank_row:synth-b-003:journal:1
 
 # 2024-03-20: Payment of P-9102
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-004-2024-03-20.txt" --desc "Synthetic bank evidence synth-b-004"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-004-2024-03-20.txt" --desc "Synthetic bank evidence synth-b-004"
 bank add --bank-id synth-b-004 --import-id synth-bank-2024 --booked-date 2024-03-20 --value-date 2024-03-20 --amount -150.60 --currency EUR --counterparty-name "Signal Harbor Oy" --counterparty-iban FI1012345600000004 --reference 910200001 --message "Synthetic purchase payment P-9102" --source-id bank_row:synth-b-004
 reconcile allocate --bank-id synth-b-004 --invoice p9102=150.60
 journal add --date 2024-03-20 --desc "Synthetic purchase payment P-9102" --debit 4000=120.00 --debit 1763=30.60 --credit 1910=150.60 --source-id bank_row:synth-b-004:journal:1

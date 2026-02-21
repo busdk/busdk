@@ -1,0 +1,91 @@
+entry_id,transaction_id,posting_date,account_id,debit,credit,currency,voucher_id,source_system,source_id,entry_sequence,description
+2026-02-21T234316Z-7hgtvm-e1,2026-02-21T234316Z-7hgtvm,2024-01-01,1910,1500.00,0.00,EUR,opening:2024-01-01:synthetic:1,default,opening:2024-01-01:synthetic:1,1,Synthetic opening balance
+2026-02-21T234316Z-7hgtvm-e2,2026-02-21T234316Z-7hgtvm,2024-01-01,2200,0.00,1500.00,EUR,opening:2024-01-01:synthetic:1,default,opening:2024-01-01:synthetic:1,2,Synthetic opening balance
+2026-02-21T234316Z-u27mt6-e1,2026-02-21T234316Z-u27mt6,2024-01-15,1910,125.50,0.00,EUR,bank_row:synth-b-001:journal:1,default,bank_row:synth-b-001:journal:1,1,Synthetic sales receipt S-9001
+2026-02-21T234316Z-u27mt6-e2,2026-02-21T234316Z-u27mt6,2024-01-15,3000,0.00,100.00,EUR,bank_row:synth-b-001:journal:1,default,bank_row:synth-b-001:journal:1,2,Synthetic sales receipt S-9001
+2026-02-21T234316Z-u27mt6-e3,2026-02-21T234316Z-u27mt6,2024-01-15,2931,0.00,25.50,EUR,bank_row:synth-b-001:journal:1,default,bank_row:synth-b-001:journal:1,3,Synthetic sales receipt S-9001
+2026-02-21T234316Z-f81g9l-e1,2026-02-21T234316Z-f81g9l,2024-01-22,4000,40.00,0.00,EUR,bank_row:synth-b-002:journal:1,default,bank_row:synth-b-002:journal:1,1,Synthetic purchase payment P-9101
+2026-02-21T234316Z-f81g9l-e2,2026-02-21T234316Z-f81g9l,2024-01-22,1763,10.20,0.00,EUR,bank_row:synth-b-002:journal:1,default,bank_row:synth-b-002:journal:1,2,Synthetic purchase payment P-9101
+2026-02-21T234316Z-f81g9l-e3,2026-02-21T234316Z-f81g9l,2024-01-22,1910,0.00,50.20,EUR,bank_row:synth-b-002:journal:1,default,bank_row:synth-b-002:journal:1,3,Synthetic purchase payment P-9101
+2026-02-21T234316Z-cp8xwj-e1,2026-02-21T234316Z-cp8xwj,2024-02-16,1910,175.70,0.00,EUR,bank_row:synth-b-010:journal:1,default,bank_row:synth-b-010:journal:1,1,Synthetic sales receipt S-9004
+2026-02-21T234316Z-cp8xwj-e2,2026-02-21T234316Z-cp8xwj,2024-02-16,3000,0.00,140.00,EUR,bank_row:synth-b-010:journal:1,default,bank_row:synth-b-010:journal:1,2,Synthetic sales receipt S-9004
+2026-02-21T234316Z-cp8xwj-e3,2026-02-21T234316Z-cp8xwj,2024-02-16,2931,0.00,35.70,EUR,bank_row:synth-b-010:journal:1,default,bank_row:synth-b-010:journal:1,3,Synthetic sales receipt S-9004
+2026-02-21T234317Z-jmapwu-e1,2026-02-21T234317Z-jmapwu,2024-03-12,1910,313.75,0.00,EUR,bank_row:synth-b-003:journal:1,default,bank_row:synth-b-003:journal:1,1,Synthetic sales receipt S-9002
+2026-02-21T234317Z-jmapwu-e2,2026-02-21T234317Z-jmapwu,2024-03-12,3000,0.00,250.00,EUR,bank_row:synth-b-003:journal:1,default,bank_row:synth-b-003:journal:1,2,Synthetic sales receipt S-9002
+2026-02-21T234317Z-jmapwu-e3,2026-02-21T234317Z-jmapwu,2024-03-12,2931,0.00,63.75,EUR,bank_row:synth-b-003:journal:1,default,bank_row:synth-b-003:journal:1,3,Synthetic sales receipt S-9002
+2026-02-21T234317Z-yx2jfi-e1,2026-02-21T234317Z-yx2jfi,2024-03-20,4000,120.00,0.00,EUR,bank_row:synth-b-004:journal:1,default,bank_row:synth-b-004:journal:1,1,Synthetic purchase payment P-9102
+2026-02-21T234317Z-yx2jfi-e2,2026-02-21T234317Z-yx2jfi,2024-03-20,1763,30.60,0.00,EUR,bank_row:synth-b-004:journal:1,default,bank_row:synth-b-004:journal:1,2,Synthetic purchase payment P-9102
+2026-02-21T234317Z-yx2jfi-e3,2026-02-21T234317Z-yx2jfi,2024-03-20,1910,0.00,150.60,EUR,bank_row:synth-b-004:journal:1,default,bank_row:synth-b-004:journal:1,3,Synthetic purchase payment P-9102
+2026-02-21T234317Z-gixwoy-e1,2026-02-21T234317Z-gixwoy,2024-04-18,4000,95.00,0.00,EUR,bank_row:synth-b-011:journal:1,default,bank_row:synth-b-011:journal:1,1,Synthetic purchase payment P-9104
+2026-02-21T234317Z-gixwoy-e2,2026-02-21T234317Z-gixwoy,2024-04-18,1763,24.23,0.00,EUR,bank_row:synth-b-011:journal:1,default,bank_row:synth-b-011:journal:1,2,Synthetic purchase payment P-9104
+2026-02-21T234317Z-gixwoy-e3,2026-02-21T234317Z-gixwoy,2024-04-18,1910,0.00,119.23,EUR,bank_row:synth-b-011:journal:1,default,bank_row:synth-b-011:journal:1,3,Synthetic purchase payment P-9104
+2026-02-21T234317Z-lvsp1b-e1,2026-02-21T234317Z-lvsp1b,2024-05-20,1910,87.85,0.00,EUR,bank_row:synth-b-012:journal:1,default,bank_row:synth-b-012:journal:1,1,Synthetic sales receipt S-9005
+2026-02-21T234317Z-lvsp1b-e2,2026-02-21T234317Z-lvsp1b,2024-05-20,3000,0.00,70.00,EUR,bank_row:synth-b-012:journal:1,default,bank_row:synth-b-012:journal:1,2,Synthetic sales receipt S-9005
+2026-02-21T234317Z-lvsp1b-e3,2026-02-21T234317Z-lvsp1b,2024-05-20,2931,0.00,17.85,EUR,bank_row:synth-b-012:journal:1,default,bank_row:synth-b-012:journal:1,3,Synthetic sales receipt S-9005
+2026-02-21T234317Z-cd8tpz-e1,2026-02-21T234317Z-cd8tpz,2024-06-20,4000,52.00,0.00,EUR,bank_row:synth-b-013:journal:1,default,bank_row:synth-b-013:journal:1,1,Synthetic purchase payment P-9105
+2026-02-21T234317Z-cd8tpz-e2,2026-02-21T234317Z-cd8tpz,2024-06-20,1763,13.26,0.00,EUR,bank_row:synth-b-013:journal:1,default,bank_row:synth-b-013:journal:1,2,Synthetic purchase payment P-9105
+2026-02-21T234317Z-cd8tpz-e3,2026-02-21T234317Z-cd8tpz,2024-06-20,1910,0.00,65.26,EUR,bank_row:synth-b-013:journal:1,default,bank_row:synth-b-013:journal:1,3,Synthetic purchase payment P-9105
+2026-02-21T234317Z-cs3wc0-e1,2026-02-21T234317Z-cs3wc0,2024-06-28,1160,1200.00,0.00,EUR,bank_row:synth-b-031:journal:1,default,bank_row:synth-b-031:journal:1,1,Synthetic asset acquisition a1001
+2026-02-21T234317Z-cs3wc0-e2,2026-02-21T234317Z-cs3wc0,2024-06-28,1910,0.00,1200.00,EUR,bank_row:synth-b-031:journal:1,default,bank_row:synth-b-031:journal:1,2,Synthetic asset acquisition a1001
+2026-02-21T234317Z-3qpdkd-e1,2026-02-21T234317Z-3qpdkd,2024-07-22,1910,225.90,0.00,EUR,bank_row:synth-b-014:journal:1,default,bank_row:synth-b-014:journal:1,1,Synthetic sales receipt S-9006
+2026-02-21T234317Z-3qpdkd-e2,2026-02-21T234317Z-3qpdkd,2024-07-22,3000,0.00,180.00,EUR,bank_row:synth-b-014:journal:1,default,bank_row:synth-b-014:journal:1,2,Synthetic sales receipt S-9006
+2026-02-21T234317Z-3qpdkd-e3,2026-02-21T234317Z-3qpdkd,2024-07-22,2931,0.00,45.90,EUR,bank_row:synth-b-014:journal:1,default,bank_row:synth-b-014:journal:1,3,Synthetic sales receipt S-9006
+2026-02-21T234317Z-d694iz-e1,2026-02-21T234317Z-d694iz,2024-08-19,4000,64.00,0.00,EUR,bank_row:synth-b-015:journal:1,default,bank_row:synth-b-015:journal:1,1,Synthetic purchase payment P-9106
+2026-02-21T234317Z-d694iz-e2,2026-02-21T234317Z-d694iz,2024-08-19,1763,16.32,0.00,EUR,bank_row:synth-b-015:journal:1,default,bank_row:synth-b-015:journal:1,2,Synthetic purchase payment P-9106
+2026-02-21T234317Z-d694iz-e3,2026-02-21T234317Z-d694iz,2024-08-19,1910,0.00,80.32,EUR,bank_row:synth-b-015:journal:1,default,bank_row:synth-b-015:journal:1,3,Synthetic purchase payment P-9106
+2026-02-21T234317Z-t3aatl-e1,2026-02-21T234317Z-t3aatl,2024-09-06,1910,50.00,0.00,EUR,bank_row:synth-b-005:journal:1,default,bank_row:synth-b-005:journal:1,1,Synthetic partial sales receipt S-9003 part 1
+2026-02-21T234317Z-t3aatl-e2,2026-02-21T234317Z-t3aatl,2024-09-06,3000,0.00,39.84,EUR,bank_row:synth-b-005:journal:1,default,bank_row:synth-b-005:journal:1,2,Synthetic partial sales receipt S-9003 part 1
+2026-02-21T234317Z-t3aatl-e3,2026-02-21T234317Z-t3aatl,2024-09-06,2931,0.00,10.16,EUR,bank_row:synth-b-005:journal:1,default,bank_row:synth-b-005:journal:1,3,Synthetic partial sales receipt S-9003 part 1
+2026-02-21T234317Z-bybv2d-e1,2026-02-21T234317Z-bybv2d,2024-09-11,1910,50.40,0.00,EUR,bank_row:synth-b-006:journal:1,default,bank_row:synth-b-006:journal:1,1,Synthetic partial sales receipt S-9003 part 2
+2026-02-21T234317Z-bybv2d-e2,2026-02-21T234317Z-bybv2d,2024-09-11,3000,0.00,40.16,EUR,bank_row:synth-b-006:journal:1,default,bank_row:synth-b-006:journal:1,2,Synthetic partial sales receipt S-9003 part 2
+2026-02-21T234317Z-bybv2d-e3,2026-02-21T234317Z-bybv2d,2024-09-11,2931,0.00,10.24,EUR,bank_row:synth-b-006:journal:1,default,bank_row:synth-b-006:journal:1,3,Synthetic partial sales receipt S-9003 part 2
+2026-02-21T234317Z-zz4czn-e1,2026-02-21T234317Z-zz4czn,2024-09-13,4000,23.90,0.00,EUR,bank_row:synth-b-007:journal:1,default,bank_row:synth-b-007:journal:1,1,Synthetic partial purchase payment P-9103 part 1
+2026-02-21T234317Z-zz4czn-e2,2026-02-21T234317Z-zz4czn,2024-09-13,1763,6.10,0.00,EUR,bank_row:synth-b-007:journal:1,default,bank_row:synth-b-007:journal:1,2,Synthetic partial purchase payment P-9103 part 1
+2026-02-21T234317Z-zz4czn-e3,2026-02-21T234317Z-zz4czn,2024-09-13,1910,0.00,30.00,EUR,bank_row:synth-b-007:journal:1,default,bank_row:synth-b-007:journal:1,3,Synthetic partial purchase payment P-9103 part 1
+2026-02-21T234317Z-azol9p-e1,2026-02-21T234317Z-azol9p,2024-09-17,4000,36.10,0.00,EUR,bank_row:synth-b-008:journal:1,default,bank_row:synth-b-008:journal:1,1,Synthetic partial purchase payment P-9103 part 2
+2026-02-21T234317Z-azol9p-e2,2026-02-21T234317Z-azol9p,2024-09-17,1763,9.20,0.00,EUR,bank_row:synth-b-008:journal:1,default,bank_row:synth-b-008:journal:1,2,Synthetic partial purchase payment P-9103 part 2
+2026-02-21T234317Z-azol9p-e3,2026-02-21T234317Z-azol9p,2024-09-17,1910,0.00,45.30,EUR,bank_row:synth-b-008:journal:1,default,bank_row:synth-b-008:journal:1,3,Synthetic partial purchase payment P-9103 part 2
+2026-02-21T234318Z-27qvr9-e1,2026-02-21T234318Z-27qvr9,2024-10-16,1910,263.55,0.00,EUR,bank_row:synth-b-016:journal:1,default,bank_row:synth-b-016:journal:1,1,Synthetic sales receipt S-9007
+2026-02-21T234318Z-27qvr9-e2,2026-02-21T234318Z-27qvr9,2024-10-16,3000,0.00,210.00,EUR,bank_row:synth-b-016:journal:1,default,bank_row:synth-b-016:journal:1,2,Synthetic sales receipt S-9007
+2026-02-21T234318Z-27qvr9-e3,2026-02-21T234318Z-27qvr9,2024-10-16,2931,0.00,53.55,EUR,bank_row:synth-b-016:journal:1,default,bank_row:synth-b-016:journal:1,3,Synthetic sales receipt S-9007
+2026-02-21T234318Z-u3ejgn-e1,2026-02-21T234318Z-u3ejgn,2024-10-18,1910,62.75,0.00,EUR,bank_row:synth-b-018:journal:1,default,bank_row:synth-b-018:journal:1,1,Synthetic sales receipt S-9008 (reference variant)
+2026-02-21T234318Z-u3ejgn-e2,2026-02-21T234318Z-u3ejgn,2024-10-18,3000,0.00,50.00,EUR,bank_row:synth-b-018:journal:1,default,bank_row:synth-b-018:journal:1,2,Synthetic sales receipt S-9008 (reference variant)
+2026-02-21T234318Z-u3ejgn-e3,2026-02-21T234318Z-u3ejgn,2024-10-18,2931,0.00,12.75,EUR,bank_row:synth-b-018:journal:1,default,bank_row:synth-b-018:journal:1,3,Synthetic sales receipt S-9008 (reference variant)
+2026-02-21T234318Z-xrt7c3-e1,2026-02-21T234318Z-xrt7c3,2024-10-24,1910,243.50,0.00,EUR,bank_row:synth-b-019:journal:1,default,bank_row:synth-b-019:journal:1,1,Synthetic settlement payout receipt
+2026-02-21T234318Z-xrt7c3-e2,2026-02-21T234318Z-xrt7c3,2024-10-24,3000,0.00,194.02,EUR,bank_row:synth-b-019:journal:1,default,bank_row:synth-b-019:journal:1,2,Synthetic settlement payout receipt
+2026-02-21T234318Z-xrt7c3-e3,2026-02-21T234318Z-xrt7c3,2024-10-24,2931,0.00,49.48,EUR,bank_row:synth-b-019:journal:1,default,bank_row:synth-b-019:journal:1,3,Synthetic settlement payout receipt
+2026-02-21T234318Z-vxllyw-e1,2026-02-21T234318Z-vxllyw,2024-10-24,4000,7.50,0.00,EUR,bank_row:synth-b-020:journal:1,default,bank_row:synth-b-020:journal:1,1,Synthetic settlement fee payment
+2026-02-21T234318Z-vxllyw-e2,2026-02-21T234318Z-vxllyw,2024-10-24,1910,0.00,7.50,EUR,bank_row:synth-b-020:journal:1,default,bank_row:synth-b-020:journal:1,2,Synthetic settlement fee payment
+2026-02-21T234318Z-6kpcy6-e1,2026-02-21T234318Z-6kpcy6,2024-10-25,1998,300.00,0.00,EUR,bank_row:synth-b-021:journal:1,default,bank_row:synth-b-021:journal:1,1,Synthetic internal transfer out to Holvi
+2026-02-21T234318Z-6kpcy6-e2,2026-02-21T234318Z-6kpcy6,2024-10-25,1910,0.00,300.00,EUR,bank_row:synth-b-021:journal:1,default,bank_row:synth-b-021:journal:1,2,Synthetic internal transfer out to Holvi
+2026-02-21T234318Z-hq4cgc-e1,2026-02-21T234318Z-hq4cgc,2024-10-25,1911,300.00,0.00,EUR,bank_row:synth-b-022:journal:1,default,bank_row:synth-b-022:journal:1,1,Synthetic internal transfer in from OP
+2026-02-21T234318Z-hq4cgc-e2,2026-02-21T234318Z-hq4cgc,2024-10-25,1998,0.00,300.00,EUR,bank_row:synth-b-022:journal:1,default,bank_row:synth-b-022:journal:1,2,Synthetic internal transfer in from OP
+2026-02-21T234318Z-n82lp3-e1,2026-02-21T234318Z-n82lp3,2024-10-28,2060,120.00,0.00,EUR,bank_row:synth-b-027:journal:1,default,bank_row:synth-b-027:journal:1,1,Synthetic owner withdrawal (yksityisnosto)
+2026-02-21T234318Z-n82lp3-e2,2026-02-21T234318Z-n82lp3,2024-10-28,1910,0.00,120.00,EUR,bank_row:synth-b-027:journal:1,default,bank_row:synth-b-027:journal:1,2,Synthetic owner withdrawal (yksityisnosto)
+2026-02-21T234318Z-tvsta1-e1,2026-02-21T234318Z-tvsta1,2024-11-08,1911,42.00,0.00,EUR,bank_row:synth-b-023:journal:1,default,bank_row:synth-b-023:journal:1,1,Synthetic unmatched incoming parked to suspense
+2026-02-21T234318Z-tvsta1-e2,2026-02-21T234318Z-tvsta1,2024-11-08,1999,0.00,42.00,EUR,bank_row:synth-b-023:journal:1,default,bank_row:synth-b-023:journal:1,2,Synthetic unmatched incoming parked to suspense
+2026-02-21T234318Z-rv9si5-e1,2026-02-21T234318Z-rv9si5,2024-11-15,1999,42.00,0.00,EUR,suspense:reclass:2024-11-15:1,default,suspense:reclass:2024-11-15:1,1,Synthetic suspense reclassification to owner contribution
+2026-02-21T234318Z-rv9si5-e2,2026-02-21T234318Z-rv9si5,2024-11-15,2010,0.00,42.00,EUR,suspense:reclass:2024-11-15:1,default,suspense:reclass:2024-11-15:1,2,Synthetic suspense reclassification to owner contribution
+2026-02-21T234318Z-sk1wkf-e1,2026-02-21T234318Z-sk1wkf,2024-11-20,4000,44.00,0.00,EUR,bank_row:synth-b-017:journal:1,default,bank_row:synth-b-017:journal:1,1,Synthetic purchase payment P-9107
+2026-02-21T234318Z-sk1wkf-e2,2026-02-21T234318Z-sk1wkf,2024-11-20,1763,11.22,0.00,EUR,bank_row:synth-b-017:journal:1,default,bank_row:synth-b-017:journal:1,2,Synthetic purchase payment P-9107
+2026-02-21T234318Z-sk1wkf-e3,2026-02-21T234318Z-sk1wkf,2024-11-20,1910,0.00,55.22,EUR,bank_row:synth-b-017:journal:1,default,bank_row:synth-b-017:journal:1,3,Synthetic purchase payment P-9107
+2026-02-21T234318Z-pnis7o-e1,2026-02-21T234318Z-pnis7o,2024-11-25,1998,50.00,0.00,EUR,bank_row:synth-b-024:journal:1,default,bank_row:synth-b-024:journal:1,1,Synthetic internal transfer out to PayPal
+2026-02-21T234318Z-pnis7o-e2,2026-02-21T234318Z-pnis7o,2024-11-25,1911,0.00,50.00,EUR,bank_row:synth-b-024:journal:1,default,bank_row:synth-b-024:journal:1,2,Synthetic internal transfer out to PayPal
+2026-02-21T234318Z-t1jjmd-e1,2026-02-21T234318Z-t1jjmd,2024-11-25,1912,50.00,0.00,EUR,bank_row:synth-b-025:journal:1,default,bank_row:synth-b-025:journal:1,1,Synthetic internal transfer in from Holvi
+2026-02-21T234318Z-t1jjmd-e2,2026-02-21T234318Z-t1jjmd,2024-11-25,1998,0.00,50.00,EUR,bank_row:synth-b-025:journal:1,default,bank_row:synth-b-025:journal:1,2,Synthetic internal transfer in from Holvi
+2026-02-21T234318Z-x2y8q1-e1,2026-02-21T234318Z-x2y8q1,2024-11-28,1910,200.00,0.00,EUR,bank_row:synth-b-026:journal:1,default,bank_row:synth-b-026:journal:1,1,Synthetic owner contribution (yksityispanos)
+2026-02-21T234318Z-x2y8q1-e2,2026-02-21T234318Z-x2y8q1,2024-11-28,2010,0.00,200.00,EUR,bank_row:synth-b-026:journal:1,default,bank_row:synth-b-026:journal:1,2,Synthetic owner contribution (yksityispanos)
+2026-02-21T234318Z-2r8ft0-e1,2026-02-21T234318Z-2r8ft0,2024-12-05,1910,1000.00,0.00,EUR,bank_row:synth-b-028:journal:1,default,bank_row:synth-b-028:journal:1,1,Synthetic owner loan received
+2026-02-21T234318Z-2r8ft0-e2,2026-02-21T234318Z-2r8ft0,2024-12-05,2370,0.00,1000.00,EUR,bank_row:synth-b-028:journal:1,default,bank_row:synth-b-028:journal:1,2,Synthetic owner loan received
+2026-02-21T234318Z-896lql-e1,2026-02-21T234318Z-896lql,2024-12-18,6800,300.00,0.00,EUR,asset:a1001:depr:2024-12,default,asset:a1001:depr:2024-12,1,Synthetic depreciation booking a1001
+2026-02-21T234318Z-896lql-e2,2026-02-21T234318Z-896lql,2024-12-18,1162,0.00,300.00,EUR,asset:a1001:depr:2024-12,default,asset:a1001:depr:2024-12,2,Synthetic depreciation booking a1001
+2026-02-21T234318Z-b05luh-e1,2026-02-21T234318Z-b05luh,2024-12-18,1910,400.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,1,Synthetic asset disposal booking a1001
+2026-02-21T234318Z-b05luh-e2,2026-02-21T234318Z-b05luh,2024-12-18,1162,300.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,2,Synthetic asset disposal booking a1001
+2026-02-21T234318Z-b05luh-e3,2026-02-21T234318Z-b05luh,2024-12-18,8680,500.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,3,Synthetic asset disposal booking a1001
+2026-02-21T234318Z-b05luh-e4,2026-02-21T234318Z-b05luh,2024-12-18,1160,0.00,1200.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,4,Synthetic asset disposal booking a1001
+2026-02-21T234318Z-rb266c-e1,2026-02-21T234318Z-rb266c,2024-12-20,8564,5.00,0.00,EUR,bank_row:synth-b-009:journal:1,default,bank_row:synth-b-009:journal:1,1,Synthetic bank service fee
+2026-02-21T234318Z-rb266c-e2,2026-02-21T234318Z-rb266c,2024-12-20,1910,0.00,5.00,EUR,bank_row:synth-b-009:journal:1,default,bank_row:synth-b-009:journal:1,2,Synthetic bank service fee
+2026-02-21T234318Z-69ensu-e1,2026-02-21T234318Z-69ensu,2024-12-27,1910,2500.00,0.00,EUR,bank_row:synth-b-029:journal:1,default,bank_row:synth-b-029:journal:1,1,Synthetic business transfer partial receipt (VAT 0%)
+2026-02-21T234318Z-69ensu-e2,2026-02-21T234318Z-69ensu,2024-12-27,3002,0.00,2500.00,EUR,bank_row:synth-b-029:journal:1,default,bank_row:synth-b-029:journal:1,2,Synthetic business transfer partial receipt (VAT 0%)
+2026-02-21T234318Z-c7qden-e1,2026-02-21T234318Z-c7qden,2024-12-30,8564,1.00,0.00,EUR,adjustment:2024-12-30:1,default,adjustment:2024-12-30:1,1,Synthetic year-end adjustment voucher
+2026-02-21T234318Z-c7qden-e2,2026-02-21T234318Z-c7qden,2024-12-30,1910,0.00,1.00,EUR,adjustment:2024-12-30:1,default,adjustment:2024-12-30:1,2,Synthetic year-end adjustment voucher

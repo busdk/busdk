@@ -2,23 +2,23 @@
 
 
 # 2024-06-06: Purchase invoice P-9105 received
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-p9105-2024-06-06.txt" --desc "Synthetic invoice evidence P-9105"
+attachments add "../synthetic-evidence/transactions/invoice-p9105-2024-06-06.txt" --desc "Synthetic invoice evidence P-9105"
 invoices add --type purchase --invoice-id p9105 --number P-9105 --status sent --invoice-date 2024-06-06 --due-date 2024-06-20 --customer "Cobalt Networks Oy"
 invoices p9105 add --line-no 1 --desc "Network transit fee" --quantity 1 --unit-price 52.00 --vat-rate 0.255
 invoices p9105 validate
 
 # 2024-06-12: File VAT for period 2024-05
 vat -f tsv -o "vat-report-2024-05.tsv" report --source reconcile --basis cash --period 2024-05
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-application-2024-05.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-05"
+attachments add "../synthetic-evidence/vat-application-2024-05.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-05"
 
 # 2024-06-20: Payment of P-9105
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-013-2024-06-20.txt" --desc "Synthetic bank evidence synth-b-013"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-013-2024-06-20.txt" --desc "Synthetic bank evidence synth-b-013"
 bank add --bank-id synth-b-013 --import-id synth-bank-2024 --booked-date 2024-06-20 --value-date 2024-06-20 --amount -65.26 --currency EUR --counterparty-name "Cobalt Networks Oy" --counterparty-iban FI1012345600000013 --reference 910500001 --message "Synthetic purchase payment P-9105" --source-id bank_row:synth-b-013
 reconcile allocate --bank-id synth-b-013 --invoice p9105=65.26
 journal add --date 2024-06-20 --desc "Synthetic purchase payment P-9105" --debit 4000=52.00 --debit 1763=13.26 --credit 1910=65.26 --source-id bank_row:synth-b-013:journal:1
 
 # 2024-06-28: Asset acquisition (laptop workstation)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/asset-acquire-a1001-2024-06-28.txt" --desc "Synthetic asset acquisition evidence a1001"
+attachments add "../synthetic-evidence/transactions/asset-acquire-a1001-2024-06-28.txt" --desc "Synthetic asset acquisition evidence a1001"
 bank add --bank-id synth-b-031 --import-id synth-op-main-2024 --booked-date 2024-06-28 --value-date 2024-06-28 --amount -1200.00 --currency EUR --counterparty-name "Device Forge Oy" --counterparty-iban FI1012345600000031 --reference 600100001 --message "Synthetic equipment acquisition a1001" --source-id bank_row:synth-b-031
 journal add --date 2024-06-28 --desc "Synthetic asset acquisition a1001" --debit 1160=1200.00 --credit 1910=1200.00 --source-id bank_row:synth-b-031:journal:1
 assets add --asset-id a1001 --name "Laptop Workstation A1001" --acquired 2024-06-28 --in-service 2024-06-28 --cost 1200.00 --asset-account 1160 --depreciation-account 1162 --expense-account 6800 --method straight_line_monthly --life-months 24 --voucher "asset:a1001:acquire"

@@ -1,0 +1,6 @@
+Synthetic evidence: Asset acquisition a1001
+Date: 2024-06-28
+Vendor: Device Forge Oy
+Item: Laptop Workstation A1001
+Amount: 1200.00 EUR
+Purpose: Fixed asset acquisition

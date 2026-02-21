@@ -1,0 +1,6 @@
+Synthetic bank evidence row: synth-b-012
+Booked date: 2024-05-20
+Counterparty: Helix Solutions Oy
+Reference: 900500001
+Amount: +87.85 EUR
+Message: Synthetic reference payment S-9005

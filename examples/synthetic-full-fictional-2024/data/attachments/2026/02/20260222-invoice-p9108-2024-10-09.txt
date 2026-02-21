@@ -1,0 +1,6 @@
+Synthetic evidence: Purchase invoice P-9108
+Date: 2024-10-09
+Vendor: FictionalPay Settlement Services Oy
+Service: Settlement processing fee
+Amount: 7.50 EUR
+VAT: 0.00 EUR

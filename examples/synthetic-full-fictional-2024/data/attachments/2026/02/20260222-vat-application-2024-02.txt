@@ -1,0 +1,5 @@
+Synthetic Verohallinto VAT filing confirmation
+Period: 2024-02
+Filing date: synthetic example
+Basis: cash
+Status: filed (synthetic test evidence)

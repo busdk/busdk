@@ -1,0 +1,11 @@
+invoice_id,number,status,issue_date,due_date,party_name,currency,total_net,attachment_id
+s9001,S-9001,sent,2024-01-10,2024-01-24,Northwind Test Labs Ltd,EUR,,
+s9004,S-9004,sent,2024-02-05,2024-02-19,Nova Harbor Oy,EUR,,
+s9002,S-9002,sent,2024-03-05,2024-03-19,Aurora Fabrication Oy,EUR,,
+s9005,S-9005,sent,2024-05-07,2024-05-21,Helix Solutions Oy,EUR,,
+s9006,S-9006,sent,2024-07-08,2024-07-22,Summit Forge Oy,EUR,,
+s9003,S-9003,sent,2024-09-02,2024-09-16,Polar Geometry Oy,EUR,,
+s9007,S-9007,sent,2024-10-03,2024-10-17,Meridian Compute Oy,EUR,,
+s9008,S-9008,sent,2024-10-08,2024-10-22,Reference Pattern Test Oy,EUR,,
+s9009,S-9009,sent,2024-10-09,2024-10-23,Card Checkout Example Oy,EUR,,
+s9010,S-9010,sent,2024-12-10,2024-12-24,Heusala Example Group Oy,EUR,,

@@ -1,0 +1,32 @@
+{
+  "Fields": [
+    {
+      "name": "account_code",
+      "type": "string",
+      "constraints": {
+        "required": false,
+        "enum": null,
+        "pattern": ""
+      }
+    },
+    {
+      "name": "account_type",
+      "type": "string",
+      "constraints": {
+        "required": false,
+        "enum": null,
+        "pattern": ""
+      }
+    },
+    {
+      "name": "balance",
+      "type": "number",
+      "constraints": {
+        "required": false,
+        "enum": null,
+        "pattern": ""
+      }
+    }
+  ],
+  "PrimaryKey": null
+}

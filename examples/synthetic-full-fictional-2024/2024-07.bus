@@ -2,17 +2,17 @@
 
 
 # 2024-07-08: Sales invoice S-9006 issued
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-s9006-2024-07-08.txt" --desc "Synthetic invoice evidence S-9006"
+attachments add "../synthetic-evidence/transactions/invoice-s9006-2024-07-08.txt" --desc "Synthetic invoice evidence S-9006"
 invoices add --type sales --invoice-id s9006 --number S-9006 --status sent --invoice-date 2024-07-08 --due-date 2024-07-22 --customer "Summit Forge Oy"
 invoices s9006 add --line-no 1 --desc "Migration sprint package" --quantity 1 --unit-price 180.00 --vat-rate 0.255
 invoices s9006 validate
 
 # 2024-07-12: File VAT for period 2024-06
 vat -f tsv -o "vat-report-2024-06.tsv" report --source reconcile --basis cash --period 2024-06
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-application-2024-06.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-06"
+attachments add "../synthetic-evidence/vat-application-2024-06.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-06"
 
 # 2024-07-22: Customer payment for S-9006
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-014-2024-07-22.txt" --desc "Synthetic bank evidence synth-b-014"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-014-2024-07-22.txt" --desc "Synthetic bank evidence synth-b-014"
 bank add --bank-id synth-b-014 --import-id synth-bank-2024 --booked-date 2024-07-22 --value-date 2024-07-22 --amount 225.90 --currency EUR --counterparty-name "Summit Forge Oy" --counterparty-iban FI1012345600000014 --reference 900600001 --message "Synthetic reference payment S-9006" --source-id bank_row:synth-b-014
 reconcile allocate --bank-id synth-b-014 --invoice s9006=225.90
 journal add --date 2024-07-22 --desc "Synthetic sales receipt S-9006" --debit 1910=225.90 --credit 3000=180.00 --credit 2931=45.90 --source-id bank_row:synth-b-014:journal:1

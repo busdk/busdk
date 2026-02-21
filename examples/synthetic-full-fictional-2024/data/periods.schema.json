@@ -1,0 +1,61 @@
+{
+  "fields": [
+    {
+      "constraints": {
+        "required": true
+      },
+      "name": "period_id",
+      "type": "string"
+    },
+    {
+      "constraints": {
+        "required": true
+      },
+      "name": "start_date",
+      "type": "date"
+    },
+    {
+      "constraints": {
+        "required": true
+      },
+      "name": "end_date",
+      "type": "date"
+    },
+    {
+      "constraints": {
+        "enum": [
+          "future",
+          "open",
+          "closed",
+          "locked"
+        ],
+        "required": true
+      },
+      "name": "state",
+      "type": "string"
+    },
+    {
+      "name": "retained_earnings_account",
+      "type": "string"
+    },
+    {
+      "name": "closed_at",
+      "type": "datetime"
+    },
+    {
+      "name": "locked_at",
+      "type": "datetime"
+    },
+    {
+      "constraints": {
+        "required": true
+      },
+      "name": "recorded_at",
+      "type": "datetime"
+    }
+  ],
+  "primaryKey": [
+    "period_id",
+    "recorded_at"
+  ]
+}

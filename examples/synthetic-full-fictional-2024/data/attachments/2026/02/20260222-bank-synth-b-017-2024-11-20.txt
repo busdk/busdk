@@ -1,0 +1,6 @@
+Synthetic bank evidence row: synth-b-017
+Booked date: 2024-11-20
+Counterparty: Northline Admin Services Oy
+Reference: 910700001
+Amount: -55.22 EUR
+Message: Synthetic purchase payment P-9107

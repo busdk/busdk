@@ -2,67 +2,67 @@
 
 
 # 2024-10-03: Sales invoice S-9007 issued
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-s9007-2024-10-03.txt" --desc "Synthetic invoice evidence S-9007"
+attachments add "../synthetic-evidence/transactions/invoice-s9007-2024-10-03.txt" --desc "Synthetic invoice evidence S-9007"
 invoices add --type sales --invoice-id s9007 --number S-9007 --status sent --invoice-date 2024-10-03 --due-date 2024-10-17 --customer "Meridian Compute Oy"
 invoices s9007 add --line-no 1 --desc "Platform optimization package" --quantity 1 --unit-price 210.00 --vat-rate 0.255
 invoices s9007 validate
 
 # 2024-10-08: Sales invoice S-9008 issued (reference-pattern sample)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-s9008-2024-10-08.txt" --desc "Synthetic invoice evidence S-9008"
+attachments add "../synthetic-evidence/transactions/invoice-s9008-2024-10-08.txt" --desc "Synthetic invoice evidence S-9008"
 invoices add --type sales --invoice-id s9008 --number S-9008 --status sent --invoice-date 2024-10-08 --due-date 2024-10-22 --customer "Reference Pattern Test Oy"
 invoices s9008 add --line-no 1 --desc "Short consultation package" --quantity 1 --unit-price 50.00 --vat-rate 0.255
 invoices s9008 validate
 
 # 2024-10-09: Payment-settlement style sales invoice S-9009 issued
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-s9009-2024-10-09.txt" --desc "Synthetic invoice evidence S-9009"
+attachments add "../synthetic-evidence/transactions/invoice-s9009-2024-10-09.txt" --desc "Synthetic invoice evidence S-9009"
 invoices add --type sales --invoice-id s9009 --number S-9009 --status sent --invoice-date 2024-10-09 --due-date 2024-10-23 --customer "Card Checkout Example Oy"
 invoices s9009 add --line-no 1 --desc "Card-checkout delivered service" --quantity 1 --unit-price 194.02 --vat-rate 0.255
 invoices s9009 validate
 
 # 2024-10-09: Payment-settlement style processing fee invoice P-9108
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-p9108-2024-10-09.txt" --desc "Synthetic invoice evidence P-9108"
+attachments add "../synthetic-evidence/transactions/invoice-p9108-2024-10-09.txt" --desc "Synthetic invoice evidence P-9108"
 invoices add --type purchase --invoice-id p9108 --number P-9108 --status sent --invoice-date 2024-10-09 --due-date 2024-10-24 --customer "FictionalPay Settlement Services Oy"
 invoices p9108 add --line-no 1 --desc "Settlement processing fee" --quantity 1 --unit-price 7.50 --vat-rate 0.0
 invoices p9108 validate
 
 # 2024-10-12: File VAT for period 2024-09
 vat -f tsv -o "vat-report-2024-09.tsv" report --source reconcile --basis cash --period 2024-09
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-application-2024-09.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-09"
+attachments add "../synthetic-evidence/vat-application-2024-09.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-09"
 
 # 2024-10-16: Customer payment for S-9007
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-016-2024-10-16.txt" --desc "Synthetic bank evidence synth-b-016"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-016-2024-10-16.txt" --desc "Synthetic bank evidence synth-b-016"
 bank add --bank-id synth-b-016 --import-id synth-bank-2024 --booked-date 2024-10-16 --value-date 2024-10-16 --amount 263.55 --currency EUR --counterparty-name "Meridian Compute Oy" --counterparty-iban FI1012345600000016 --reference 900700001 --message "Synthetic reference payment S-9007" --source-id bank_row:synth-b-016
 reconcile allocate --bank-id synth-b-016 --invoice s9007=263.55
 journal add --date 2024-10-16 --desc "Synthetic sales receipt S-9007" --debit 1910=263.55 --credit 3000=210.00 --credit 2931=53.55 --source-id bank_row:synth-b-016:journal:1
 
 # 2024-10-18: Incoming reference-variant payment for S-9008
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-018-2024-10-18.txt" --desc "Synthetic bank evidence synth-b-018"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-018-2024-10-18.txt" --desc "Synthetic bank evidence synth-b-018"
 bank add --bank-id synth-b-018 --import-id synth-op-main-2024 --booked-date 2024-10-18 --value-date 2024-10-18 --amount 62.75 --currency EUR --counterparty-name "Reference Pattern Test Oy" --counterparty-iban FI1012345600000018 --reference 900800101 --message "Synthetic padded reference payment S-9008" --source-id bank_row:synth-b-018
 reconcile allocate --bank-id synth-b-018 --invoice s9008=62.75
 journal add --date 2024-10-18 --desc "Synthetic sales receipt S-9008 (reference variant)" --debit 1910=62.75 --credit 3000=50.00 --credit 2931=12.75 --source-id bank_row:synth-b-018:journal:1
 
 # 2024-10-24: Settlement payout receipt (Paytrail-like net payout)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-019-2024-10-24.txt" --desc "Synthetic bank evidence synth-b-019"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-019-2024-10-24.txt" --desc "Synthetic bank evidence synth-b-019"
 bank add --bank-id synth-b-019 --import-id synth-op-main-2024 --booked-date 2024-10-24 --value-date 2024-10-24 --amount 243.50 --currency EUR --counterparty-name "FictionalPay Settlement Services Oy" --counterparty-iban FI1012345600000019 --reference 990019001 --message "Synthetic payout batch 2024-10-24" --source-id bank_row:synth-b-019
 reconcile allocate --bank-id synth-b-019 --invoice s9009=243.50
 journal add --date 2024-10-24 --desc "Synthetic settlement payout receipt" --debit 1910=243.50 --credit 3000=194.02 --credit 2931=49.48 --source-id bank_row:synth-b-019:journal:1
 
 # 2024-10-24: Settlement processing fee debit (same settlement batch)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-020-2024-10-24.txt" --desc "Synthetic bank evidence synth-b-020"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-020-2024-10-24.txt" --desc "Synthetic bank evidence synth-b-020"
 bank add --bank-id synth-b-020 --import-id synth-op-main-2024 --booked-date 2024-10-24 --value-date 2024-10-24 --amount -7.50 --currency EUR --counterparty-name "FictionalPay Settlement Services Oy" --counterparty-iban FI1012345600000019 --reference 990019002 --message "Synthetic payout fee batch 2024-10-24" --source-id bank_row:synth-b-020
 reconcile allocate --bank-id synth-b-020 --invoice p9108=7.50
 journal add --date 2024-10-24 --desc "Synthetic settlement fee payment" --debit 4000=7.50 --credit 1910=7.50 --source-id bank_row:synth-b-020:journal:1
 
 # 2024-10-25: Internal transfer between own bank accounts (OP -> Holvi)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-021-2024-10-25.txt" --desc "Synthetic bank evidence synth-b-021"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-021-2024-10-25.txt" --desc "Synthetic bank evidence synth-b-021"
 bank add --bank-id synth-b-021 --import-id synth-op-main-2024 --booked-date 2024-10-25 --value-date 2024-10-25 --amount -300.00 --currency EUR --counterparty-name "Own account transfer" --counterparty-iban FI1012345600000021 --reference 000300021 --message "Synthetic internal transfer to Holvi" --source-id bank_row:synth-b-021
 journal add --date 2024-10-25 --desc "Synthetic internal transfer out to Holvi" --debit 1998=300.00 --credit 1910=300.00 --source-id bank_row:synth-b-021:journal:1
 
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-022-2024-10-25.txt" --desc "Synthetic bank evidence synth-b-022"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-022-2024-10-25.txt" --desc "Synthetic bank evidence synth-b-022"
 bank add --bank-id synth-b-022 --import-id synth-holvi-2024 --booked-date 2024-10-25 --value-date 2024-10-25 --amount 300.00 --currency EUR --counterparty-name "Own account transfer" --counterparty-iban FI1012345600000022 --reference 000300022 --message "Synthetic internal transfer from OP" --source-id bank_row:synth-b-022
 journal add --date 2024-10-25 --desc "Synthetic internal transfer in from OP" --debit 1911=300.00 --credit 1998=300.00 --source-id bank_row:synth-b-022:journal:1
 
 # 2024-10-28: Owner withdrawal (yksityisnosto)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-027-2024-10-28.txt" --desc "Synthetic bank evidence synth-b-027"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-027-2024-10-28.txt" --desc "Synthetic bank evidence synth-b-027"
 bank add --bank-id synth-b-027 --import-id synth-op-main-2024 --booked-date 2024-10-28 --value-date 2024-10-28 --amount -120.00 --currency EUR --counterparty-name "Owner transfer" --counterparty-iban FI1012345600000027 --reference 120000027 --message "Synthetic owner withdrawal" --source-id bank_row:synth-b-027
 journal add --date 2024-10-28 --desc "Synthetic owner withdrawal (yksityisnosto)" --debit 2060=120.00 --credit 1910=120.00 --source-id bank_row:synth-b-027:journal:1

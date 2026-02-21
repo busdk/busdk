@@ -1,0 +1,5 @@
+Synthetic bank evidence row: synth-b-027
+Booked date: 2024-10-28
+Counterparty: Owner transfer
+Amount: -120.00 EUR
+Message: Synthetic owner withdrawal

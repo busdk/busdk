@@ -1,0 +1,9 @@
+invoice_id,number,status,issue_date,due_date,party_name,currency,total_net,attachment_id
+p9101,P-9101,sent,2024-01-12,2024-01-26,Blue Dock Systems Oy,EUR,,
+p9102,P-9102,sent,2024-03-08,2024-03-22,Signal Harbor Oy,EUR,,
+p9104,P-9104,sent,2024-04-04,2024-04-18,Vertex Hosting Oy,EUR,,
+p9105,P-9105,sent,2024-06-06,2024-06-20,Cobalt Networks Oy,EUR,,
+p9106,P-9106,sent,2024-08-05,2024-08-19,Driftline Data Oy,EUR,,
+p9103,P-9103,sent,2024-09-03,2024-09-17,Quarry Digital Oy,EUR,,
+p9108,P-9108,sent,2024-10-09,2024-10-24,FictionalPay Settlement Services Oy,EUR,,
+p9107,P-9107,sent,2024-11-06,2024-11-20,Northline Admin Services Oy,EUR,,

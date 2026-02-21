@@ -2,40 +2,40 @@
 
 
 # 2024-11-06: Purchase invoice P-9107 received
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-p9107-2024-11-06.txt" --desc "Synthetic invoice evidence P-9107"
+attachments add "../synthetic-evidence/transactions/invoice-p9107-2024-11-06.txt" --desc "Synthetic invoice evidence P-9107"
 invoices add --type purchase --invoice-id p9107 --number P-9107 --status sent --invoice-date 2024-11-06 --due-date 2024-11-20 --customer "Northline Admin Services Oy"
 invoices p9107 add --line-no 1 --desc "Compliance support and filing prep" --quantity 1 --unit-price 44.00 --vat-rate 0.255
 invoices p9107 validate
 
 # 2024-11-08: Unmatched incoming cash parked to suspense
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-023-2024-11-08.txt" --desc "Synthetic bank evidence synth-b-023"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-023-2024-11-08.txt" --desc "Synthetic bank evidence synth-b-023"
 bank add --bank-id synth-b-023 --import-id synth-holvi-2024 --booked-date 2024-11-08 --value-date 2024-11-08 --amount 42.00 --currency EUR --counterparty-name "Unknown sender" --counterparty-iban FI1012345600000023 --reference 000042023 --message "Synthetic unmatched incoming transfer" --source-id bank_row:synth-b-023
 journal add --date 2024-11-08 --desc "Synthetic unmatched incoming parked to suspense" --debit 1911=42.00 --credit 1999=42.00 --source-id bank_row:synth-b-023:journal:1
 
 # 2024-11-12: File VAT for period 2024-10
 vat -f tsv -o "vat-report-2024-10.tsv" report --source reconcile --basis cash --period 2024-10
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-application-2024-10.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-10"
+attachments add "../synthetic-evidence/vat-application-2024-10.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-10"
 
 # 2024-11-15: Reclass suspense row after clarification (owner contribution)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/reclass-suspense-2024-11-15.txt" --desc "Synthetic suspense reclassification evidence"
+attachments add "../synthetic-evidence/transactions/reclass-suspense-2024-11-15.txt" --desc "Synthetic suspense reclassification evidence"
 journal add --date 2024-11-15 --desc "Synthetic suspense reclassification to owner contribution" --debit 1999=42.00 --credit 2010=42.00 --source-id suspense:reclass:2024-11-15:1
 
 # 2024-11-20: Payment of P-9107
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-017-2024-11-20.txt" --desc "Synthetic bank evidence synth-b-017"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-017-2024-11-20.txt" --desc "Synthetic bank evidence synth-b-017"
 bank add --bank-id synth-b-017 --import-id synth-bank-2024 --booked-date 2024-11-20 --value-date 2024-11-20 --amount -55.22 --currency EUR --counterparty-name "Northline Admin Services Oy" --counterparty-iban FI1012345600000017 --reference 910700001 --message "Synthetic purchase payment P-9107" --source-id bank_row:synth-b-017
 reconcile allocate --bank-id synth-b-017 --invoice p9107=55.22
 journal add --date 2024-11-20 --desc "Synthetic purchase payment P-9107" --debit 4000=44.00 --debit 1763=11.22 --credit 1910=55.22 --source-id bank_row:synth-b-017:journal:1
 
 # 2024-11-25: Internal transfer between own bank accounts (Holvi -> PayPal)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-024-2024-11-25.txt" --desc "Synthetic bank evidence synth-b-024"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-024-2024-11-25.txt" --desc "Synthetic bank evidence synth-b-024"
 bank add --bank-id synth-b-024 --import-id synth-holvi-2024 --booked-date 2024-11-25 --value-date 2024-11-25 --amount -50.00 --currency EUR --counterparty-name "Own account transfer" --counterparty-iban FI1012345600000024 --reference 000050024 --message "Synthetic internal transfer to PayPal" --source-id bank_row:synth-b-024
 journal add --date 2024-11-25 --desc "Synthetic internal transfer out to PayPal" --debit 1998=50.00 --credit 1911=50.00 --source-id bank_row:synth-b-024:journal:1
 
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-025-2024-11-25.txt" --desc "Synthetic bank evidence synth-b-025"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-025-2024-11-25.txt" --desc "Synthetic bank evidence synth-b-025"
 bank add --bank-id synth-b-025 --import-id synth-paypal-2024 --booked-date 2024-11-25 --value-date 2024-11-25 --amount 50.00 --currency EUR --counterparty-name "Own account transfer" --counterparty-iban FI1012345600000025 --reference 000050025 --message "Synthetic internal transfer from Holvi" --source-id bank_row:synth-b-025
 journal add --date 2024-11-25 --desc "Synthetic internal transfer in from Holvi" --debit 1912=50.00 --credit 1998=50.00 --source-id bank_row:synth-b-025:journal:1
 
 # 2024-11-28: Owner contribution (yksityispanos)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-026-2024-11-28.txt" --desc "Synthetic bank evidence synth-b-026"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-026-2024-11-28.txt" --desc "Synthetic bank evidence synth-b-026"
 bank add --bank-id synth-b-026 --import-id synth-op-main-2024 --booked-date 2024-11-28 --value-date 2024-11-28 --amount 200.00 --currency EUR --counterparty-name "Owner transfer" --counterparty-iban FI1012345600000026 --reference 200000026 --message "Synthetic owner contribution" --source-id bank_row:synth-b-026
 journal add --date 2024-11-28 --desc "Synthetic owner contribution (yksityispanos)" --debit 1910=200.00 --credit 2010=200.00 --source-id bank_row:synth-b-026:journal:1

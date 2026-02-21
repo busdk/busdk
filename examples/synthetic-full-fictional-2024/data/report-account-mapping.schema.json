@@ -1,0 +1,11 @@
+{
+  "fields": [
+    { "name": "layout_id", "type": "string", "constraints": { "required": true } },
+    { "name": "account_code", "type": "string", "constraints": { "required": true } },
+    { "name": "statement_target", "type": "string", "constraints": { "required": true } },
+    { "name": "layout_line_id", "type": "string", "constraints": { "required": true } },
+    { "name": "normal_side", "type": "string", "constraints": { "required": true, "enum": ["debit", "credit"] } },
+    { "name": "rollup_rule", "type": "string" }
+  ],
+  "primaryKey": ["layout_id", "account_code", "layout_line_id"]
+}

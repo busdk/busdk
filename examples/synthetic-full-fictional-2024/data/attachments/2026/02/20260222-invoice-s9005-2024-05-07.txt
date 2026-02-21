@@ -1,0 +1,7 @@
+Synthetic evidence: Sales invoice S-9005
+Date: 2024-05-07
+Customer: Helix Solutions Oy
+Service: DevOps maintenance service
+Net: 70.00 EUR
+VAT 25.5%: 17.85 EUR
+Gross: 87.85 EUR

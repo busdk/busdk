@@ -2,17 +2,17 @@
 
 
 # 2024-04-04: Purchase invoice P-9104 received
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-p9104-2024-04-04.txt" --desc "Synthetic invoice evidence P-9104"
+attachments add "../synthetic-evidence/transactions/invoice-p9104-2024-04-04.txt" --desc "Synthetic invoice evidence P-9104"
 invoices add --type purchase --invoice-id p9104 --number P-9104 --status sent --invoice-date 2024-04-04 --due-date 2024-04-18 --customer "Vertex Hosting Oy"
 invoices p9104 add --line-no 1 --desc "Backup storage allocation" --quantity 1 --unit-price 95.00 --vat-rate 0.255
 invoices p9104 validate
 
 # 2024-04-12: File VAT for period 2024-03
 vat -f tsv -o "vat-report-2024-03.tsv" report --source reconcile --basis cash --period 2024-03
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-application-2024-03.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-03"
+attachments add "../synthetic-evidence/vat-application-2024-03.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-03"
 
 # 2024-04-18: Payment of P-9104
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-011-2024-04-18.txt" --desc "Synthetic bank evidence synth-b-011"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-011-2024-04-18.txt" --desc "Synthetic bank evidence synth-b-011"
 bank add --bank-id synth-b-011 --import-id synth-bank-2024 --booked-date 2024-04-18 --value-date 2024-04-18 --amount -119.23 --currency EUR --counterparty-name "Vertex Hosting Oy" --counterparty-iban FI1012345600000011 --reference 910400001 --message "Synthetic purchase payment P-9104" --source-id bank_row:synth-b-011
 reconcile allocate --bank-id synth-b-011 --invoice p9104=119.23
 journal add --date 2024-04-18 --desc "Synthetic purchase payment P-9104" --debit 4000=95.00 --debit 1763=24.23 --credit 1910=119.23 --source-id bank_row:synth-b-011:journal:1

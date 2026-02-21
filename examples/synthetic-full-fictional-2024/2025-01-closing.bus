@@ -12,11 +12,11 @@ invoices validate
 # VAT outputs in realistic filing sequence (cash basis, monthly filer).
 # 2025-01-12: File VAT for period 2024-12.
 vat -f tsv -o "vat-report-2024-12.tsv" report --source reconcile --basis cash --period 2024-12
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-application-2024-12.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-12"
+attachments add "../synthetic-evidence/vat-application-2024-12.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-12"
 # 2025-01-20: Internal annual VAT review and FI payload generation for FY2024.
 vat -f tsv -o "vat-report-2024-year.tsv" report --source reconcile --basis cash --from 2024-01-01 --to 2024-12-31
 vat -f tsv -o "vat-fi-file-2024-year.tsv" fi-file --source reconcile --basis cash --from 2024-01-01 --to 2024-12-31
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-annual-review-2024.txt" --desc "Synthetic annual VAT review evidence for FY2024"
+attachments add "../synthetic-evidence/vat-annual-review-2024.txt" --desc "Synthetic annual VAT review evidence for FY2024"
 
 # Derived annual outputs in realistic year-end package order.
 # 2025-01-30: Working-paper trial balance and journal control (pre-lock draft package).
@@ -30,7 +30,7 @@ reports -o "balance-sheet-2024-12-31.csv" balance-sheet --as-of 2024-12-31 --for
 reports -o "tase-2024-12-31.pdf" balance-sheet --as-of 2024-12-31 --format pdf --layout-id kpa
 
 # 2025-01-31: Close + lock final period (finalization control step).
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/close-lock-2024-12-31.txt" --desc "Synthetic closing control evidence 2024-12"
+attachments add "../synthetic-evidence/transactions/close-lock-2024-12-31.txt" --desc "Synthetic closing control evidence 2024-12"
 period close --period 2024-12 --post-date 2024-12-31
 period lock --period 2024-12
 

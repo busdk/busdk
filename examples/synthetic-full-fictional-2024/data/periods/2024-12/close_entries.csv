@@ -1,0 +1,5 @@
+id,date,debit,credit,amount,description
+cl_8fe4fa1debec3167,2024-12-31,2200,6800,300.00,Period close 2024-12
+cl_64c1a62c83c28c15,2024-12-31,2200,8564,6.00,Period close 2024-12
+cl_06a5e33b7ab6156b,2024-12-31,2200,8680,500.00,Period close 2024-12
+cl_b7408a8c6c34e210,2024-12-31,3002,2200,2500.00,Period close 2024-12

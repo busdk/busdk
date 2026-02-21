@@ -75,7 +75,7 @@ period open --period 2024-12
 period validate
 
 # Opening balance
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/opening-2024-01-01.txt" --desc "Synthetic opening balance voucher evidence"
+attachments add "../synthetic-evidence/transactions/opening-2024-01-01.txt" --desc "Synthetic opening balance voucher evidence"
 journal add --date 2024-01-01 --desc "Synthetic opening balance" --debit 1910=1500.00 --credit 2200=1500.00 --source-id opening:2024-01-01:synthetic:1
 
 # Bank import marker

@@ -2,41 +2,41 @@
 
 
 # 2024-09-02: Sales invoice S-9003 issued
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-s9003-2024-09-02.txt" --desc "Synthetic invoice evidence S-9003"
+attachments add "../synthetic-evidence/transactions/invoice-s9003-2024-09-02.txt" --desc "Synthetic invoice evidence S-9003"
 invoices add --type sales --invoice-id s9003 --number S-9003 --status sent --invoice-date 2024-09-02 --due-date 2024-09-16 --customer "Polar Geometry Oy"
 invoices s9003 add --line-no 1 --desc "Integration support retainer" --quantity 1 --unit-price 80.00 --vat-rate 0.255
 invoices s9003 validate
 
 # 2024-09-03: Purchase invoice P-9103 received
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-p9103-2024-09-03.txt" --desc "Synthetic invoice evidence P-9103"
+attachments add "../synthetic-evidence/transactions/invoice-p9103-2024-09-03.txt" --desc "Synthetic invoice evidence P-9103"
 invoices add --type purchase --invoice-id p9103 --number P-9103 --status sent --invoice-date 2024-09-03 --due-date 2024-09-17 --customer "Quarry Digital Oy"
 invoices p9103 add --line-no 1 --desc "Contractor service batch" --quantity 1 --unit-price 60.00 --vat-rate 0.255
 invoices p9103 validate
 
 # 2024-09-06: Partial customer payment for S-9003 (part 1)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-005-2024-09-06.txt" --desc "Synthetic bank evidence synth-b-005"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-005-2024-09-06.txt" --desc "Synthetic bank evidence synth-b-005"
 bank add --bank-id synth-b-005 --import-id synth-bank-2024 --booked-date 2024-09-06 --value-date 2024-09-06 --amount 50.00 --currency EUR --counterparty-name "Polar Geometry Oy" --counterparty-iban FI1012345600000005 --reference 900300001 --message "Synthetic partial payment S-9003 part 1" --source-id bank_row:synth-b-005
 reconcile allocate --bank-id synth-b-005 --invoice s9003=50.00
 journal add --date 2024-09-06 --desc "Synthetic partial sales receipt S-9003 part 1" --debit 1910=50.00 --credit 3000=39.84 --credit 2931=10.16 --source-id bank_row:synth-b-005:journal:1
 
 # 2024-09-11: Partial customer payment for S-9003 (part 2)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-006-2024-09-11.txt" --desc "Synthetic bank evidence synth-b-006"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-006-2024-09-11.txt" --desc "Synthetic bank evidence synth-b-006"
 bank add --bank-id synth-b-006 --import-id synth-bank-2024 --booked-date 2024-09-11 --value-date 2024-09-11 --amount 50.40 --currency EUR --counterparty-name "Polar Geometry Oy" --counterparty-iban FI1012345600000005 --reference 900300002 --message "Synthetic partial payment S-9003 part 2" --source-id bank_row:synth-b-006
 reconcile allocate --bank-id synth-b-006 --invoice s9003=50.40
 journal add --date 2024-09-11 --desc "Synthetic partial sales receipt S-9003 part 2" --debit 1910=50.40 --credit 3000=40.16 --credit 2931=10.24 --source-id bank_row:synth-b-006:journal:1
 
 # 2024-09-12: File VAT for period 2024-08
 vat -f tsv -o "vat-report-2024-08.tsv" report --source reconcile --basis cash --period 2024-08
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-application-2024-08.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-08"
+attachments add "../synthetic-evidence/vat-application-2024-08.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-08"
 
 # 2024-09-13: Partial payment of P-9103 (part 1)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-007-2024-09-13.txt" --desc "Synthetic bank evidence synth-b-007"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-007-2024-09-13.txt" --desc "Synthetic bank evidence synth-b-007"
 bank add --bank-id synth-b-007 --import-id synth-bank-2024 --booked-date 2024-09-13 --value-date 2024-09-13 --amount -30.00 --currency EUR --counterparty-name "Quarry Digital Oy" --counterparty-iban FI1012345600000006 --reference 910300001 --message "Synthetic partial payment P-9103 part 1" --source-id bank_row:synth-b-007
 reconcile allocate --bank-id synth-b-007 --invoice p9103=30.00
 journal add --date 2024-09-13 --desc "Synthetic partial purchase payment P-9103 part 1" --debit 4000=23.90 --debit 1763=6.10 --credit 1910=30.00 --source-id bank_row:synth-b-007:journal:1
 
 # 2024-09-17: Partial payment of P-9103 (part 2)
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-008-2024-09-17.txt" --desc "Synthetic bank evidence synth-b-008"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-008-2024-09-17.txt" --desc "Synthetic bank evidence synth-b-008"
 bank add --bank-id synth-b-008 --import-id synth-bank-2024 --booked-date 2024-09-17 --value-date 2024-09-17 --amount -45.30 --currency EUR --counterparty-name "Quarry Digital Oy" --counterparty-iban FI1012345600000006 --reference 910300002 --message "Synthetic partial payment P-9103 part 2" --source-id bank_row:synth-b-008
 reconcile allocate --bank-id synth-b-008 --invoice p9103=45.30
 journal add --date 2024-09-17 --desc "Synthetic partial purchase payment P-9103 part 2" --debit 4000=36.10 --debit 1763=9.20 --credit 1910=45.30 --source-id bank_row:synth-b-008:journal:1

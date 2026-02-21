@@ -2,17 +2,17 @@
 
 
 # 2024-05-07: Sales invoice S-9005 issued
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/invoice-s9005-2024-05-07.txt" --desc "Synthetic invoice evidence S-9005"
+attachments add "../synthetic-evidence/transactions/invoice-s9005-2024-05-07.txt" --desc "Synthetic invoice evidence S-9005"
 invoices add --type sales --invoice-id s9005 --number S-9005 --status sent --invoice-date 2024-05-07 --due-date 2024-05-21 --customer "Helix Solutions Oy"
 invoices s9005 add --line-no 1 --desc "DevOps maintenance service" --quantity 1 --unit-price 70.00 --vat-rate 0.255
 invoices s9005 validate
 
 # 2024-05-12: File VAT for period 2024-04
 vat -f tsv -o "vat-report-2024-04.tsv" report --source reconcile --basis cash --period 2024-04
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/vat-application-2024-04.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-04"
+attachments add "../synthetic-evidence/vat-application-2024-04.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-04"
 
 # 2024-05-20: Customer payment for S-9005
-attachments add "../../examples/synthetic-full-fictional-2024/synthetic-evidence/transactions/bank-synth-b-012-2024-05-20.txt" --desc "Synthetic bank evidence synth-b-012"
+attachments add "../synthetic-evidence/transactions/bank-synth-b-012-2024-05-20.txt" --desc "Synthetic bank evidence synth-b-012"
 bank add --bank-id synth-b-012 --import-id synth-bank-2024 --booked-date 2024-05-20 --value-date 2024-05-20 --amount 87.85 --currency EUR --counterparty-name "Helix Solutions Oy" --counterparty-iban FI1012345600000012 --reference 900500001 --message "Synthetic reference payment S-9005" --source-id bank_row:synth-b-012
 reconcile allocate --bank-id synth-b-012 --invoice s9005=87.85
 journal add --date 2024-05-20 --desc "Synthetic sales receipt S-9005" --debit 1910=87.85 --credit 3000=70.00 --credit 2931=17.85 --source-id bank_row:synth-b-012:journal:1

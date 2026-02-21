@@ -1,0 +1,5 @@
+Synthetic bank evidence row: synth-b-024
+Booked date: 2024-11-25
+Counterparty: Own account transfer
+Amount: -50.00 EUR
+Message: Synthetic internal transfer to PayPal

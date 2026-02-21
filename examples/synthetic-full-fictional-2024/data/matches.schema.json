@@ -1,0 +1,105 @@
+{
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "enum": null,
+        "pattern": "^[A-Za-z0-9._-]+$"
+      }
+    },
+    {
+      "name": "bank_txn_id",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "enum": null,
+        "pattern": "^[A-Za-z0-9._-]+$"
+      }
+    },
+    {
+      "name": "kind",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "enum": [
+          "invoice_payment",
+          "journal_entry",
+          "unmatched"
+        ],
+        "pattern": ""
+      }
+    },
+    {
+      "name": "invoice_id",
+      "type": "string",
+      "constraints": {
+        "required": false,
+        "enum": null,
+        "pattern": ""
+      }
+    },
+    {
+      "name": "entry_id",
+      "type": "string",
+      "constraints": {
+        "required": false,
+        "enum": null,
+        "pattern": ""
+      }
+    },
+    {
+      "name": "amount",
+      "type": "number",
+      "constraints": {
+        "required": true,
+        "enum": null,
+        "pattern": ""
+      }
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "enum": null,
+        "pattern": ""
+      }
+    },
+    {
+      "name": "method",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "enum": [
+          "reference_exact",
+          "amount_name_heuristic",
+          "manual"
+        ],
+        "pattern": ""
+      }
+    },
+    {
+      "name": "confidence",
+      "type": "number",
+      "constraints": {
+        "required": true,
+        "enum": null,
+        "pattern": ""
+      }
+    },
+    {
+      "name": "created_at",
+      "type": "datetime",
+      "constraints": {
+        "required": true,
+        "enum": null,
+        "pattern": ""
+      }
+    }
+  ],
+  "primaryKey": [
+    "id"
+  ]
+}

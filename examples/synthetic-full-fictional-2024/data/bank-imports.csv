@@ -1,0 +1,5 @@
+import_id,source_path,imported_at,attachment_id
+synth-bank-2024,synthetic-bank-2024.csv,2026-02-21T12:00:00Z,
+synth-op-main-2024,synthetic-op-main-2024.csv,2026-02-21T12:01:00Z,
+synth-holvi-2024,synthetic-holvi-2024.csv,2026-02-21T12:02:00Z,
+synth-paypal-2024,synthetic-paypal-2024.csv,2026-02-21T12:03:00Z,
