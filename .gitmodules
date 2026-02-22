@@ -154,3 +154,19 @@
 	path = bus-secrets
 	url = git@github.com:busdk/bus-secrets.git
 	branch = 1-bus-secrets
+[submodule "bus-update"]
+	path = bus-update
+	url = git@github.com:busdk/bus-update.git
+	branch = 1-bus-update
+[submodule "bus-api-provider-books"]
+	path = bus-api-provider-books
+	url = git@github.com:busdk/bus-api-provider-books.git
+	branch = 1-bus-api-provider-books
+[submodule "bus-api-provider-session"]
+	path = bus-api-provider-session
+	url = git@github.com:busdk/bus-api-provider-session.git
+	branch = 1-bus-api-provider-session
+[submodule "bus-api-provider-data"]
+	path = bus-api-provider-data
+	url = git@github.com:busdk/bus-api-provider-data.git
+	branch = 1-bus-api-provider-data

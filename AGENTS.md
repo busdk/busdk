@@ -37,6 +37,10 @@ Merged guidance from `.cursor/rules/*.mdc`.
    5. Module Makefiles must provide `test-docker` using a standard per-module `Dockerfile` and `docker run` with the parent directory mounted at `/workspace`.
    6. Pass through `GO ?= go`, `GOFLAGS`, `CGO_ENABLED`.
 10. Do not add alternative build systems, package-manager integrations, network features, or CLI binaries in this superproject.
+11. Repository visibility boundary:
+   1. Public/open-source repos: `./` (superproject), `./bus`, `./docs`, `./busdk.com`.
+   2. Private/commercial-customer repos: every `./bus-*` module.
+   3. In public repos, do not introduce in-process coupling to private module internals; use stable CLI/library boundaries only.
 
 ## CLI Global Flag Standard (When Implementing `bus-*` CLI Modules)
 
@@ -171,6 +175,14 @@ For this superproject specifically, README must emphasize:
 19. When active entries exist in `FEATURE_REQUESTS.md`, refine them into concrete module execution checklists in the corresponding `bus-{NAME}/PLAN.md` files in the same turn, including explicit unit-test, e2e-test, and docs update work items.
 20. When writing or refining task plans (for example `PLAN.md`), each task MUST be end-to-end and self-contained: include implementation, documentation updates, unit tests, and e2e tests in the same task; do not split these across separate tasks.
 21. When `go.mod` dependencies or local `replace` directives change in a module, update that module's `Makefile.local` `MODULE_BIN_DEPS` in the same change set so it stays aligned with `go.mod`.
+22. Always process `BUGS.Update.md` first when it exists: merge its content into canonical `BUGS.md`, remove `BUGS.Update.md`, and only then start fixing or verifying active bugs from `BUGS.md`.
+23. Treat every new bug report as a new triage item even if it appears to match a previously fixed issue; deterministically re-verify both the original bug path and the new reported path before concluding fixed.
+24. For user-facing CLI naming, keep command-to-module mapping direct and simple (for example `bus plan` -> `bus-plan`); avoid alias-heavy indirection.
+25. For private backend architectures, keep CLI modules as thin clients that call backend APIs/services; avoid embedding monolithic backend business logic into CLI binaries.
+26. For API architecture direction, treat `bus-api` as an API application/dispatch service (transport/models/routing) and keep domain business logic in pluggable `bus-api-provider-*` modules.
+27. For current subscription/auth platform design, keep authentication passwordless; do not add password-based login flows unless explicitly approved.
+28. For current subscription/auth platform design, keep session lifecycle separate from authenticated-user context; pre-auth sessions are allowed only for constrained approved flows (for example free binary downloads).
+29. For provider-based API architecture, accounting/bookkeeping domain logic belongs in `bus-api-provider-books`, not in core `bus-api`.
 
 ## Documentation Paths (All Modules)
 
@@ -184,6 +196,7 @@ For this superproject specifically, README must emphasize:
 5. Do not defer documentation updates to a follow-up change; include doc updates in `./docs/docs` immediately with the behavior change.
 6. Documentation readability DoD for non-SDD end-user docs: prefer short paragraphs, avoid repeated wording, and keep pages task-oriented. Move deep implementation detail to `./docs/docs/sdd/*` or split into focused non-SDD topic pages when needed.
 7. Documentation style rule for non-SDD end-user docs: avoid bullet lists by default; use paragraphs unless a list/table is the only clear way to present structured data.
+8. Treat `./docs/docs` as the canonical docs site workspace and update both `./docs/docs/modules/{NAME}.md` and `./docs/docs/sdd/{NAME}.md` plus any related source material in the same change whenever behavior changes.
 
 ## Gitignore Rule
 

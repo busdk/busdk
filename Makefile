@@ -24,7 +24,7 @@ COMMA := ,
 SKIP_PATTERNS := $(strip $(subst $(COMMA), ,$(SKIP_MODULES)))
 MODULE_MAKE_VARS := BIN_DIR="$(abspath $(BIN_DIR))" PREFIX="$(PREFIX)" BINDIR="$(BINDIR)" GO="$(GO)" GOFLAGS="$(GOFLAGS)" CGO_ENABLED="$(CGO_ENABLED)" BUILD_STATIC="$(BUILD_STATIC)"
 
-.PHONY: help init update upgrade status bootstrap test e2e build install clean distclean audit-cli-reachability audit-cli-reachability-full tidy-mods
+.PHONY: help init update upgrade status bootstrap test e2e build install clean distclean audit-cli-reachability audit-cli-reachability-full tidy tidy-mods
 
 help:
 	@printf "BusDK superproject\n\n"
@@ -41,7 +41,8 @@ help:
 	@printf "  distclean   clean + deinitialize submodules\n"
 	@printf "  audit-cli-reachability  Report module packages unreachable from current CLI mains\n"
 	@printf "  audit-cli-reachability-full  Same audit + classify if unused packages are imported by other module CLIs\n"
-	@printf "  tidy-mods   Run go mod tidy across all bus/bus-* modules\n"
+	@printf "  tidy        Run make tidy across all bus/bus-* modules\n"
+	@printf "  tidy-mods   Alias for tidy\n"
 	@printf "  bootstrap   init + build + install\n\n"
 	@printf "Variables:\n"
 	@printf "  GO=%s\n" "$(GO)"
@@ -184,5 +185,28 @@ audit-cli-reachability:
 audit-cli-reachability-full:
 	./scripts/find-unreachable-cli-packages.sh --classify-outside
 
+tidy:
+	@set -eu; \
+	for mod in $(MODULE_DIRS); do \
+		skip=0; \
+		for pat in $(SKIP_PATTERNS); do \
+			case "$$mod" in $$pat) skip=1;; esac; \
+		done; \
+		if [ "$$skip" -eq 1 ]; then \
+			printf "==> %s (skipped)\n" "$$mod"; \
+			continue; \
+		fi; \
+		if [ ! -f "$$mod/Makefile" ]; then \
+			printf "==> %s (skipped: no Makefile)\n" "$$mod"; \
+			continue; \
+		fi; \
+		if ! "$(MAKE)" -C "$$mod" -n tidy >/dev/null 2>&1; then \
+			printf "==> %s (skipped: no tidy target)\n" "$$mod"; \
+			continue; \
+		fi; \
+		printf "==> %s\n" "$$mod"; \
+		"$(MAKE)" -C "$$mod" tidy $(MODULE_MAKE_VARS); \
+	done
+
 tidy-mods:
-	./scripts/tidy-all-mods.sh
+	@$(MAKE) tidy

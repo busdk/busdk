@@ -121,6 +121,36 @@ Goal note:
     - Deterministic reporting:
       - period history output includes reopen/reclose events and correction deltas.
 
+- FR57 - subscription, identity/auth, and binary entitlement platform (Stripe/Twilio-first, provider-based API)
+  - Symptom:
+    - BusDK currently has no native user identity/authentication, subscription lifecycle, or entitlement gate for binary package delivery.
+    - `bus-update` cannot verify whether a requesting user is registered and entitled to a specific binary package/version.
+    - `bus-api` is currently module-focused and lacks a generic provider-host model for pluggable API capabilities (for example subscription providers).
+  - Impact:
+    - No deterministic paid-plan onboarding or renewal flow.
+    - No enforceable customer/plan gate for package download APIs.
+    - Higher risk of hardcoded pricing/plan logic and monolithic secret sharing if added ad hoc.
+  - Expected:
+    - Stripe-first billing model that reuses Stripe hosted UI flows as primary user-facing purchase/checkout/portal surfaces.
+    - Phone number verification support in identity flows, with Twilio as the first SMS/OTP delivery provider.
+    - Separate semantic modules for identity/auth and plan/subscription operations with direct CLI-to-module naming (proposed split: `bus-auth` and `bus-plan`), with `bus` acting only as dispatcher entrypoint.
+    - CLI modules are thin clients: user-facing subcommands invoke private BusDK backend APIs/services rather than embedding monolithic backend logic in the CLI process.
+    - Authentication model is passwordless for now; do not introduce password-based login flows.
+    - Authentication/session model must keep session lifecycle separate from authenticated-user context; sessions are valid before authentication and may be used for constrained approved flows (for example free binary download access paths).
+    - Configurable plan model in API service with no hardcoded plans:
+      - per-plan monthly/yearly prices,
+      - configurable free/trial durations (for example 7/14 days),
+      - visibility controls (publicly purchasable vs staff-only),
+      - optional secret-code eligibility gate for purchase.
+    - `bus-update` integration that sends authenticated identity context and receives deterministic entitlement decisions before serving protected binaries.
+    - `bus-api` evolution toward a secure pluggable provider host:
+      - `bus-api` acts as API application/dispatch service only (routing/models/protocol), with no business logic implementations,
+      - explicit provider allowlist at startup (module names and/or explicit wildcard mode),
+      - provider interface based on request/response events,
+      - support for online and periodic/offline processing modes,
+      - clear secret-boundary separation so unrelated providers do not receive unneeded secrets.
+    - Deterministic diagnostics, audit trails, and policy configuration endpoints for staff operations.
+
 ## Resolved / removed from active list (revalidated 2026-02-21)
 
 - FR45 implemented: `bus status readiness --year ... --compliance fi --format json|tsv` returns deterministic gates and regulatory demand sections.
