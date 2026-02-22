@@ -1,0 +1,7 @@
+Synthetic evidence: Purchase invoice P-9106
+Date: 2024-08-05
+Vendor: Driftline Data Oy
+Service: Security scanning service
+Net: 64.00 EUR
+VAT 25.5%: 16.32 EUR
+Gross: 80.32 EUR

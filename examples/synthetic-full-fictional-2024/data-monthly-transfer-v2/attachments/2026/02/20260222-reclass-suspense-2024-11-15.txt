@@ -1,0 +1,5 @@
+Synthetic evidence: Suspense reclassification
+Date: 2024-11-15
+Original row: synth-b-023
+Action: Reclass from suspense to owner contribution
+Amount: 42.00 EUR

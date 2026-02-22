@@ -1,0 +1,5 @@
+Synthetic bank evidence row: synth-b-023
+Booked date: 2024-11-08
+Counterparty: Unknown sender
+Amount: +42.00 EUR
+Message: Synthetic unmatched incoming transfer

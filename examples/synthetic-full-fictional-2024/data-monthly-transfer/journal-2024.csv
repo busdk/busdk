@@ -1,0 +1,139 @@
+entry_id,transaction_id,posting_date,account_id,debit,credit,currency,voucher_id,source_system,source_id,entry_sequence,description
+2026-02-22T000314Z-rdgwmn-e1,2026-02-22T000314Z-rdgwmn,2024-01-01,1910,1500.00,0.00,EUR,opening:2024-01-01:synthetic:1,default,opening:2024-01-01:synthetic:1,1,Synthetic opening balance
+2026-02-22T000314Z-rdgwmn-e2,2026-02-22T000314Z-rdgwmn,2024-01-01,2200,0.00,1500.00,EUR,opening:2024-01-01:synthetic:1,default,opening:2024-01-01:synthetic:1,2,Synthetic opening balance
+2026-02-22T000314Z-rl9kwg-e1,2026-02-22T000314Z-rl9kwg,2024-01-15,1910,125.50,0.00,EUR,bank_row:synth-b-001:journal:1,default,bank_row:synth-b-001:journal:1,1,Synthetic sales receipt S-9001
+2026-02-22T000314Z-rl9kwg-e2,2026-02-22T000314Z-rl9kwg,2024-01-15,3000,0.00,100.00,EUR,bank_row:synth-b-001:journal:1,default,bank_row:synth-b-001:journal:1,2,Synthetic sales receipt S-9001
+2026-02-22T000314Z-rl9kwg-e3,2026-02-22T000314Z-rl9kwg,2024-01-15,2931,0.00,25.50,EUR,bank_row:synth-b-001:journal:1,default,bank_row:synth-b-001:journal:1,3,Synthetic sales receipt S-9001
+2026-02-22T000314Z-s5frun-e1,2026-02-22T000314Z-s5frun,2024-01-22,4000,40.00,0.00,EUR,bank_row:synth-b-002:journal:1,default,bank_row:synth-b-002:journal:1,1,Synthetic purchase payment P-9101
+2026-02-22T000314Z-s5frun-e2,2026-02-22T000314Z-s5frun,2024-01-22,1763,10.20,0.00,EUR,bank_row:synth-b-002:journal:1,default,bank_row:synth-b-002:journal:1,2,Synthetic purchase payment P-9101
+2026-02-22T000314Z-s5frun-e3,2026-02-22T000314Z-s5frun,2024-01-22,1910,0.00,50.20,EUR,bank_row:synth-b-002:journal:1,default,bank_row:synth-b-002:journal:1,3,Synthetic purchase payment P-9101
+2026-02-22T000314Z-yh0pro-e1,2026-02-22T000314Z-yh0pro,2024-01-26,1998,150.00,0.00,EUR,bank_row:synth-b-040:journal:1,default,bank_row:synth-b-040:journal:1,1,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000314Z-yh0pro-e2,2026-02-22T000314Z-yh0pro,2024-01-26,1910,0.00,150.00,EUR,bank_row:synth-b-040:journal:1,default,bank_row:synth-b-040:journal:1,2,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000314Z-bmlvpl-e1,2026-02-22T000314Z-bmlvpl,2024-01-26,1911,150.00,0.00,EUR,bank_row:synth-b-041:journal:1,default,bank_row:synth-b-041:journal:1,1,Synthetic monthly internal transfer in from OP
+2026-02-22T000314Z-bmlvpl-e2,2026-02-22T000314Z-bmlvpl,2024-01-26,1998,0.00,150.00,EUR,bank_row:synth-b-041:journal:1,default,bank_row:synth-b-041:journal:1,2,Synthetic monthly internal transfer in from OP
+2026-02-22T000314Z-1wgrxp-e1,2026-02-22T000314Z-1wgrxp,2024-02-16,1910,175.70,0.00,EUR,bank_row:synth-b-010:journal:1,default,bank_row:synth-b-010:journal:1,1,Synthetic sales receipt S-9004
+2026-02-22T000314Z-1wgrxp-e2,2026-02-22T000314Z-1wgrxp,2024-02-16,3000,0.00,140.00,EUR,bank_row:synth-b-010:journal:1,default,bank_row:synth-b-010:journal:1,2,Synthetic sales receipt S-9004
+2026-02-22T000314Z-1wgrxp-e3,2026-02-22T000314Z-1wgrxp,2024-02-16,2931,0.00,35.70,EUR,bank_row:synth-b-010:journal:1,default,bank_row:synth-b-010:journal:1,3,Synthetic sales receipt S-9004
+2026-02-22T000314Z-9h03co-e1,2026-02-22T000314Z-9h03co,2024-02-27,1998,180.00,0.00,EUR,bank_row:synth-b-042:journal:1,default,bank_row:synth-b-042:journal:1,1,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000314Z-9h03co-e2,2026-02-22T000314Z-9h03co,2024-02-27,1910,0.00,180.00,EUR,bank_row:synth-b-042:journal:1,default,bank_row:synth-b-042:journal:1,2,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000315Z-2f1bq0-e1,2026-02-22T000315Z-2f1bq0,2024-02-27,1911,180.00,0.00,EUR,bank_row:synth-b-043:journal:1,default,bank_row:synth-b-043:journal:1,1,Synthetic monthly internal transfer in from OP
+2026-02-22T000315Z-2f1bq0-e2,2026-02-22T000315Z-2f1bq0,2024-02-27,1998,0.00,180.00,EUR,bank_row:synth-b-043:journal:1,default,bank_row:synth-b-043:journal:1,2,Synthetic monthly internal transfer in from OP
+2026-02-22T000315Z-kbfchi-e1,2026-02-22T000315Z-kbfchi,2024-03-12,1910,313.75,0.00,EUR,bank_row:synth-b-003:journal:1,default,bank_row:synth-b-003:journal:1,1,Synthetic sales receipt S-9002
+2026-02-22T000315Z-kbfchi-e2,2026-02-22T000315Z-kbfchi,2024-03-12,3000,0.00,250.00,EUR,bank_row:synth-b-003:journal:1,default,bank_row:synth-b-003:journal:1,2,Synthetic sales receipt S-9002
+2026-02-22T000315Z-kbfchi-e3,2026-02-22T000315Z-kbfchi,2024-03-12,2931,0.00,63.75,EUR,bank_row:synth-b-003:journal:1,default,bank_row:synth-b-003:journal:1,3,Synthetic sales receipt S-9002
+2026-02-22T000315Z-l0nqbh-e1,2026-02-22T000315Z-l0nqbh,2024-03-20,4000,120.00,0.00,EUR,bank_row:synth-b-004:journal:1,default,bank_row:synth-b-004:journal:1,1,Synthetic purchase payment P-9102
+2026-02-22T000315Z-l0nqbh-e2,2026-02-22T000315Z-l0nqbh,2024-03-20,1763,30.60,0.00,EUR,bank_row:synth-b-004:journal:1,default,bank_row:synth-b-004:journal:1,2,Synthetic purchase payment P-9102
+2026-02-22T000315Z-l0nqbh-e3,2026-02-22T000315Z-l0nqbh,2024-03-20,1910,0.00,150.60,EUR,bank_row:synth-b-004:journal:1,default,bank_row:synth-b-004:journal:1,3,Synthetic purchase payment P-9102
+2026-02-22T000315Z-jqkjck-e1,2026-02-22T000315Z-jqkjck,2024-03-28,1998,160.00,0.00,EUR,bank_row:synth-b-044:journal:1,default,bank_row:synth-b-044:journal:1,1,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000315Z-jqkjck-e2,2026-02-22T000315Z-jqkjck,2024-03-28,1910,0.00,160.00,EUR,bank_row:synth-b-044:journal:1,default,bank_row:synth-b-044:journal:1,2,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000315Z-h9zzku-e1,2026-02-22T000315Z-h9zzku,2024-03-28,1911,160.00,0.00,EUR,bank_row:synth-b-045:journal:1,default,bank_row:synth-b-045:journal:1,1,Synthetic monthly internal transfer in from OP
+2026-02-22T000315Z-h9zzku-e2,2026-02-22T000315Z-h9zzku,2024-03-28,1998,0.00,160.00,EUR,bank_row:synth-b-045:journal:1,default,bank_row:synth-b-045:journal:1,2,Synthetic monthly internal transfer in from OP
+2026-02-22T000315Z-9hwzpr-e1,2026-02-22T000315Z-9hwzpr,2024-04-18,4000,95.00,0.00,EUR,bank_row:synth-b-011:journal:1,default,bank_row:synth-b-011:journal:1,1,Synthetic purchase payment P-9104
+2026-02-22T000315Z-9hwzpr-e2,2026-02-22T000315Z-9hwzpr,2024-04-18,1763,24.23,0.00,EUR,bank_row:synth-b-011:journal:1,default,bank_row:synth-b-011:journal:1,2,Synthetic purchase payment P-9104
+2026-02-22T000315Z-9hwzpr-e3,2026-02-22T000315Z-9hwzpr,2024-04-18,1910,0.00,119.23,EUR,bank_row:synth-b-011:journal:1,default,bank_row:synth-b-011:journal:1,3,Synthetic purchase payment P-9104
+2026-02-22T000315Z-us2vu2-e1,2026-02-22T000315Z-us2vu2,2024-04-29,1998,170.00,0.00,EUR,bank_row:synth-b-046:journal:1,default,bank_row:synth-b-046:journal:1,1,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000315Z-us2vu2-e2,2026-02-22T000315Z-us2vu2,2024-04-29,1910,0.00,170.00,EUR,bank_row:synth-b-046:journal:1,default,bank_row:synth-b-046:journal:1,2,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000315Z-64jpeu-e1,2026-02-22T000315Z-64jpeu,2024-04-29,1911,170.00,0.00,EUR,bank_row:synth-b-047:journal:1,default,bank_row:synth-b-047:journal:1,1,Synthetic monthly internal transfer in from OP
+2026-02-22T000315Z-64jpeu-e2,2026-02-22T000315Z-64jpeu,2024-04-29,1998,0.00,170.00,EUR,bank_row:synth-b-047:journal:1,default,bank_row:synth-b-047:journal:1,2,Synthetic monthly internal transfer in from OP
+2026-02-22T000315Z-blnhqu-e1,2026-02-22T000315Z-blnhqu,2024-05-20,1910,87.85,0.00,EUR,bank_row:synth-b-012:journal:1,default,bank_row:synth-b-012:journal:1,1,Synthetic sales receipt S-9005
+2026-02-22T000315Z-blnhqu-e2,2026-02-22T000315Z-blnhqu,2024-05-20,3000,0.00,70.00,EUR,bank_row:synth-b-012:journal:1,default,bank_row:synth-b-012:journal:1,2,Synthetic sales receipt S-9005
+2026-02-22T000315Z-blnhqu-e3,2026-02-22T000315Z-blnhqu,2024-05-20,2931,0.00,17.85,EUR,bank_row:synth-b-012:journal:1,default,bank_row:synth-b-012:journal:1,3,Synthetic sales receipt S-9005
+2026-02-22T000315Z-xgoegu-e1,2026-02-22T000315Z-xgoegu,2024-05-29,1998,190.00,0.00,EUR,bank_row:synth-b-048:journal:1,default,bank_row:synth-b-048:journal:1,1,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000315Z-xgoegu-e2,2026-02-22T000315Z-xgoegu,2024-05-29,1910,0.00,190.00,EUR,bank_row:synth-b-048:journal:1,default,bank_row:synth-b-048:journal:1,2,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000315Z-wywb6t-e1,2026-02-22T000315Z-wywb6t,2024-05-29,1911,190.00,0.00,EUR,bank_row:synth-b-049:journal:1,default,bank_row:synth-b-049:journal:1,1,Synthetic monthly internal transfer in from OP
+2026-02-22T000315Z-wywb6t-e2,2026-02-22T000315Z-wywb6t,2024-05-29,1998,0.00,190.00,EUR,bank_row:synth-b-049:journal:1,default,bank_row:synth-b-049:journal:1,2,Synthetic monthly internal transfer in from OP
+2026-02-22T000315Z-7faanr-e1,2026-02-22T000315Z-7faanr,2024-06-20,4000,52.00,0.00,EUR,bank_row:synth-b-013:journal:1,default,bank_row:synth-b-013:journal:1,1,Synthetic purchase payment P-9105
+2026-02-22T000315Z-7faanr-e2,2026-02-22T000315Z-7faanr,2024-06-20,1763,13.26,0.00,EUR,bank_row:synth-b-013:journal:1,default,bank_row:synth-b-013:journal:1,2,Synthetic purchase payment P-9105
+2026-02-22T000315Z-7faanr-e3,2026-02-22T000315Z-7faanr,2024-06-20,1910,0.00,65.26,EUR,bank_row:synth-b-013:journal:1,default,bank_row:synth-b-013:journal:1,3,Synthetic purchase payment P-9105
+2026-02-22T000315Z-wla2pm-e1,2026-02-22T000315Z-wla2pm,2024-06-28,1160,1200.00,0.00,EUR,bank_row:synth-b-031:journal:1,default,bank_row:synth-b-031:journal:1,1,Synthetic asset acquisition a1001
+2026-02-22T000315Z-wla2pm-e2,2026-02-22T000315Z-wla2pm,2024-06-28,1910,0.00,1200.00,EUR,bank_row:synth-b-031:journal:1,default,bank_row:synth-b-031:journal:1,2,Synthetic asset acquisition a1001
+2026-02-22T000315Z-w8pvn5-e1,2026-02-22T000315Z-w8pvn5,2024-06-29,1998,200.00,0.00,EUR,bank_row:synth-b-050:journal:1,default,bank_row:synth-b-050:journal:1,1,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000315Z-w8pvn5-e2,2026-02-22T000315Z-w8pvn5,2024-06-29,1910,0.00,200.00,EUR,bank_row:synth-b-050:journal:1,default,bank_row:synth-b-050:journal:1,2,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000315Z-lbbudc-e1,2026-02-22T000315Z-lbbudc,2024-06-29,1911,200.00,0.00,EUR,bank_row:synth-b-051:journal:1,default,bank_row:synth-b-051:journal:1,1,Synthetic monthly internal transfer in from OP
+2026-02-22T000315Z-lbbudc-e2,2026-02-22T000315Z-lbbudc,2024-06-29,1998,0.00,200.00,EUR,bank_row:synth-b-051:journal:1,default,bank_row:synth-b-051:journal:1,2,Synthetic monthly internal transfer in from OP
+2026-02-22T000316Z-l83wlj-e1,2026-02-22T000316Z-l83wlj,2024-07-22,1910,225.90,0.00,EUR,bank_row:synth-b-014:journal:1,default,bank_row:synth-b-014:journal:1,1,Synthetic sales receipt S-9006
+2026-02-22T000316Z-l83wlj-e2,2026-02-22T000316Z-l83wlj,2024-07-22,3000,0.00,180.00,EUR,bank_row:synth-b-014:journal:1,default,bank_row:synth-b-014:journal:1,2,Synthetic sales receipt S-9006
+2026-02-22T000316Z-l83wlj-e3,2026-02-22T000316Z-l83wlj,2024-07-22,2931,0.00,45.90,EUR,bank_row:synth-b-014:journal:1,default,bank_row:synth-b-014:journal:1,3,Synthetic sales receipt S-9006
+2026-02-22T000316Z-qldbfu-e1,2026-02-22T000316Z-qldbfu,2024-07-29,1998,210.00,0.00,EUR,bank_row:synth-b-052:journal:1,default,bank_row:synth-b-052:journal:1,1,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000316Z-qldbfu-e2,2026-02-22T000316Z-qldbfu,2024-07-29,1910,0.00,210.00,EUR,bank_row:synth-b-052:journal:1,default,bank_row:synth-b-052:journal:1,2,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000316Z-jqhpby-e1,2026-02-22T000316Z-jqhpby,2024-07-29,1911,210.00,0.00,EUR,bank_row:synth-b-053:journal:1,default,bank_row:synth-b-053:journal:1,1,Synthetic monthly internal transfer in from OP
+2026-02-22T000316Z-jqhpby-e2,2026-02-22T000316Z-jqhpby,2024-07-29,1998,0.00,210.00,EUR,bank_row:synth-b-053:journal:1,default,bank_row:synth-b-053:journal:1,2,Synthetic monthly internal transfer in from OP
+2026-02-22T000316Z-ohiflp-e1,2026-02-22T000316Z-ohiflp,2024-08-19,4000,64.00,0.00,EUR,bank_row:synth-b-015:journal:1,default,bank_row:synth-b-015:journal:1,1,Synthetic purchase payment P-9106
+2026-02-22T000316Z-ohiflp-e2,2026-02-22T000316Z-ohiflp,2024-08-19,1763,16.32,0.00,EUR,bank_row:synth-b-015:journal:1,default,bank_row:synth-b-015:journal:1,2,Synthetic purchase payment P-9106
+2026-02-22T000316Z-ohiflp-e3,2026-02-22T000316Z-ohiflp,2024-08-19,1910,0.00,80.32,EUR,bank_row:synth-b-015:journal:1,default,bank_row:synth-b-015:journal:1,3,Synthetic purchase payment P-9106
+2026-02-22T000316Z-ili3ff-e1,2026-02-22T000316Z-ili3ff,2024-08-29,1998,220.00,0.00,EUR,bank_row:synth-b-054:journal:1,default,bank_row:synth-b-054:journal:1,1,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000316Z-ili3ff-e2,2026-02-22T000316Z-ili3ff,2024-08-29,1910,0.00,220.00,EUR,bank_row:synth-b-054:journal:1,default,bank_row:synth-b-054:journal:1,2,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000316Z-l9spah-e1,2026-02-22T000316Z-l9spah,2024-08-29,1911,220.00,0.00,EUR,bank_row:synth-b-055:journal:1,default,bank_row:synth-b-055:journal:1,1,Synthetic monthly internal transfer in from OP
+2026-02-22T000316Z-l9spah-e2,2026-02-22T000316Z-l9spah,2024-08-29,1998,0.00,220.00,EUR,bank_row:synth-b-055:journal:1,default,bank_row:synth-b-055:journal:1,2,Synthetic monthly internal transfer in from OP
+2026-02-22T000316Z-rihtnn-e1,2026-02-22T000316Z-rihtnn,2024-09-06,1910,50.00,0.00,EUR,bank_row:synth-b-005:journal:1,default,bank_row:synth-b-005:journal:1,1,Synthetic partial sales receipt S-9003 part 1
+2026-02-22T000316Z-rihtnn-e2,2026-02-22T000316Z-rihtnn,2024-09-06,3000,0.00,39.84,EUR,bank_row:synth-b-005:journal:1,default,bank_row:synth-b-005:journal:1,2,Synthetic partial sales receipt S-9003 part 1
+2026-02-22T000316Z-rihtnn-e3,2026-02-22T000316Z-rihtnn,2024-09-06,2931,0.00,10.16,EUR,bank_row:synth-b-005:journal:1,default,bank_row:synth-b-005:journal:1,3,Synthetic partial sales receipt S-9003 part 1
+2026-02-22T000316Z-1k0k3h-e1,2026-02-22T000316Z-1k0k3h,2024-09-11,1910,50.40,0.00,EUR,bank_row:synth-b-006:journal:1,default,bank_row:synth-b-006:journal:1,1,Synthetic partial sales receipt S-9003 part 2
+2026-02-22T000316Z-1k0k3h-e2,2026-02-22T000316Z-1k0k3h,2024-09-11,3000,0.00,40.16,EUR,bank_row:synth-b-006:journal:1,default,bank_row:synth-b-006:journal:1,2,Synthetic partial sales receipt S-9003 part 2
+2026-02-22T000316Z-1k0k3h-e3,2026-02-22T000316Z-1k0k3h,2024-09-11,2931,0.00,10.24,EUR,bank_row:synth-b-006:journal:1,default,bank_row:synth-b-006:journal:1,3,Synthetic partial sales receipt S-9003 part 2
+2026-02-22T000316Z-y9pnhx-e1,2026-02-22T000316Z-y9pnhx,2024-09-13,4000,23.90,0.00,EUR,bank_row:synth-b-007:journal:1,default,bank_row:synth-b-007:journal:1,1,Synthetic partial purchase payment P-9103 part 1
+2026-02-22T000316Z-y9pnhx-e2,2026-02-22T000316Z-y9pnhx,2024-09-13,1763,6.10,0.00,EUR,bank_row:synth-b-007:journal:1,default,bank_row:synth-b-007:journal:1,2,Synthetic partial purchase payment P-9103 part 1
+2026-02-22T000316Z-y9pnhx-e3,2026-02-22T000316Z-y9pnhx,2024-09-13,1910,0.00,30.00,EUR,bank_row:synth-b-007:journal:1,default,bank_row:synth-b-007:journal:1,3,Synthetic partial purchase payment P-9103 part 1
+2026-02-22T000316Z-71seo3-e1,2026-02-22T000316Z-71seo3,2024-09-17,4000,36.10,0.00,EUR,bank_row:synth-b-008:journal:1,default,bank_row:synth-b-008:journal:1,1,Synthetic partial purchase payment P-9103 part 2
+2026-02-22T000316Z-71seo3-e2,2026-02-22T000316Z-71seo3,2024-09-17,1763,9.20,0.00,EUR,bank_row:synth-b-008:journal:1,default,bank_row:synth-b-008:journal:1,2,Synthetic partial purchase payment P-9103 part 2
+2026-02-22T000316Z-71seo3-e3,2026-02-22T000316Z-71seo3,2024-09-17,1910,0.00,45.30,EUR,bank_row:synth-b-008:journal:1,default,bank_row:synth-b-008:journal:1,3,Synthetic partial purchase payment P-9103 part 2
+2026-02-22T000316Z-uuptnw-e1,2026-02-22T000316Z-uuptnw,2024-09-29,1998,230.00,0.00,EUR,bank_row:synth-b-056:journal:1,default,bank_row:synth-b-056:journal:1,1,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000316Z-uuptnw-e2,2026-02-22T000316Z-uuptnw,2024-09-29,1910,0.00,230.00,EUR,bank_row:synth-b-056:journal:1,default,bank_row:synth-b-056:journal:1,2,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000316Z-wnrleb-e1,2026-02-22T000316Z-wnrleb,2024-09-29,1911,230.00,0.00,EUR,bank_row:synth-b-057:journal:1,default,bank_row:synth-b-057:journal:1,1,Synthetic monthly internal transfer in from OP
+2026-02-22T000316Z-wnrleb-e2,2026-02-22T000316Z-wnrleb,2024-09-29,1998,0.00,230.00,EUR,bank_row:synth-b-057:journal:1,default,bank_row:synth-b-057:journal:1,2,Synthetic monthly internal transfer in from OP
+2026-02-22T000316Z-byazw0-e1,2026-02-22T000316Z-byazw0,2024-10-16,1910,263.55,0.00,EUR,bank_row:synth-b-016:journal:1,default,bank_row:synth-b-016:journal:1,1,Synthetic sales receipt S-9007
+2026-02-22T000316Z-byazw0-e2,2026-02-22T000316Z-byazw0,2024-10-16,3000,0.00,210.00,EUR,bank_row:synth-b-016:journal:1,default,bank_row:synth-b-016:journal:1,2,Synthetic sales receipt S-9007
+2026-02-22T000316Z-byazw0-e3,2026-02-22T000316Z-byazw0,2024-10-16,2931,0.00,53.55,EUR,bank_row:synth-b-016:journal:1,default,bank_row:synth-b-016:journal:1,3,Synthetic sales receipt S-9007
+2026-02-22T000316Z-kuc6j9-e1,2026-02-22T000316Z-kuc6j9,2024-10-18,1910,62.75,0.00,EUR,bank_row:synth-b-018:journal:1,default,bank_row:synth-b-018:journal:1,1,Synthetic sales receipt S-9008 (reference variant)
+2026-02-22T000316Z-kuc6j9-e2,2026-02-22T000316Z-kuc6j9,2024-10-18,3000,0.00,50.00,EUR,bank_row:synth-b-018:journal:1,default,bank_row:synth-b-018:journal:1,2,Synthetic sales receipt S-9008 (reference variant)
+2026-02-22T000316Z-kuc6j9-e3,2026-02-22T000316Z-kuc6j9,2024-10-18,2931,0.00,12.75,EUR,bank_row:synth-b-018:journal:1,default,bank_row:synth-b-018:journal:1,3,Synthetic sales receipt S-9008 (reference variant)
+2026-02-22T000316Z-jc3gq3-e1,2026-02-22T000316Z-jc3gq3,2024-10-24,1910,243.50,0.00,EUR,bank_row:synth-b-019:journal:1,default,bank_row:synth-b-019:journal:1,1,Synthetic settlement payout receipt
+2026-02-22T000316Z-jc3gq3-e2,2026-02-22T000316Z-jc3gq3,2024-10-24,3000,0.00,194.02,EUR,bank_row:synth-b-019:journal:1,default,bank_row:synth-b-019:journal:1,2,Synthetic settlement payout receipt
+2026-02-22T000316Z-jc3gq3-e3,2026-02-22T000316Z-jc3gq3,2024-10-24,2931,0.00,49.48,EUR,bank_row:synth-b-019:journal:1,default,bank_row:synth-b-019:journal:1,3,Synthetic settlement payout receipt
+2026-02-22T000317Z-55l0kx-e1,2026-02-22T000317Z-55l0kx,2024-10-24,4000,7.50,0.00,EUR,bank_row:synth-b-020:journal:1,default,bank_row:synth-b-020:journal:1,1,Synthetic settlement fee payment
+2026-02-22T000317Z-55l0kx-e2,2026-02-22T000317Z-55l0kx,2024-10-24,1910,0.00,7.50,EUR,bank_row:synth-b-020:journal:1,default,bank_row:synth-b-020:journal:1,2,Synthetic settlement fee payment
+2026-02-22T000317Z-6w37qh-e1,2026-02-22T000317Z-6w37qh,2024-10-25,1998,300.00,0.00,EUR,bank_row:synth-b-021:journal:1,default,bank_row:synth-b-021:journal:1,1,Synthetic internal transfer out to Holvi
+2026-02-22T000317Z-6w37qh-e2,2026-02-22T000317Z-6w37qh,2024-10-25,1910,0.00,300.00,EUR,bank_row:synth-b-021:journal:1,default,bank_row:synth-b-021:journal:1,2,Synthetic internal transfer out to Holvi
+2026-02-22T000317Z-m9w92f-e1,2026-02-22T000317Z-m9w92f,2024-10-25,1911,300.00,0.00,EUR,bank_row:synth-b-022:journal:1,default,bank_row:synth-b-022:journal:1,1,Synthetic internal transfer in from OP
+2026-02-22T000317Z-m9w92f-e2,2026-02-22T000317Z-m9w92f,2024-10-25,1998,0.00,300.00,EUR,bank_row:synth-b-022:journal:1,default,bank_row:synth-b-022:journal:1,2,Synthetic internal transfer in from OP
+2026-02-22T000317Z-ody95w-e1,2026-02-22T000317Z-ody95w,2024-10-28,2060,120.00,0.00,EUR,bank_row:synth-b-027:journal:1,default,bank_row:synth-b-027:journal:1,1,Synthetic owner withdrawal (yksityisnosto)
+2026-02-22T000317Z-ody95w-e2,2026-02-22T000317Z-ody95w,2024-10-28,1910,0.00,120.00,EUR,bank_row:synth-b-027:journal:1,default,bank_row:synth-b-027:journal:1,2,Synthetic owner withdrawal (yksityisnosto)
+2026-02-22T000317Z-mramln-e1,2026-02-22T000317Z-mramln,2024-10-30,1998,240.00,0.00,EUR,bank_row:synth-b-058:journal:1,default,bank_row:synth-b-058:journal:1,1,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000317Z-mramln-e2,2026-02-22T000317Z-mramln,2024-10-30,1910,0.00,240.00,EUR,bank_row:synth-b-058:journal:1,default,bank_row:synth-b-058:journal:1,2,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000317Z-tavm18-e1,2026-02-22T000317Z-tavm18,2024-10-30,1911,240.00,0.00,EUR,bank_row:synth-b-059:journal:1,default,bank_row:synth-b-059:journal:1,1,Synthetic monthly internal transfer in from OP
+2026-02-22T000317Z-tavm18-e2,2026-02-22T000317Z-tavm18,2024-10-30,1998,0.00,240.00,EUR,bank_row:synth-b-059:journal:1,default,bank_row:synth-b-059:journal:1,2,Synthetic monthly internal transfer in from OP
+2026-02-22T000317Z-89k4zq-e1,2026-02-22T000317Z-89k4zq,2024-11-08,1911,42.00,0.00,EUR,bank_row:synth-b-023:journal:1,default,bank_row:synth-b-023:journal:1,1,Synthetic unmatched incoming parked to suspense
+2026-02-22T000317Z-89k4zq-e2,2026-02-22T000317Z-89k4zq,2024-11-08,1999,0.00,42.00,EUR,bank_row:synth-b-023:journal:1,default,bank_row:synth-b-023:journal:1,2,Synthetic unmatched incoming parked to suspense
+2026-02-22T000317Z-gjr0hn-e1,2026-02-22T000317Z-gjr0hn,2024-11-15,1999,42.00,0.00,EUR,suspense:reclass:2024-11-15:1,default,suspense:reclass:2024-11-15:1,1,Synthetic suspense reclassification to owner contribution
+2026-02-22T000317Z-gjr0hn-e2,2026-02-22T000317Z-gjr0hn,2024-11-15,2010,0.00,42.00,EUR,suspense:reclass:2024-11-15:1,default,suspense:reclass:2024-11-15:1,2,Synthetic suspense reclassification to owner contribution
+2026-02-22T000317Z-iu9gkz-e1,2026-02-22T000317Z-iu9gkz,2024-11-20,4000,44.00,0.00,EUR,bank_row:synth-b-017:journal:1,default,bank_row:synth-b-017:journal:1,1,Synthetic purchase payment P-9107
+2026-02-22T000317Z-iu9gkz-e2,2026-02-22T000317Z-iu9gkz,2024-11-20,1763,11.22,0.00,EUR,bank_row:synth-b-017:journal:1,default,bank_row:synth-b-017:journal:1,2,Synthetic purchase payment P-9107
+2026-02-22T000317Z-iu9gkz-e3,2026-02-22T000317Z-iu9gkz,2024-11-20,1910,0.00,55.22,EUR,bank_row:synth-b-017:journal:1,default,bank_row:synth-b-017:journal:1,3,Synthetic purchase payment P-9107
+2026-02-22T000317Z-682zcn-e1,2026-02-22T000317Z-682zcn,2024-11-25,1998,50.00,0.00,EUR,bank_row:synth-b-024:journal:1,default,bank_row:synth-b-024:journal:1,1,Synthetic internal transfer out to PayPal
+2026-02-22T000317Z-682zcn-e2,2026-02-22T000317Z-682zcn,2024-11-25,1911,0.00,50.00,EUR,bank_row:synth-b-024:journal:1,default,bank_row:synth-b-024:journal:1,2,Synthetic internal transfer out to PayPal
+2026-02-22T000317Z-4vc5x7-e1,2026-02-22T000317Z-4vc5x7,2024-11-25,1912,50.00,0.00,EUR,bank_row:synth-b-025:journal:1,default,bank_row:synth-b-025:journal:1,1,Synthetic internal transfer in from Holvi
+2026-02-22T000317Z-4vc5x7-e2,2026-02-22T000317Z-4vc5x7,2024-11-25,1998,0.00,50.00,EUR,bank_row:synth-b-025:journal:1,default,bank_row:synth-b-025:journal:1,2,Synthetic internal transfer in from Holvi
+2026-02-22T000317Z-b511b7-e1,2026-02-22T000317Z-b511b7,2024-11-28,1910,200.00,0.00,EUR,bank_row:synth-b-026:journal:1,default,bank_row:synth-b-026:journal:1,1,Synthetic owner contribution (yksityispanos)
+2026-02-22T000317Z-b511b7-e2,2026-02-22T000317Z-b511b7,2024-11-28,2010,0.00,200.00,EUR,bank_row:synth-b-026:journal:1,default,bank_row:synth-b-026:journal:1,2,Synthetic owner contribution (yksityispanos)
+2026-02-22T000317Z-k6f7cx-e1,2026-02-22T000317Z-k6f7cx,2024-11-29,1998,250.00,0.00,EUR,bank_row:synth-b-060:journal:1,default,bank_row:synth-b-060:journal:1,1,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000317Z-k6f7cx-e2,2026-02-22T000317Z-k6f7cx,2024-11-29,1910,0.00,250.00,EUR,bank_row:synth-b-060:journal:1,default,bank_row:synth-b-060:journal:1,2,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000317Z-n8tkgd-e1,2026-02-22T000317Z-n8tkgd,2024-11-29,1911,250.00,0.00,EUR,bank_row:synth-b-061:journal:1,default,bank_row:synth-b-061:journal:1,1,Synthetic monthly internal transfer in from OP
+2026-02-22T000317Z-n8tkgd-e2,2026-02-22T000317Z-n8tkgd,2024-11-29,1998,0.00,250.00,EUR,bank_row:synth-b-061:journal:1,default,bank_row:synth-b-061:journal:1,2,Synthetic monthly internal transfer in from OP
+2026-02-22T000317Z-ih7sar-e1,2026-02-22T000317Z-ih7sar,2024-12-05,1910,1000.00,0.00,EUR,bank_row:synth-b-028:journal:1,default,bank_row:synth-b-028:journal:1,1,Synthetic owner loan received
+2026-02-22T000317Z-ih7sar-e2,2026-02-22T000317Z-ih7sar,2024-12-05,2370,0.00,1000.00,EUR,bank_row:synth-b-028:journal:1,default,bank_row:synth-b-028:journal:1,2,Synthetic owner loan received
+2026-02-22T000317Z-zfazwe-e1,2026-02-22T000317Z-zfazwe,2024-12-18,6800,300.00,0.00,EUR,asset:a1001:depr:2024-12,default,asset:a1001:depr:2024-12,1,Synthetic depreciation booking a1001
+2026-02-22T000317Z-zfazwe-e2,2026-02-22T000317Z-zfazwe,2024-12-18,1162,0.00,300.00,EUR,asset:a1001:depr:2024-12,default,asset:a1001:depr:2024-12,2,Synthetic depreciation booking a1001
+2026-02-22T000317Z-a4c5c6-e1,2026-02-22T000317Z-a4c5c6,2024-12-18,1910,400.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,1,Synthetic asset disposal booking a1001
+2026-02-22T000317Z-a4c5c6-e2,2026-02-22T000317Z-a4c5c6,2024-12-18,1162,300.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,2,Synthetic asset disposal booking a1001
+2026-02-22T000317Z-a4c5c6-e3,2026-02-22T000317Z-a4c5c6,2024-12-18,8680,500.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,3,Synthetic asset disposal booking a1001
+2026-02-22T000317Z-a4c5c6-e4,2026-02-22T000317Z-a4c5c6,2024-12-18,1160,0.00,1200.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,4,Synthetic asset disposal booking a1001
+2026-02-22T000317Z-u3jnly-e1,2026-02-22T000317Z-u3jnly,2024-12-20,8564,5.00,0.00,EUR,bank_row:synth-b-009:journal:1,default,bank_row:synth-b-009:journal:1,1,Synthetic bank service fee
+2026-02-22T000317Z-u3jnly-e2,2026-02-22T000317Z-u3jnly,2024-12-20,1910,0.00,5.00,EUR,bank_row:synth-b-009:journal:1,default,bank_row:synth-b-009:journal:1,2,Synthetic bank service fee
+2026-02-22T000317Z-8tb9it-e1,2026-02-22T000317Z-8tb9it,2024-12-27,1910,2500.00,0.00,EUR,bank_row:synth-b-029:journal:1,default,bank_row:synth-b-029:journal:1,1,Synthetic business transfer partial receipt (VAT 0%)
+2026-02-22T000317Z-8tb9it-e2,2026-02-22T000317Z-8tb9it,2024-12-27,3002,0.00,2500.00,EUR,bank_row:synth-b-029:journal:1,default,bank_row:synth-b-029:journal:1,2,Synthetic business transfer partial receipt (VAT 0%)
+2026-02-22T000317Z-a7jmva-e1,2026-02-22T000317Z-a7jmva,2024-12-30,8564,1.00,0.00,EUR,adjustment:2024-12-30:1,default,adjustment:2024-12-30:1,1,Synthetic year-end adjustment voucher
+2026-02-22T000317Z-a7jmva-e2,2026-02-22T000317Z-a7jmva,2024-12-30,1910,0.00,1.00,EUR,adjustment:2024-12-30:1,default,adjustment:2024-12-30:1,2,Synthetic year-end adjustment voucher
+2026-02-22T000317Z-90e9k4-e1,2026-02-22T000317Z-90e9k4,2024-12-31,1998,260.00,0.00,EUR,bank_row:synth-b-062:journal:1,default,bank_row:synth-b-062:journal:1,1,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000317Z-90e9k4-e2,2026-02-22T000317Z-90e9k4,2024-12-31,1910,0.00,260.00,EUR,bank_row:synth-b-062:journal:1,default,bank_row:synth-b-062:journal:1,2,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000318Z-0xgovs-e1,2026-02-22T000318Z-0xgovs,2024-12-31,1911,260.00,0.00,EUR,bank_row:synth-b-063:journal:1,default,bank_row:synth-b-063:journal:1,1,Synthetic monthly internal transfer in from OP
+2026-02-22T000318Z-0xgovs-e2,2026-02-22T000318Z-0xgovs,2024-12-31,1998,0.00,260.00,EUR,bank_row:synth-b-063:journal:1,default,bank_row:synth-b-063:journal:1,2,Synthetic monthly internal transfer in from OP

@@ -1,0 +1,43 @@
+{
+  "fields": [
+    {
+      "name": "link_id",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+      }
+    },
+    {
+      "name": "attachment_id",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+      }
+    },
+    {
+      "name": "kind",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "pattern": "^[a-z][a-z0-9_:-]*$"
+      }
+    },
+    {
+      "name": "resource_id",
+      "type": "string",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "linked_at",
+      "type": "datetime",
+      "constraints": {
+        "required": true
+      }
+    }
+  ],
+  "primaryKey": "link_id"
+}

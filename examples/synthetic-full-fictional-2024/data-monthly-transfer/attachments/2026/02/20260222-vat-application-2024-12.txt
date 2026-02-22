@@ -1,0 +1,6 @@
+Synthetic VAT filing evidence
+Authority: Verohallinto (fictional test record)
+Period: 2024-12
+Filed date: 2025-01-12
+Reference: VAT-TEST-2024-12
+This file is synthetic test evidence only.

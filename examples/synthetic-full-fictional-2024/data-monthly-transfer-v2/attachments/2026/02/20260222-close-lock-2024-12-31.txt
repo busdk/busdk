@@ -1,0 +1,4 @@
+Synthetic transaction evidence
+ID: close-lock-2024-12-31
+Source: fictional test scenario
+Contains no real customer or banking data.

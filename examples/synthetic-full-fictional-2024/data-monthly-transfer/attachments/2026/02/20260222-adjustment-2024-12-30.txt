@@ -1,0 +1,4 @@
+Synthetic evidence: Year-end adjustment voucher
+Date: 2024-12-30
+Reason: Final reconciliation rounding adjustment before period close
+Amount: 1.00 EUR

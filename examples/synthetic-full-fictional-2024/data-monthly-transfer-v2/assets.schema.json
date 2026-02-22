@@ -1,0 +1,26 @@
+{
+  "fields": [
+    {"name": "asset_id", "type": "string", "constraints": {"required": true}},
+    {"name": "name", "type": "string", "constraints": {"required": true}},
+    {"name": "acquisition_date", "type": "date", "constraints": {"required": true}},
+    {"name": "depreciation_start_date", "type": "date"},
+    {"name": "cost", "type": "number", "constraints": {"required": true}},
+    {"name": "residual_value", "type": "number"},
+    {"name": "useful_life_months", "type": "integer", "constraints": {"required": true}},
+    {"name": "method", "type": "string", "constraints": {"required": true, "enum": ["straight_line_monthly"]}},
+    {"name": "currency", "type": "string", "constraints": {"enum": ["EUR"]}},
+    {"name": "asset_account", "type": "string", "constraints": {"required": true, "pattern": "^[A-Za-z0-9._-]+$"}},
+    {"name": "depreciation_expense_account", "type": "string", "constraints": {"required": true, "pattern": "^[A-Za-z0-9._-]+$"}},
+    {"name": "accumulated_depreciation_account", "type": "string", "constraints": {"required": true, "pattern": "^[A-Za-z0-9._-]+$"}},
+    {"name": "disposed_date", "type": "date"},
+    {"name": "disposal_proceeds", "type": "number"},
+    {"name": "disposal_counter_account", "type": "string", "constraints": {"pattern": "^[A-Za-z0-9._-]+$"}},
+    {"name": "disposal_gain_account", "type": "string", "constraints": {"pattern": "^[A-Za-z0-9._-]+$"}},
+    {"name": "disposal_loss_account", "type": "string", "constraints": {"pattern": "^[A-Za-z0-9._-]+$"}},
+    {"name": "note", "type": "string"},
+    {"name": "voucher", "type": "string"},
+    {"name": "disposal_voucher", "type": "string"},
+    {"name": "disposal_note", "type": "string"}
+  ],
+  "primaryKey": "asset_id"
+}

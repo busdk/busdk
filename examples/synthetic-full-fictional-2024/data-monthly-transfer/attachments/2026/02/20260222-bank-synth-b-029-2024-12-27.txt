@@ -1,0 +1,6 @@
+Synthetic bank evidence row: synth-b-029
+Booked date: 2024-12-27
+Counterparty: Heusala Example Group Oy
+Reference: 901000101
+Amount: +2500.00 EUR
+Message: Synthetic partial payment for business transfer invoice S-9010

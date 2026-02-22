@@ -1,0 +1,8 @@
+{
+  "fields": [
+    {"name": "code", "type": "string", "constraints": {"required": true}},
+    {"name": "rate_bp", "type": "integer", "constraints": {"required": true}},
+    {"name": "description", "type": "string"}
+  ],
+  "primaryKey": ["code"]
+}

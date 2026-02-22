@@ -1,0 +1,4 @@
+Synthetic transaction evidence
+ID: bank-synth-b-001-2024-01-15
+Source: fictional test scenario
+Contains no real customer or banking data.

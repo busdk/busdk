@@ -1,0 +1,7 @@
+Synthetic evidence: Sales invoice S-9009
+Date: 2024-10-09
+Customer: Card Checkout Example Oy
+Net: 194.02 EUR
+VAT 25.5%: 49.48 EUR
+Gross: 243.50 EUR
+Note: Settlement-style payout example

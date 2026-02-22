@@ -1,0 +1,7 @@
+Synthetic evidence: Sales invoice S-9006
+Date: 2024-07-08
+Customer: Summit Forge Oy
+Service: Migration sprint package
+Net: 180.00 EUR
+VAT 25.5%: 45.90 EUR
+Gross: 225.90 EUR

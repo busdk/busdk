@@ -1,0 +1,13 @@
+{
+  "fields": [
+    { "name": "code", "type": "string", "constraints": { "required": true, "pattern": "^[A-Za-z0-9._-]+$" } },
+    { "name": "name", "type": "string", "constraints": { "required": true } },
+    { "name": "type", "type": "string", "constraints": { "required": true, "enum": ["asset", "liability", "equity", "income", "expense"] } },
+    { "name": "parent_code", "type": "string" },
+    { "name": "notes", "type": "string" }
+  ],
+  "primaryKey": "code",
+  "foreignKeys": [
+    { "fields": "parent_code", "reference": { "resource": "", "fields": "code" } }
+  ]
+}

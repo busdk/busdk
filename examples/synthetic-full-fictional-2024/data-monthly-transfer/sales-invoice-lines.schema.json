@@ -1,0 +1,15 @@
+{
+  "fields": [
+    {"name": "invoice_id", "type": "string", "constraints": {"required": true}},
+    {"name": "line_no", "type": "integer", "constraints": {"required": true}},
+    {"name": "description", "type": "string", "constraints": {"required": true}},
+    {"name": "quantity", "type": "number", "constraints": {"required": true}},
+    {"name": "unit_price", "type": "number", "constraints": {"required": true}},
+    {"name": "income_account", "type": "string"},
+    {"name": "vat_rate", "type": "number"}
+  ],
+  "primaryKey": ["invoice_id", "line_no"],
+  "foreignKeys": [
+    {"fields": "invoice_id", "reference": {"resource": "sales-invoices", "fields": "invoice_id"}}
+  ]
+}

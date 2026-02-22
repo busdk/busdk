@@ -1,0 +1,7 @@
+Synthetic evidence: Sales invoice S-9010
+Date: 2024-12-10
+Customer: Heusala Example Group Oy
+Description: Business transfer agreement (hosting portfolio)
+Net: 10000.00 EUR
+VAT: 0.00 EUR
+Gross: 10000.00 EUR

@@ -1,0 +1,7 @@
+Synthetic evidence: Sales invoice S-9007
+Date: 2024-10-03
+Customer: Meridian Compute Oy
+Service: Platform optimization package
+Net: 210.00 EUR
+VAT 25.5%: 53.55 EUR
+Gross: 263.55 EUR

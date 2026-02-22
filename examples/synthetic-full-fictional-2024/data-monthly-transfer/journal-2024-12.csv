@@ -1,0 +1,27 @@
+entry_id,transaction_id,posting_date,account_id,debit,credit,currency,voucher_id,source_system,source_id,entry_sequence,description
+2026-02-22T000317Z-ih7sar-e1,2026-02-22T000317Z-ih7sar,2024-12-05,1910,1000.00,0.00,EUR,bank_row:synth-b-028:journal:1,default,bank_row:synth-b-028:journal:1,1,Synthetic owner loan received
+2026-02-22T000317Z-ih7sar-e2,2026-02-22T000317Z-ih7sar,2024-12-05,2370,0.00,1000.00,EUR,bank_row:synth-b-028:journal:1,default,bank_row:synth-b-028:journal:1,2,Synthetic owner loan received
+2026-02-22T000317Z-zfazwe-e1,2026-02-22T000317Z-zfazwe,2024-12-18,6800,300.00,0.00,EUR,asset:a1001:depr:2024-12,default,asset:a1001:depr:2024-12,1,Synthetic depreciation booking a1001
+2026-02-22T000317Z-zfazwe-e2,2026-02-22T000317Z-zfazwe,2024-12-18,1162,0.00,300.00,EUR,asset:a1001:depr:2024-12,default,asset:a1001:depr:2024-12,2,Synthetic depreciation booking a1001
+2026-02-22T000317Z-a4c5c6-e1,2026-02-22T000317Z-a4c5c6,2024-12-18,1910,400.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,1,Synthetic asset disposal booking a1001
+2026-02-22T000317Z-a4c5c6-e2,2026-02-22T000317Z-a4c5c6,2024-12-18,1162,300.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,2,Synthetic asset disposal booking a1001
+2026-02-22T000317Z-a4c5c6-e3,2026-02-22T000317Z-a4c5c6,2024-12-18,8680,500.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,3,Synthetic asset disposal booking a1001
+2026-02-22T000317Z-a4c5c6-e4,2026-02-22T000317Z-a4c5c6,2024-12-18,1160,0.00,1200.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,4,Synthetic asset disposal booking a1001
+2026-02-22T000317Z-u3jnly-e1,2026-02-22T000317Z-u3jnly,2024-12-20,8564,5.00,0.00,EUR,bank_row:synth-b-009:journal:1,default,bank_row:synth-b-009:journal:1,1,Synthetic bank service fee
+2026-02-22T000317Z-u3jnly-e2,2026-02-22T000317Z-u3jnly,2024-12-20,1910,0.00,5.00,EUR,bank_row:synth-b-009:journal:1,default,bank_row:synth-b-009:journal:1,2,Synthetic bank service fee
+2026-02-22T000317Z-8tb9it-e1,2026-02-22T000317Z-8tb9it,2024-12-27,1910,2500.00,0.00,EUR,bank_row:synth-b-029:journal:1,default,bank_row:synth-b-029:journal:1,1,Synthetic business transfer partial receipt (VAT 0%)
+2026-02-22T000317Z-8tb9it-e2,2026-02-22T000317Z-8tb9it,2024-12-27,3002,0.00,2500.00,EUR,bank_row:synth-b-029:journal:1,default,bank_row:synth-b-029:journal:1,2,Synthetic business transfer partial receipt (VAT 0%)
+2026-02-22T000317Z-a7jmva-e1,2026-02-22T000317Z-a7jmva,2024-12-30,8564,1.00,0.00,EUR,adjustment:2024-12-30:1,default,adjustment:2024-12-30:1,1,Synthetic year-end adjustment voucher
+2026-02-22T000317Z-a7jmva-e2,2026-02-22T000317Z-a7jmva,2024-12-30,1910,0.00,1.00,EUR,adjustment:2024-12-30:1,default,adjustment:2024-12-30:1,2,Synthetic year-end adjustment voucher
+2026-02-22T000317Z-90e9k4-e1,2026-02-22T000317Z-90e9k4,2024-12-31,1998,260.00,0.00,EUR,bank_row:synth-b-062:journal:1,default,bank_row:synth-b-062:journal:1,1,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000317Z-90e9k4-e2,2026-02-22T000317Z-90e9k4,2024-12-31,1910,0.00,260.00,EUR,bank_row:synth-b-062:journal:1,default,bank_row:synth-b-062:journal:1,2,Synthetic monthly internal transfer out to Holvi
+2026-02-22T000318Z-0xgovs-e1,2026-02-22T000318Z-0xgovs,2024-12-31,1911,260.00,0.00,EUR,bank_row:synth-b-063:journal:1,default,bank_row:synth-b-063:journal:1,1,Synthetic monthly internal transfer in from OP
+2026-02-22T000318Z-0xgovs-e2,2026-02-22T000318Z-0xgovs,2024-12-31,1998,0.00,260.00,EUR,bank_row:synth-b-063:journal:1,default,bank_row:synth-b-063:journal:1,2,Synthetic monthly internal transfer in from OP
+cl_8fe4fa1debec3167-d,cl_8fe4fa1debec3167,2024-12-31,2200,300.00,0.00,EUR,cl_8fe4fa1debec3167,,,1,Period close 2024-12
+cl_8fe4fa1debec3167-c,cl_8fe4fa1debec3167,2024-12-31,6800,0.00,300.00,EUR,cl_8fe4fa1debec3167,,,2,Period close 2024-12
+cl_64c1a62c83c28c15-d,cl_64c1a62c83c28c15,2024-12-31,2200,6.00,0.00,EUR,cl_64c1a62c83c28c15,,,1,Period close 2024-12
+cl_64c1a62c83c28c15-c,cl_64c1a62c83c28c15,2024-12-31,8564,0.00,6.00,EUR,cl_64c1a62c83c28c15,,,2,Period close 2024-12
+cl_06a5e33b7ab6156b-d,cl_06a5e33b7ab6156b,2024-12-31,2200,500.00,0.00,EUR,cl_06a5e33b7ab6156b,,,1,Period close 2024-12
+cl_06a5e33b7ab6156b-c,cl_06a5e33b7ab6156b,2024-12-31,8680,0.00,500.00,EUR,cl_06a5e33b7ab6156b,,,2,Period close 2024-12
+cl_b7408a8c6c34e210-d,cl_b7408a8c6c34e210,2024-12-31,3002,2500.00,0.00,EUR,cl_b7408a8c6c34e210,,,1,Period close 2024-12
+cl_b7408a8c6c34e210-c,cl_b7408a8c6c34e210,2024-12-31,2200,0.00,2500.00,EUR,cl_b7408a8c6c34e210,,,2,Period close 2024-12

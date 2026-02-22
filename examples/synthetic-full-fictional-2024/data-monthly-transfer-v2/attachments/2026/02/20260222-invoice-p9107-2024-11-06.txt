@@ -1,0 +1,7 @@
+Synthetic evidence: Purchase invoice P-9107
+Date: 2024-11-06
+Vendor: Northline Admin Services Oy
+Service: Compliance support and filing prep
+Net: 44.00 EUR
+VAT 25.5%: 11.22 EUR
+Gross: 55.22 EUR

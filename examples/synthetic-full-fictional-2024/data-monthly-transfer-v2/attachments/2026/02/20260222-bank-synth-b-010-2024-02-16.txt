@@ -1,0 +1,6 @@
+Synthetic bank evidence row: synth-b-010
+Booked date: 2024-02-16
+Counterparty: Nova Harbor Oy
+Reference: 900400001
+Amount: +175.70 EUR
+Message: Synthetic reference payment S-9004

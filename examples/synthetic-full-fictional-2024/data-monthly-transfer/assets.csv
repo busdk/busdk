@@ -1,0 +1,2 @@
+asset_id,name,acquisition_date,depreciation_start_date,cost,residual_value,useful_life_months,method,currency,asset_account,depreciation_expense_account,accumulated_depreciation_account,disposed_date,disposal_proceeds,disposal_counter_account,disposal_gain_account,disposal_loss_account,note,voucher,disposal_voucher,disposal_note
+a1001,Laptop Workstation A1001,2024-06-28,2024-06-28,1200,0,24,straight_line_monthly,EUR,1160,6800,1162,2024-12-18,400.00,1910,3990,8680,,asset:a1001:acquire,,

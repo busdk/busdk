@@ -1,0 +1,4 @@
+TOTAL	2024-06	0	1326	-1326	match:match-8:bank:synth-b-013:invoice:p9105:1
+RATE	2550	0	0	5200	1326	match:match-8:bank:synth-b-013:invoice:p9105:1
+COVERAGE	2024-06	0.7568	1.0000	1	matches.csv;sales-invoices.csv;sales-invoice-lines.csv;purchase-invoices.csv;purchase-invoice-lines.csv;bank-transactions.csv
+META	rounding_policy	half-away	

@@ -1,0 +1,9 @@
+{
+  "fields": [
+    {"name": "import_id", "type": "string", "constraints": {"required": true, "pattern": "^[A-Za-z0-9._:-]+$"}},
+    {"name": "source_path", "type": "string", "constraints": {"required": true}},
+    {"name": "imported_at", "type": "datetime", "constraints": {"required": true}},
+    {"name": "attachment_id", "type": "string"}
+  ],
+  "primaryKey": "import_id"
+}

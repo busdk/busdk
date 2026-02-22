@@ -1,0 +1,9 @@
+invoice_id,line_no,description,quantity,unit_price,income_account,vat_rate
+p9101,1,Compute node rental,1,40,,0.255
+p9102,1,Monitoring and backup tooling,1,120,,0.255
+p9104,1,Backup storage allocation,1,95,,0.255
+p9105,1,Network transit fee,1,52,,0.255
+p9106,1,Security scanning service,1,64,,0.255
+p9103,1,Contractor service batch,1,60,,0.255
+p9108,1,Settlement processing fee,1,7.5,,
+p9107,1,Compliance support and filing prep,1,44,,0.255

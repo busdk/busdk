@@ -1,0 +1,11 @@
+invoice_id,line_no,description,quantity,unit_price,income_account,vat_rate
+s9001,1,"Managed cloud service, January",1,100,,0.255
+s9004,1,"Application support package, February",1,140,,0.255
+s9002,1,Infrastructure setup package,1,250,,0.255
+s9005,1,DevOps maintenance service,1,70,,0.255
+s9006,1,Migration sprint package,1,180,,0.255
+s9003,1,Integration support retainer,1,80,,0.255
+s9007,1,Platform optimization package,1,210,,0.255
+s9008,1,Short consultation package,1,50,,0.255
+s9009,1,Card-checkout delivered service,1,194.02,,0.255
+s9010,1,Business transfer agreement (hosting portfolio),1,10000,,

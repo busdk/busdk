@@ -1,0 +1,7 @@
+Synthetic evidence: Sales invoice S-9004
+Date: 2024-02-05
+Customer: Nova Harbor Oy
+Service: Application support package, February
+Net: 140.00 EUR
+VAT 25.5%: 35.70 EUR
+Gross: 175.70 EUR

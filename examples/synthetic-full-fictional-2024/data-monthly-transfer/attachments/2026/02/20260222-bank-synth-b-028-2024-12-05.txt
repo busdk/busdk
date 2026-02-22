@@ -1,0 +1,5 @@
+Synthetic bank evidence row: synth-b-028
+Booked date: 2024-12-05
+Counterparty: Owner loan transfer
+Amount: +1000.00 EUR
+Message: Synthetic owner loan received

@@ -1,26 +1,4 @@
 {
-  "busdk": {
-    "accounting_entity": {
-      "base_currency": "EUR",
-      "fiscal_year_end": "2024-12-31",
-      "fiscal_year_start": "2024-01-01",
-      "reporting_profile": {
-        "fi_statutory": {
-          "comparatives": true,
-          "income_statement_scheme": "by_nature",
-          "language": "fi",
-          "prepared_under_pma": false,
-          "presentation_currency": "EUR",
-          "presentation_unit": "EUR",
-          "reporting_standard": "fi-kpa",
-          "signature": {}
-        }
-      },
-      "vat_registered": true,
-      "vat_reporting_period": "monthly",
-      "vat_timing": "performance"
-    }
-  },
   "profile": "tabular-data-package",
   "resources": [
     {
@@ -37,5 +15,27 @@
         "path": "report-account-mapping.schema.json"
       }
     }
-  ]
+  ],
+  "busdk": {
+    "accounting_entity": {
+      "base_currency": "EUR",
+      "fiscal_year_start": "2024-01-01",
+      "fiscal_year_end": "2024-12-31",
+      "vat_registered": true,
+      "vat_reporting_period": "monthly",
+      "vat_timing": "performance",
+      "reporting_profile": {
+        "fi_statutory": {
+          "reporting_standard": "fi-kpa",
+          "language": "fi",
+          "income_statement_scheme": "by_nature",
+          "comparatives": true,
+          "presentation_currency": "EUR",
+          "presentation_unit": "EUR",
+          "prepared_under_pma": false,
+          "signature": {}
+        }
+      }
+    }
+  }
 }

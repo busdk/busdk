@@ -1,0 +1,6 @@
+Synthetic bank evidence row: synth-b-018
+Booked date: 2024-10-18
+Counterparty: Reference Pattern Test Oy
+Reference: 900800101
+Amount: +62.75 EUR
+Message: Synthetic padded reference payment S-9008

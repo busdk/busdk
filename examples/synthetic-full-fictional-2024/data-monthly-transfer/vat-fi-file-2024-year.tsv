@@ -1,0 +1,116 @@
+{
+  "schema": "fi-alv",
+  "period": "2024-01-01..2024-12-31",
+  "source": "reconcile",
+  "basis": "cash",
+  "rounding_policy": "half-away",
+  "calculation_version": "fi-alv-v1",
+  "fields": [
+    {
+      "key": "fi.deductible_vat_total_cents",
+      "label": "Vähennettävä vero, Verokauden vähennettävä vero",
+      "value_cents": 12113,
+      "formula": "sum(abs(vat_cents) for purchase rows)",
+      "source_refs": [
+        "match:match-10:bank:synth-b-015:invoice:p9106:1",
+        "match:match-13:bank:synth-b-007:invoice:p9103:1",
+        "match:match-14:bank:synth-b-008:invoice:p9103:1",
+        "match:match-18:bank:synth-b-020:invoice:p9108:1",
+        "match:match-19:bank:synth-b-017:invoice:p9107:1",
+        "match:match-2:bank:synth-b-002:invoice:p9101:1",
+        "match:match-5:bank:synth-b-004:invoice:p9102:1",
+        "match:match-6:bank:synth-b-011:invoice:p9104:1",
+        "match:match-8:bank:synth-b-013:invoice:p9105:1"
+      ]
+    },
+    {
+      "key": "fi.eu_service_purchase_base_cents",
+      "label": "Palveluostot EU-maista",
+      "value_cents": 0,
+      "formula": "sum(abs(net_cents) for purchase rows where vat_treatment=reverse_charge)",
+      "source_refs": null
+    },
+    {
+      "key": "fi.eu_service_rc_output_vat_cents",
+      "label": "Vero ostoista ja maahantuonneista, palveluostoista muista EU-maista",
+      "value_cents": 0,
+      "formula": "sum(purchase rows where vat_treatment=reverse_charge; use vat_cents, else compute(net*rate_bp/10000))",
+      "source_refs": null
+    },
+    {
+      "key": "fi.payable_vat_cents",
+      "label": "Maksettava vero tai palautukseen oikeuttava vero",
+      "value_cents": 20375,
+      "formula": "total_output_vat_cents - total_input_vat_cents",
+      "source_refs": [
+        "match:match-10:bank:synth-b-015:invoice:p9106:1",
+        "match:match-11:bank:synth-b-005:invoice:s9003:1",
+        "match:match-12:bank:synth-b-006:invoice:s9003:1",
+        "match:match-13:bank:synth-b-007:invoice:p9103:1",
+        "match:match-14:bank:synth-b-008:invoice:p9103:1",
+        "match:match-15:bank:synth-b-016:invoice:s9007:1",
+        "match:match-16:bank:synth-b-018:invoice:s9008:1",
+        "match:match-17:bank:synth-b-019:invoice:s9009:1",
+        "match:match-18:bank:synth-b-020:invoice:p9108:1",
+        "match:match-19:bank:synth-b-017:invoice:p9107:1",
+        "match:match-1:bank:synth-b-001:invoice:s9001:1",
+        "match:match-20:bank:synth-b-029:invoice:s9010:1",
+        "match:match-2:bank:synth-b-002:invoice:p9101:1",
+        "match:match-3:bank:synth-b-010:invoice:s9004:1",
+        "match:match-4:bank:synth-b-003:invoice:s9002:1",
+        "match:match-5:bank:synth-b-004:invoice:p9102:1",
+        "match:match-6:bank:synth-b-011:invoice:p9104:1",
+        "match:match-7:bank:synth-b-012:invoice:s9005:1",
+        "match:match-8:bank:synth-b-013:invoice:p9105:1",
+        "match:match-9:bank:synth-b-014:invoice:s9006:1"
+      ]
+    },
+    {
+      "key": "fi.vat_output_rate.2550",
+      "label": "Vero kotimaan myynneistä verokannoittain",
+      "value_cents": 32488,
+      "formula": "sum(abs(vat_cents) for sale rows where vat_rate_bp=2550 and vat_treatment!=reverse_charge)",
+      "source_refs": [
+        "match:match-11:bank:synth-b-005:invoice:s9003:1",
+        "match:match-12:bank:synth-b-006:invoice:s9003:1",
+        "match:match-15:bank:synth-b-016:invoice:s9007:1",
+        "match:match-16:bank:synth-b-018:invoice:s9008:1",
+        "match:match-17:bank:synth-b-019:invoice:s9009:1",
+        "match:match-1:bank:synth-b-001:invoice:s9001:1",
+        "match:match-3:bank:synth-b-010:invoice:s9004:1",
+        "match:match-4:bank:synth-b-003:invoice:s9002:1",
+        "match:match-7:bank:synth-b-012:invoice:s9005:1",
+        "match:match-9:bank:synth-b-014:invoice:s9006:1"
+      ]
+    }
+  ],
+  "source_refs": [
+    "match:match-10:bank:synth-b-015:invoice:p9106:1",
+    "match:match-11:bank:synth-b-005:invoice:s9003:1",
+    "match:match-12:bank:synth-b-006:invoice:s9003:1",
+    "match:match-13:bank:synth-b-007:invoice:p9103:1",
+    "match:match-14:bank:synth-b-008:invoice:p9103:1",
+    "match:match-15:bank:synth-b-016:invoice:s9007:1",
+    "match:match-16:bank:synth-b-018:invoice:s9008:1",
+    "match:match-17:bank:synth-b-019:invoice:s9009:1",
+    "match:match-18:bank:synth-b-020:invoice:p9108:1",
+    "match:match-19:bank:synth-b-017:invoice:p9107:1",
+    "match:match-1:bank:synth-b-001:invoice:s9001:1",
+    "match:match-20:bank:synth-b-029:invoice:s9010:1",
+    "match:match-2:bank:synth-b-002:invoice:p9101:1",
+    "match:match-3:bank:synth-b-010:invoice:s9004:1",
+    "match:match-4:bank:synth-b-003:invoice:s9002:1",
+    "match:match-5:bank:synth-b-004:invoice:p9102:1",
+    "match:match-6:bank:synth-b-011:invoice:p9104:1",
+    "match:match-7:bank:synth-b-012:invoice:s9005:1",
+    "match:match-8:bank:synth-b-013:invoice:p9105:1",
+    "match:match-9:bank:synth-b-014:invoice:s9006:1"
+  ],
+  "rate_outputs": [
+    {
+      "rate_bp": 2550,
+      "rate_percent": "25.50",
+      "value_cents": 32488
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+TOTAL	2024-07	4590	0	4590	match:match-9:bank:synth-b-014:invoice:s9006:1
+RATE	2550	18000	4590	0	0	match:match-9:bank:synth-b-014:invoice:s9006:1
+COVERAGE	2024-07	1.0000	0.8275	1	matches.csv;sales-invoices.csv;sales-invoice-lines.csv;purchase-invoices.csv;purchase-invoice-lines.csv;bank-transactions.csv
+META	rounding_policy	half-away	

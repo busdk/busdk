@@ -1,0 +1,1 @@
+{"fields":[{"name":"period","type":"string","constraints":{"required":true}},{"name":"filename","type":"string","constraints":{"required":true}}],"primaryKey":"period"}

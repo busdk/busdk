@@ -1,0 +1,54 @@
+{
+  "fields": [
+    {
+      "name": "attachment_id",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+      }
+    },
+    {
+      "name": "created",
+      "type": "date",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "constraints": {}
+    },
+    {
+      "name": "filename",
+      "type": "string",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "mime_type",
+      "type": "string",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "sha256",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    },
+    {
+      "name": "relpath",
+      "type": "string",
+      "constraints": {
+        "required": true
+      }
+    }
+  ],
+  "primaryKey": "attachment_id"
+}

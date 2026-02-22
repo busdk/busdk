@@ -77,9 +77,3 @@ period validate
 # Opening balance
 attachments add "../synthetic-evidence/transactions/opening-2024-01-01.txt" --desc "Synthetic opening balance voucher evidence"
 journal add --date 2024-01-01 --desc "Synthetic opening balance" --debit 1910=1500.00 --credit 2200=1500.00 --source-id opening:2024-01-01:synthetic:1
-
-# Bank import marker
-bank import-log add --import-id synth-bank-2024 --source-path synthetic-bank-2024.csv --imported-at 2026-02-21T12:00:00Z
-bank import-log add --import-id synth-op-main-2024 --source-path synthetic-op-main-2024.csv --imported-at 2026-02-21T12:01:00Z
-bank import-log add --import-id synth-holvi-2024 --source-path synthetic-holvi-2024.csv --imported-at 2026-02-21T12:02:00Z
-bank import-log add --import-id synth-paypal-2024 --source-path synthetic-paypal-2024.csv --imported-at 2026-02-21T12:03:00Z

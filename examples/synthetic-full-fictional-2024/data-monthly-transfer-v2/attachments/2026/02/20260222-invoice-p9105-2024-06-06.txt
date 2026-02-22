@@ -1,0 +1,7 @@
+Synthetic evidence: Purchase invoice P-9105
+Date: 2024-06-06
+Vendor: Cobalt Networks Oy
+Service: Network transit fee
+Net: 52.00 EUR
+VAT 25.5%: 13.26 EUR
+Gross: 65.26 EUR

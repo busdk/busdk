@@ -1,0 +1,22 @@
+{
+  "fields": [
+    {"name": "bank_txn_id", "type": "string", "constraints": {"required": true, "pattern": "^[A-Za-z0-9._:-]+$"}},
+    {"name": "import_id", "type": "string", "constraints": {"required": true}},
+    {"name": "booked_date", "type": "date", "constraints": {"required": true}},
+    {"name": "value_date", "type": "date"},
+    {"name": "amount", "type": "number", "constraints": {"required": true}},
+    {"name": "currency", "type": "string", "constraints": {"required": true, "enum": ["EUR"]}},
+    {"name": "counterparty_name", "type": "string", "constraints": {"required": true}},
+    {"name": "counterparty_canonical", "type": "string"},
+    {"name": "counterparty_iban", "type": "string"},
+    {"name": "counterparty_id", "type": "string"},
+    {"name": "reference", "type": "string"},
+    {"name": "message", "type": "string"},
+    {"name": "end_to_end_id", "type": "string"},
+    {"name": "source_id", "type": "string"},
+    {"name": "erp_id", "type": "string"},
+    {"name": "invoice_number_hint", "type": "string"}
+  ],
+  "primaryKey": "bank_txn_id",
+  "foreignKeys": [{"fields": ["import_id"], "reference": {"resource": "bank-imports.csv", "fields": ["import_id"]}}]
+}

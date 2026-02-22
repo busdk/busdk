@@ -1,6 +1,11 @@
 #!/usr/bin/env bus
 
 
+# 2024-07-01: Monthly bank import markers
+bank import-log add --import-id synth-bank-2024-07 --source-path synthetic-bank-2024-07.csv --imported-at 2024-07-01T08:00:00Z
+bank import-log add --import-id synth-op-main-2024-07 --source-path synthetic-op-main-2024-07.csv --imported-at 2024-07-01T08:01:00Z
+bank import-log add --import-id synth-holvi-2024-07 --source-path synthetic-holvi-2024-07.csv --imported-at 2024-07-01T08:02:00Z
+bank import-log add --import-id synth-paypal-2024-07 --source-path synthetic-paypal-2024-07.csv --imported-at 2024-07-01T08:03:00Z
 # 2024-07-08: Sales invoice S-9006 issued
 attachments add "../synthetic-evidence/transactions/invoice-s9006-2024-07-08.txt" --desc "Synthetic invoice evidence S-9006"
 invoices add --type sales --invoice-id s9006 --number S-9006 --status sent --invoice-date 2024-07-08 --due-date 2024-07-22 --customer "Summit Forge Oy"
@@ -13,6 +18,15 @@ attachments add "../synthetic-evidence/vat-application-2024-06.txt" --desc "Synt
 
 # 2024-07-22: Customer payment for S-9006
 attachments add "../synthetic-evidence/transactions/bank-synth-b-014-2024-07-22.txt" --desc "Synthetic bank evidence synth-b-014"
-bank add --bank-id synth-b-014 --import-id synth-bank-2024 --booked-date 2024-07-22 --value-date 2024-07-22 --amount 225.90 --currency EUR --counterparty-name "Summit Forge Oy" --counterparty-iban FI1012345600000014 --reference 900600001 --message "Synthetic reference payment S-9006" --source-id bank_row:synth-b-014
+bank add --bank-id synth-b-014 --import-id synth-bank-2024-07 --booked-date 2024-07-22 --value-date 2024-07-22 --amount 225.90 --currency EUR --counterparty-name "Summit Forge Oy" --counterparty-iban FI1012345600000014 --reference 900600001 --message "Synthetic reference payment S-9006" --source-id bank_row:synth-b-014
 reconcile allocate --bank-id synth-b-014 --invoice s9006=225.90
 journal add --date 2024-07-22 --desc "Synthetic sales receipt S-9006" --debit 1910=225.90 --credit 3000=180.00 --credit 2931=45.90 --source-id bank_row:synth-b-014:journal:1
+
+# 2024-07-29: Monthly internal transfer between own bank accounts (OP -> Holvi)
+attachments add "../synthetic-evidence/transactions/bank-synth-b-052-2024-07-29.txt" --desc "Synthetic bank evidence synth-b-052"
+bank add --bank-id synth-b-052 --import-id synth-op-main-2024-07 --booked-date 2024-07-29 --value-date 2024-07-29 --amount -210.00 --currency EUR --counterparty-name "Own account transfer" --counterparty-iban FI1012345600000400000052 --reference 400000052 --message "Synthetic recurring monthly transfer to Holvi" --source-id bank_row:synth-b-052
+journal add --date 2024-07-29 --desc "Synthetic monthly internal transfer out to Holvi" --debit 1998=210.00 --credit 1910=210.00 --source-id bank_row:synth-b-052:journal:1
+
+attachments add "../synthetic-evidence/transactions/bank-synth-b-053-2024-07-29.txt" --desc "Synthetic bank evidence synth-b-053"
+bank add --bank-id synth-b-053 --import-id synth-holvi-2024-07 --booked-date 2024-07-29 --value-date 2024-07-29 --amount 210.00 --currency EUR --counterparty-name "Own account transfer" --counterparty-iban FI1012345600000400000053 --reference 400000053 --message "Synthetic recurring monthly transfer from OP" --source-id bank_row:synth-b-053
+journal add --date 2024-07-29 --desc "Synthetic monthly internal transfer in from OP" --debit 1911=210.00 --credit 1998=210.00 --source-id bank_row:synth-b-053:journal:1

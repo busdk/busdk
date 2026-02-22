@@ -1,0 +1,14 @@
+{
+  "fields": [
+    {"name": "invoice_id", "type": "string", "constraints": {"required": true, "pattern": "^[A-Za-z0-9._-]+$"}},
+    {"name": "number", "type": "string", "constraints": {"required": true, "pattern": "^[A-Za-z0-9._-]+$"}},
+    {"name": "status", "type": "string", "constraints": {"required": true, "enum": ["draft", "sent", "paid", "canceled"]}},
+    {"name": "issue_date", "type": "date", "constraints": {"required": true}},
+    {"name": "due_date", "type": "date"},
+    {"name": "party_name", "type": "string", "constraints": {"required": true}},
+    {"name": "currency", "type": "string", "constraints": {"required": true, "enum": ["EUR"]}},
+    {"name": "total_net", "type": "number"},
+    {"name": "attachment_id", "type": "string"}
+  ],
+  "primaryKey": "invoice_id"
+}

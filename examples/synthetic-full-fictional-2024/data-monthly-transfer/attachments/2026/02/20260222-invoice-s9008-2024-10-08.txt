@@ -1,0 +1,7 @@
+Synthetic evidence: Sales invoice S-9008
+Date: 2024-10-08
+Customer: Reference Pattern Test Oy
+Net: 50.00 EUR
+VAT 25.5%: 12.75 EUR
+Gross: 62.75 EUR
+Note: Reference-pattern matching example
