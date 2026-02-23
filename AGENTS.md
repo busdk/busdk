@@ -154,6 +154,8 @@ For this superproject specifically, README must emphasize:
 
 ## Context Memory Rule
 
+Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from this session’s errors and from prior observed errors, and codify preventive guidance immediately in the most relevant `AGENTS.md` so the same failure mode does not recur.
+
 1. When discussions establish durable project context, preferences, or workflow rules, write or refine `AGENTS.md` files to preserve them.
 2. Add/update `AGENTS.md` in the most specific relevant directory (repository root or a context subdirectory) so guidance applies at the right scope.
 3. Revisit and refine existing `AGENTS.md` files as context evolves, including this rule itself.
@@ -164,6 +166,10 @@ For this superproject specifically, README must emphasize:
 8. Persist newly learned durable project context immediately: when important recurring constraints, preferences, or workflow decisions are discovered during work, record them in the most relevant `AGENTS.md` in the same change set.
 9. Durable user workflow guidance MUST be written to the most relevant `AGENTS.md` in the same session when learned (do not defer memory updates).
 10. When a **system-level** CLI command fails due to incorrect parameters (for example `rg`, `sed`, `cat`, `find`, `git`, `make`), record the correct invocation or constraint in the most relevant `AGENTS.md` so the mistake is not repeated. Do not add rules for project-specific commands under active development.
+11. On macOS/BSD `cat`, `-A` is unsupported; use `cat -vet` or `sed -n 'l'` to visualize tabs and line endings instead.
+12. On macOS/BSD `awk`, avoid using `in` as a variable name (`in` is reserved in `for (x in y)`); use names like `inside` instead.
+13. When running shell commands that contain backticks in regex/pattern arguments (for example with `rg`), wrap the full command in single quotes or escape backticks to avoid command-substitution parse errors.
+12. Feature request implementation order is user-defined and must be followed unless explicitly revised: FR57, FR60, FR61, FR62, FR64, FR55, FR54, FR56, FR46, FR63, FR65, FR66, FR58, FR59.
 10. Prefer working inside the target module directory (`./bus` or `./bus-*`) for module implementation and tests; use superproject-root commands only for explicit superproject tasks.
 11. When the user provides `BUGS.Update.md` and/or `FEATURE_REQUESTS.Update.md`, merge their contents into canonical `BUGS.md` and `FEATURE_REQUESTS.md` in the same turn, then remove the update files.
 12. Whenever `BUGS.Update.md` or `FEATURE_REQUESTS.Update.md` appears in the repository, automatically merge the contents into `BUGS.md` and/or `FEATURE_REQUESTS.md` and remove the update file(s) in the same turn.
@@ -188,6 +194,8 @@ For this superproject specifically, README must emphasize:
 31. `bus-api` should map HTTP requests to events via configuration and remain HTTP-transport focused; providers must stay HTTP-agnostic event processors.
 32. Keep providers independent from `bus-api` process internals by integrating through an event bus boundary (`bus-events`) instead of in-process business coupling.
 33. For any work in a module or subdirectory, always check and follow the most specific local `AGENTS.md` in that subtree in addition to this root file.
+34. Apply mistake-learning rigor to memory updates: if a command, workflow, or reasoning pattern fails, add a concise preventive rule so future runs use a corrected approach by default.
+35. Prefer learning from existing guidance and prior failures in this repository before trial-and-error; do not repeat an already documented failed approach.
 
 ## Documentation Paths (All Modules)
 
