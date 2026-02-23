@@ -6,24 +6,13 @@ Privacy rule for request write-ups:
 - Keep examples/repro snippets sanitized (no real customer names/emails/IBANs/account numbers/invoice numbers/local paths).
 - Prefer placeholders and aggregated outputs over raw customer-linked row dumps.
 
-Last reviewed: 2026-02-21 (active rows re-tested against current CLI build).
+Last reviewed: 2026-02-23 (active rows re-tested against current CLI build).
 
 Goal note:
 - Target workflow is Bus-only for bookkeeping/audit operations.
 - Operators should not need shell text pipelines (`grep/sed/awk/column`) to answer accounting control questions.
 
 ## Active requests
-
-- FR32 - `bus-bank statement extract/verify` should accept raw statement evidence without sidecar schema files
-  - Symptom:
-    - `statement extract` still cannot consume standard bank-statement PDF evidence directly in this repo.
-  - Impact:
-    - Deterministic saldo verification from original evidence is blocked unless extra sidecar/conversion artifacts are created.
-  - Expected:
-    - Deterministic direct extraction mode for standard statement PDFs.
-    - If summary fields are not present, deterministic transaction-derived checkpoint mode with explicit diagnostics.
-    - Support mixed-source verification flow where extracted statement totals can be validated against imported bank rows for the same account+period.
-    - Deterministic warnings for unrecognized numeric tokens in statement evidence (so parser coverage can be extended safely over time).
 
 - FR34 - configurable mapping profiles for import/extract commands
   - Symptom:
@@ -35,18 +24,6 @@ Goal note:
   - Expected:
     - Workspace-level named mapping profiles reusable by import/extract commands.
     - Mapping profiles should include parsers/normalizers for date and number formats (for example date format hint and unicode-minus normalization).
-
-- FR44 - deterministic evidence-coverage audit command (replace attachment-shell audits)
-  - Symptom:
-    - Evidence coverage checks still require ad-hoc shell workflows to prove whether each posting/bank row/invoice has linked evidence.
-  - Impact:
-    - Hard to produce repeatable legal/audit proof without manual shell logic.
-  - Expected:
-    - Native command (for example `bus audit evidence-coverage`) that outputs:
-      - total rows per scope (journal/bank/sales/purchase),
-      - rows with evidence links,
-      - rows missing links,
-      - machine-readable missing-list with deterministic IDs (`source_id`, `voucher_id`, `bank_txn_id`, `invoice_id`).
 
 - FR46 - asset-register lifecycle command set from prior-year baseline + current-year evidence
   - Symptom:
@@ -260,8 +237,10 @@ Goal note:
       - project/cost-center subtotals and drill-down references (`voucher_id`, `entry_id`, `source_id`).
     - Native export support at least `csv/json` and archival `pdf` for dimension-scoped internal reports.
 
-## Resolved / removed from active list (revalidated 2026-02-21)
+## Resolved / removed from active list (revalidated 2026-02-23)
 
+- FR32 implemented: `bus-bank statement extract` accepts native PDF evidence without sidecar schema files; deterministic error messaging directs to sidecars only when native extraction fails.
+- FR44 implemented: `bus-validate evidence-coverage` emits deterministic evidence coverage summaries and missing IDs for journal, bank, sales, and purchase scopes.
 - FR45 implemented: `bus status readiness --year ... --compliance fi --format json|tsv` returns deterministic gates and regulatory demand sections.
 - FR47 implemented: `bus reconcile propose` includes `--target-kind`, `--exclude-exact-journal`, `--exclude-already-matched`, and scoped selectors.
 - FR48 implemented: `bus journal account-activity` accepts explicit date ranges and month-style period values.

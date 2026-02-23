@@ -3,79 +3,44 @@
 Track defects/blockers that affect this repo's replay/parity workflows.
 Feature work belongs in `FEATURE_REQUESTS.md`.
 
-**Last reviewed:** 2026-02-21 (retested after latest Bus updates).
+**Last reviewed:** 2026-02-23 (retested after latest Bus updates).
 
 ---
 
 ## Active issues
-- 2026-02-21: `bus reconcile propose` fails on replay workspaces with period ambiguity (`YYYY` vs `YYYY-12`)
-  - Severity: high (blocks deterministic backlog reduction workflow after successful replay).
-  - Repro (sanitized, standalone):
-    1. `mkdir -p /tmp/repro-reconcile-period-amb && bus -C /tmp/repro-reconcile-period-amb init defaults`
-    2. Initialize minimal datasets (`accounts`, `journal`, `bank`, `reconcile`, `period`) and add one bank row + one invoice-payment target setup.
-    3. Ensure periods include both year and month-style entries for same year scope (for example `2024` and `2024-12`) as produced in replay-style workspaces.
-    4. Run:  
-       `bus -C /tmp/repro-reconcile-period-amb reconcile propose --target-kind invoice_payment --exclude-exact-journal --exclude-already-matched --from-date 2024-01-01 --to-date 2024-12-31`
-  - Observed:
-    - Command aborts with:  
-      `journal entry ... is ambiguous across periods 2024 and 2024-12`
-  - Expected:
-    - Reconcile propose should resolve period deterministically (or accept explicit period-resolution option) and continue proposal generation.
-
-- 2026-02-21: `bus invoices add` accepts unknown flags silently and advertised `--legacy-replay` path is not honored
-  - Severity: high (operators can think legacy replay flags are applied when they are ignored).
-  - Repro (sanitized, standalone):
-    1. `mkdir -p /tmp/repro-invoices-flag-parse && bus -C /tmp/repro-invoices-flag-parse init defaults`
-    2. `bus -C /tmp/repro-invoices-flag-parse invoices init`
-    3. `bus -C /tmp/repro-invoices-flag-parse invoices add --type sales --invoice-id t1 --invoice-date 2024-01-10 --customer "CUST" --definitely-unknown-flag`
-    4. `bus -C /tmp/repro-invoices-flag-parse -f tsv invoices list`
-    5. `bus -C /tmp/repro-invoices-flag-parse invoices add --type sales --invoice-id t2 --invoice-date 2024-01-10 --due-date 2024-01-01 --customer "CUST2" --legacy-replay`
-  - Observed:
-    - Step 3 succeeds and invoice `t1` is created (unknown flag not rejected).
-    - Step 5 still fails with message: `invoice ... has due_date before issue_date; rerun with --legacy-replay`.
-  - Expected:
-    - Unknown flags must fail deterministically.
-    - `--legacy-replay` (if documented in diagnostics) must be parsed and change behavior deterministically, or diagnostics must point to the correct actual flag.
-
-- 2026-02-21: `bus bank coverage` does not detect journal linkage from `source_id=bank_row:<id>`
-  - Severity: high (coverage report gives false `none/unlinked`, blocks deterministic posting-coverage audit).
-  - Repro (sanitized, standalone):
-    1. `mkdir -p /tmp/repro-bank-coverage-link && bus -C /tmp/repro-bank-coverage-link init defaults`
-    2. `bus -C /tmp/repro-bank-coverage-link accounts init`
-    3. `bus -C /tmp/repro-bank-coverage-link accounts add --code 1910 --name "Bank" --type asset`
-    4. `bus -C /tmp/repro-bank-coverage-link accounts add --code 3000 --name "Sales" --type income`
-    5. `bus -C /tmp/repro-bank-coverage-link bank init`
-    6. `bus -C /tmp/repro-bank-coverage-link journal init`
-    7. `bus -C /tmp/repro-bank-coverage-link bank import-log add --import-id imp1 --source-path demo.csv --imported-at 2026-02-21T10:00:00Z`
-    8. `bus -C /tmp/repro-bank-coverage-link bank add --bank-id b2 --import-id imp1 --booked-date 2024-01-16 --amount 50.00 --currency EUR --counterparty-name "CUSTOMER B" --source-id bank_row:b2`
-    9. `bus -C /tmp/repro-bank-coverage-link journal add --date 2024-01-16 --desc "test link" --debit 1910=50.00 --credit 3000=50.00 --source-id bank_row:b2:journal:1`
-    10. `bus --format tsv -C /tmp/repro-bank-coverage-link bank coverage --year 2024`
-  - Observed:
-    - Coverage output reports `none=1`, row `b2 ... coverage_state=none reason_code=unlinked`.
-  - Expected:
-    - Coverage should report `journal_linked=1` (or `both` if reconcile exists) for bank row `b2`.
-
-- 2026-02-21: `bus invoices list` hard-fails on legacy datasets where `sales-invoices.total_net` stores gross amount
-  - Severity: high (read-only invoice audit commands are blocked on replay datasets that `bus validate` accepts).
-  - Repro (sanitized, standalone):
-    1. `mkdir -p /tmp/repro-invoices-legacy-total && bus -C /tmp/repro-invoices-legacy-total init defaults`
-    2. `bus -C /tmp/repro-invoices-legacy-total invoices init`
-    3. `bus -C /tmp/repro-invoices-legacy-total data row add sales-invoices --set invoice_id=s1 --set number=1001 --set status=sent --set issue_date=2025-01-01 --set due_date=2025-01-15 --set party_name="CUSTOMER A" --set currency=EUR --set total_net=125.50`
-    4. `bus -C /tmp/repro-invoices-legacy-total data row add sales-invoice-lines --set invoice_id=s1 --set line_no=1 --set description="Service" --set quantity=1.0 --set unit_price=100.00 --set vat_rate=0.255`
-    5. `bus validate -C /tmp/repro-invoices-legacy-total`
-    6. `bus --format tsv -C /tmp/repro-invoices-legacy-total invoices list --type sales`
-  - Observed:
-    - Step 5 returns success (`validate` passes).
-    - Step 6 fails with:
-      - `bus-invoices: row 1 in sales-invoices total_net 125.5 does not match sum of line amounts 100 for invoice_id s1`
-  - Expected:
-    - Either:
-      - `validate` and `invoices list` enforce the same invariant consistently, or
-      - `invoices list` offers a tolerant legacy mode that still returns rows with diagnostics instead of hard failure.
+- None currently reproducible (retested 2026-02-23 after latest local Bus reinstall/update).
 
 ---
 
-## Recently resolved (retested 2026-02-21)
+## Recently resolved (retested 2026-02-23)
+
+- 2026-02-23: `bus invoices list` filtered-read hard-fail on non-target legacy due-date rows no longer reproduces.
+  - Verification commands:
+    1. `bus -C /tmp/repro-invoices-list-filter-crossvalidate-20260223-retest invoices list --type sales`
+    2. `bus -C /tmp/repro-invoices-list-filter-crossvalidate-20260223-retest invoices --legacy-replay list --type sales`
+    3. `bus -C data/2024 invoices list --type sales --from 2024-01-01 --to 2024-12-31`
+    4. `bus -C data/2026 invoices list --type sales --from 2026-01-01 --to 2026-12-31`
+  - Result: all commands return exit code `0`; list output is produced with warnings where applicable, no hard failure from non-target purchase due-date rows.
+
+- 2026-02-23: `bus reconcile propose` period ambiguity (`YYYY` vs `YYYY-12`) no longer reproduces in replay workspaces.
+  - Verification commands:
+    1. `bus -C data/2024 reconcile propose --target-kind invoice_payment --exclude-exact-journal --exclude-already-matched --from-date 2024-01-01 --to-date 2024-12-31`
+    2. `bus -C data/2025 reconcile propose --target-kind invoice_payment --exclude-exact-journal --exclude-already-matched --from-date 2025-01-01 --to-date 2025-12-31`
+  - Result: both commands return proposal rows (exit code 0), no `ambiguous across periods` error.
+- 2026-02-23: `bus invoices add` flag handling is now deterministic.
+  - Verification commands:
+    1. `bus -C /tmp/repro-invoices-flag-parse-20260223c invoices add --type sales --invoice-id t1 --invoice-date 2024-01-10 --customer CUST --definitely-unknown-flag`
+    2. `bus -C /tmp/repro-invoices-flag-parse-20260223c invoices add --type sales --invoice-id t2 --invoice-date 2024-01-10 --due-date 2024-01-01 --customer CUST2 --legacy-replay`
+  - Result: unknown flag is rejected with non-zero exit; `--legacy-replay` is accepted and logged as active behavior.
+- 2026-02-23: `bus bank coverage` now detects journal linkage via `source_id=bank_row:<id>`.
+  - Verification command:
+    1. `bus --format tsv -C /tmp/repro-bank-coverage-link-20260223c bank coverage --year 2024`
+  - Result: summary includes `journal_linked=1`, and row `b2` is reported as `coverage_state=journal_linked reason_code=journal_source_id`.
+- 2026-02-23: `bus invoices list` no longer hard-fails on legacy `total_net` mismatch rows.
+  - Verification commands:
+    1. `bus validate -C /tmp/repro-invoices-legacy-total-20260223c`
+    2. `bus --format tsv -C /tmp/repro-invoices-legacy-total-20260223c invoices list --type sales`
+  - Result: `invoices list` returns row output with warning diagnostics (exit code 0), not hard failure.
 
 - 2026-02-21: prior `bus vat report --source reconcile --basis cash` purchase-side concern was re-evaluated.
   - Standalone synthetic repro (fresh `/tmp` workspace) with one sales and one purchase invoice, matched bank rows, and `bus reconcile post` produced expected reconcile totals with non-zero input VAT.
@@ -96,6 +61,23 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
     3. Compare hashes / content.
   - Result: outputs differ and compliance gates are evaluated (no silent no-op).
 
-- `bus status` now defaults to the active workspace year correctly.
-- `bus bank statement extract` accepts UTF-8 BOM + quoted CSV in raw extraction mode.
-- `bus invoices list` applies `--type` and `--status` filters correctly.
+- 2026-02-23: `bus status` now defaults to the active workspace year correctly.
+  - Standalone synthetic verification:
+    1. Create fresh workspace in `/tmp` and run `bus init defaults`.
+    2. Add period records for two years and ensure one year is active/selected in workspace context.
+    3. Run `bus status --format json`.
+  - Result: reported default year follows active workspace year (no unintended fallback to another year).
+- 2026-02-23: `bus bank statement extract` accepts UTF-8 BOM + quoted CSV in raw extraction mode.
+  - Standalone synthetic verification:
+    1. Create fresh workspace in `/tmp` and run `bus init defaults`.
+    2. Create a small UTF-8 BOM-prefixed quoted CSV statement fixture.
+    3. Run `bus bank statement extract --file <fixture.csv> --header-row 1 --map date=<...> --map amount=<...> --map balance=<...>`.
+  - Result: command parses successfully; no `bare " in non-quoted-field` parser abort.
+- 2026-02-23: `bus invoices list` applies `--type` and `--status` filters correctly.
+  - Standalone synthetic verification:
+    1. Create fresh workspace in `/tmp`, run `bus init defaults`, and `bus invoices init`.
+    2. Add multiple sales/purchase invoices with mixed statuses.
+    3. Run:
+       - `bus --format tsv invoices list --type sales`
+       - `bus --format tsv invoices list --status sent`
+  - Result: output is filtered according to requested `--type` / `--status` selectors (no selector-ignore behavior).

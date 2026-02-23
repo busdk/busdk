@@ -163,6 +163,7 @@ For this superproject specifically, README must emphasize:
 7. Automatically update `AGENTS.md` files when the user provides new durable guidance or when you learn workflow rules that should be remembered.
 8. Persist newly learned durable project context immediately: when important recurring constraints, preferences, or workflow decisions are discovered during work, record them in the most relevant `AGENTS.md` in the same change set.
 9. Durable user workflow guidance MUST be written to the most relevant `AGENTS.md` in the same session when learned (do not defer memory updates).
+10. When a **system-level** CLI command fails due to incorrect parameters (for example `rg`, `sed`, `cat`, `find`, `git`, `make`), record the correct invocation or constraint in the most relevant `AGENTS.md` so the mistake is not repeated. Do not add rules for project-specific commands under active development.
 10. Prefer working inside the target module directory (`./bus` or `./bus-*`) for module implementation and tests; use superproject-root commands only for explicit superproject tasks.
 11. When the user provides `BUGS.Update.md` and/or `FEATURE_REQUESTS.Update.md`, merge their contents into canonical `BUGS.md` and `FEATURE_REQUESTS.md` in the same turn, then remove the update files.
 12. Whenever `BUGS.Update.md` or `FEATURE_REQUESTS.Update.md` appears in the repository, automatically merge the contents into `BUGS.md` and/or `FEATURE_REQUESTS.md` and remove the update file(s) in the same turn.
