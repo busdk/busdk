@@ -170,3 +170,7 @@
 	path = bus-api-provider-data
 	url = git@github.com:busdk/bus-api-provider-data.git
 	branch = 1-bus-api-provider-data
+[submodule "bus-events"]
+	path = bus-events
+	url = git@github.com:busdk/bus-events.git
+	branch = 1-bus-events

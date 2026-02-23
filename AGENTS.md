@@ -183,6 +183,10 @@ For this superproject specifically, README must emphasize:
 27. For current subscription/auth platform design, keep authentication passwordless; do not add password-based login flows unless explicitly approved.
 28. For current subscription/auth platform design, keep session lifecycle separate from authenticated-user context; pre-auth sessions are allowed only for constrained approved flows (for example free binary downloads).
 29. For provider-based API architecture, accounting/bookkeeping domain logic belongs in `bus-api-provider-books`, not in core `bus-api`.
+30. For provider loading policy, default to explicit allowlisting/configuration in `bus-api`; do not auto-discover provider modules by default.
+31. `bus-api` should map HTTP requests to events via configuration and remain HTTP-transport focused; providers must stay HTTP-agnostic event processors.
+32. Keep providers independent from `bus-api` process internals by integrating through an event bus boundary (`bus-events`) instead of in-process business coupling.
+33. For any work in a module or subdirectory, always check and follow the most specific local `AGENTS.md` in that subtree in addition to this root file.
 
 ## Documentation Paths (All Modules)
 
@@ -201,4 +205,6 @@ For this superproject specifically, README must emphasize:
 ## Gitignore Rule
 
 1. The `.bus/` directory is a tracked project directory; never add `.bus` or `.bus/` ignore rules to `.gitignore` files in this superproject or its modules.
-2. Runtime lock artifacts such as `.bus-dev.lock` may be ignored.
+2. In private repositories, `.bus/` must be tracked; `.bus/secrets` may be tracked in private repositories only and must not be tracked otherwise.
+3. Runtime lock artifacts such as `.bus-dev.lock` may be ignored.
+4. Do not treat `.bus/`, `Makefile.local`, or `./tests` as temporary files; they are tracked by default unless a repository explicitly documents an exception.
