@@ -1,0 +1,1 @@
+dev each --skip docs retry -f fix-tests unit-test
