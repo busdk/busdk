@@ -14,80 +14,6 @@ Goal note:
 
 ## Active requests
 
-
-- FR64 - VAT and authority-support calculation reports need first-class review UX and PDF export
-  - Symptom:
-    - `bus vat report` exists, but practical filing-support artifacts are primarily tabular/TSV and lack native PDF outputs and operator-friendly review mode.
-  - Impact:
-    - 6-year retained authority-support evidence (VAT calculation package) requires manual post-processing for archival and review.
-  - Expected:
-    - Native commands/presets for VAT filing-support packet generation per period:
-      - summary totals,
-      - row-level explain trace,
-      - coverage diagnostics (especially in cash/reconcile basis mode).
-    - Easy terminal review mode for period comparisons and drill-down.
-    - Native archive outputs in `pdf` plus machine-readable `csv/json`.
-
-- FR55 - `bus-bank` needs universal statement-evidence parser with deterministic PDF extraction + cross-check engine
-  - Symptom:
-    - Current statement extraction is format-fragile and often needs bank-specific sidecars/manual mapping before balances can be verified.
-    - There is no one deterministic command that:
-      - extracts statement facts from PDF evidence,
-      - computes expected checkpoints from bank transactions,
-      - compares both and explains mismatches.
-  - Impact:
-    - Statement-level saldo verification remains partially manual and difficult to reproduce across banks.
-    - Replay workflows cannot produce uniform evidence-validation proof for non-OP and new bank formats.
-  - Expected:
-    - New universal command family (example naming):
-      - `bus bank statement parse --file <pdf|csv|tsv|txt>`
-      - `bus bank statement verify --statement <parsed.json|attachment-id> --bank-rows <...>`
-    - Minimum extracted fields (when present):
-      - `account_id`, `account_iban`, `period_start`, `period_end`, `opening_balance`, `closing_balance`, `currency`,
-      - optional transaction summary fields (row count, debit total, credit total, net change).
-    - Deterministic validation rules:
-      - opening + period net == closing (with explicit rounding policy),
-      - parsed period matches compared bank-row period,
-      - currency and account identity consistency checks,
-      - optional per-day checkpoint reconciliation when daily balances are present.
-    - Deterministic diagnostics:
-      - structured mismatch reason codes,
-      - confidence score per extracted field with provenance spans,
-      - explicit warnings for numeric tokens found in source but not mapped/used (`unknown_numbers` list) to support parser evolution.
-    - Safety/portability requirements:
-      - no bank-specific hardcoding required in default mode,
-      - optional bank profiles can improve confidence but parser must still run in generic fallback mode.
-
-- FR54 - `bus-invoices` needs legacy-safe replay mode for ERP datasets with non-normalized dates/validation edge cases
-  - Symptom:
-    - Direct `bus invoices add` replay can fail on legacy ERP rows (for example due-date earlier than issue-date in source), even when those rows exist in canonical datasets used for parity replay.
-  - Impact:
-    - Replacing `data row add sales-invoices|purchase-invoices|...` with native invoice commands is not always possible without mutating source semantics.
-    - Blocks deterministic migration away from `data row` in replay scripts.
-  - Expected:
-    - Explicit replay/profile mode in `bus-invoices` that can ingest legacy rows deterministically while:
-      - preserving raw source values,
-      - emitting structured diagnostics/warnings for non-normalized rows,
-      - allowing strict validation mode for normalized datasets.
-
-- FR56 - `bus period` deterministic reopen/reclose workflow for closed periods
-  - Symptom:
-    - Current period flow supports `open -> close -> lock`, but does not provide a deterministic/legal-safe reopen path for already closed periods.
-    - Replay examples needing a controlled correction cycle (`close -> reopen -> correcting voucher -> reclose`) cannot be modeled natively.
-  - Impact:
-    - Correction handling must be approximated with ad-hoc workarounds instead of explicit lifecycle controls.
-    - Audit trail for post-close corrections is weaker than needed in formal close processes.
-  - Expected:
-    - Explicit reopen command flow with controls, e.g.:
-      - `bus period reopen --period YYYY-MM --reason <code/text> --approved-by <id>`
-      - optional `--max-open-days` policy gate.
-    - Deterministic status transitions:
-      - `closed -> reopened -> closed` (and `locked` handling policy explicit).
-    - Built-in audit metadata:
-      - reopen timestamp, actor, reason, linked correction voucher IDs, reclose timestamp.
-    - Deterministic reporting:
-      - period history output includes reopen/reclose events and correction deltas.
-
 - FR46 - asset-register lifecycle command set from prior-year baseline + current-year evidence
   - Symptom:
     - Building correct fixed-asset continuity (opening baseline, additions, disposals, depreciation) still needs manual script orchestration.
@@ -177,6 +103,10 @@ Goal note:
 
 ## Resolved / removed from active list (revalidated 2026-02-23)
 
+- FR56 implemented: `bus-period reopen` supports deterministic closed → reopened → closed transitions with audit metadata (`reopened_at`, `reopen_reason`, `reopen_approved_by`, `reopen_voucher_ids`, `reclosed_at`) plus `--max-open-days` policy checks and updated list/history outputs.
+- FR54 implemented: `bus-invoices --legacy-replay` allows deterministic replay of non-normalized legacy rows with strict-mode failure guidance, warnings, and e2e/unit coverage.
+- FR55 implemented: `bus-bank statement parse` and `statement verify --statement` provide canonical JSON parsing, confidence metadata, unknown-number warnings, and deterministic cross-check diagnostics.
+- FR64 implemented: `bus-vat review` emits authority-support review packets (summary, explain, coverage diagnostics) with TSV/JSON/CSV/PDF outputs and deterministic PDF metadata.
 - FR32 implemented: `bus-bank statement extract` accepts native PDF evidence without sidecar schema files; deterministic error messaging directs to sidecars only when native extraction fails.
 - FR34 implemented: statement extract profiles support date/number parsing hints (`date_format`, `decimal_char`, `group_char`, `unicode_minus`) with CLI overrides, plus deterministic diagnostics, tests, and docs updates.
 - FR44 implemented: `bus-validate evidence-coverage` emits deterministic evidence coverage summaries and missing IDs for journal, bank, sales, and purchase scopes.

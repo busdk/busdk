@@ -42,6 +42,13 @@ Merged guidance from `.cursor/rules/*.mdc`.
    2. Private/commercial-customer repos: every `./bus-*` module.
    3. In public repos, do not introduce in-process coupling to private module internals; use stable CLI/library boundaries only.
 
+## Module Operational Conventions (All `bus` and `bus-*` Modules)
+
+1. Module CLIs must be non-interactive and script-friendly; missing required arguments or flags must return a concise usage error and exit 2.
+2. Command results go to stdout (or `--output`); diagnostics, warnings, and errors go to stderr; help/version go to stdout.
+3. Avoid network and Git operations in module code and tests unless a module spec explicitly requires them.
+4. When a module provides a Makefile, use its targets (`build`, `test`, `fmt`, `lint`, `check`, `test-e2e` as applicable) as the standard interface; tests must be hermetic and deterministic.
+
 ## CLI Global Flag Standard (When Implementing `bus-*` CLI Modules)
 
 Apply this section only when editing CLI module repositories or shared CLI parsing code.
@@ -169,6 +176,8 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 11. On macOS/BSD `cat`, `-A` is unsupported; use `cat -vet` or `sed -n 'l'` to visualize tabs and line endings instead.
 12. On macOS/BSD `awk`, avoid using `in` as a variable name (`in` is reserved in `for (x in y)`); use names like `inside` instead.
 13. When running shell commands that contain backticks in regex/pattern arguments (for example with `rg`), wrap the full command in single quotes or escape backticks to avoid command-substitution parse errors.
+14. `rg` does not support look-around by default; use `rg --pcre2` when patterns require look-ahead/look-behind.
+15. Use `python3` (not `python`) for Python scripting in this environment.
 12. Feature request implementation order is user-defined and must be followed unless explicitly revised: FR57, FR60, FR61, FR62, FR64, FR55, FR54, FR56, FR46, FR63, FR65, FR66, FR58, FR59.
 10. Prefer working inside the target module directory (`./bus` or `./bus-*`) for module implementation and tests; use superproject-root commands only for explicit superproject tasks.
 11. When the user provides `BUGS.Update.md` and/or `FEATURE_REQUESTS.Update.md`, merge their contents into canonical `BUGS.md` and `FEATURE_REQUESTS.md` in the same turn, then remove the update files.
@@ -186,16 +195,10 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 23. Treat every new bug report as a new triage item even if it appears to match a previously fixed issue; deterministically re-verify both the original bug path and the new reported path before concluding fixed.
 24. For user-facing CLI naming, keep command-to-module mapping direct and simple (for example `bus plan` -> `bus-plan`); avoid alias-heavy indirection.
 25. For private backend architectures, keep CLI modules as thin clients that call backend APIs/services; avoid embedding monolithic backend business logic into CLI binaries.
-26. For API architecture direction, treat `bus-api` as an API application/dispatch service (transport/models/routing) and keep domain business logic in pluggable `bus-api-provider-*` modules.
-27. For current subscription/auth platform design, keep authentication passwordless; do not add password-based login flows unless explicitly approved.
-28. For current subscription/auth platform design, keep session lifecycle separate from authenticated-user context; pre-auth sessions are allowed only for constrained approved flows (for example free binary downloads).
-29. For provider-based API architecture, accounting/bookkeeping domain logic belongs in `bus-api-provider-books`, not in core `bus-api`.
-30. For provider loading policy, default to explicit allowlisting/configuration in `bus-api`; do not auto-discover provider modules by default.
-31. `bus-api` should map HTTP requests to events via configuration and remain HTTP-transport focused; providers must stay HTTP-agnostic event processors.
-32. Keep providers independent from `bus-api` process internals by integrating through an event bus boundary (`bus-events`) instead of in-process business coupling.
-33. For any work in a module or subdirectory, always check and follow the most specific local `AGENTS.md` in that subtree in addition to this root file.
-34. Apply mistake-learning rigor to memory updates: if a command, workflow, or reasoning pattern fails, add a concise preventive rule so future runs use a corrected approach by default.
-35. Prefer learning from existing guidance and prior failures in this repository before trial-and-error; do not repeat an already documented failed approach.
+26. Any module-specific guidance must live in the module’s own `AGENTS.md` (for example `bus-foo/AGENTS.md`); do not add or keep module-specific rules in this superproject `AGENTS.md`.
+27. For any work in a module or subdirectory, always check and follow the most specific local `AGENTS.md` in that subtree in addition to this root file.
+28. Apply mistake-learning rigor to memory updates: if a command, workflow, or reasoning pattern fails, add a concise preventive rule so future runs use a corrected approach by default.
+29. Prefer learning from existing guidance and prior failures in this repository before trial-and-error; do not repeat an already documented failed approach.
 
 ## Documentation Paths (All Modules)
 
