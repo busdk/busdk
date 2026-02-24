@@ -79,14 +79,15 @@ Apply this section only when editing CLI module repositories or shared CLI parsi
 5. Coverage for changed code must not regress; changed lines/branches should be exercised.
 6. Tests must be deterministic, isolated, and CI-repeatable.
 7. Quality gates must pass: build, tests, formatting, linting/static checks, and security/secret checks.
-8. Maintain backward compatibility unless a linked issue explicitly allows breaking change with migration path.
-9. Update docs in same change set (README and operational/developer docs as needed).
-10. If any required item is missing, work is not done.
-11. Keep traceability: link implementation/tests/commits to the canonical issue URL when available.
-12. Exceptions must be approved in the linked issue with explicit scope/risk and a concrete follow-up issue.
-13. Always update end-to-end (e2e) tests to cover new features; new functionality is not done until e2e coverage is added.
-14. Every user-visible behavior change (feature, bug fix, CLI/output/validation change, migration/replay behavior change) MUST include updated or new e2e coverage in the same change set.
-15. If no existing e2e harness can cover the change, add one; do not mark work done without e2e unless the user explicitly approves a temporary exception.
+8. After any code change, always run automated tests before reporting completion; if a module `make` target is a no-op or stale, run the underlying test/build commands directly for that module.
+9. Maintain backward compatibility unless a linked issue explicitly allows breaking change with migration path.
+10. Update docs in same change set (README and operational/developer docs as needed).
+11. If any required item is missing, work is not done.
+12. Keep traceability: link implementation/tests/commits to the canonical issue URL when available.
+13. Exceptions must be approved in the linked issue with explicit scope/risk and a concrete follow-up issue.
+14. Always update end-to-end (e2e) tests to cover new features; new functionality is not done until e2e coverage is added.
+15. Every user-visible behavior change (feature, bug fix, CLI/output/validation change, migration/replay behavior change) MUST include updated or new e2e coverage in the same change set.
+16. If no existing e2e harness can cover the change, add one; do not mark work done without e2e unless the user explicitly approves a temporary exception.
 
 ## Go Language And Project Conventions (When Go Code Exists)
 
