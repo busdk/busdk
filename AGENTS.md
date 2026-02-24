@@ -179,7 +179,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 13. When running shell commands that contain backticks in regex/pattern arguments (for example with `rg`), wrap the full command in single quotes or escape backticks to avoid command-substitution parse errors.
 14. `rg` does not support look-around by default; use `rg --pcre2` when patterns require look-ahead/look-behind.
 15. Use `python3` (not `python`) for Python scripting in this environment.
-12. Feature request implementation order is user-defined and must be followed unless explicitly revised: FR57, FR60, FR61, FR62, FR64, FR55, FR54, FR56, FR46, FR63, FR65, FR66, FR58, FR59.
+12. Feature request implementation order is user-defined and must be followed unless explicitly revised: FR65, FR66, FR59, FR58, FR46, FR63.
 10. Prefer working inside the target module directory (`./bus` or `./bus-*`) for module implementation and tests; use superproject-root commands only for explicit superproject tasks.
 11. When the user provides `BUGS.Update.md` and/or `FEATURE_REQUESTS.Update.md`, merge their contents into canonical `BUGS.md` and `FEATURE_REQUESTS.md` in the same turn, then remove the update files.
 12. Whenever `BUGS.Update.md` or `FEATURE_REQUESTS.Update.md` appears in the repository, automatically merge the contents into `BUGS.md` and/or `FEATURE_REQUESTS.md` and remove the update file(s) in the same turn.
@@ -200,6 +200,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 27. For any work in a module or subdirectory, always check and follow the most specific local `AGENTS.md` in that subtree in addition to this root file.
 28. Apply mistake-learning rigor to memory updates: if a command, workflow, or reasoning pattern fails, add a concise preventive rule so future runs use a corrected approach by default.
 29. Prefer learning from existing guidance and prior failures in this repository before trial-and-error; do not repeat an already documented failed approach.
+30. When searching `rg` patterns that begin with `-` (for example `--dim`), always use `-e` for each pattern (`rg -e "--dim" ...`) so patterns are not parsed as flags.
 
 ## Documentation Paths (All Modules)
 
@@ -221,3 +222,4 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 2. In private repositories, `.bus/` must be tracked; `.bus/secrets` may be tracked in private repositories only and must not be tracked otherwise.
 3. Runtime lock artifacts such as `.bus-dev.lock` may be ignored.
 4. Do not treat `.bus/`, `Makefile.local`, or `./tests` as temporary files; they are tracked by default unless a repository explicitly documents an exception.
+5. Never add `FEATURES.md` to `.gitignore` in any module. If `FEATURES.md` exists in a module's git history, restore and keep it tracked.
