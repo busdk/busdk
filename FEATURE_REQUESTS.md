@@ -6,7 +6,7 @@ Privacy rule for request write-ups:
 - Keep examples/repro snippets sanitized (no real customer names/emails/IBANs/account numbers/invoice numbers/local paths).
 - Prefer placeholders and aggregated outputs over raw customer-linked row dumps.
 
-Last reviewed: 2026-02-25 (active rows re-tested against current CLI build; no open feature backlog; FR32/FR34 pending local runtime revalidation when `bus update` is operational).
+Last reviewed: 2026-02-25 (active rows re-tested against current CLI build; no open feature backlog).
 
 Goal note:
 - Target workflow is Bus-only for bookkeeping/audit operations.
@@ -22,7 +22,7 @@ Goal note:
 - FR47 implemented: `bus reconcile propose` includes `--target-kind`, `--exclude-exact-journal`, `--exclude-already-matched`, and scoped selectors.
 - FR48 implemented: `bus journal account-activity` accepts explicit date ranges and month-style period values.
 - FR52 implemented: `bus reconcile post --kind invoice_payment` supports partial-payment planning/output with `posted_amount` and `open_amount`.
-- FR53 implemented: `bus bank coverage --year YYYY` exists and returns deterministic per-row coverage states.
+- FR53 implemented: `bus bank coverage --year YYYY` exists and returns deterministic per-row coverage states (current correctness defect tracked in `BUGS.md`).
 - FR38 implemented: `bus-vat fi-file` emits FI VAT filing payload fields.
 - FR39 implemented: `bus-vat explain` provides row-level FI VAT field trace.
 - FR41 implemented at command level: `bus-vat period-profile` exists.

@@ -3,16 +3,22 @@
 Track defects/blockers that affect this repo's replay/parity workflows.
 Feature work belongs in `FEATURE_REQUESTS.md`.
 
-**Last reviewed:** 2026-02-25 (retested after latest Bus updates; no active reproducible defects).
+**Last reviewed:** 2026-02-25 (retested after latest Bus updates).
 
 ---
 
 ## Active issues
-- None currently reproducible (retested 2026-02-25 after latest local Bus re-check).
+- None at this time.
 
 ---
 
 ## Recently resolved (retested 2026-02-23)
+
+- 2026-02-25: `bus vat report/export --source reconcile --basis cash` now fails by default on partial reconcile coverage.
+  - Verification commands:
+    1. `go -C bus-vat test ./...`
+    2. `make -C bus-vat e2e`
+  - Result: strict coverage gate is default in reconcile+cash mode for report/export/review; explicit opt-out `--force-partial-coverage` is supported.
 
 - 2026-02-23: `bus invoices list` filtered-read hard-fail on non-target legacy due-date rows no longer reproduces.
   - Verification commands:
