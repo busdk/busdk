@@ -6,7 +6,7 @@ Privacy rule for request write-ups:
 - Keep examples/repro snippets sanitized (no real customer names/emails/IBANs/account numbers/invoice numbers/local paths).
 - Prefer placeholders and aggregated outputs over raw customer-linked row dumps.
 
-Last reviewed: 2026-02-25 (active rows re-tested against current CLI build; no open feature backlog).
+Last reviewed: 2026-02-25 (all previously active rows re-tested against current CLI build).
 
 Goal note:
 - Target workflow is Bus-only for bookkeeping/audit operations.
@@ -17,6 +17,10 @@ Goal note:
 - None.
 
 ## Resolved / removed from active list (revalidated 2026-02-25)
+
+- FR67 implemented: `bus reconcile propose` includes first-class settlement ingest flows (`--settlement-csv`, provider-agnostic `--settlement-in`, optional `--settlement-profile`) with deterministic diagnostics and apply-side settlement posting.
+- FR68 implemented: `bus data table assert <table>` provides deterministic row-count policy checks with `--filter`, `--min-rows`, `--max-rows`, and `--eq-rows`, machine-readable `tsv|json`, and threshold-failure exit code `1`.
+- FR69 implemented: reconcile cash strict policy now includes explicit unmatched-row threshold control via `--max-unmatched-cash-rows` alongside `--min-sales-coverage` and `--min-purchase-coverage` on `bus vat report|export|review`.
 
 - FR45 implemented: `bus status readiness --year ... --compliance fi --format json|tsv` returns deterministic gates and regulatory demand sections.
 - FR47 implemented: `bus reconcile propose` includes `--target-kind`, `--exclude-exact-journal`, `--exclude-already-matched`, and scoped selectors.

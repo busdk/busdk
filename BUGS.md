@@ -3,35 +3,42 @@
 Track defects/blockers that affect this repo's replay/parity workflows.
 Feature work belongs in `FEATURE_REQUESTS.md`.
 
-**Last reviewed:** 2026-02-25 (retested after latest Bus updates).
+**Last reviewed:** 2026-02-25 (retested after latest Bus updates; no active reproducible defects).
 
 ---
 
 ## Active issues
-- None at this time.
+- None.
 
 ---
 
-## Recently resolved (retested 2026-02-23)
+## Recently resolved
 
-- 2026-02-25: `bus vat report/export --source reconcile --basis cash` now fails by default on partial reconcile coverage.
+- 2026-02-25: net-settlement payouts can now be modeled with signed journal allocation rows in `bus reconcile allocate`.
   - Verification commands:
-    1. `go -C bus-vat test ./...`
-    2. `make -C bus-vat e2e`
-  - Result: strict coverage gate is default in reconcile+cash mode for report/export/review; explicit opt-out `--force-partial-coverage` is supported.
+    1. `bus -C exports/2024/data reconcile allocate --bank-id erp-bank-26203 --invoice s6579=130.00 --journal <journal_id>=-4.73`
+    2. `bus -C exports/2024/data reconcile list`
+  - Result:
+    - `allocate` accepts non-zero signed journal amounts, enforces exact bank-amount sum, and writes signed journal allocation rows deterministically.
+
+- 2026-02-25: `bus vat report/export --source reconcile --basis cash` now fails by default on partial coverage (strict default works).
+  - Verification commands:
+    1. `bus -C exports/2024/data vat report --period 2024-01 --source reconcile --basis cash`
+    2. `echo $?`
+  - Result: command exits non-zero with strict-failure diagnostics unless explicit `--force-partial-coverage` is provided.
 
 - 2026-02-23: `bus invoices list` filtered-read hard-fail on non-target legacy due-date rows no longer reproduces.
   - Verification commands:
     1. `bus -C /tmp/repro-invoices-list-filter-crossvalidate-20260223-retest invoices list --type sales`
     2. `bus -C /tmp/repro-invoices-list-filter-crossvalidate-20260223-retest invoices --legacy-replay list --type sales`
-    3. `bus -C data/2024 invoices list --type sales --from 2024-01-01 --to 2024-12-31`
-    4. `bus -C data/2026 invoices list --type sales --from 2026-01-01 --to 2026-12-31`
+    3. `bus -C exports/2024/data invoices list --type sales --from 2024-01-01 --to 2024-12-31`
+    4. `bus -C exports/2026/data invoices list --type sales --from 2026-01-01 --to 2026-12-31`
   - Result: all commands return exit code `0`; list output is produced with warnings where applicable, no hard failure from non-target purchase due-date rows.
 
 - 2026-02-23: `bus reconcile propose` period ambiguity (`YYYY` vs `YYYY-12`) no longer reproduces in replay workspaces.
   - Verification commands:
-    1. `bus -C data/2024 reconcile propose --target-kind invoice_payment --exclude-exact-journal --exclude-already-matched --from-date 2024-01-01 --to-date 2024-12-31`
-    2. `bus -C data/2025 reconcile propose --target-kind invoice_payment --exclude-exact-journal --exclude-already-matched --from-date 2025-01-01 --to-date 2025-12-31`
+    1. `bus -C exports/2024/data reconcile propose --target-kind invoice_payment --exclude-exact-journal --exclude-already-matched --from-date 2024-01-01 --to-date 2024-12-31`
+    2. `bus -C exports/2025/data reconcile propose --target-kind invoice_payment --exclude-exact-journal --exclude-already-matched --from-date 2025-01-01 --to-date 2025-12-31`
   - Result: both commands return proposal rows (exit code 0), no `ambiguous across periods` error.
 - 2026-02-23: `bus invoices add` flag handling is now deterministic.
   - Verification commands:
