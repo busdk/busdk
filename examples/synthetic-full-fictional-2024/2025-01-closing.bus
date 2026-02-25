@@ -29,6 +29,12 @@ reports -o "tuloslaskelma-2024.pdf" profit-and-loss --period 2024 --format pdf -
 reports -o "balance-sheet-2024-12-31.csv" balance-sheet --as-of 2024-12-31 --format csv --layout-id kpa
 reports -o "tase-2024-12-31.pdf" balance-sheet --as-of 2024-12-31 --format pdf --layout-id kpa
 
+# 2025-01-30: Native ledger PDFs and deterministic filing/compliance manifests.
+reports -o "day-book-2024.pdf" day-book --period 2024 --format pdf
+reports -o "general-ledger-2024.pdf" general-ledger --period 2024 --format pdf
+reports -o "filing-package-2024.tsv" filing-package --period 2024 --format tsv
+reports -o "compliance-checklist-2024.tsv" compliance-checklist --period 2024 --format tsv
+
 # 2025-01-31: Close + lock final period (finalization control step).
 attachments add "../synthetic-evidence/transactions/close-lock-2024-12-31.txt" --desc "Synthetic closing control evidence 2024-12"
 period close --period 2024-12 --post-date 2024-12-31

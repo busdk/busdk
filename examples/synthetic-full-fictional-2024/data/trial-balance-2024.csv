@@ -2,10 +2,10 @@ code,type,name,debit,credit,net
 1160,asset,Equipment and machinery,1200.00,1200.00,0.00
 1162,asset,Accumulated depreciation,300.00,300.00,0.00
 1763,asset,VAT receivable,121.13,0.00,121.13
-1910,asset,Main bank account,7198.90,2229.63,4969.27
-1911,asset,Holvi bank account,342.00,50.00,292.00
+1910,asset,Main bank account,7198.90,4689.63,2509.27
+1911,asset,Holvi bank account,2802.00,50.00,2752.00
 1912,asset,PayPal bank account,50.00,0.00,50.00
-1998,asset,Internal transfer clearing,350.00,350.00,0.00
+1998,asset,Internal transfer clearing,2810.00,2810.00,0.00
 1999,asset,Suspense account,42.00,42.00,0.00
 2010,equity,Owner contributions,0.00,242.00,-242.00
 2060,equity,Owner withdrawals,120.00,0.00,120.00

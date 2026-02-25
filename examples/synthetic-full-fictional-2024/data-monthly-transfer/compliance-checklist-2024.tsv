@@ -1,0 +1,14 @@
+control_id	title	status	country	period	due_date	channel	reason
+fi.bookkeeping.close_and_archive	Close books and archive source evidence	required	FI	2024-01-01..2024-12-31	2024-12-31	internal_archive	Required for all legal forms.
+fi.corporate.annual_general_meeting	Hold annual general meeting / approve statements	not_applicable	FI	2024-01-01..2024-12-31		internal_governance	Not applicable for sole entrepreneur profile.
+fi.financial_statements.approval_and_signatures	Record approval date and signatures	required	FI	2024-01-01..2024-12-31	2025-05-01	internal_governance	Statements must be dated and signed with unambiguous approval date.
+fi.financial_statements.cash_flow_statement_requirement	Assess statutory cash flow statement requirement	not_applicable	FI	2024-01-01..2024-12-31	2025-05-01	internal_financial_statements	Not applicable for non-corporate legal forms.
+fi.financial_statements.comparatives_present	Include comparative figures for prior period	required	FI	2024-01-01..2024-12-31	2025-05-01	internal_financial_statements	Comparative figures required for statement line items.
+fi.financial_statements.core_components	Prepare balance sheet, income statement and notes	required	FI	2024-01-01..2024-12-31	2025-05-01	internal_financial_statements	Required minimum components under Finnish bookkeeping law (KPL/PMA).
+fi.financial_statements.management_report_requirement	Assess statutory management report requirement	not_applicable	FI	2024-01-01..2024-12-31	2025-05-01	internal_financial_statements	Not applicable for non-corporate legal forms.
+fi.financial_statements.no_balance_sheet_breakdowns_in_public_filing	Exclude balance-sheet breakdowns from public filing	required	FI	2024-01-01..2024-12-31	2025-07-31	prh	Balance-sheet breakdowns are internal substantiation and not filing attachments.
+fi.financial_statements.no_sensitive_personal_data_in_public_filing	Remove sensitive personal data from filing attachments	required	FI	2024-01-01..2024-12-31	2025-07-31	prh	Public filing attachments must not include sensitive personal identifiers.
+fi.financial_statements.public_vs_internal_package	Separate public filing package from internal evidence package	required	FI	2024-01-01..2024-12-31	2025-07-31	prh	Only public filing documents should be delivered to Trade Register channels.
+fi.prh.financial_statements_filing	File annual statements to Trade Register	not_applicable	FI	2024-01-01..2024-12-31		prh	Not applicable for sole entrepreneur profile.
+fi.tax.income_tax_return	Submit annual income tax return	required	FI	2024-01-01..2024-12-31	2025-04-02	vero	Required for all legal forms.
+fi.vat.periodic_return	Submit VAT return for the period	conditionally_required	FI	2024-01-01..2024-12-31		vero	Requires VAT registration status and taxable activity.

@@ -1,0 +1,5 @@
+Synthetic bank evidence row: synth-b-041
+Booked date: 2024-01-26
+Counterparty: Own account transfer
+Amount: + recurring internal transfer
+Message: Synthetic recurring monthly transfer from OP

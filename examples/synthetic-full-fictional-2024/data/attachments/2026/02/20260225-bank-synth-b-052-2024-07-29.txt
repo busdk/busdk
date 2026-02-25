@@ -1,0 +1,5 @@
+Synthetic bank evidence row: synth-b-052
+Booked date: 2024-07-29
+Counterparty: Own account transfer
+Amount: - recurring internal transfer
+Message: Synthetic recurring monthly transfer to Holvi

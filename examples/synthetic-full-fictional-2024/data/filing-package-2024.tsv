@@ -1,0 +1,12 @@
+document_id	title	package	required	public	reason
+accounting_material_index	Index of accounting records and materials	internal_evidence	required	false	Required internal retention evidence.
+auditor_report	Auditor report and note	public_filing	not_applicable	true	Not applicable for non-corporate legal forms.
+balance_sheet	Balance sheet (tase)	public_filing	required	true	Core statutory filing document.
+balance_sheet_breakdowns	Balance-sheet breakdowns (tase-erittelyt)	internal_evidence	required	false	Required for substantiation but must not be filed publicly.
+cash_flow_statement	Cash flow statement (rahoituslaskelma)	public_filing	conditionally_required	true	Required for entities in scope of statutory cash-flow reporting.
+consolidation_appendices	Consolidation appendices (konserniliitteet)	public_filing	conditionally_required	true	Required when preparing consolidated financial statements.
+income_statement	Income statement (tuloslaskelma)	public_filing	required	true	Core statutory filing document.
+management_report	Management report (toimintakertomus)	public_filing	not_applicable	true	Not applicable for non-corporate legal forms.
+notes	Notes to financial statements (liitetiedot)	public_filing	required	true	Core statutory filing document.
+signatures_and_approval_date	Approval date and signatures	public_filing	required	true	Statements must be dated and signed.
+voucher_evidence_catalog	Voucher/evidence catalog	internal_evidence	required	false	Operational substantiation package for replay/audit.

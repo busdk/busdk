@@ -1,0 +1,1 @@
+{"fields":[{"name":"definition_id","type":"string","constraints":{"required":true,"pattern":"^[A-Z0-9_./-]+$"}},{"name":"name","type":"string","constraints":{"required":true}},{"name":"description","type":"string"},{"name":"active","type":"boolean"}],"primaryKey":"definition_id"}
