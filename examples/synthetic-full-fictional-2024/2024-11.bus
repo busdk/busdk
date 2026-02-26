@@ -18,7 +18,7 @@ bank add --bank-id synth-b-023 --import-id synth-holvi-2024-11 --booked-date 202
 journal add --date 2024-11-08 --desc "Synthetic unmatched incoming parked to suspense" --debit 1911=42.00 --credit 1999=42.00 --source-id bank_row:synth-b-023:journal:1
 
 # 2024-11-12: File VAT for period 2024-10
-vat -f tsv -o "vat-report-2024-10.tsv" report --source reconcile --basis cash --period 2024-10
+vat -f tsv -o "vat-report-2024-10.tsv" report --source reconcile --basis cash --force-partial-coverage --period 2024-10
 attachments add "../synthetic-evidence/vat-application-2024-10.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-10"
 
 # 2024-11-15: Reclass suspense row after clarification (owner contribution)

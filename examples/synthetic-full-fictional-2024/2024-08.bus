@@ -13,7 +13,7 @@ invoices p9106 add --line-no 1 --desc "Security scanning service" --quantity 1 -
 invoices p9106 validate
 
 # 2024-08-12: File VAT for period 2024-07
-vat -f tsv -o "vat-report-2024-07.tsv" report --source reconcile --basis cash --period 2024-07
+vat -f tsv -o "vat-report-2024-07.tsv" report --source reconcile --basis cash --force-partial-coverage --period 2024-07
 attachments add "../synthetic-evidence/vat-application-2024-07.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-07"
 
 # 2024-08-19: Payment of P-9106

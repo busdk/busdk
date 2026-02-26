@@ -31,7 +31,7 @@ reconcile allocate --bank-id synth-b-006 --invoice s9003=50.40
 journal add --date 2024-09-11 --desc "Synthetic partial sales receipt S-9003 part 2" --debit 1910=50.40 --credit 3000=40.16 --credit 2931=10.24 --source-id bank_row:synth-b-006:journal:1
 
 # 2024-09-12: File VAT for period 2024-08
-vat -f tsv -o "vat-report-2024-08.tsv" report --source reconcile --basis cash --period 2024-08
+vat -f tsv -o "vat-report-2024-08.tsv" report --source reconcile --basis cash --force-partial-coverage --period 2024-08
 attachments add "../synthetic-evidence/vat-application-2024-08.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-08"
 
 # 2024-09-13: Partial payment of P-9103 (part 1)

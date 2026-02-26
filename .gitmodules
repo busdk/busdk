@@ -174,3 +174,6 @@
 	path = bus-events
 	url = git@github.com:busdk/bus-events.git
 	branch = 1-bus-events
+[submodule "bus-ledger"]
+	path = bus-ledger
+	url = git@github.com:busdk/bus-ledger.git

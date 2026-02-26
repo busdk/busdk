@@ -13,7 +13,7 @@ invoices s9006 add --line-no 1 --desc "Migration sprint package" --quantity 1 --
 invoices s9006 validate
 
 # 2024-07-12: File VAT for period 2024-06
-vat -f tsv -o "vat-report-2024-06.tsv" report --source reconcile --basis cash --period 2024-06
+vat -f tsv -o "vat-report-2024-06.tsv" report --source reconcile --basis cash --force-partial-coverage --period 2024-06
 attachments add "../synthetic-evidence/vat-application-2024-06.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-06"
 
 # 2024-07-22: Customer payment for S-9006

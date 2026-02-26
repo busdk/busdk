@@ -11,10 +11,10 @@ invoices validate
 
 # VAT outputs in realistic filing sequence (cash basis, monthly filer).
 # 2025-01-12: File VAT for period 2024-12.
-vat -f tsv -o "vat-report-2024-12.tsv" report --source reconcile --basis cash --period 2024-12
+vat -f tsv -o "vat-report-2024-12.tsv" report --source reconcile --basis cash --force-partial-coverage --period 2024-12
 attachments add "../synthetic-evidence/vat-application-2024-12.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-12"
 # 2025-01-20: Internal annual VAT review and FI payload generation for FY2024.
-vat -f tsv -o "vat-report-2024-year.tsv" report --source reconcile --basis cash --from 2024-01-01 --to 2024-12-31
+vat -f tsv -o "vat-report-2024-year.tsv" report --source reconcile --basis cash --force-partial-coverage --from 2024-01-01 --to 2024-12-31
 vat -f tsv -o "vat-fi-file-2024-year.tsv" fi-file --source reconcile --basis cash --from 2024-01-01 --to 2024-12-31
 attachments add "../synthetic-evidence/vat-annual-review-2024.txt" --desc "Synthetic annual VAT review evidence for FY2024"
 

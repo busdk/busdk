@@ -19,7 +19,7 @@ invoices p9102 add --line-no 1 --desc "Monitoring and backup tooling" --quantity
 invoices p9102 validate
 
 # 2024-03-12: File VAT for period 2024-02
-vat -f tsv -o "vat-report-2024-02.tsv" report --source reconcile --basis cash --period 2024-02
+vat -f tsv -o "vat-report-2024-02.tsv" report --source reconcile --basis cash --force-partial-coverage --period 2024-02
 attachments add "../synthetic-evidence/vat-application-2024-02.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-02"
 
 # 2024-03-12: Customer payment for S-9002

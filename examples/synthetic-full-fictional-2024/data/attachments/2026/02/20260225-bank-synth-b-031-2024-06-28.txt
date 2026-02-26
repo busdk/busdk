@@ -1,0 +1,6 @@
+Synthetic bank evidence row: synth-b-031
+Booked date: 2024-06-28
+Counterparty: Device Forge Oy
+Reference: 600100001
+Amount: -1200.00 EUR
+Message: Synthetic equipment acquisition a1001

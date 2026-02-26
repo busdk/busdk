@@ -10,6 +10,14 @@ Scope boundaries:
 - `data/` workspaces are replay outputs; do not hand-edit generated datasets.
 - `synthetic-evidence/` evidence trees are read-only source material; do not mutate evidence files.
 
+Synthetic full-2024 invariants:
+- Replay entrypoint is `all.bus`; it must run the full year (`2024-00..12`, close/lock, evidence-link pass).
+- `2025-02-evidence-links.bus` is mandatory and enforces:
+  - `status evidence-coverage --year 2024 --strict`
+  - `attachments list --graph --fail-if-unlinked`
+- Bank evidence coverage is complete for synthetic ids `synth-b-001..031` and `synth-b-040..063` (including `synth-b-030` and `synth-b-031` asset-flow rows).
+- Synthetic VAT reports intentionally run with `--force-partial-coverage` because this scenario includes non-invoice cash flows (owner/transfer/financing style rows) that are outside invoice matching.
+
 Core principles:
 - Evidence-first bookkeeping:
   - Do not invent transactions or tax treatment.

@@ -16,6 +16,8 @@
           "signature": {}
         }
       },
+      "vat_default_basis": "accrual",
+      "vat_default_source": "invoice",
       "vat_registered": true,
       "vat_reporting_period": "monthly",
       "vat_timing": "performance"
