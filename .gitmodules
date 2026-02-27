@@ -177,3 +177,8 @@
 [submodule "bus-ledger"]
 	path = bus-ledger
 	url = git@github.com:busdk/bus-ledger.git
+	branch = 1-bus-ledger
+[submodule "bus-ui"]
+	path = bus-ui
+	url = git@github.com:busdk/bus-ui.git
+	branch = 1-bus-ui
