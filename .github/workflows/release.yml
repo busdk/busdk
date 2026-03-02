@@ -88,24 +88,48 @@ jobs:
           VERSION="${{ github.ref_name }}"
           OS="${{ runner.os }}"
           ARCH="$(go env GOARCH)"
+          DIST_BIN="dist-bin"
+          rm -rf "$DIST_BIN"
+          mkdir -p "$DIST_BIN"
+          python - "$DIST_BIN" <<'PY'
+          import glob
+          import pathlib
+          import shutil
+          import sys
+          
+          dest = pathlib.Path(sys.argv[1])
+          patterns = ["bin/*", "bus*/bin/*"]
+          copied = 0
+          for pattern in patterns:
+              for src in sorted(glob.glob(pattern)):
+                  path = pathlib.Path(src)
+                  if not path.is_file():
+                      continue
+                  shutil.copy2(path, dest / path.name)
+                  copied += 1
+          
+          if copied == 0:
+              raise SystemExit("no binaries found under bin/* or bus*/bin/* after make build")
+          PY
           if [ "$OS" = "Windows" ]; then
             ARTIFACT="busdk-${VERSION}-${OS}-${ARCH}.zip"
-            python - "$ARTIFACT" <<'PY'
+            python - "$ARTIFACT" "$DIST_BIN" <<'PY'
           import os
           import sys
           import zipfile
           
           artifact = sys.argv[1]
+          source_dir = sys.argv[2]
           with zipfile.ZipFile(artifact, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-              for root, _, files in os.walk("bin"):
+              for root, _, files in os.walk(source_dir):
                   for name in files:
                       path = os.path.join(root, name)
-                      arcname = os.path.relpath(path, "bin")
+                      arcname = os.path.relpath(path, source_dir)
                       zf.write(path, arcname)
           PY
           else
             ARTIFACT="busdk-${VERSION}-${OS}-${ARCH}.tar.gz"
-            tar -czf "$ARTIFACT" -C bin .
+            tar -czf "$ARTIFACT" -C "$DIST_BIN" .
           fi
           python - "$ARTIFACT" <<'PY'
           import hashlib
