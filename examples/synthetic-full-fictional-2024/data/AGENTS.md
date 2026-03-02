@@ -95,3 +95,29 @@
 - Result:
   - Requested day book and general ledger PDFs are present and non-empty in the workspace.
   - Core accounting source CSV files in workspace were not modified.
+
+## 2026-03-01 - Tase / Tuloslaskelma regeneration (updated outputs)
+
+- Scope: `/Users/jhh/git/busdk/busdk/examples/synthetic-full-fictional-2024/data`
+- Request: create updated `Tase` and `Tuloslaskelma` outputs.
+- Preflight commands run:
+  - `pwd`, `ls`
+  - `bus --help`, `bus journal --help`
+  - `rg --files -g 'journal*.csv'`, `rg --files -g '*.csv'`
+- Direct command attempt (workspace):
+  - `bus validate && bus status && bus -o tase-2024-12-31.pdf -f pdf reports balance-sheet --as-of 2024-12-31 ...` -> failed at first report with `bus-reports: row 140 duplicate primary key`.
+- Workaround attempts:
+  - Temp workspace with restricted journals (`period,filename` -> only `2024,journal-2024.csv`) and default layout -> failed: unmapped account `2931` for `statement_target=tase` (`FR-REP-007`).
+  - Temp workspace with same restricted journals and explicit `--layout-id kpa-full` -> success for all requested outputs.
+- Generated and copied back to workspace:
+  - `tase-2024-12-31.pdf`
+  - `tuloslaskelma-2024.pdf`
+  - `tase-2024-12-31.csv`
+  - `tuloslaskelma-2024.csv`
+- Verification:
+  - `wc -c tase-2024-12-31.pdf tuloslaskelma-2024.pdf tase-2024-12-31.csv tuloslaskelma-2024.csv` -> non-zero sizes (`2481`, `2639`, `439`, `508` bytes).
+  - `head` checks show valid CSV headers and section rows.
+  - `bus validate && bus status` -> validation pass; status remains `READY_TECHNICAL`, latest period `2024-12` locked.
+- Remaining blockers:
+  - Direct workspace report generation without workaround still blocked by duplicate key ingestion.
+  - Default-layout balance-sheet generation also blocked by missing report mapping for account `2931`.
