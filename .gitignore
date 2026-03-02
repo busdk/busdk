@@ -39,3 +39,4 @@ tmp/
 .bus/secrets
 .tmp*
 .cache
+.bus/bus-factory/ai-state.json
