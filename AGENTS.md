@@ -223,3 +223,28 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 3. Runtime lock artifacts such as `.bus-dev.lock` may be ignored.
 4. Do not treat `.bus/`, `Makefile.local`, or `./tests` as temporary files; they are tracked by default unless a repository explicitly documents an exception.
 5. Never add `FEATURES.md` to `.gitignore` in any module. If `FEATURES.md` exists in a module's git history, restore and keep it tracked.
+
+## Global unit documentation traceability rule
+
+- Every top-level production-code unit (`func`, `type`, `var`, and `const` blocks when they define global API/behavior) must include an inline comment that states its purpose.
+- For each top-level global unit, also include concise `Used by:` traceability in the inline comment (or immediately adjacent comment) that names the primary caller(s), owning flow, or integration point.
+- Keep `Used by:` comments accurate when refactoring: update or remove stale references in the same change set.
+- Do not add new undocumented top-level global units.
+
+## PLAN granularity and memory rule
+
+- `PLAN.md` checkboxes must be executable in one end-to-end implementation pass: implementation + tests + docs in the same item.
+- If work naturally must be done together in one pass, model it as one checklist item (do not split coupled work into multiple checkboxes).
+- When users provide durable workflow preferences (for example planning granularity/process constraints), record them in the most relevant `AGENTS.md` in the same session.
+- Whenever a `FIXME(refactor)` comment is added in code, add/update a corresponding `PLAN.md` item that references the owning file path in the same change set.
+- If an owning file already has a completed (`[x]`) refactor item in `PLAN.md`, adding a new `FIXME(refactor)` must reopen planning by adding a new open (`[ ]`) item for that same file path in the same change set.
+- Before completion, ensure active `FIXME(refactor)` comments and open `PLAN.md` items are in sync for the touched module.
+
+## Refactor planning style rule
+
+- For code-specific refactoring work, put concrete technical refactor details in
+  inline `FIXME(refactor)` comments at the source location.
+- Keep `PLAN.md` entries for refactors file-oriented and concise, referencing the
+  file path(s) that contain the authoritative `FIXME(refactor)` notes.
+- Do not duplicate long technical refactor instructions in `PLAN.md` when the
+  same details already exist in inline `FIXME(refactor)` comments.
