@@ -30,7 +30,7 @@ if ! gh repo view "$REPO" >/dev/null 2>&1; then
 fi
 
 ISSUE_TITLE="Add a module ${NAME}"
-ISSUE_BODY="SDD: https://docs.busdk.com/sdd/${NAME}"
+ISSUE_BODY="SDD: sdd/docs/modules/${NAME}.md"
 
 echo "creating feature issue: $ISSUE_TITLE"
 ISSUE_NUMBER="$(gh api -X POST "repos/$REPO/issues" \
@@ -60,7 +60,7 @@ fi
 if [[ -z "$BASE_SHA" ]]; then
   echo "repo is empty (or not ready); initializing default branch with README.md"
 
-  README_CONTENT="$(printf '# %s\n\nSDD: https://docs.busdk.com/sdd/%s\n' "$NAME" "$NAME")"
+  README_CONTENT="$(printf '# %s\n\nSDD: sdd/docs/modules/%s.md\n' "$NAME" "$NAME")"
   README_B64="$(printf '%s' "$README_CONTENT" | base64 | tr -d '\n')"
 
   # Retry because GitHub may still be creating the repo (409) for a moment. :contentReference[oaicite:3]{index=3}

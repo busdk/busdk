@@ -23,5 +23,5 @@ cp -a ./bus-accounts/.bus "./$NAME/.bus"
 cp -a ./bus-accounts/Makefile "./$NAME/Makefile"
 cp -a ./bus-accounts/Makefile.local "./$NAME/Makefile.local"
 
-touch "./docs/docs/sdd/$NAME.md"
+touch "sdd/docs/modules/$NAME.md"
 touch "./docs/docs/modules/$NAME.md"

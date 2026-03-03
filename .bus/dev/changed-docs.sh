@@ -26,7 +26,7 @@ else
 fi
 
 # Build per-module "latest timestamp" state:
-# - considers both /modules/bus-* and /sdd/bus-* entries
+# - considers both /modules/bus-* and legacy sdd module entries
 # - stores max epoch + original timestamp string per module
 python3 - "$tmp_raw" >"$tmp_modules" <<'PY'
 import json, sys, re, datetime

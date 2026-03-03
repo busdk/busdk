@@ -62,4 +62,4 @@ trap 'rm -f "$tmp_raw" "$tmp_save"' EXIT
 cp "$tmp_raw" "$tmp_save"
 mv -f "$tmp_save" "$RAW_FILE"
 
-)|grep -vF /sdd/modules|grep -E '/(sdd|modules)/'|sed -re 's@/(sdd|modules)/@@'|sort|uniq
+)|grep -vE '/sdd'"'"'/modules'|grep -E '/(sdd|modules)/'|sed -re 's@/(sdd|modules)/@@'|sort|uniq

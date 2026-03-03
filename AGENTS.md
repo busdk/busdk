@@ -201,20 +201,24 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 28. Apply mistake-learning rigor to memory updates: if a command, workflow, or reasoning pattern fails, add a concise preventive rule so future runs use a corrected approach by default.
 29. Prefer learning from existing guidance and prior failures in this repository before trial-and-error; do not repeat an already documented failed approach.
 30. When searching `rg` patterns that begin with `-` (for example `--dim`), always use `-e` for each pattern (`rg -e "--dim" ...`) so patterns are not parsed as flags.
+31. When using `perl -pi -e 's#...#...#g'`, do not use `#` as the delimiter if either pattern contains `#`; choose another delimiter (for example `|`) or escape literal `#` characters.
+32. When running shell commands with `rg --pcre2` patterns that include quotes or look-arounds, wrap the full command in single quotes to avoid bash quote-termination errors.
 
 ## Documentation Paths (All Modules)
 
-1. Documentation site workspace root is `./docs`.
-2. When editing any file under `./docs`, follow `./docs/AGENTS.md` as the
-   authoritative subtree rule set in addition to this root file.
-3. For any BusDK module repository name `{NAME}` (including `bus` and `bus-*`, for example `bus` or `bus-books`):
-   1. Module SDD location is `./docs/docs/sdd/{NAME}/`.
-   2. End-user module documentation location is `./docs/docs/modules/{NAME}/`.
-4. When implementation changes alter behavior, update the corresponding docs in these locations in the same change set.
-5. Do not defer documentation updates to a follow-up change; include doc updates in `./docs/docs` immediately with the behavior change.
-6. Documentation readability DoD for non-SDD end-user docs: prefer short paragraphs, avoid repeated wording, and keep pages task-oriented. Move deep implementation detail to `./docs/docs/sdd/*` or split into focused non-SDD topic pages when needed.
-7. Documentation style rule for non-SDD end-user docs: avoid bullet lists by default; use paragraphs unless a list/table is the only clear way to present structured data.
-8. Treat `./docs/docs` as the canonical docs site workspace and update both `./docs/docs/modules/{NAME}.md` and `./docs/docs/sdd/{NAME}.md` plus any related source material in the same change whenever behavior changes.
+1. Documentation surfaces are split by audience:
+   1. `./busdk.com/docs/` is for commercial/product landing and product-audience messaging.
+   2. `./docs/docs/` is for end-user documentation about how to use BusDK software.
+   3. `./sdd/docs/` is for implementation/developer software design documentation (private by default).
+2. When editing files under any of these trees, follow the most specific local `AGENTS.md` (`./busdk.com/AGENTS.md`, `./docs/AGENTS.md`, `./sdd/AGENTS.md`) in addition to this root file.
+3. For any BusDK module `{NAME}` (for example `bus` or `bus-books`):
+   1. End-user module documentation location is `./docs/docs/modules/{NAME}.md`.
+   2. Module implementation SDD location is `./sdd/docs/modules/{NAME}.md`.
+4. The same topic may exist in both `./docs/docs` and `./sdd/docs`, but each version must be refined for its audience (end-user vs implementer/developer) without losing core information.
+5. When implementation changes alter behavior, update the corresponding end-user and SDD documents in the same change set.
+6. Do not defer documentation updates to a follow-up change.
+7. End-user docs readability DoD: prefer short paragraphs, avoid repeated wording, and keep pages task-oriented.
+8. End-user docs style rule: avoid bullet lists by default; use paragraphs unless a list/table is the only clear way to present structured data.
 
 ## Gitignore Rule
 

@@ -186,3 +186,11 @@
 	path = bus-factory
 	url = git@github.com:busdk/bus-factory.git
 	branch = 1-bus-factory
+[submodule "bus-faq"]
+	path = bus-faq
+	url = git@github.com:busdk/bus-faq.git
+	branch = 1-bus-faq
+[submodule "sdd"]
+	path = sdd
+	url = git@github.com:busdk/sdd.git
+	branch = 1-sdd
