@@ -1,0 +1,47 @@
+You are refactoring BusDK documentation across three sites. Apply these rules strictly:
+
+Audience split (authoritative):
+1) ./busdk.com/docs/ = commercial/product landing content (buyers/evaluators).
+2) ./docs/docs/ = public end-user docs (how to use BusDK tools).
+3) ./sdd/docs/ = private implementation/developer SDD content (software design + implementation contracts).
+
+Core constraints:
+- Preserve information: refactor/reframe/move; do not silently delete substance.
+- Dual/tri-surface model is allowed and preferred for mixed topics:
+  - product/commercial audience version in ./busdk.com/docs/ (when the topic has product/positioning relevance),
+  - end-user usage version in ./docs/docs/,
+  - implementation/developer version in ./sdd/docs/.
+- Public docs must not directly link to private SDD pages (may mention private SDD exists).
+- SDD may reference public docs using repository-relative links to ./docs/docs/...
+- busdk.com/docs must use canonical https://docs.busdk.com/... links for public docs references.
+- busdk.com/docs must not directly link to private SDD pages.
+
+Path/layout rules:
+- SDD module docs live under sdd/docs/modules/{module-name}.md (or equivalent under sdd/docs/, but not sdd/docs/sdd/...).
+- Migrate legacy docs/docs/sdd/* content into sdd/docs/*.
+- Remove old public SDD files only after migration is complete and verified.
+
+Refactor scope:
+- Move implementation-specific material out of public docs into sdd/docs (status tracking, contracts, implementation guides, developer runtime details, etc.).
+- Keep public docs task-oriented and end-user focused.
+- Ensure SDD site contains implementation-focused content only (no end-user tutorial framing unless rewritten as implementation contract).
+
+Navigation and front page:
+- Ensure sdd site nav includes full module coverage.
+- Ensure sdd homepage is implementation-focused and free of end-user-only CTA targets.
+- Remove redundant public front-page SDD links where CLI/user links already serve the audience.
+
+Verification / DoD:
+- Run grep-based policy checks for forbidden patterns/links.
+- Run markdown link integrity checks for docs/docs and sdd/docs.
+- DoD: no forbidden grep matches and no broken links in touched areas.
+
+Planning and memory updates:
+- Maintain docs/PLAN.md and sdd/PLAN.md with actionable checklist items; mark completed items.
+- Update relevant AGENTS.md files when durable workflow rules are clarified.
+- Keep rules aligned with the 3-site audience boundary and link policies.
+
+Output expectations:
+- Implement changes directly.
+- Summarize what changed, why, and verification results.
+- Call out any unresolved items explicitly.

@@ -203,6 +203,17 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 30. When searching `rg` patterns that begin with `-` (for example `--dim`), always use `-e` for each pattern (`rg -e "--dim" ...`) so patterns are not parsed as flags.
 31. When using `perl -pi -e 's#...#...#g'`, do not use `#` as the delimiter if either pattern contains `#`; choose another delimiter (for example `|`) or escape literal `#` characters.
 32. When running shell commands with `rg --pcre2` patterns that include quotes or look-arounds, wrap the full command in single quotes to avoid bash quote-termination errors.
+33. When running `git -C <subrepo> ...`, keep pathspecs relative to that subrepo root (for example `git -C docs diff -- PLAN.md`), and do not use `../` pathspecs that point outside the repository.
+34. Before reading optional module docs/inventory files with `sed`/`cat` (for example `FEATURES.md`), verify existence with `ls` or `rg --files` in that module; do not assume every module has the same top-level files.
+35. When searching for text that includes backticks using `rg`, pass the pattern with `-e` and single-quote the full command to avoid shell command-substitution errors.
+36. Prefer reusable, approval-friendly commands over ad hoc shell scripts: use the repository or module standard interfaces first (for example `make test`, `make e2e`, `make check`, `go test ./...` in a module) instead of long `bash -lc`, pipelines, temporary trace files, or chained command recipes.
+37. When a standard Makefile target exists for the needed action, use that target as the default command surface before falling back to lower-level or custom shell commands.
+38. Keep commands simple and repeatable so they can be safely re-run by humans and approval rules can match them; avoid one-off compound shell invocations unless no reusable interface exists.
+39. When using `rg --files` with path globs, pass each glob via `-g` (for example `rg --files -g 'bus*/AGENTS.md'`); do not pass the glob as a positional path argument.
+40. Each module-specific `AGENTS.md` must stand on its own for agents working in an independently checked out module; copy any generally needed operational guidance into the module file instead of assuming this root `AGENTS.md` is available.
+41. When running commands from inside a module directory, use module-relative paths by default (for example `gofmt -w internal/app/run.go`), not superproject-prefixed paths.
+42. ACP-related `bus-agent` extraction/integration tasks are low priority by default; do not pick them up unless the user explicitly asks for low-priority work or they are required to unblock higher-priority work.
+43. For bug-fix work, prefer converting manual repro steps into module unit tests and/or e2e tests, then verify through the module's standard test interface (for example `make test`, `make e2e`, `make check`) instead of relying on ad hoc shell repro commands as the primary proof.
 
 ## Documentation Paths (All Modules)
 
@@ -240,6 +251,8 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 - `PLAN.md` checkboxes must be executable in one end-to-end implementation pass: implementation + tests + docs in the same item.
 - If work naturally must be done together in one pass, model it as one checklist item (do not split coupled work into multiple checkboxes).
 - When users provide durable workflow preferences (for example planning granularity/process constraints), record them in the most relevant `AGENTS.md` in the same session.
+- Always treat active `BUGS.md` work as higher priority than `PLAN.md` or feature work: verify and fix unresolved bugs before continuing open plan items unless the user explicitly reprioritizes.
+- When the user sets the DoD for plan execution to leaving no plan work undone, continue consuming relevant open `PLAN.md` items sequentially and do not report the plan effort complete while those open items remain.
 - Whenever a `FIXME(refactor)` comment is added in code, add/update a corresponding `PLAN.md` item that references the owning file path in the same change set.
 - If an owning file already has a completed (`[x]`) refactor item in `PLAN.md`, adding a new `FIXME(refactor)` must reopen planning by adding a new open (`[ ]`) item for that same file path in the same change set.
 - Before completion, ensure active `FIXME(refactor)` comments and open `PLAN.md` items are in sync for the touched module.
