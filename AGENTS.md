@@ -206,6 +206,9 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 33. When running `git -C <subrepo> ...`, keep pathspecs relative to that subrepo root (for example `git -C docs diff -- PLAN.md`), and do not use `../` pathspecs that point outside the repository.
 34. Before reading optional module docs/inventory files with `sed`/`cat` (for example `FEATURES.md`), verify existence with `ls` or `rg --files` in that module; do not assume every module has the same top-level files.
 35. When searching for text that includes backticks using `rg`, pass the pattern with `-e` and single-quote the full command to avoid shell command-substitution errors.
+36. Do not hand-edit Frictionless Data table files or schema files through raw CSV/JSON string assembly in production code when shared storage/schema APIs exist. For owned datasets, use the owning module library or the shared `bus-data` storage-aware read/init/mutate/write APIs so logical fields, `_pad`, `PCSV-1`, and schema metadata stay consistent.
+36. If a command or test process is terminated unexpectedly with signals such as `Killed: 9` / exit 137 and the cause is not obvious from stdout/stderr, stop and ask the user to check whether F-Secure event logs show the process being blocked before continuing root-cause analysis; do not assume a product-code bug first.
+36. Performance timing output for Bus CLI commands must use plain tokenized lines, not key-value envelopes: `<LEVEL> perf <module> <op> <duration_s>` (for example `INFO perf bus-reports trial-balance 0.123`).
 36. Prefer reusable, approval-friendly commands over ad hoc shell scripts: use the repository or module standard interfaces first (for example `make test`, `make e2e`, `make check`, `go test ./...` in a module) instead of long `bash -lc`, pipelines, temporary trace files, or chained command recipes.
 37. When a standard Makefile target exists for the needed action, use that target as the default command surface before falling back to lower-level or custom shell commands.
 38. Keep commands simple and repeatable so they can be safely re-run by humans and approval rules can match them; avoid one-off compound shell invocations unless no reusable interface exists.
@@ -214,6 +217,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 41. When running commands from inside a module directory, use module-relative paths by default (for example `gofmt -w internal/app/run.go`), not superproject-prefixed paths.
 42. ACP-related `bus-agent` extraction/integration tasks are low priority by default; do not pick them up unless the user explicitly asks for low-priority work or they are required to unblock higher-priority work.
 43. For bug-fix work, prefer converting manual repro steps into module unit tests and/or e2e tests, then verify through the module's standard test interface (for example `make test`, `make e2e`, `make check`) instead of relying on ad hoc shell repro commands as the primary proof.
+44. For performance optimization work, first add investigation-oriented `PLAN.md` items that use Go profiling/benchmark tools to measure allocations, I/O, and other root causes in the current code path; do not jump straight to new batching/tooling designs before the measured root cause is documented. New helper tools or architectural changes may be proposed only after benchmark/profile evidence shows simpler fixes are insufficient.
 
 ## Documentation Paths (All Modules)
 

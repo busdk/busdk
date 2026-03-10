@@ -1,0 +1,298 @@
+# FEATURE_REQUESTS.md
+
+Enhancement requests for BusDK in this repo context.
+
+Privacy rule for request write-ups:
+- Keep examples/repro snippets sanitized (no real customer names/emails/IBANs/account numbers/invoice numbers/local paths).
+- Prefer placeholders and aggregated outputs over raw customer-linked row dumps.
+
+Last reviewed: 2026-03-09.
+
+Goal note:
+- Target workflow is Bus-only for bookkeeping/audit operations.
+- Operators should not need shell text pipelines (`grep/sed/awk/column`) to answer accounting control questions.
+
+Active requests:
+
+1. Replace the fragmented Finnish reporting configuration model with a layered, deterministic reporting architecture aligned with good accounting practice.
+   - Design basis:
+     - the target model is described in `original/tutkimustietoa/raportoinnin-tilien-konfigurointi.md`
+     - the key principle is to separate:
+       - statutory reporting taxonomy
+       - account semantics / classification
+       - workspace entity context
+       - company-specific overrides
+   - Current behavior:
+     - workspace-level reporting configuration in `bus config` only covers high-level profile choices such as:
+       - `reporting_standard`
+       - `income_statement_scheme`
+       - `comparatives`
+       - `prepared_under_pma`
+     - `bus-accounts` owns `report-account-mapping.csv`, where the effective reporting meaning of an account is currently expressed against layout-specific keys such as:
+       - `layout_id`
+       - `account_code`
+       - `statement_target`
+       - `layout_line_id`
+       - `normal_side`
+       - `rollup_rule`
+     - `bus-reports` also contains built-in layout defaults and prefix/type-based fallback logic, plus a separate `report-layout-label-overrides.csv` mechanism for wording overrides.
+     - `fi-*` reporting still effectively depends on layout-specific account mapping materialization, validation, or both, so the operator ends up curating per-layout presentation logic instead of only company-specific bookkeeping meaning.
+     - `accounts.csv` may contain extra reporting/control fields, but today those are still maintained by direct CSV editing rather than a first-class reporting-classification model.
+     - the same business meaning can therefore be duplicated across:
+       - workspace profile in `datapackage.json`
+       - `accounts.csv`
+       - `report-account-mapping.csv`
+       - optional label-override CSV
+       - built-in report layout logic
+     - this is difficult to reason about and audit because one account may need to be restated separately for:
+       - KPA vs PMA variants
+       - normal statement vs `*-accounts` drill-down variants
+       - custom layouts vs built-in layouts
+   - Requested behavior:
+     - redesign Finnish reporting around explicit layers:
+       - a versioned statutory taxonomy package:
+         - KPA
+         - PMA
+         - and supported special schemes such as real-estate / housing-company / association-foundation variants
+       - a canonical account-classification layer independent of output layout:
+         - semantic tags or categories such as cash, receivables, VAT payable, personnel expenses, depreciation, financial income
+       - a workspace entity-context layer:
+         - legal form
+         - size class
+         - reporting framework
+         - industry/special flags
+         - language / presentation unit
+         - other filing-relevant context
+       - an explicit company-override layer for exceptional accounts or presentation choices only
+     - use deterministic resolution precedence:
+       - account-specific override
+       - semantic classification rule
+       - numbering-family or range default
+       - hard validation error when still unresolved
+     - make the built-in Finnish defaults good enough that a normal small-company workspace can usually produce correct statutory reports after setting only entity context and verifying a small number of exceptions.
+     - ensure `*-accounts` and other drill-down views inherit the same effective classification as the base statement; detail level must not redefine statement meaning.
+     - treat wording/label customization as taxonomy/profile customization, not as a separate ad hoc reporting side file unless the workspace explicitly needs a rare override.
+     - keep the model versioned and migratable so future KPA/PMA/iXBRL/XBRL changes can be adopted explicitly instead of leaking into company-local mapping files.
+   - Operational goals:
+     - reports should be easy to generate in correct Finnish form with as little company-specific configuration as possible.
+     - the normal operator workflow should be closer to:
+       - set entity context
+       - review suggested account classification
+       - add explicit overrides only for exceptions
+       - generate reports
+     - Bus should provide deterministic explain/validate tooling that answers:
+       - why each account landed on a given statement line
+       - which rule or override decided it
+       - which accounts remain unresolved
+     - the architecture should cover the full close/reporting surface coherently:
+       - balance sheet
+       - profit and loss
+       - tililuettelo / account balances
+       - tase-erittely / balance-sheet specification
+       - balance-sheet reconciliation
+       - evidence-pack / filing-facing artifact generation
+   - Why this matters:
+     - good accounting practice requires that the statutory presentation model, the bookkeeping meaning of accounts, and company-specific exceptions remain understandable and auditable.
+     - the current model is too layout-centric and duplicates meaning across multiple files and built-in logic layers.
+     - operators should not have to rebuild Bus's reporting semantics by hand for each workspace just to get legally correct statements.
+     - a layered model would also make narrower mapping work items easier or obsolete, including current requests to extend `report-account-mapping.csv` selector behavior and to seed explicit mapping files from built-in defaults.
+
+2. Extend `bus reports evidence-pack` so it can replace the remaining year-local evidence-pack orchestration.
+   - Current behavior:
+     - a native command now exists:
+       - `bus reports evidence-pack (--period <YYYY|YYYY-MM|YYYYQn> | --as-of YYYY-MM-DD) --output-dir DIR`
+     - however, the repo still needs explicit year-local report commands for the close/review package because `evidence-pack` is not yet a drop-in replacement in practice.
+     - current `exports/2023/2024-01-01-reports.bus` still orchestrates a deterministic sequence of separate commands for:
+       - `trial-balance` CSV
+       - `profit-and-loss` CSV + PDF/Markdown variants
+       - `balance-sheet` CSV + PDF/Markdown variants
+       - `balance-sheet-reconciliation` PDF + Markdown
+       - `voucher-list` CSV + PDF
+       - `bank-transactions` CSV + PDF
+       - `day-book` PDF
+       - `general-ledger` PDF
+       - `filing-package` TSV
+       - `compliance-checklist` TSV
+       - `journal balance` TSV
+       - `account-balances` Markdown + PDF for `tililuettelo`
+     - the outputs are then placed into a target `reports/` directory with fixed filenames such as:
+       - `tase-YYYY-12-31.pdf`
+       - `tuloslaskelma-YYYY.pdf`
+       - `tase-tasmaytys-YYYY-12-31.pdf`
+       - `tositeluettelo-YYYY.pdf`
+       - `pankkitapahtumat-YYYY.pdf`
+       - `day-book-YYYY.pdf`
+       - `general-ledger-YYYY.pdf`
+       - `tililuettelo.pdf`
+     - `bus reports evidence-pack --help` currently advertises statements, ledgers, voucher list, bank review, `tililuettelo`, and supported manifests, but does not explicitly promise `journal balance` output or `balance-sheet-reconciliation` artifacts.
+     - active defects currently also block adoption in this repo; see `BUGS.md` for the current `FR-REP-010` failure and the 2023 locked-workspace failure mode.
+   - Requested behavior:
+     - keep `bus reports evidence-pack` as the single native package command.
+     - extend it so the deterministic package covers the remaining repo-required artifacts too, especially:
+       - `balance-sheet-reconciliation` PDF + Markdown
+       - `journal balance` TSV
+     - preserve stable default filenames and target-directory behavior so year-local scripts can drop the explicit evidence-pack section.
+     - make the command reliably re-runnable against an already exported workspace once the active evidence-pack defects are fixed.
+   - Expected content set:
+     - balance sheet
+     - profit and loss
+     - balance-sheet reconciliation
+     - voucher list
+     - bank-transactions review
+     - day-book
+     - general-ledger
+     - account-balances / `tililuettelo`
+     - optional filing/compliance manifests where supported
+   - Why this matters:
+     - the current package is conceptually one close/audit artifact set, but operationally it is still a long scripted sequence of independent report commands.
+     - the package boundary, file naming, and output directory should be a Bus concern, not a year-local orchestration concern.
+
+3. Add workspace-level configuration for how Bus generates all bookkeeping-facing IDs.
+   - Current behavior:
+     - Bus currently generates opaque technical IDs such as:
+       - `2026-03-07T144331Z-hzzox2`
+     - these appear in outputs like `voucher-list` as:
+       - `document_number`
+       - `voucher_id`
+       - `transaction_id`
+     - in narrow report columns and PDFs, these long timestamp-based IDs are hard to read and can visually truncate so that many rows appear to start the same way.
+   - Observed accounting-style expectation:
+     - the historical/manual bookkeeping model used short human-readable voucher numbering, for example:
+       - `1`
+       - `2`
+       - `9`
+       - `H-1`
+       - `H-2`
+     - those identifiers acted as meaningful voucher/document numbers in the day-book instead of opaque runtime-generated tokens.
+   - Requested behavior:
+     - allow the workspace to define a central ID generation policy for every bookkeeping-facing ID type that Bus emits or derives.
+     - this should cover at least:
+       - `document_number`
+       - `voucher_id`
+       - `transaction_id`
+       - any other report-visible bookkeeping IDs created by Bus for vouchers, report rows, transactions, journals, or related posting groups
+     - the policy should allow, for each ID type as needed:
+       - selectable generation strategy
+       - configurable format/template expression
+       - numbering scheme
+       - prefixes/suffixes
+       - one or more explicit number ranges / reserved ranges per series
+       - journal/source/channel specific series
+       - yearly or period-local sequences
+       - human-readable format separate from any internal opaque key if Bus still needs one
+     - make the policy deterministic and replay-safe.
+     - the default strategy should be “next highest after existing highest value in the configured series/range”.
+     - alternative strategies should be configurable, for example:
+       - incrementing number
+       - timestamp/date-based parts
+       - combined formats built from multiple parts
+     - the format should be definable as a formula/template, for example:
+       - `M-{inc}`
+       - `M-{yyyy}-{inc}`
+       - `TX-{yyyyMMdd}-{inc}`
+       - or other built-in deterministic placeholders
+   - Example configuration goals:
+      - plain yearly running numbers: `1`, `2`, `3`, ...
+      - prefixed series such as `H-1`, `H-2`, `P-1`
+      - range-constrained series such as:
+        - purchase invoices `P10000` ... `P99999`
+        - sales invoices `M1000` ... `M9999`
+      - multiple configured ranges for the same logical series, for example:
+        - sales invoices `M1000 ... M9999`
+        - and later `M100000 ... M999999`
+      - in normal use there may be only one configured range, but the workspace should be allowed to define multiple future/overflow ranges in advance
+      - default selection rule:
+        - inspect existing IDs in the relevant configured series
+        - choose the next largest allowed value
+      - custom composed format examples:
+        - `M-{yyyy}-{inc}`
+        - `P-{yyyy}-{inc}`
+        - `V-{period}-{inc}`
+      - short readable TX identifiers instead of long timestamp-random tokens
+      - separate human-readable visible IDs while retaining an internal stable UUID-like key if Bus still needs one
+   - Why this matters:
+      - bookkeeping reports are accountant-facing documents, not just internal runtime traces
+      - human-readable IDs are materially more usable in PDFs, review, audit, and cross-reference against legacy/manual books
+      - the numbering policy should be a workspace configuration concern, not an implicit built-in generator with one hardcoded format
+      - in real bookkeeping workflows, different document classes often need separate reserved numbering spaces, not just different prefixes
+      - a single numbering series may also need multiple non-contiguous allowed ranges over time, so the configuration model should support more than one range per series
+
+4. Add prefix/range pattern support to `report-account-mapping.csv` so explicit statutory mappings do not require one row per account code.
+   - Current behavior:
+     - `report-account-mapping.csv` currently works one account code at a time.
+     - when a workspace uses a statutory layout that requires explicit mapping, operators must list each account separately, for example:
+       - `9460 -> pl_financial_expenses`
+       - `9480 -> pl_financial_expenses`
+       - `9490 -> pl_financial_expenses`
+       - `9560 -> pl_financial_expenses`
+     - this becomes verbose and brittle when a workspace has many legacy or sparse accounts in the same reporting family.
+     - a Bus upgrade that tightens mapping validation can then fail evidence-pack or statement generation until every individual missing code is listed explicitly.
+   - Requested behavior:
+     - support pattern-based account selection in `report-account-mapping.csv`, not only exact `account_code`.
+    - acceptable deterministic forms should include support for all selector keys used by the dataset, not only exact values.
+    - in practice this means at least:
+      - `account_code`
+      - `layout_id`
+      - `statement_target`
+    - acceptable deterministic forms could include one or more of:
+       - prefix / glob style:
+         - `94*`
+         - `946*`
+         - `fi-kpa-tuloslaskelma-*`
+         - `*`
+       - explicit numeric ranges:
+         - `9400-9499`
+         - `3000-3099`
+       - multiple selectors in separate rows, resolved by clear precedence
+    - keep exact `layout_id`, exact `statement_target`, and exact account-code rows supported and highest priority.
+    - keep resolution deterministic:
+       - exact `statement_target` wins over wildcard `statement_target`
+       - exact `layout_id` wins over wildcard `layout_id`
+       - exact account row wins over range/prefix row
+       - longer / more specific pattern wins over broader one
+       - same-priority ambiguity should fail with a clear error
+   - Example goals:
+     - map all financing expense accounts `94xx` to `pl_financial_expenses`
+     - map all statutory KPA income-statement variants with one row such as:
+       - `layout_id=fi-kpa-tuloslaskelma-*`
+     - allow shared fallback rows like:
+       - `statement_target=*`
+       - or one target-specific fallback such as `statement_target=tuloslaskelma`
+     - map all other operating expense families `76xx-89xx` where appropriate without dozens of near-identical rows
+     - map revenue families like `30xx` with one deterministic rule when the workspace chart is intentionally grouped that way
+     - allow a catch-all fallback like `layout_id=*` only when no more specific row matches
+   - Why this matters:
+     - real bookkeeping charts often follow stable numeric families, and reporting mappings are usually maintained at that family level
+     - row-by-row explicit mapping is still needed for exceptions, but it should not be the only tool
+     - this would reduce maintenance noise, make empty-workspace initialization easier, and lower the risk that a new active account breaks statutory reports or `evidence-pack` because one exact row was forgotten
+     - the same maintenance problem exists today on the `layout_id` side: the same semantic mapping may need to be repeated separately for `fi-kpa-tuloslaskelma-kululaji`, `fi-kpa-tuloslaskelma-full`, `pma-full`, and related `*-accounts` variants even when the intended placement is identical
+     - `statement_target` should not become the one remaining rigid field if pattern support is added elsewhere; a consistent selector model is easier to reason about and document
+
+5. Add a deterministic `bus reports mapping init` / `bus reports mapping seed` command that writes the current built-in default mapping into `report-account-mapping.csv`.
+   - Current pain:
+     - when a workspace starts from an empty or newly created `report-account-mapping.csv`, operators may need to materialize many rows just to restate Bus's built-in defaults for a layout.
+     - this became visible with statutory layouts such as `fi-kpa-tase` and `fi-kpa-tuloslaskelma-kululaji`, where an operator may need a fully explicit dataset for auditability or for compatibility with stricter report validation.
+     - today, the only practical workaround is to hand-copy rows one by one from `mapping-template` output or from an already working workspace.
+   - Requested behavior:
+     - provide one native command that writes deterministic starter rows into `report-account-mapping.csv`, for example:
+       - `bus reports mapping init --layout-id fi-kpa-tase --statement-target tase`
+       - `bus reports mapping init --layout-id fi-kpa-tuloslaskelma-kululaji --statement-target tuloslaskelma`
+       - or a combined form that seeds multiple layouts/targets at once
+     - the command should:
+       - use the current built-in mapping/template logic as source of truth
+       - write explicit CSV rows with all required fields
+       - be idempotent / rerunnable
+       - support append, replace, or upsert semantics explicitly
+       - make it easy to bootstrap a new workspace from defaults before applying local overrides
+   - Expected output:
+     - rows should include at least:
+       - `layout_id`
+       - `account_code`
+       - `statement_target`
+       - `layout_line_id`
+       - `normal_side`
+       - `rollup_rule`
+     - the generated file should be stable and deterministic so it can be version-controlled in replay workflows
+   - Why this matters:
+     - operators should not have to reverse-engineer default mappings from template output and rewrite them manually
+     - initializing `report-account-mapping.csv` from Bus itself would reduce local scripting, reduce drift between default logic and explicit CSV state, and make stricter report validation much easier to adopt safely
