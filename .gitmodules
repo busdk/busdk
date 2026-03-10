@@ -194,3 +194,7 @@
 	path = sdd
 	url = git@github.com:busdk/sdd.git
 	branch = 1-sdd
+[submodule "bus-portal"]
+	path = bus-portal
+	url = git@github.com:busdk/bus-portal.git
+	branch = 1-bus-portal
