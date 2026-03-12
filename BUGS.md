@@ -1,13 +1,9 @@
 # BUGS.md
 
-Tracked active defects for this repo context.
+Track defects/blockers that affect this repo's replay/parity workflows.
+Feature work belongs in `FEATURE_REQUESTS.md`.
 
-Privacy rule for bug write-ups:
-- Keep examples/repro snippets sanitized.
-- Do not paste customer-linked raw data when an abstracted repro is enough.
-
-Last reviewed: 2026-03-11.
+**Last reviewed:** 2026-03-12.
 
 ## Active defects
-
 None at the moment.

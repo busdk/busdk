@@ -80,6 +80,9 @@ Apply this section only when editing CLI module repositories or shared CLI parsi
 6. Tests must be deterministic, isolated, and CI-repeatable.
 7. Quality gates must pass: build, tests, formatting, linting/static checks, and security/secret checks.
 8. After any code change, always run automated tests before reporting completion; if a module `make` target is a no-op or stale, run the underlying test/build commands directly for that module.
+8.1. During development, first run the affected module's unit/e2e tests for fast iteration and debugging.
+8.2. Because cross-module dependency effects are common in this superproject, the final verification step before reporting completion must still be the full superproject `make test` and `make e2e`.
+8.3. Module-local unit/e2e runs are required for fast feedback during debugging, but they do not replace the required final root-level `make test` and `make e2e`.
 9. Maintain backward compatibility unless a linked issue explicitly allows breaking change with migration path.
 10. Update docs in same change set (README and operational/developer docs as needed).
 11. If any required item is missing, work is not done.
@@ -206,6 +209,8 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 33. When running `git -C <subrepo> ...`, keep pathspecs relative to that subrepo root (for example `git -C docs diff -- PLAN.md`), and do not use `../` pathspecs that point outside the repository.
 34. Before reading optional module docs/inventory files with `sed`/`cat` (for example `FEATURES.md`), verify existence with `ls` or `rg --files` in that module; do not assume every module has the same top-level files.
 35. When searching for text that includes backticks using `rg`, pass the pattern with `-e` and single-quote the full command to avoid shell command-substitution errors.
+36. When a refactor changes canonical data modeling or report semantics, and it is unclear whether a concept should be represented as user-configured data versus synthesized in code, stop and ask the user to define that boundary before implementing. Do not guess domain structure for accounting/reporting hierarchies.
+36. Module e2e wrappers must stay quiet on success except for summary lines, but they must print any `SKIP ...` lines from the captured log before the success line and include summary counts in the form `e2e OK (module: passed X, skipped Y)` or `e2e FAILED (module: passed X, skipped Y, failed Z)`; multi-script e2e harnesses must print explicit `RUN`, `PASS`, and `FAIL` lines per internal script so the failing inner test is visible immediately.
 36. Do not hand-edit Frictionless Data table files or schema files through raw CSV/JSON string assembly in production code when shared storage/schema APIs exist. For owned datasets, use the owning module library or the shared `bus-data` storage-aware read/init/mutate/write APIs so logical fields, `_pad`, `PCSV-1`, and schema metadata stay consistent.
 36. If a command or test process is terminated unexpectedly with signals such as `Killed: 9` / exit 137 and the cause is not obvious from stdout/stderr, stop and ask the user to check whether F-Secure event logs show the process being blocked before continuing root-cause analysis; do not assume a product-code bug first.
 36. Performance timing output for Bus CLI commands must use plain tokenized lines, not key-value envelopes: `<LEVEL> perf <module> <op> <duration_s>` (for example `INFO perf bus-reports trial-balance 0.123`).
@@ -215,9 +220,14 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 39. When using `rg --files` with path globs, pass each glob via `-g` (for example `rg --files -g 'bus*/AGENTS.md'`); do not pass the glob as a positional path argument.
 40. Each module-specific `AGENTS.md` must stand on its own for agents working in an independently checked out module; copy any generally needed operational guidance into the module file instead of assuming this root `AGENTS.md` is available.
 41. When running commands from inside a module directory, use module-relative paths by default (for example `gofmt -w internal/app/run.go`), not superproject-prefixed paths.
+42. Module e2e scripts should be quiet by default: successful runs print only a short stable success line, and detailed shell tracing is enabled only with `BUS_E2E_VERBOSE=1`.
+43. Module `test-e2e` Makefile targets should capture script output and print it only on failure; do not stream verbose e2e logs during successful runs by default.
 42. ACP-related `bus-agent` extraction/integration tasks are low priority by default; do not pick them up unless the user explicitly asks for low-priority work or they are required to unblock higher-priority work.
 43. For bug-fix work, prefer converting manual repro steps into module unit tests and/or e2e tests, then verify through the module's standard test interface (for example `make test`, `make e2e`, `make check`) instead of relying on ad hoc shell repro commands as the primary proof.
 44. For performance optimization work, first add investigation-oriented `PLAN.md` items that use Go profiling/benchmark tools to measure allocations, I/O, and other root causes in the current code path; do not jump straight to new batching/tooling designs before the measured root cause is documented. New helper tools or architectural changes may be proposed only after benchmark/profile evidence shows simpler fixes are insufficient.
+45. Treat locale as part of the test matrix for all user-facing text/HTML/report/browser paths. Tests must either pin locale explicitly or be written locale-tolerant by default; do not rely on the developer shell locale implicitly.
+46. When a user reports a test failure that does not reproduce locally, first compare locale/environment-sensitive inputs (for example `LANG`, `LC_*`, browser runtime) before assuming the failure is flaky or non-reproducible.
+47. For affected user-facing modules, debug runs should include at least one alternate locale execution (for example `LANG=fi_FI.UTF-8` with mixed `LC_*`) before declaring a test green across environments.
 
 ## Documentation Paths (All Modules)
 
