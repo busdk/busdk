@@ -3,7 +3,7 @@
 Track defects/blockers that affect this repo's replay/parity workflows.
 Feature work belongs in `FEATURE_REQUESTS.md`.
 
-**Last reviewed:** 2026-03-13.
+**Last reviewed:** 2026-03-14.
 
 ## Active defects
 
