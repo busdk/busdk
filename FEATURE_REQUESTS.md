@@ -6,7 +6,7 @@ Privacy rule for request write-ups:
 - Keep examples/repro snippets sanitized (no real customer names/emails/IBANs/account numbers/invoice numbers/local paths).
 - Prefer placeholders and aggregated outputs over raw customer-linked row dumps.
 
-Last reviewed: 2026-03-15.
+Last reviewed: 2026-03-16.
 
 Goal note:
 - Target workflow is Bus-only for bookkeeping/audit operations.
@@ -52,3 +52,29 @@ Active requests:
    - Why this matters:
      - personal books need native Bus outputs instead of company statements adapted afterward in local replay scripts.
      - the end state should be a household-appropriate Bus workflow that still preserves deterministic accounting data, tax evidence traceability, and long-term portability.
+
+2. Add a Windows-native BusDK bootstrap installer and HTTPS executable package management.
+   - Status update 2026-03-16:
+     - Windows release assets currently ship as a ZIP of binaries rather than a native installer.
+     - `bus` is intentionally only a dispatcher and should remain the user-facing entry point, but package-management logic should live in `bus-update`, not in `bus` core.
+     - `bus-update` currently focuses on release checking and Git-workspace module updates; it does not yet manage installed machine-local executable packages.
+   - Current limitation:
+     - Windows users do not have an MSI-style bootstrap installer for a first-class BusDK install/uninstall/upgrade flow.
+     - the current distribution model assumes downloading many binaries at once, even when a user needs only `bus` plus a small initial tool set.
+     - there is no stable BusDK package URL contract for downloading a single module executable by module name, operating system, architecture, and version.
+     - there is no machine-local package database or managed installation directory for optional `bus-*` executables outside the Git-workspace update flow.
+   - Requested behavior:
+     - ship an MSI-style Windows bootstrap installer that installs only `bus` and `bus-update` into a managed BusDK binary directory and adds that directory to `PATH`.
+     - keep `bus` as a thin dispatcher; installer/package-manager UX exposed through `bus ...` must continue to delegate to `bus-update` rather than embedding package-management logic into the dispatcher.
+     - extend `bus-update` into a package manager that can install, upgrade, remove, list, and verify additional `bus-*` executable packages in the managed binary directory.
+     - preserve a clear distinction between machine-local package-management flows and the existing Git-workspace module-update flows so users can understand which surface they are using.
+     - make module packages downloadable as single executables over HTTPS from a stable URL or manifest contract that identifies at least module name, operating system, architecture, version, and checksum/signature material; for example a shape like `https://pkg.busdk.com/busdk/{os}/{arch}/{module}/{version}` or an equivalent deterministic layout.
+     - support Windows-native `.exe` package installation while keeping the package contract compatible with other operating systems and architectures.
+   - Security and operability constraints:
+     - package fetch/install must verify integrity before replacing an installed executable and should use atomic replacement/rollback semantics on failure.
+     - package-management tests must be hermetic by default, using local stub HTTPS fixtures or deterministic test servers instead of real network dependencies.
+     - the bootstrap installer and package-manager docs must explain install root, PATH behavior, uninstall/upgrade semantics, and how checksum/signature verification works.
+   - Why this matters:
+     - a small bootstrap installer reduces Windows installation friction and avoids bundling the full toolchain when only a few modules are needed initially.
+     - turning `bus-update` into the package manager preserves the BusDK module boundary: `bus` stays minimal while package-management behavior has a clear owning module.
+     - a stable per-module HTTPS package contract enables future automation, selective installs, and predictable upgrade tooling across Windows and other platforms.

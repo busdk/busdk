@@ -1,26 +1,41 @@
 {
   "busdk": {
     "accounting_entity": {
+      "business_name": "Synthetic Fictional Oy",
+      "business_id": "1234566-3",
+      "domicile": "Helsinki",
       "base_currency": "EUR",
-      "fiscal_year_end": "2024-12-31",
+      "business_form": "oy",
       "fiscal_year_start": "2024-01-01",
-      "reporting_profile": {
-        "fi_statutory": {
-          "comparatives": true,
-          "income_statement_scheme": "by_nature",
-          "language": "fi",
-          "prepared_under_pma": false,
-          "presentation_currency": "EUR",
-          "presentation_unit": "EUR",
-          "reporting_standard": "fi-kpa",
-          "signature": {}
-        }
-      },
-      "vat_default_basis": "accrual",
-      "vat_default_source": "invoice",
+      "fiscal_year_end": "2024-12-31",
       "vat_registered": true,
       "vat_reporting_period": "monthly",
-      "vat_timing": "performance"
+      "vat_timing": "performance",
+      "vat_default_source": "invoice",
+      "vat_default_basis": "accrual",
+      "reporting_context": {
+        "fi": {
+          "taxonomy": "fi-kpa",
+          "taxonomy_version": "2026-03",
+          "income_statement_scheme": "by_nature",
+          "language": "fi",
+          "presentation_currency": "EUR",
+          "presentation_unit": "EUR",
+          "reporting_scope": "entity"
+        }
+      },
+      "reporting_profile": {
+        "fi_statutory": {
+          "reporting_standard": "fi-kpa",
+          "language": "fi",
+          "income_statement_scheme": "by_nature",
+          "comparatives": true,
+          "presentation_currency": "EUR",
+          "presentation_unit": "EUR",
+          "prepared_under_pma": false,
+          "signature": {}
+        }
+      }
     }
   },
   "profile": "tabular-data-package",

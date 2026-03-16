@@ -8,6 +8,7 @@ config set \
   --fiscal-year-end=2024-12-31 \
   --vat-registered=true \
   --vat-reporting-period=monthly
+config set --business-name "Synthetic Fictional Oy" --business-id 1234566-3 --business-form oy
 
 accounts init
 journal init
