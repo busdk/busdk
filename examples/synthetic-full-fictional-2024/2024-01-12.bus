@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-01-12: Purchase invoice P-9101 received
+attachments add "../synthetic-evidence/transactions/invoice-p9101-2024-01-12.txt" --desc "Synthetic invoice evidence P-9101"
+invoices add --type purchase --invoice-id p9101 --number P-9101 --status sent --invoice-date 2024-01-12 --due-date 2024-01-26 --customer "Blue Dock Systems Oy"
+invoices p9101 add --line-no 1 --desc "Compute node rental" --quantity 1 --unit-price 40.00 --vat-rate 0.255
+invoices p9101 validate

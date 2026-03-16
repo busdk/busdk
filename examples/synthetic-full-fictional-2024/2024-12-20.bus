@@ -1,0 +1,6 @@
+#!/usr/bin/env bus
+
+# 2024-12-20: Bank service charge
+attachments add "../synthetic-evidence/transactions/bank-synth-b-009-2024-12-20.txt" --desc "Synthetic bank evidence synth-b-009"
+bank add --bank-id synth-b-009 --import-id synth-bank-2024-12 --booked-date 2024-12-20 --value-date 2024-12-20 --amount -5.00 --currency EUR --counterparty-name "Demo Cooperative Bank" --counterparty-iban FI1012345600000999 --reference 990000001 --message "Synthetic monthly bank fee" --source-id bank_row:synth-b-009
+journal add --date 2024-12-20 --desc "Synthetic bank service fee" --debit 8564=5.00 --credit 1910=5.00 --source-id bank_row:synth-b-009:journal:1

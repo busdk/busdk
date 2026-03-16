@@ -11,7 +11,7 @@ Scope boundaries:
 - `synthetic-evidence/` evidence trees are read-only source material; do not mutate evidence files.
 
 Synthetic full-2024 invariants:
-- Replay entrypoint is `all.bus`; it must run the full year (`2024-00..12`, close/lock, evidence-link pass).
+- Replay entrypoint is `all.bus`; it must run the full year from flat root files in strict date order (`2024-00-00-*`, dated `2024-..-..`, dated 2025 close/report stages, then evidence-link pass).
 - `2025-02-evidence-links.bus` is mandatory and enforces:
   - `status evidence-coverage --year 2024 --strict`
   - `attachments list --graph --fail-if-unlinked`

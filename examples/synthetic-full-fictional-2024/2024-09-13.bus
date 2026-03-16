@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-09-13: Partial payment of P-9103 (part 1)
+attachments add "../synthetic-evidence/transactions/bank-synth-b-007-2024-09-13.txt" --desc "Synthetic bank evidence synth-b-007"
+bank add --bank-id synth-b-007 --import-id synth-bank-2024-09 --booked-date 2024-09-13 --value-date 2024-09-13 --amount -30.00 --currency EUR --counterparty-name "Quarry Digital Oy" --counterparty-iban FI1012345600000006 --reference 910300001 --message "Synthetic partial payment P-9103 part 1" --source-id bank_row:synth-b-007
+reconcile allocate --bank-id synth-b-007 --invoice p9103=30.00
+journal add --date 2024-09-13 --desc "Synthetic partial purchase payment P-9103 part 1" --debit 4000=23.90 --debit 1763=6.10 --credit 1910=30.00 --source-id bank_row:synth-b-007:journal:1

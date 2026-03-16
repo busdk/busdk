@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-06-06: Purchase invoice P-9105 received
+attachments add "../synthetic-evidence/transactions/invoice-p9105-2024-06-06.txt" --desc "Synthetic invoice evidence P-9105"
+invoices add --type purchase --invoice-id p9105 --number P-9105 --status sent --invoice-date 2024-06-06 --due-date 2024-06-20 --customer "Cobalt Networks Oy"
+invoices p9105 add --line-no 1 --desc "Network transit fee" --quantity 1 --unit-price 52.00 --vat-rate 0.255
+invoices p9105 validate

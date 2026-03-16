@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-12-27: Partial payment for business transfer invoice S-9010 (reference pattern)
+attachments add "../synthetic-evidence/transactions/bank-synth-b-029-2024-12-27.txt" --desc "Synthetic bank evidence synth-b-029"
+bank add --bank-id synth-b-029 --import-id synth-op-main-2024-12 --booked-date 2024-12-27 --value-date 2024-12-27 --amount 2500.00 --currency EUR --counterparty-name "Heusala Example Group Oy" --counterparty-iban FI1012345600000029 --reference 901000101 --message "Synthetic partial payment for business transfer invoice S-9010" --source-id bank_row:synth-b-029
+reconcile allocate --bank-id synth-b-029 --invoice s9010=2500.00
+journal add --date 2024-12-27 --desc "Synthetic business transfer partial receipt (VAT 0%)" --debit 1910=2500.00 --credit 3002=2500.00 --source-id bank_row:synth-b-029:journal:1

@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-04-18: Payment of P-9104
+attachments add "../synthetic-evidence/transactions/bank-synth-b-011-2024-04-18.txt" --desc "Synthetic bank evidence synth-b-011"
+bank add --bank-id synth-b-011 --import-id synth-bank-2024-04 --booked-date 2024-04-18 --value-date 2024-04-18 --amount -119.23 --currency EUR --counterparty-name "Vertex Hosting Oy" --counterparty-iban FI1012345600000011 --reference 910400001 --message "Synthetic purchase payment P-9104" --source-id bank_row:synth-b-011
+reconcile allocate --bank-id synth-b-011 --invoice p9104=119.23
+journal add --date 2024-04-18 --desc "Synthetic purchase payment P-9104" --debit 4000=95.00 --debit 1763=24.23 --credit 1910=119.23 --source-id bank_row:synth-b-011:journal:1

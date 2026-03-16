@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-05-20: Customer payment for S-9005
+attachments add "../synthetic-evidence/transactions/bank-synth-b-012-2024-05-20.txt" --desc "Synthetic bank evidence synth-b-012"
+bank add --bank-id synth-b-012 --import-id synth-bank-2024-05 --booked-date 2024-05-20 --value-date 2024-05-20 --amount 87.85 --currency EUR --counterparty-name "Helix Solutions Oy" --counterparty-iban FI1012345600000012 --reference 900500001 --message "Synthetic reference payment S-9005" --source-id bank_row:synth-b-012
+reconcile allocate --bank-id synth-b-012 --invoice s9005=87.85
+journal add --date 2024-05-20 --desc "Synthetic sales receipt S-9005" --debit 1910=87.85 --credit 3000=70.00 --credit 2931=17.85 --source-id bank_row:synth-b-012:journal:1

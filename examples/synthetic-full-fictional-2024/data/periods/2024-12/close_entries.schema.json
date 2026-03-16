@@ -1,59 +1,28 @@
 {
-  "Fields": [
+  "fields": [
     {
       "name": "id",
-      "type": "string",
-      "constraints": {
-        "required": false,
-        "enum": null,
-        "pattern": ""
-      }
+      "type": "string"
     },
     {
       "name": "date",
-      "type": "date",
-      "constraints": {
-        "required": false,
-        "enum": null,
-        "pattern": ""
-      }
+      "type": "date"
     },
     {
       "name": "debit",
-      "type": "string",
-      "constraints": {
-        "required": false,
-        "enum": null,
-        "pattern": ""
-      }
+      "type": "string"
     },
     {
       "name": "credit",
-      "type": "string",
-      "constraints": {
-        "required": false,
-        "enum": null,
-        "pattern": ""
-      }
+      "type": "string"
     },
     {
       "name": "amount",
-      "type": "number",
-      "constraints": {
-        "required": false,
-        "enum": null,
-        "pattern": ""
-      }
+      "type": "number"
     },
     {
       "name": "description",
-      "type": "string",
-      "constraints": {
-        "required": false,
-        "enum": null,
-        "pattern": ""
-      }
+      "type": "string"
     }
-  ],
-  "PrimaryKey": null
+  ]
 }

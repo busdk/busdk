@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-03-05: Sales invoice S-9002 issued
+attachments add "../synthetic-evidence/transactions/invoice-s9002-2024-03-05.txt" --desc "Synthetic invoice evidence S-9002"
+invoices add --type sales --invoice-id s9002 --number S-9002 --status sent --invoice-date 2024-03-05 --due-date 2024-03-19 --customer "Aurora Fabrication Oy"
+invoices s9002 add --line-no 1 --desc "Infrastructure setup package" --quantity 1 --unit-price 250.00 --vat-rate 0.255
+invoices s9002 validate

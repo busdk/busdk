@@ -1,0 +1,10 @@
+#!/usr/bin/env bus
+
+# 2024-11-25: Internal transfer between own bank accounts (Holvi -> PayPal)
+attachments add "../synthetic-evidence/transactions/bank-synth-b-024-2024-11-25.txt" --desc "Synthetic bank evidence synth-b-024"
+bank add --bank-id synth-b-024 --import-id synth-holvi-2024-11 --booked-date 2024-11-25 --value-date 2024-11-25 --amount -50.00 --currency EUR --counterparty-name "Own account transfer" --counterparty-iban FI1012345600000024 --reference 000050024 --message "Synthetic internal transfer to PayPal" --source-id bank_row:synth-b-024
+journal add --date 2024-11-25 --desc "Synthetic internal transfer out to PayPal" --debit 1998=50.00 --credit 1911=50.00 --source-id bank_row:synth-b-024:journal:1
+
+attachments add "../synthetic-evidence/transactions/bank-synth-b-025-2024-11-25.txt" --desc "Synthetic bank evidence synth-b-025"
+bank add --bank-id synth-b-025 --import-id synth-paypal-2024-11 --booked-date 2024-11-25 --value-date 2024-11-25 --amount 50.00 --currency EUR --counterparty-name "Own account transfer" --counterparty-iban FI1012345600000025 --reference 000050025 --message "Synthetic internal transfer from Holvi" --source-id bank_row:synth-b-025
+journal add --date 2024-11-25 --desc "Synthetic internal transfer in from Holvi" --debit 1912=50.00 --credit 1998=50.00 --source-id bank_row:synth-b-025:journal:1

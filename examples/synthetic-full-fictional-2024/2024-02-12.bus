@@ -1,0 +1,5 @@
+#!/usr/bin/env bus
+
+# 2024-02-12: File VAT for period 2024-01
+vat -f tsv -o "vat-report-2024-01.tsv" report --source reconcile --basis cash --force-partial-coverage --period 2024-01
+attachments add "../synthetic-evidence/vat-application-2024-01.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-01"

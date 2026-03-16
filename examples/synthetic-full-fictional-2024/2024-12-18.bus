@@ -1,0 +1,12 @@
+#!/usr/bin/env bus
+
+# 2024-12-18: Year-end asset depreciation + disposal workflow
+attachments add "../synthetic-evidence/transactions/asset-depr-dispose-a1001-2024-12-18.txt" --desc "Synthetic asset depreciation and disposal evidence a1001"
+assets depreciate --period 2024-12 -f csv -o "assets-depr-2024-12.csv"
+journal add --date 2024-12-18 --desc "Synthetic depreciation booking a1001" --debit 6800=300.00 --credit 1162=300.00 --source-id asset:a1001:depr:2024-12
+
+attachments add "../synthetic-evidence/transactions/bank-synth-b-030-2024-12-18.txt" --desc "Synthetic bank evidence synth-b-030"
+bank add --bank-id synth-b-030 --import-id synth-op-main-2024-12 --booked-date 2024-12-18 --value-date 2024-12-18 --amount 400.00 --currency EUR --counterparty-name "Used Gear Market Oy" --counterparty-iban FI1012345600000030 --reference 400000030 --message "Synthetic asset disposal proceeds a1001" --source-id bank_row:synth-b-030
+assets dispose --asset-id a1001 --date 2024-12-18 --proceeds 400.00 --proceeds-account 1910 --gain-account 3990 --loss-account 8680 -f csv -o "assets-dispose-a1001-2024-12-18.csv"
+journal add --date 2024-12-18 --desc "Synthetic asset disposal booking a1001" --debit 1910=400.00 --debit 1162=300.00 --debit 8680=500.00 --credit 1160=1200.00 --source-id asset:a1001:dispose:2024-12-18
+assets validate

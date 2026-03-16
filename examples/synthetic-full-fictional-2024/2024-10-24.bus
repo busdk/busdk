@@ -1,0 +1,13 @@
+#!/usr/bin/env bus
+
+# 2024-10-24: Settlement payout receipt (Paytrail-like net payout)
+attachments add "../synthetic-evidence/transactions/bank-synth-b-019-2024-10-24.txt" --desc "Synthetic bank evidence synth-b-019"
+bank add --bank-id synth-b-019 --import-id synth-op-main-2024-10 --booked-date 2024-10-24 --value-date 2024-10-24 --amount 243.50 --currency EUR --counterparty-name "FictionalPay Settlement Services Oy" --counterparty-iban FI1012345600000019 --reference 990019001 --message "Synthetic payout batch 2024-10-24" --source-id bank_row:synth-b-019
+reconcile allocate --bank-id synth-b-019 --invoice s9009=243.50
+journal add --date 2024-10-24 --desc "Synthetic settlement payout receipt" --debit 1910=243.50 --credit 3000=194.02 --credit 2931=49.48 --source-id bank_row:synth-b-019:journal:1
+
+# 2024-10-24: Settlement processing fee debit (same settlement batch)
+attachments add "../synthetic-evidence/transactions/bank-synth-b-020-2024-10-24.txt" --desc "Synthetic bank evidence synth-b-020"
+bank add --bank-id synth-b-020 --import-id synth-op-main-2024-10 --booked-date 2024-10-24 --value-date 2024-10-24 --amount -7.50 --currency EUR --counterparty-name "FictionalPay Settlement Services Oy" --counterparty-iban FI1012345600000019 --reference 990019002 --message "Synthetic payout fee batch 2024-10-24" --source-id bank_row:synth-b-020
+reconcile allocate --bank-id synth-b-020 --invoice p9108=7.50
+journal add --date 2024-10-24 --desc "Synthetic settlement fee payment" --debit 4000=7.50 --credit 1910=7.50 --source-id bank_row:synth-b-020:journal:1

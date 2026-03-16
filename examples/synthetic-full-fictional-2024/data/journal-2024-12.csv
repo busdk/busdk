@@ -1,22 +1,22 @@
 entry_id,transaction_id,posting_date,account_id,debit,credit,currency,voucher_id,source_system,source_id,dimensions,entry_sequence,description
-2026-02-26T130407Z-6bfwdg-e1,2026-02-26T130407Z-6bfwdg,2024-12-05,1910,1000.00,0.00,EUR,bank_row:synth-b-028:journal:1,default,bank_row:synth-b-028:journal:1,,1,Synthetic owner loan received
-2026-02-26T130407Z-6bfwdg-e2,2026-02-26T130407Z-6bfwdg,2024-12-05,2370,0.00,1000.00,EUR,bank_row:synth-b-028:journal:1,default,bank_row:synth-b-028:journal:1,,2,Synthetic owner loan received
-2026-02-26T130407Z-b5b4bg-e1,2026-02-26T130407Z-b5b4bg,2024-12-18,6800,300.00,0.00,EUR,asset:a1001:depr:2024-12,default,asset:a1001:depr:2024-12,,1,Synthetic depreciation booking a1001
-2026-02-26T130407Z-b5b4bg-e2,2026-02-26T130407Z-b5b4bg,2024-12-18,1162,0.00,300.00,EUR,asset:a1001:depr:2024-12,default,asset:a1001:depr:2024-12,,2,Synthetic depreciation booking a1001
-2026-02-26T130408Z-nbjy41-e1,2026-02-26T130408Z-nbjy41,2024-12-18,1910,400.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,,1,Synthetic asset disposal booking a1001
-2026-02-26T130408Z-nbjy41-e2,2026-02-26T130408Z-nbjy41,2024-12-18,1162,300.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,,2,Synthetic asset disposal booking a1001
-2026-02-26T130408Z-nbjy41-e3,2026-02-26T130408Z-nbjy41,2024-12-18,8680,500.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,,3,Synthetic asset disposal booking a1001
-2026-02-26T130408Z-nbjy41-e4,2026-02-26T130408Z-nbjy41,2024-12-18,1160,0.00,1200.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,,4,Synthetic asset disposal booking a1001
-2026-02-26T130408Z-crdjx1-e1,2026-02-26T130408Z-crdjx1,2024-12-20,8564,5.00,0.00,EUR,bank_row:synth-b-009:journal:1,default,bank_row:synth-b-009:journal:1,,1,Synthetic bank service fee
-2026-02-26T130408Z-crdjx1-e2,2026-02-26T130408Z-crdjx1,2024-12-20,1910,0.00,5.00,EUR,bank_row:synth-b-009:journal:1,default,bank_row:synth-b-009:journal:1,,2,Synthetic bank service fee
-2026-02-26T130408Z-9bw3m6-e1,2026-02-26T130408Z-9bw3m6,2024-12-27,1910,2500.00,0.00,EUR,bank_row:synth-b-029:journal:1,default,bank_row:synth-b-029:journal:1,,1,Synthetic business transfer partial receipt (VAT 0%)
-2026-02-26T130408Z-9bw3m6-e2,2026-02-26T130408Z-9bw3m6,2024-12-27,3002,0.00,2500.00,EUR,bank_row:synth-b-029:journal:1,default,bank_row:synth-b-029:journal:1,,2,Synthetic business transfer partial receipt (VAT 0%)
-2026-02-26T130408Z-k0p4tg-e1,2026-02-26T130408Z-k0p4tg,2024-12-30,8564,1.00,0.00,EUR,adjustment:2024-12-30:1,default,adjustment:2024-12-30:1,,1,Synthetic year-end adjustment voucher
-2026-02-26T130408Z-k0p4tg-e2,2026-02-26T130408Z-k0p4tg,2024-12-30,1910,0.00,1.00,EUR,adjustment:2024-12-30:1,default,adjustment:2024-12-30:1,,2,Synthetic year-end adjustment voucher
-2026-02-26T130408Z-bp8k1q-e1,2026-02-26T130408Z-bp8k1q,2024-12-31,1998,260.00,0.00,EUR,bank_row:synth-b-062:journal:1,default,bank_row:synth-b-062:journal:1,,1,Synthetic monthly internal transfer out to Holvi
-2026-02-26T130408Z-bp8k1q-e2,2026-02-26T130408Z-bp8k1q,2024-12-31,1910,0.00,260.00,EUR,bank_row:synth-b-062:journal:1,default,bank_row:synth-b-062:journal:1,,2,Synthetic monthly internal transfer out to Holvi
-2026-02-26T130408Z-bh6apr-e1,2026-02-26T130408Z-bh6apr,2024-12-31,1911,260.00,0.00,EUR,bank_row:synth-b-063:journal:1,default,bank_row:synth-b-063:journal:1,,1,Synthetic monthly internal transfer in from OP
-2026-02-26T130408Z-bh6apr-e2,2026-02-26T130408Z-bh6apr,2024-12-31,1998,0.00,260.00,EUR,bank_row:synth-b-063:journal:1,default,bank_row:synth-b-063:journal:1,,2,Synthetic monthly internal transfer in from OP
+3eaa6278-9d65-4286-8352-d9d4ffecf27d-e1,3eaa6278-9d65-4286-8352-d9d4ffecf27d,2024-12-05,1910,1000.00,0.00,EUR,bank_row:synth-b-028:journal:1,default,bank_row:synth-b-028:journal:1,,1,Synthetic owner loan received
+3eaa6278-9d65-4286-8352-d9d4ffecf27d-e2,3eaa6278-9d65-4286-8352-d9d4ffecf27d,2024-12-05,2370,0.00,1000.00,EUR,bank_row:synth-b-028:journal:1,default,bank_row:synth-b-028:journal:1,,2,Synthetic owner loan received
+f2f7cc74-a32a-4616-8fce-e9ae594145eb-e1,f2f7cc74-a32a-4616-8fce-e9ae594145eb,2024-12-18,6800,300.00,0.00,EUR,asset:a1001:depr:2024-12,default,asset:a1001:depr:2024-12,,1,Synthetic depreciation booking a1001
+f2f7cc74-a32a-4616-8fce-e9ae594145eb-e2,f2f7cc74-a32a-4616-8fce-e9ae594145eb,2024-12-18,1162,0.00,300.00,EUR,asset:a1001:depr:2024-12,default,asset:a1001:depr:2024-12,,2,Synthetic depreciation booking a1001
+487cf06d-86bd-4d62-8aa3-e34a082a581d-e1,487cf06d-86bd-4d62-8aa3-e34a082a581d,2024-12-18,1910,400.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,,1,Synthetic asset disposal booking a1001
+487cf06d-86bd-4d62-8aa3-e34a082a581d-e2,487cf06d-86bd-4d62-8aa3-e34a082a581d,2024-12-18,1162,300.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,,2,Synthetic asset disposal booking a1001
+487cf06d-86bd-4d62-8aa3-e34a082a581d-e3,487cf06d-86bd-4d62-8aa3-e34a082a581d,2024-12-18,8680,500.00,0.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,,3,Synthetic asset disposal booking a1001
+487cf06d-86bd-4d62-8aa3-e34a082a581d-e4,487cf06d-86bd-4d62-8aa3-e34a082a581d,2024-12-18,1160,0.00,1200.00,EUR,asset:a1001:dispose:2024-12-18,default,asset:a1001:dispose:2024-12-18,,4,Synthetic asset disposal booking a1001
+8c835f42-0aba-49b8-8527-ccc165d48822-e1,8c835f42-0aba-49b8-8527-ccc165d48822,2024-12-20,8564,5.00,0.00,EUR,bank_row:synth-b-009:journal:1,default,bank_row:synth-b-009:journal:1,,1,Synthetic bank service fee
+8c835f42-0aba-49b8-8527-ccc165d48822-e2,8c835f42-0aba-49b8-8527-ccc165d48822,2024-12-20,1910,0.00,5.00,EUR,bank_row:synth-b-009:journal:1,default,bank_row:synth-b-009:journal:1,,2,Synthetic bank service fee
+2cb82826-ea9b-45e1-ac5a-264dab4c3639-e1,2cb82826-ea9b-45e1-ac5a-264dab4c3639,2024-12-27,1910,2500.00,0.00,EUR,bank_row:synth-b-029:journal:1,default,bank_row:synth-b-029:journal:1,,1,Synthetic business transfer partial receipt (VAT 0%)
+2cb82826-ea9b-45e1-ac5a-264dab4c3639-e2,2cb82826-ea9b-45e1-ac5a-264dab4c3639,2024-12-27,3002,0.00,2500.00,EUR,bank_row:synth-b-029:journal:1,default,bank_row:synth-b-029:journal:1,,2,Synthetic business transfer partial receipt (VAT 0%)
+d329cc38-4d39-4784-8807-a7103066082b-e1,d329cc38-4d39-4784-8807-a7103066082b,2024-12-30,8564,1.00,0.00,EUR,adjustment:2024-12-30:1,default,adjustment:2024-12-30:1,,1,Synthetic year-end adjustment voucher
+d329cc38-4d39-4784-8807-a7103066082b-e2,d329cc38-4d39-4784-8807-a7103066082b,2024-12-30,1910,0.00,1.00,EUR,adjustment:2024-12-30:1,default,adjustment:2024-12-30:1,,2,Synthetic year-end adjustment voucher
+f7ceea3d-d036-45d3-914e-e915c328e762-e1,f7ceea3d-d036-45d3-914e-e915c328e762,2024-12-31,1998,260.00,0.00,EUR,bank_row:synth-b-062:journal:1,default,bank_row:synth-b-062:journal:1,,1,Synthetic monthly internal transfer out to Holvi
+f7ceea3d-d036-45d3-914e-e915c328e762-e2,f7ceea3d-d036-45d3-914e-e915c328e762,2024-12-31,1910,0.00,260.00,EUR,bank_row:synth-b-062:journal:1,default,bank_row:synth-b-062:journal:1,,2,Synthetic monthly internal transfer out to Holvi
+29b15105-24eb-4bf7-b30c-39136a9b7ecb-e1,29b15105-24eb-4bf7-b30c-39136a9b7ecb,2024-12-31,1911,260.00,0.00,EUR,bank_row:synth-b-063:journal:1,default,bank_row:synth-b-063:journal:1,,1,Synthetic monthly internal transfer in from OP
+29b15105-24eb-4bf7-b30c-39136a9b7ecb-e2,29b15105-24eb-4bf7-b30c-39136a9b7ecb,2024-12-31,1998,0.00,260.00,EUR,bank_row:synth-b-063:journal:1,default,bank_row:synth-b-063:journal:1,,2,Synthetic monthly internal transfer in from OP
 cl_8fe4fa1debec3167-d,cl_8fe4fa1debec3167,2024-12-31,2200,300.00,0.00,EUR,cl_8fe4fa1debec3167,,,,1,Period close 2024-12
 cl_8fe4fa1debec3167-c,cl_8fe4fa1debec3167,2024-12-31,6800,0.00,300.00,EUR,cl_8fe4fa1debec3167,,,,2,Period close 2024-12
 cl_64c1a62c83c28c15-d,cl_64c1a62c83c28c15,2024-12-31,2200,6.00,0.00,EUR,cl_64c1a62c83c28c15,,,,1,Period close 2024-12

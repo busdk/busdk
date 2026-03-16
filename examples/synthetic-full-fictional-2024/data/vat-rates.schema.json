@@ -1,0 +1,9 @@
+{
+  "fields": [
+    {"name": "code", "type": "string", "_pcsvMaxBytes": 32, "constraints": {"required": true}},
+    {"name": "rate_bp", "type": "integer", "_pcsvMaxBytes": 16, "constraints": {"required": true}},
+    {"name": "description", "type": "string", "_pcsvMaxBytes": 128}
+  ],
+  "primaryKey": ["code"],
+  "busdk": { "update_policy": "in_place" }
+}

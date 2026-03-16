@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-07-08: Sales invoice S-9006 issued
+attachments add "../synthetic-evidence/transactions/invoice-s9006-2024-07-08.txt" --desc "Synthetic invoice evidence S-9006"
+invoices add --type sales --invoice-id s9006 --number S-9006 --status sent --invoice-date 2024-07-08 --due-date 2024-07-22 --customer "Summit Forge Oy"
+invoices s9006 add --line-no 1 --desc "Migration sprint package" --quantity 1 --unit-price 180.00 --vat-rate 0.255
+invoices s9006 validate

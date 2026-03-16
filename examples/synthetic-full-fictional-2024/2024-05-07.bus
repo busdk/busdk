@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-05-07: Sales invoice S-9005 issued
+attachments add "../synthetic-evidence/transactions/invoice-s9005-2024-05-07.txt" --desc "Synthetic invoice evidence S-9005"
+invoices add --type sales --invoice-id s9005 --number S-9005 --status sent --invoice-date 2024-05-07 --due-date 2024-05-21 --customer "Helix Solutions Oy"
+invoices s9005 add --line-no 1 --desc "DevOps maintenance service" --quantity 1 --unit-price 70.00 --vat-rate 0.255
+invoices s9005 validate

@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-01-22: Payment of P-9101
+attachments add "../synthetic-evidence/transactions/bank-synth-b-002-2024-01-22.txt" --desc "Synthetic bank evidence synth-b-002"
+bank add --bank-id synth-b-002 --import-id synth-bank-2024-01 --booked-date 2024-01-22 --value-date 2024-01-22 --amount -50.20 --currency EUR --counterparty-name "Blue Dock Systems Oy" --counterparty-iban FI1012345600000002 --reference 910100001 --message "Synthetic purchase payment P-9101" --source-id bank_row:synth-b-002
+reconcile allocate --bank-id synth-b-002 --invoice p9101=50.20
+journal add --date 2024-01-22 --desc "Synthetic purchase payment P-9101" --debit 4000=40.00 --debit 1763=10.20 --credit 1910=50.20 --source-id bank_row:synth-b-002:journal:1

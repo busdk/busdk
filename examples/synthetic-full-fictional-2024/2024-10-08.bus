@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-10-08: Sales invoice S-9008 issued (reference-pattern sample)
+attachments add "../synthetic-evidence/transactions/invoice-s9008-2024-10-08.txt" --desc "Synthetic invoice evidence S-9008"
+invoices add --type sales --invoice-id s9008 --number S-9008 --status sent --invoice-date 2024-10-08 --due-date 2024-10-22 --customer "Reference Pattern Test Oy"
+invoices s9008 add --line-no 1 --desc "Short consultation package" --quantity 1 --unit-price 50.00 --vat-rate 0.255
+invoices s9008 validate

@@ -1,14 +1,15 @@
 {
   "fields": [
-    {"name": "invoice_id", "type": "string", "constraints": {"required": true, "pattern": "^[A-Za-z0-9._-]+$"}},
-    {"name": "number", "type": "string", "constraints": {"required": true, "pattern": "^[A-Za-z0-9._-]+$"}},
-    {"name": "status", "type": "string", "constraints": {"required": true, "enum": ["draft", "sent", "paid", "canceled"]}},
-    {"name": "issue_date", "type": "date", "constraints": {"required": true}},
-    {"name": "due_date", "type": "date"},
-    {"name": "party_name", "type": "string", "constraints": {"required": true}},
-    {"name": "currency", "type": "string", "constraints": {"required": true, "enum": ["EUR"]}},
-    {"name": "total_net", "type": "number"},
-    {"name": "attachment_id", "type": "string"}
+    {"name": "invoice_id", "type": "string", "_pcsvMaxBytes": 64, "constraints": {"required": true, "pattern": "^[A-Za-z0-9._-]+$"}},
+    {"name": "number", "type": "string", "_pcsvMaxBytes": 64, "constraints": {"required": true, "pattern": "^[A-Za-z0-9._-]+$"}},
+    {"name": "status", "type": "string", "_pcsvMaxBytes": 16, "constraints": {"required": true, "enum": ["draft", "sent", "paid", "canceled"]}},
+    {"name": "issue_date", "type": "date", "_pcsvMaxBytes": 16, "constraints": {"required": true}},
+    {"name": "due_date", "type": "date", "_pcsvMaxBytes": 16},
+    {"name": "party_name", "type": "string", "_pcsvMaxBytes": 128, "constraints": {"required": true}},
+    {"name": "currency", "type": "string", "_pcsvMaxBytes": 8, "constraints": {"required": true, "enum": ["EUR"]}},
+    {"name": "total_net", "type": "number", "_pcsvMaxBytes": 32},
+    {"name": "attachment_id", "type": "string", "_pcsvMaxBytes": 128}
   ],
-  "primaryKey": "invoice_id"
+  "primaryKey": "invoice_id",
+  "busdk": { "update_policy": "in_place" }
 }

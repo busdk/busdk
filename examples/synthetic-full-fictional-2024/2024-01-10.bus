@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-01-10: Sales invoice S-9001 issued
+attachments add "../synthetic-evidence/transactions/invoice-s9001-2024-01-10.txt" --desc "Synthetic invoice evidence S-9001"
+invoices add --type sales --invoice-id s9001 --number S-9001 --status sent --invoice-date 2024-01-10 --due-date 2024-01-24 --customer "Northwind Test Labs Ltd"
+invoices s9001 add --line-no 1 --desc "Managed cloud service, January" --quantity 1 --unit-price 100.00 --vat-rate 0.255
+invoices s9001 validate

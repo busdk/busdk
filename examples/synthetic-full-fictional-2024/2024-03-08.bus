@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-03-08: Purchase invoice P-9102 received
+attachments add "../synthetic-evidence/transactions/invoice-p9102-2024-03-08.txt" --desc "Synthetic invoice evidence P-9102"
+invoices add --type purchase --invoice-id p9102 --number P-9102 --status sent --invoice-date 2024-03-08 --due-date 2024-03-22 --customer "Signal Harbor Oy"
+invoices p9102 add --line-no 1 --desc "Monitoring and backup tooling" --quantity 1 --unit-price 120.00 --vat-rate 0.255
+invoices p9102 validate

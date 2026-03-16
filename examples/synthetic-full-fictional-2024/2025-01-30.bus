@@ -1,0 +1,17 @@
+#!/usr/bin/env bus
+
+# 2025-01-30: Working-paper trial balance and journal control (pre-lock draft package).
+reports -o "trial-balance-2024.csv" trial-balance --as-of 2024-12-31 --format csv
+journal -f tsv -o "journal-balance-2024-12-31.tsv" balance --as-of 2024-12-31
+# 2025-01-30: Income statement draft (pre-lock).
+reports -o "profit-loss-2024.csv" profit-and-loss --period 2024 --format csv --layout-id pma-full
+reports -o "tuloslaskelma-2024.pdf" profit-and-loss --period 2024 --format pdf --layout-id pma
+# 2025-01-30: Balance sheet draft and statutory PDF (pre-lock).
+reports -o "balance-sheet-2024-12-31.csv" balance-sheet --as-of 2024-12-31 --format csv --layout-id kpa
+reports -o "tase-2024-12-31.pdf" balance-sheet --as-of 2024-12-31 --format pdf --layout-id kpa
+
+# 2025-01-30: Native ledger PDFs and deterministic filing/compliance manifests.
+reports -o "day-book-2024.pdf" day-book --period 2024 --format pdf
+reports -o "general-ledger-2024.pdf" general-ledger --period 2024 --format pdf
+reports -o "filing-package-2024.tsv" filing-package --period 2024 --format tsv
+reports -o "compliance-checklist-2024.tsv" compliance-checklist --period 2024 --format tsv

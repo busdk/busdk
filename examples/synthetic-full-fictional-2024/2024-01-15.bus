@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-01-15: Customer payment for S-9001
+attachments add "../synthetic-evidence/transactions/bank-synth-b-001-2024-01-15.txt" --desc "Synthetic bank evidence synth-b-001"
+bank add --bank-id synth-b-001 --import-id synth-bank-2024-01 --booked-date 2024-01-15 --value-date 2024-01-15 --amount 125.50 --currency EUR --counterparty-name "Northwind Test Labs Ltd" --counterparty-iban FI1012345600000001 --reference 900100001 --message "Synthetic reference payment S-9001" --source-id bank_row:synth-b-001
+reconcile allocate --bank-id synth-b-001 --invoice s9001=125.50
+journal add --date 2024-01-15 --desc "Synthetic sales receipt S-9001" --debit 1910=125.50 --credit 3000=100.00 --credit 2931=25.50 --source-id bank_row:synth-b-001:journal:1

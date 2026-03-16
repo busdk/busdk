@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-10-03: Sales invoice S-9007 issued
+attachments add "../synthetic-evidence/transactions/invoice-s9007-2024-10-03.txt" --desc "Synthetic invoice evidence S-9007"
+invoices add --type sales --invoice-id s9007 --number S-9007 --status sent --invoice-date 2024-10-03 --due-date 2024-10-17 --customer "Meridian Compute Oy"
+invoices s9007 add --line-no 1 --desc "Platform optimization package" --quantity 1 --unit-price 210.00 --vat-rate 0.255
+invoices s9007 validate

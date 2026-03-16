@@ -20,7 +20,11 @@
     {"name": "note", "type": "string"},
     {"name": "voucher", "type": "string"},
     {"name": "disposal_voucher", "type": "string"},
-    {"name": "disposal_note", "type": "string"}
+    {"name": "disposal_note", "type": "string"},
+    {"name": "_pad", "type": "string"}
   ],
-  "primaryKey": "asset_id"
+  "primaryKey": "asset_id",
+  "busdk": {
+    "update_policy": "in_place"
+  }
 }

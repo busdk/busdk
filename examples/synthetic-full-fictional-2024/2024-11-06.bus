@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-11-06: Purchase invoice P-9107 received
+attachments add "../synthetic-evidence/transactions/invoice-p9107-2024-11-06.txt" --desc "Synthetic invoice evidence P-9107"
+invoices add --type purchase --invoice-id p9107 --number P-9107 --status sent --invoice-date 2024-11-06 --due-date 2024-11-20 --customer "Northline Admin Services Oy"
+invoices p9107 add --line-no 1 --desc "Compliance support and filing prep" --quantity 1 --unit-price 44.00 --vat-rate 0.255
+invoices p9107 validate

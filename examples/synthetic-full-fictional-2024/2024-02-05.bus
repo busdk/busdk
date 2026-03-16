@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-02-05: Sales invoice S-9004 issued
+attachments add "../synthetic-evidence/transactions/invoice-s9004-2024-02-05.txt" --desc "Synthetic invoice evidence S-9004"
+invoices add --type sales --invoice-id s9004 --number S-9004 --status sent --invoice-date 2024-02-05 --due-date 2024-02-19 --customer "Nova Harbor Oy"
+invoices s9004 add --line-no 1 --desc "Application support package, February" --quantity 1 --unit-price 140.00 --vat-rate 0.255
+invoices s9004 validate

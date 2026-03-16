@@ -1,0 +1,10 @@
+#!/usr/bin/env bus
+
+# 2024-01-26: Monthly internal transfer between own bank accounts (OP -> Holvi)
+attachments add "../synthetic-evidence/transactions/bank-synth-b-040-2024-01-26.txt" --desc "Synthetic bank evidence synth-b-040"
+bank add --bank-id synth-b-040 --import-id synth-op-main-2024-01 --booked-date 2024-01-26 --value-date 2024-01-26 --amount -150.00 --currency EUR --counterparty-name "Own account transfer" --counterparty-iban FI1012345600000400000040 --reference 400000040 --message "Synthetic recurring monthly transfer to Holvi" --source-id bank_row:synth-b-040
+journal add --date 2024-01-26 --desc "Synthetic monthly internal transfer out to Holvi" --debit 1998=150.00 --credit 1910=150.00 --source-id bank_row:synth-b-040:journal:1
+
+attachments add "../synthetic-evidence/transactions/bank-synth-b-041-2024-01-26.txt" --desc "Synthetic bank evidence synth-b-041"
+bank add --bank-id synth-b-041 --import-id synth-holvi-2024-01 --booked-date 2024-01-26 --value-date 2024-01-26 --amount 150.00 --currency EUR --counterparty-name "Own account transfer" --counterparty-iban FI1012345600000400000041 --reference 400000041 --message "Synthetic recurring monthly transfer from OP" --source-id bank_row:synth-b-041
+journal add --date 2024-01-26 --desc "Synthetic monthly internal transfer in from OP" --debit 1911=150.00 --credit 1998=150.00 --source-id bank_row:synth-b-041:journal:1

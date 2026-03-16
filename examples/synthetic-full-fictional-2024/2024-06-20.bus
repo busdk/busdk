@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-06-20: Payment of P-9105
+attachments add "../synthetic-evidence/transactions/bank-synth-b-013-2024-06-20.txt" --desc "Synthetic bank evidence synth-b-013"
+bank add --bank-id synth-b-013 --import-id synth-bank-2024-06 --booked-date 2024-06-20 --value-date 2024-06-20 --amount -65.26 --currency EUR --counterparty-name "Cobalt Networks Oy" --counterparty-iban FI1012345600000013 --reference 910500001 --message "Synthetic purchase payment P-9105" --source-id bank_row:synth-b-013
+reconcile allocate --bank-id synth-b-013 --invoice p9105=65.26
+journal add --date 2024-06-20 --desc "Synthetic purchase payment P-9105" --debit 4000=52.00 --debit 1763=13.26 --credit 1910=65.26 --source-id bank_row:synth-b-013:journal:1

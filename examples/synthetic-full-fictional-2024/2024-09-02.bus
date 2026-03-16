@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-09-02: Sales invoice S-9003 issued
+attachments add "../synthetic-evidence/transactions/invoice-s9003-2024-09-02.txt" --desc "Synthetic invoice evidence S-9003"
+invoices add --type sales --invoice-id s9003 --number S-9003 --status sent --invoice-date 2024-09-02 --due-date 2024-09-16 --customer "Polar Geometry Oy"
+invoices s9003 add --line-no 1 --desc "Integration support retainer" --quantity 1 --unit-price 80.00 --vat-rate 0.255
+invoices s9003 validate

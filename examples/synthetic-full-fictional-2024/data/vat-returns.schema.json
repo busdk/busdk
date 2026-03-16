@@ -1,0 +1,8 @@
+{
+  "fields": [
+    {"name": "period", "type": "string", "_pcsvMaxBytes": 32, "constraints": {"required": true}},
+    {"name": "path", "type": "string", "_pcsvMaxBytes": 128, "constraints": {"required": true}}
+  ],
+  "primaryKey": ["period"],
+  "busdk": { "update_policy": "in_place" }
+}

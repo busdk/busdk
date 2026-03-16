@@ -1,0 +1,6 @@
+#!/usr/bin/env bus
+
+# 2024-12-05: Owner loan received (non-VAT financing event)
+attachments add "../synthetic-evidence/transactions/bank-synth-b-028-2024-12-05.txt" --desc "Synthetic bank evidence synth-b-028"
+bank add --bank-id synth-b-028 --import-id synth-op-main-2024-12 --booked-date 2024-12-05 --value-date 2024-12-05 --amount 1000.00 --currency EUR --counterparty-name "Owner loan transfer" --counterparty-iban FI1012345600000028 --reference 100000028 --message "Synthetic owner loan received" --source-id bank_row:synth-b-028
+journal add --date 2024-12-05 --desc "Synthetic owner loan received" --debit 1910=1000.00 --credit 2370=1000.00 --source-id bank_row:synth-b-028:journal:1

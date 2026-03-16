@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-03-20: Payment of P-9102
+attachments add "../synthetic-evidence/transactions/bank-synth-b-004-2024-03-20.txt" --desc "Synthetic bank evidence synth-b-004"
+bank add --bank-id synth-b-004 --import-id synth-bank-2024-03 --booked-date 2024-03-20 --value-date 2024-03-20 --amount -150.60 --currency EUR --counterparty-name "Signal Harbor Oy" --counterparty-iban FI1012345600000004 --reference 910200001 --message "Synthetic purchase payment P-9102" --source-id bank_row:synth-b-004
+reconcile allocate --bank-id synth-b-004 --invoice p9102=150.60
+journal add --date 2024-03-20 --desc "Synthetic purchase payment P-9102" --debit 4000=120.00 --debit 1763=30.60 --credit 1910=150.60 --source-id bank_row:synth-b-004:journal:1

@@ -1,0 +1,5 @@
+#!/usr/bin/env bus
+
+# 2024-11-15: Reclass suspense row after clarification (owner contribution)
+attachments add "../synthetic-evidence/transactions/reclass-suspense-2024-11-15.txt" --desc "Synthetic suspense reclassification evidence"
+journal add --date 2024-11-15 --desc "Synthetic suspense reclassification to owner contribution" --debit 1999=42.00 --credit 2010=42.00 --source-id suspense:reclass:2024-11-15:1

@@ -1,0 +1,6 @@
+#!/usr/bin/env bus
+
+# 2024-11-08: Unmatched incoming cash parked to suspense
+attachments add "../synthetic-evidence/transactions/bank-synth-b-023-2024-11-08.txt" --desc "Synthetic bank evidence synth-b-023"
+bank add --bank-id synth-b-023 --import-id synth-holvi-2024-11 --booked-date 2024-11-08 --value-date 2024-11-08 --amount 42.00 --currency EUR --counterparty-name "Unknown sender" --counterparty-iban FI1012345600000023 --reference 000042023 --message "Synthetic unmatched incoming transfer" --source-id bank_row:synth-b-023
+journal add --date 2024-11-08 --desc "Synthetic unmatched incoming parked to suspense" --debit 1911=42.00 --credit 1999=42.00 --source-id bank_row:synth-b-023:journal:1

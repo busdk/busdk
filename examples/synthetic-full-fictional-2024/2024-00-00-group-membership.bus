@@ -1,0 +1,29 @@
+#!/usr/bin/env bus
+
+accounts set --code 1160 --group-id bs_tangible
+accounts set --code 1162 --group-id bs_tangible
+accounts set --code 1700 --group-id bs_receivables_short
+accounts set --code 1763 --group-id bs_receivables_short
+accounts set --code 1910 --group-id bs_cash
+accounts set --code 1911 --group-id bs_cash
+accounts set --code 1912 --group-id bs_cash
+accounts set --code 1998 --group-id bs_current_assets
+accounts set --code 1999 --group-id bs_current_assets
+
+accounts set --code 2010 --group-id bs_private_investments
+accounts set --code 2060 --group-id bs_private_withdrawals
+accounts set --code 2200 --group-id bs_prior_year_result
+accounts set --code 2300 --group-id bs_current_year_result
+accounts set --code 2370 --group-id bs_long_term_liab
+accounts set --code 3200 --group-id equity
+accounts set --code 2931 --group-id bs_short_term_liab
+
+accounts set --code 3000 --group-id revenue
+accounts set --code 3002 --group-id revenue
+accounts set --code 3990 --group-id pl_other_operating_income
+accounts set --code 4000 --group-id pl_materials_and_services
+accounts set --code 6800 --group-id pl_depreciation_and_impairment
+accounts set --code 8564 --group-id pl_financial_expenses
+accounts set --code 8680 --group-id pl_other_operating_expenses
+
+accounts validate

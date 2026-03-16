@@ -1,0 +1,6 @@
+#!/usr/bin/env bus
+
+# 2024-10-28: Owner withdrawal (yksityisnosto)
+attachments add "../synthetic-evidence/transactions/bank-synth-b-027-2024-10-28.txt" --desc "Synthetic bank evidence synth-b-027"
+bank add --bank-id synth-b-027 --import-id synth-op-main-2024-10 --booked-date 2024-10-28 --value-date 2024-10-28 --amount -120.00 --currency EUR --counterparty-name "Owner transfer" --counterparty-iban FI1012345600000027 --reference 120000027 --message "Synthetic owner withdrawal" --source-id bank_row:synth-b-027
+journal add --date 2024-10-28 --desc "Synthetic owner withdrawal (yksityisnosto)" --debit 2060=120.00 --credit 1910=120.00 --source-id bank_row:synth-b-027:journal:1

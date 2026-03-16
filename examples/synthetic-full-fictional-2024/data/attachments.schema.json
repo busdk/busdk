@@ -5,7 +5,7 @@
       "type": "string",
       "constraints": {
         "required": true,
-        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        "pattern": "^[A-Za-z0-9._:-]+$"
       }
     },
     {
@@ -48,6 +48,11 @@
       "constraints": {
         "required": true
       }
+    },
+    {
+      "name": "_pad",
+      "type": "string",
+      "constraints": {}
     }
   ],
   "primaryKey": "attachment_id"

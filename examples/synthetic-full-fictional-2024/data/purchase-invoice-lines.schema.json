@@ -1,15 +1,16 @@
 {
   "fields": [
-    {"name": "invoice_id", "type": "string", "constraints": {"required": true}},
-    {"name": "line_no", "type": "integer", "constraints": {"required": true}},
-    {"name": "description", "type": "string", "constraints": {"required": true}},
-    {"name": "quantity", "type": "number", "constraints": {"required": true}},
-    {"name": "unit_price", "type": "number", "constraints": {"required": true}},
-    {"name": "income_account", "type": "string"},
-    {"name": "vat_rate", "type": "number"}
+    {"name": "invoice_id", "type": "string", "_pcsvMaxBytes": 64, "constraints": {"required": true}},
+    {"name": "line_no", "type": "integer", "_pcsvMaxBytes": 16, "constraints": {"required": true}},
+    {"name": "description", "type": "string", "_pcsvMaxBytes": 256, "constraints": {"required": true}},
+    {"name": "quantity", "type": "number", "_pcsvMaxBytes": 32, "constraints": {"required": true}},
+    {"name": "unit_price", "type": "number", "_pcsvMaxBytes": 32, "constraints": {"required": true}},
+    {"name": "income_account", "type": "string", "_pcsvMaxBytes": 64},
+    {"name": "vat_rate", "type": "number", "_pcsvMaxBytes": 16}
   ],
   "primaryKey": ["invoice_id", "line_no"],
   "foreignKeys": [
     {"fields": "invoice_id", "reference": {"resource": "purchase-invoices", "fields": "invoice_id"}}
-  ]
+  ],
+  "busdk": { "update_policy": "in_place" }
 }

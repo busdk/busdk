@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-11-20: Payment of P-9107
+attachments add "../synthetic-evidence/transactions/bank-synth-b-017-2024-11-20.txt" --desc "Synthetic bank evidence synth-b-017"
+bank add --bank-id synth-b-017 --import-id synth-bank-2024-11 --booked-date 2024-11-20 --value-date 2024-11-20 --amount -55.22 --currency EUR --counterparty-name "Northline Admin Services Oy" --counterparty-iban FI1012345600000017 --reference 910700001 --message "Synthetic purchase payment P-9107" --source-id bank_row:synth-b-017
+reconcile allocate --bank-id synth-b-017 --invoice p9107=55.22
+journal add --date 2024-11-20 --desc "Synthetic purchase payment P-9107" --debit 4000=44.00 --debit 1763=11.22 --credit 1910=55.22 --source-id bank_row:synth-b-017:journal:1

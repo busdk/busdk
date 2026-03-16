@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-09-11: Partial customer payment for S-9003 (part 2)
+attachments add "../synthetic-evidence/transactions/bank-synth-b-006-2024-09-11.txt" --desc "Synthetic bank evidence synth-b-006"
+bank add --bank-id synth-b-006 --import-id synth-bank-2024-09 --booked-date 2024-09-11 --value-date 2024-09-11 --amount 50.40 --currency EUR --counterparty-name "Polar Geometry Oy" --counterparty-iban FI1012345600000005 --reference 900300002 --message "Synthetic partial payment S-9003 part 2" --source-id bank_row:synth-b-006
+reconcile allocate --bank-id synth-b-006 --invoice s9003=50.40
+journal add --date 2024-09-11 --desc "Synthetic partial sales receipt S-9003 part 2" --debit 1910=50.40 --credit 3000=40.16 --credit 2931=10.24 --source-id bank_row:synth-b-006:journal:1

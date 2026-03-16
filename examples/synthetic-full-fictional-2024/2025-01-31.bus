@@ -1,0 +1,8 @@
+#!/usr/bin/env bus
+
+# 2025-01-31: Close + lock final period (finalization control step).
+attachments add "../synthetic-evidence/transactions/close-lock-2024-12-31.txt" --desc "Synthetic closing control evidence 2024-12"
+period close --period 2024-12 --post-date 2024-12-31
+period lock --period 2024-12
+
+validate

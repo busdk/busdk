@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-02-16: Customer payment for S-9004
+attachments add "../synthetic-evidence/transactions/bank-synth-b-010-2024-02-16.txt" --desc "Synthetic bank evidence synth-b-010"
+bank add --bank-id synth-b-010 --import-id synth-bank-2024-02 --booked-date 2024-02-16 --value-date 2024-02-16 --amount 175.70 --currency EUR --counterparty-name "Nova Harbor Oy" --counterparty-iban FI1012345600000010 --reference 900400001 --message "Synthetic reference payment S-9004" --source-id bank_row:synth-b-010
+reconcile allocate --bank-id synth-b-010 --invoice s9004=175.70
+journal add --date 2024-02-16 --desc "Synthetic sales receipt S-9004" --debit 1910=175.70 --credit 3000=140.00 --credit 2931=35.70 --source-id bank_row:synth-b-010:journal:1

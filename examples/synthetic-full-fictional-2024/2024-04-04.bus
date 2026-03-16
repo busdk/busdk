@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-04-04: Purchase invoice P-9104 received
+attachments add "../synthetic-evidence/transactions/invoice-p9104-2024-04-04.txt" --desc "Synthetic invoice evidence P-9104"
+invoices add --type purchase --invoice-id p9104 --number P-9104 --status sent --invoice-date 2024-04-04 --due-date 2024-04-18 --customer "Vertex Hosting Oy"
+invoices p9104 add --line-no 1 --desc "Backup storage allocation" --quantity 1 --unit-price 95.00 --vat-rate 0.255
+invoices p9104 validate

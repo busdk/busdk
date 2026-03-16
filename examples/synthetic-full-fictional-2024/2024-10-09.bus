@@ -1,0 +1,13 @@
+#!/usr/bin/env bus
+
+# 2024-10-09: Payment-settlement style sales invoice S-9009 issued
+attachments add "../synthetic-evidence/transactions/invoice-s9009-2024-10-09.txt" --desc "Synthetic invoice evidence S-9009"
+invoices add --type sales --invoice-id s9009 --number S-9009 --status sent --invoice-date 2024-10-09 --due-date 2024-10-23 --customer "Card Checkout Example Oy"
+invoices s9009 add --line-no 1 --desc "Card-checkout delivered service" --quantity 1 --unit-price 194.02 --vat-rate 0.255
+invoices s9009 validate
+
+# 2024-10-09: Payment-settlement style processing fee invoice P-9108
+attachments add "../synthetic-evidence/transactions/invoice-p9108-2024-10-09.txt" --desc "Synthetic invoice evidence P-9108"
+invoices add --type purchase --invoice-id p9108 --number P-9108 --status sent --invoice-date 2024-10-09 --due-date 2024-10-24 --customer "FictionalPay Settlement Services Oy"
+invoices p9108 add --line-no 1 --desc "Settlement processing fee" --quantity 1 --unit-price 7.50 --vat-rate 0.0
+invoices p9108 validate

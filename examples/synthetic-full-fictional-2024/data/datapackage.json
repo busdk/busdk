@@ -2,29 +2,129 @@
   "busdk": {
     "accounting_entity": {
       "base_currency": "EUR",
-      "fiscal_year_end": "2024-12-31",
       "fiscal_year_start": "2024-01-01",
-      "reporting_profile": {
-        "fi_statutory": {
-          "comparatives": true,
+      "fiscal_year_end": "2024-12-31",
+      "vat_registered": true,
+      "vat_reporting_period": "monthly",
+      "vat_timing": "performance",
+      "vat_default_source": "invoice",
+      "vat_default_basis": "accrual",
+      "reporting_context": {
+        "fi": {
+          "taxonomy": "fi-kpa",
+          "taxonomy_version": "2026-03",
           "income_statement_scheme": "by_nature",
           "language": "fi",
-          "prepared_under_pma": false,
           "presentation_currency": "EUR",
           "presentation_unit": "EUR",
+          "reporting_scope": "entity"
+        }
+      },
+      "reporting_profile": {
+        "fi_statutory": {
           "reporting_standard": "fi-kpa",
+          "language": "fi",
+          "income_statement_scheme": "by_nature",
+          "comparatives": true,
+          "presentation_currency": "EUR",
+          "presentation_unit": "EUR",
+          "prepared_under_pma": false,
           "signature": {}
         }
       },
-      "vat_default_basis": "accrual",
-      "vat_default_source": "invoice",
-      "vat_registered": true,
-      "vat_reporting_period": "monthly",
-      "vat_timing": "performance"
+      "id_generation": {
+        "types": {
+          "attachment_id": {
+            "strategy": "uuid"
+          },
+          "bank_import_id": {
+            "strategy": "uuid"
+          },
+          "bank_txn_id": {
+            "strategy": "template",
+            "template": "{import_id}-{row_index}"
+          },
+          "entry_id": {
+            "strategy": "template",
+            "template": "{transaction_id}-e{entry_sequence}"
+          },
+          "inventory_movement_id": {
+            "strategy": "uuid"
+          },
+          "invoice_id": {
+            "strategy": "uuid"
+          },
+          "invoice_number": {
+            "strategy": "sequence",
+            "template": "INV-{yyyy}-{inc}",
+            "scope": "yearly",
+            "ranges": [
+              {
+                "start": 1,
+                "end": 999999,
+                "width": 6
+              }
+            ]
+          },
+          "link_id": {
+            "strategy": "uuid"
+          },
+          "loan_event_id": {
+            "strategy": "template",
+            "template": "EV-{loan_id}-{yyyyMMdd}-{inc}",
+            "series": [
+              {
+                "name": "loan-default",
+                "match": {
+                  "module": "bus-loans"
+                },
+                "strategy": "sequence",
+                "template": "EV-{loan_id}-{yyyyMMdd}-{inc}",
+                "scope": "daily",
+                "ranges": [
+                  {
+                    "start": 1,
+                    "end": 9999,
+                    "width": 4
+                  }
+                ]
+              }
+            ]
+          },
+          "payment_id": {
+            "strategy": "uuid"
+          },
+          "payrun_id": {
+            "strategy": "uuid"
+          },
+          "transaction_id": {
+            "strategy": "uuid"
+          },
+          "voucher_id": {
+            "strategy": "sequence",
+            "template": "V-{yyyy}-{inc}",
+            "scope": "yearly",
+            "ranges": [
+              {
+                "start": 1,
+                "end": 999999,
+                "width": 6
+              }
+            ]
+          }
+        }
+      }
     }
   },
   "profile": "tabular-data-package",
   "resources": [
+    {
+      "name": "account-groups",
+      "path": "account-groups.csv",
+      "schema": {
+        "path": "account-groups.schema.json"
+      }
+    },
     {
       "name": "accounts",
       "path": "accounts.csv",
@@ -33,10 +133,120 @@
       }
     },
     {
-      "name": "report-account-mapping",
-      "path": "report-account-mapping.csv",
+      "name": "bank-imports",
+      "path": "bank-imports.csv",
       "schema": {
-        "path": "report-account-mapping.schema.json"
+        "path": "bank-imports.schema.json"
+      }
+    },
+    {
+      "name": "bank-transactions",
+      "path": "bank-transactions.csv",
+      "schema": {
+        "path": "bank-transactions.schema.json"
+      }
+    },
+    {
+      "name": "close_entries",
+      "path": "periods/2024-12/close_entries.csv",
+      "schema": {
+        "path": "periods/2024-12/close_entries.schema.json"
+      }
+    },
+    {
+      "name": "dimension-definitions",
+      "path": "dimension-definitions.csv",
+      "schema": {
+        "path": "dimension-definitions.schema.json"
+      }
+    },
+    {
+      "name": "dimension-values",
+      "path": "dimension-values.csv",
+      "schema": {
+        "path": "dimension-values.schema.json"
+      }
+    },
+    {
+      "name": "journals",
+      "path": "journals.csv",
+      "schema": {
+        "path": "journals.schema.json"
+      }
+    },
+    {
+      "_pcsv": {
+        "paddingField": "_pad",
+        "recordBytes": 512,
+        "version": "PCSV-1"
+      },
+      "name": "matches",
+      "path": "matches.csv",
+      "schema": {
+        "path": "matches.schema.json"
+      }
+    },
+    {
+      "name": "opening_balances",
+      "path": "periods/2024-12/opening_balances.csv",
+      "schema": {
+        "path": "periods/2024-12/opening_balances.schema.json"
+      }
+    },
+    {
+      "name": "periods",
+      "path": "periods.csv",
+      "schema": {
+        "path": "periods.schema.json"
+      }
+    },
+    {
+      "name": "purchase-invoice-lines",
+      "path": "purchase-invoice-lines.csv",
+      "schema": {
+        "path": "purchase-invoice-lines.schema.json"
+      }
+    },
+    {
+      "name": "purchase-invoices",
+      "path": "purchase-invoices.csv",
+      "schema": {
+        "path": "purchase-invoices.schema.json"
+      }
+    },
+    {
+      "name": "sales-invoice-lines",
+      "path": "sales-invoice-lines.csv",
+      "schema": {
+        "path": "sales-invoice-lines.schema.json"
+      }
+    },
+    {
+      "name": "sales-invoices",
+      "path": "sales-invoices.csv",
+      "schema": {
+        "path": "sales-invoices.schema.json"
+      }
+    },
+    {
+      "name": "vat-rates",
+      "path": "vat-rates.csv",
+      "schema": {
+        "path": "vat-rates.schema.json"
+      }
+    },
+    {
+      "name": "vat-reports",
+      "path": "vat-reports.csv",
+      "schema": {
+        "path": "vat-reports.schema.json"
+      }
+    },
+    {
+      "name": "vat-returns",
+      "path": "vat-returns.csv",
+      "schema": {
+        "path": "vat-returns.schema.json"
       }
     }
   ]

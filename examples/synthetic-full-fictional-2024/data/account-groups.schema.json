@@ -1,0 +1,17 @@
+{
+  "fields": [
+    { "name": "group_id", "type": "string", "constraints": { "required": true, "pattern": "^[A-Za-z0-9._-]+$" } },
+    { "name": "code", "type": "string", "constraints": { "required": true } },
+    { "name": "name", "type": "string", "constraints": { "required": true } },
+    { "name": "parent_group_id", "type": "string" },
+    { "name": "report_profiles", "type": "string" },
+    { "name": "notes", "type": "string" }
+  ],
+  "primaryKey": "group_id",
+  "foreignKeys": [
+    { "fields": "parent_group_id", "reference": { "resource": "", "fields": "group_id" } }
+  ],
+  "busdk": {
+    "update_policy": "in_place"
+  }
+}

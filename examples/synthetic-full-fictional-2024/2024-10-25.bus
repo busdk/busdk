@@ -1,0 +1,10 @@
+#!/usr/bin/env bus
+
+# 2024-10-25: Internal transfer between own bank accounts (OP -> Holvi)
+attachments add "../synthetic-evidence/transactions/bank-synth-b-021-2024-10-25.txt" --desc "Synthetic bank evidence synth-b-021"
+bank add --bank-id synth-b-021 --import-id synth-op-main-2024-10 --booked-date 2024-10-25 --value-date 2024-10-25 --amount -300.00 --currency EUR --counterparty-name "Own account transfer" --counterparty-iban FI1012345600000021 --reference 000300021 --message "Synthetic internal transfer to Holvi" --source-id bank_row:synth-b-021
+journal add --date 2024-10-25 --desc "Synthetic internal transfer out to Holvi" --debit 1998=300.00 --credit 1910=300.00 --source-id bank_row:synth-b-021:journal:1
+
+attachments add "../synthetic-evidence/transactions/bank-synth-b-022-2024-10-25.txt" --desc "Synthetic bank evidence synth-b-022"
+bank add --bank-id synth-b-022 --import-id synth-holvi-2024-10 --booked-date 2024-10-25 --value-date 2024-10-25 --amount 300.00 --currency EUR --counterparty-name "Own account transfer" --counterparty-iban FI1012345600000022 --reference 000300022 --message "Synthetic internal transfer from OP" --source-id bank_row:synth-b-022
+journal add --date 2024-10-25 --desc "Synthetic internal transfer in from OP" --debit 1911=300.00 --credit 1998=300.00 --source-id bank_row:synth-b-022:journal:1

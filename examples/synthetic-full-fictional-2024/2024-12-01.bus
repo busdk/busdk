@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-12-01: Monthly bank import markers
+bank import-log add --import-id synth-bank-2024-12 --source-path synthetic-bank-2024-12.csv --imported-at 2024-12-01T08:00:00Z
+bank import-log add --import-id synth-op-main-2024-12 --source-path synthetic-op-main-2024-12.csv --imported-at 2024-12-01T08:01:00Z
+bank import-log add --import-id synth-holvi-2024-12 --source-path synthetic-holvi-2024-12.csv --imported-at 2024-12-01T08:02:00Z
+bank import-log add --import-id synth-paypal-2024-12 --source-path synthetic-paypal-2024-12.csv --imported-at 2024-12-01T08:03:00Z

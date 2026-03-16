@@ -1,4 +1,4 @@
 TOTAL	2024-02	3570	0	3570	match:match-3:bank:synth-b-010:invoice:s9004:1
 RATE	2550	14000	3570	0	0	match:match-3:bank:synth-b-010:invoice:s9004:1
-COVERAGE	2024-02	0.4898	0.2500	2	matches.csv;sales-invoices.csv;sales-invoice-lines.csv;purchase-invoices.csv;purchase-invoice-lines.csv;bank-transactions.csv
+COVERAGE	2024-02	0.8071	0.2500	4	matches.csv;sales-invoices.csv;sales-invoice-lines.csv;purchase-invoices.csv;purchase-invoice-lines.csv;bank-transactions.csv;journal-2024.csv
 META	rounding_policy	half-away	

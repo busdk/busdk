@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-12-10: Business transfer invoice S-9010 (VAT 0%)
+attachments add "../synthetic-evidence/transactions/invoice-s9010-2024-12-10.txt" --desc "Synthetic invoice evidence S-9010"
+invoices add --type sales --invoice-id s9010 --number S-9010 --status sent --invoice-date 2024-12-10 --due-date 2024-12-24 --customer "Heusala Example Group Oy"
+invoices s9010 add --line-no 1 --desc "Business transfer agreement (hosting portfolio)" --quantity 1 --unit-price 10000.00 --vat-rate 0.0
+invoices s9010 validate

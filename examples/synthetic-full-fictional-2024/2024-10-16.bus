@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-10-16: Customer payment for S-9007
+attachments add "../synthetic-evidence/transactions/bank-synth-b-016-2024-10-16.txt" --desc "Synthetic bank evidence synth-b-016"
+bank add --bank-id synth-b-016 --import-id synth-bank-2024-10 --booked-date 2024-10-16 --value-date 2024-10-16 --amount 263.55 --currency EUR --counterparty-name "Meridian Compute Oy" --counterparty-iban FI1012345600000016 --reference 900700001 --message "Synthetic reference payment S-9007" --source-id bank_row:synth-b-016
+reconcile allocate --bank-id synth-b-016 --invoice s9007=263.55
+journal add --date 2024-10-16 --desc "Synthetic sales receipt S-9007" --debit 1910=263.55 --credit 3000=210.00 --credit 2931=53.55 --source-id bank_row:synth-b-016:journal:1

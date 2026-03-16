@@ -1,0 +1,5 @@
+#!/usr/bin/env bus
+
+# 2024-12-30: Year-end adjustment voucher before final close
+attachments add "../synthetic-evidence/transactions/adjustment-2024-12-30.txt" --desc "Synthetic year-end adjustment voucher evidence"
+journal add --date 2024-12-30 --desc "Synthetic year-end adjustment voucher" --debit 8564=1.00 --credit 1910=1.00 --source-id adjustment:2024-12-30:1

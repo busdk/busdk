@@ -1,7 +1,0 @@
-{
-  "fields": [
-    {"name": "period", "type": "string", "constraints": {"required": true}},
-    {"name": "path", "type": "string", "constraints": {"required": true}}
-  ],
-  "primaryKey": ["period"]
-}

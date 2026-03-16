@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-08-19: Payment of P-9106
+attachments add "../synthetic-evidence/transactions/bank-synth-b-015-2024-08-19.txt" --desc "Synthetic bank evidence synth-b-015"
+bank add --bank-id synth-b-015 --import-id synth-bank-2024-08 --booked-date 2024-08-19 --value-date 2024-08-19 --amount -80.32 --currency EUR --counterparty-name "Driftline Data Oy" --counterparty-iban FI1012345600000015 --reference 910600001 --message "Synthetic purchase payment P-9106" --source-id bank_row:synth-b-015
+reconcile allocate --bank-id synth-b-015 --invoice p9106=80.32
+journal add --date 2024-08-19 --desc "Synthetic purchase payment P-9106" --debit 4000=64.00 --debit 1763=16.32 --credit 1910=80.32 --source-id bank_row:synth-b-015:journal:1

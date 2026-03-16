@@ -1,0 +1,7 @@
+#!/usr/bin/env bus
+
+# 2024-07-22: Customer payment for S-9006
+attachments add "../synthetic-evidence/transactions/bank-synth-b-014-2024-07-22.txt" --desc "Synthetic bank evidence synth-b-014"
+bank add --bank-id synth-b-014 --import-id synth-bank-2024-07 --booked-date 2024-07-22 --value-date 2024-07-22 --amount 225.90 --currency EUR --counterparty-name "Summit Forge Oy" --counterparty-iban FI1012345600000014 --reference 900600001 --message "Synthetic reference payment S-9006" --source-id bank_row:synth-b-014
+reconcile allocate --bank-id synth-b-014 --invoice s9006=225.90
+journal add --date 2024-07-22 --desc "Synthetic sales receipt S-9006" --debit 1910=225.90 --credit 3000=180.00 --credit 2931=45.90 --source-id bank_row:synth-b-014:journal:1

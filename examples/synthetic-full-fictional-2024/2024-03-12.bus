@@ -1,0 +1,11 @@
+#!/usr/bin/env bus
+
+# 2024-03-12: File VAT for period 2024-02
+vat -f tsv -o "vat-report-2024-02.tsv" report --source reconcile --basis cash --force-partial-coverage --period 2024-02
+attachments add "../synthetic-evidence/vat-application-2024-02.txt" --desc "Synthetic Verohallinto VAT application evidence 2024-02"
+
+# 2024-03-12: Customer payment for S-9002
+attachments add "../synthetic-evidence/transactions/bank-synth-b-003-2024-03-12.txt" --desc "Synthetic bank evidence synth-b-003"
+bank add --bank-id synth-b-003 --import-id synth-bank-2024-03 --booked-date 2024-03-12 --value-date 2024-03-12 --amount 313.75 --currency EUR --counterparty-name "Aurora Fabrication Oy" --counterparty-iban FI1012345600000003 --reference 900200001 --message "Synthetic reference payment S-9002" --source-id bank_row:synth-b-003
+reconcile allocate --bank-id synth-b-003 --invoice s9002=313.75
+journal add --date 2024-03-12 --desc "Synthetic sales receipt S-9002" --debit 1910=313.75 --credit 3000=250.00 --credit 2931=63.75 --source-id bank_row:synth-b-003:journal:1
