@@ -6,7 +6,7 @@ Privacy rule for request write-ups:
 - Keep examples/repro snippets sanitized (no real customer names/emails/IBANs/account numbers/invoice numbers/local paths).
 - Prefer placeholders and aggregated outputs over raw customer-linked row dumps.
 
-Last reviewed: 2026-03-16.
+Last reviewed: 2026-03-17.
 
 Goal note:
 - Target workflow is Bus-only for bookkeeping/audit operations.
@@ -117,3 +117,23 @@ Active requests:
    - Why this matters:
      - `.bus` files are a first-class BusDK source format, so users need editor support that scales beyond a basic local extension artifact.
      - consistent parser-backed and semantic tooling improves authoring quality, discoverability, and long-term maintainability for BusDK command files.
+
+5. Expand `bus-inspection` from a lightweight local inspection portal into the versioned reporting and action-list demo described in the 2026-03-17 inspection SDD.
+   - Status update 2026-03-17:
+     - `bus-inspection` already provides the local `bus-portal`-style chassis: token-gated local server, embedded WASM UI, seeded admin/manager/customer roles, site-scoped visibility, inspection round entry, observations with photos, customer acknowledgement, and basic admin CRUD.
+     - the remaining gap is the new SDD delta: versioned report packages/configs, richer site dossier and section data, previous-inspection comparison, category `0` through `6` action-list handling, snapshot exports, at least one DOCX export, AI-assisted config publication flow, and broader audit/security coverage.
+   - Current limitation:
+     - the current demo still uses a simpler state model and does not yet model report packages, config versions, site-profile sections, observation event history, export snapshots, or AI config requests/suggestions.
+     - inspection data entry is lighter than the SDD target and does not yet cover at least three configurable report sections with previous-inspection comparison.
+     - export and audit behavior is not yet at SDD parity, especially for action-list PDF output with inline images and a deliverable DOCX path.
+   - Requested behavior:
+     - keep `bus-inspection` on its deterministic local demo chassis, but extend it so the module can demonstrate the updated käytönjohtaja reporting flow end-to-end.
+     - support admin-managed customers, sites, contacts, access, and report packages; manager inspection rounds with dossier plus section data; a rolling observation register in classes `0` through `6`; customer acknowledgements; snapshot-based PDF exports for both report types; DOCX export for at least one document; and an AI-assisted config request/diff/approve/publish flow for authorized users.
+     - ensure new config versions apply only to new inspections while historical inspection/export data stays pinned to the earlier version.
+     - keep heavy reuse of `bus-ui` and demo-safe local storage/file handling rather than introducing remote services into this module.
+   - Verification and documentation constraints:
+     - land the work with module README updates plus matching end-user and SDD documentation in the same change set.
+     - add unit coverage, module e2e coverage, and negative access-control/export tests for all user-visible behavior changes.
+   - Why this matters:
+     - the current demo proves the chassis, but the updated SDD is for a materially richer customer demo centered on report-shaped field work, versioned configuration, and deliverable documents.
+     - planning and implementation need to target that expanded demo scope without abandoning the module's deterministic local-runtime contract.
