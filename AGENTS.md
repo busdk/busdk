@@ -268,6 +268,9 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 - `PLAN.md` checkboxes must be executable in one end-to-end implementation pass: implementation + tests + docs in the same item.
 - If work naturally must be done together in one pass, model it as one checklist item (do not split coupled work into multiple checkboxes).
 - When users provide durable workflow preferences (for example planning granularity/process constraints), record them in the most relevant `AGENTS.md` in the same session.
+- When adding or refining a module `PLAN.md` for a new user-requested feature, also add or update the corresponding canonical entry in `FEATURE_REQUESTS.md` in the same turn unless the user explicitly says not to.
+- Any unchecked feature-oriented item in a module plan (including `bus/PLAN.md` and `bus-*/PLAN.md`) must have a corresponding mention in `FEATURE_REQUESTS.md`; when auditing or adding plan items, fix missing canonical mentions in the same turn.
+- In this repository, do not estimate calendar time, engineer-days, or duration as the default planning output. When users ask how big a job is, answer with scope, dependencies, risks, sequencing, and optional phase breakdowns instead of time forecasts unless the user explicitly requires a time estimate.
 - Always treat active `BUGS.md` work as higher priority than `PLAN.md` or feature work: verify and fix unresolved bugs before continuing open plan items unless the user explicitly reprioritizes.
 - When the user sets the DoD for plan execution to leaving no plan work undone, continue consuming relevant open `PLAN.md` items sequentially and do not report the plan effort complete while those open items remain.
 - Whenever a `FIXME(refactor)` comment is added in code, add/update a corresponding `PLAN.md` item that references the owning file path in the same change set.

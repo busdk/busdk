@@ -1,0 +1,12 @@
+services:
+  bus-portal:
+    build:
+      context: ../..
+      dockerfile: bus-portal/Dockerfile
+    image: bus-portal
+    environment:
+      BUS_PORTAL_TOKEN: synthetic-2024
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/workspace

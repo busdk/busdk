@@ -78,3 +78,42 @@ Active requests:
      - a small bootstrap installer reduces Windows installation friction and avoids bundling the full toolchain when only a few modules are needed initially.
      - turning `bus-update` into the package manager preserves the BusDK module boundary: `bus` stays minimal while package-management behavior has a clear owning module.
      - a stable per-module HTTPS package contract enables future automation, selective installs, and predictable upgrade tooling across Windows and other platforms.
+
+3. Add a working Docker image for `bus-portal`.
+   - Status update 2026-03-16:
+     - `bus-portal` currently documents local execution and has no documented or checked-in runtime Docker image contract.
+     - the module already depends at runtime on `bus-attachments` for upload handling and `bus-reports` for evidence-pack generation, so a useful image must account for those helper binaries rather than packaging `bus-portal` alone.
+   - Current limitation:
+     - there is no supported container image that starts the customer portal against a mounted workspace and prints a usable URL for opening the app.
+     - the current local default behavior is oriented around app-style local shell startup, which is not appropriate inside a normal Docker container.
+     - there is no documented container contract covering workspace mount path, exposed port, writable output paths under `.bus/`, or helper-binary availability.
+   - Requested behavior:
+     - ship a working Docker image for `bus-portal` that starts the server on a container-safe listen address, prints the token-gated URL to stdout, and does not attempt GUI/webview startup inside the container.
+     - support a mounted workspace so the running portal can read workspace metadata, store uploaded files through `bus-attachments`, and persist evidence-pack state and artifacts under `.bus/bus-portal/...`.
+     - bundle or otherwise provide the runtime helper binaries required for the current portal behavior, at minimum `bus-attachments` and `bus-reports`, so upload and `Aloita` evidence-pack flows work inside the image.
+     - document a stable `docker run` operator contract covering volume mount, port mapping, startup output, and any required environment variables.
+   - Verification and quality constraints:
+     - add deterministic container-oriented verification that the image starts successfully, prints the URL, serves the landing page, accepts uploads, runs evidence-pack generation, and exposes generated artifacts from the mounted workspace.
+     - keep the image behavior script-friendly and suitable for local/container deployment without relying on host GUI integration.
+   - Why this matters:
+     - a documented working image makes the customer portal easier to run in repeatable local and server environments than the current source-first local setup.
+     - the portal is only truly useful in a container when the mounted-workspace upload and evidence-pack flows work end-to-end, not just when the HTTP server starts.
+
+4. Add first-class editor tooling and distribution for `.bus` source files.
+   - Status update 2026-03-16:
+     - the repository already ships a VS Code-compatible `.bus` language package, but the remaining active work is broader distribution and deeper editor tooling rather than basic syntax-highlighting existence.
+     - the currently unchecked follow-up work is concentrated in the `bus` module plan and covers distribution, parser-backed highlighting, and semantic editor support.
+   - Current limitation:
+     - the current `.vsix` distribution story is not yet fully automated/documented across the intended editor/package surfaces.
+     - there is no Tree-sitter grammar/query layer yet for parser-backed highlighting in editors such as Neovim/Emacs.
+     - there is no semantic-token/LSP support for `.bus`, so editor integrations remain limited to lexical highlighting.
+   - Requested behavior:
+     - complete maintainer-ready distribution coverage for the shipped VS Code-compatible `.bus` extension, with clear release surfaces and install guidance for VS Code/Cursor/VSCodium-style editors.
+     - add a parser-backed `.bus` highlighting layer with Tree-sitter grammar and highlight queries derived from the BusDK busfile syntax contract.
+     - add semantic-token/LSP support for `.bus` after the parser-backed layer stabilizes so commands, flags, assignments, strings, dates, and numbers can be surfaced through standard editor token classes.
+   - Verification and documentation constraints:
+     - each editor-tooling increment must land with deterministic tests, packaged/distribution verification as appropriate, and updated README/docs/SDD wording in the same change.
+     - editor-support work should preserve the existing module boundary: `bus` owns `.bus` source-format tooling and distribution for that format.
+   - Why this matters:
+     - `.bus` files are a first-class BusDK source format, so users need editor support that scales beyond a basic local extension artifact.
+     - consistent parser-backed and semantic tooling improves authoring quality, discoverability, and long-term maintainability for BusDK command files.
