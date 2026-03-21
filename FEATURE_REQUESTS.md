@@ -6,7 +6,7 @@ Privacy rule for request write-ups:
 - Keep examples/repro snippets sanitized (no real customer names/emails/IBANs/account numbers/invoice numbers/local paths).
 - Prefer placeholders and aggregated outputs over raw customer-linked row dumps.
 
-Last reviewed: 2026-03-17.
+Last reviewed: 2026-03-21.
 
 Goal note:
 - Target workflow is Bus-only for bookkeeping/audit operations.
@@ -97,3 +97,36 @@ Active requests:
    - Why this matters:
      - `.bus` files are a first-class BusDK source format, so users need editor support that scales beyond a basic local extension artifact.
      - consistent parser-backed and semantic tooling improves authoring quality, discoverability, and long-term maintainability for BusDK command files.
+
+4. Add optional PostgreSQL-backed workspace storage to `bus-data`.
+   - Current limitation:
+     - `bus-data` currently persists workspace rows only as filesystem-backed CSV or `PCSV-1` tables.
+     - schema evolution commands such as `schema init`, `schema field add`, and row mutation operate only on file-backed table storage.
+     - there is no first-class way to keep the same logical BusDK table/schema contract while storing row data in SQL tables.
+   - Requested behavior:
+     - allow a workspace to opt into PostgreSQL storage through `datapackage.json` metadata without changing the default CSV behavior for existing workspaces.
+     - keep `datapackage.json` and beside-the-table `*.schema.json` files on disk, but store row data in PostgreSQL tables so the existing bus-data schema and row commands keep working against the selected backend.
+     - make schema evolution easy and deterministic, including adding columns and rewriting logical tables without manual SQL migrations for ordinary bus-data operations.
+     - preserve the same logical table-path contract (`items.csv`, `items.schema.json`) for CLI behavior, package discovery, and validation even when no physical CSV file exists.
+     - keep connection secrets out of `datapackage.json` by resolving the PostgreSQL DSN from an environment variable named in metadata.
+   - Constraints and verification:
+   - PostgreSQL support must be an optional storage backend, not a mandatory dependency for all workspaces.
+   - deterministic row ordering, export/read behavior, and resource rename/remove semantics must match the existing logical bus-data contract.
+   - unsupported combinations such as filesystem-only `PCSV-1` plus PostgreSQL should be rejected explicitly until a combined design is specified.
+   - verification must include automated tests against a real PostgreSQL instance running in Docker, not only mocks or pure unit tests.
+
+5. Add `bus-gateway` as the local authentication and module-entry layer for BusDK browser modules.
+   - Current limitation:
+     - BusDK has browser-facing modules such as `bus-ledger`, `bus-portal`, and `bus-inspection`, but there is no dedicated shared module that owns login, session handling, module access policy, startup orchestration, and authenticated reverse-proxy routing across those modules.
+     - `bus-inspection` already contains local-first login/session/bootstrap account code, but that logic is inspection-specific today and cannot act as the shared gateway boundary for other modules.
+     - there is no canonical workspace-local model yet for which user may access which downstream `bus-*` module.
+   - Requested behavior:
+     - add a new module `bus-gateway` that becomes the authentication and entry layer in front of authenticated browser-facing BusDK modules.
+     - keep the initial design local-first and deterministic: workspace-local users, grants, sessions, and module registry state under `.bus/bus-gateway/`, with no mandatory external identity provider or database dependency.
+     - move generic auth/session/bootstrap-account logic out of `bus-inspection` into `bus-gateway` once the shared contract is stable enough to reuse across modules.
+     - let the gateway own which users may access which modules through workspace-local service catalog rows plus per-user available-service settings, and start allowed modules and proxy browser/API requests to them.
+   - Constraints and verification:
+     - the gateway must remain optional module-specific infrastructure, not an excuse to pull downstream business logic into the gateway itself.
+     - the post-login gateway UI must let the user choose among the currently available tools, and admin users must be able to configure the service catalog plus per-user visible services from gateway-owned settings.
+     - new gateway behavior must land with unit tests, module e2e coverage, and updated README plus matching public docs and SDD pages in the same change set.
+     - extraction from `bus-inspection` must preserve the printed bootstrap-credential contract and the real login flow through automated regression coverage.

@@ -202,3 +202,7 @@
 	path = bus-inspection
 	url = git@github.com:busdk/bus-inspection.git
 	branch = 1-bus-inspection
+[submodule "bus-gateway"]
+	path = bus-gateway
+	url = git@github.com:busdk/bus-gateway.git
+	branch = main
