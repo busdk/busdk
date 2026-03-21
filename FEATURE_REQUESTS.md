@@ -128,6 +128,6 @@ Active requests:
    - Constraints and verification:
      - the gateway must remain optional module-specific infrastructure, not an excuse to pull downstream business logic into the gateway itself.
      - the post-login gateway UI must let the user choose among the currently available tools, and admin users must be able to configure the service catalog plus per-user visible services from gateway-owned settings.
-     - the same user and service configuration model must also be manageable from non-interactive CLI commands so gateway administration can be scripted.
+     - the same user and service configuration model must also be manageable from non-interactive CLI commands with full CRUD-style control so gateway administration can be scripted completely.
      - new gateway behavior must land with unit tests, module e2e coverage, and updated README plus matching public docs and SDD pages in the same change set.
      - extraction from `bus-inspection` must preserve the printed bootstrap-credential contract and the real login flow through automated regression coverage.
