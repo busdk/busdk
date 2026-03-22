@@ -123,11 +123,13 @@ Active requests:
    - Requested behavior:
      - add a new module `bus-gateway` that becomes the authentication and entry layer in front of authenticated browser-facing BusDK modules.
      - keep the initial design local-first and deterministic: workspace-local users, grants, sessions, and module registry state under `.bus/bus-gateway/`, with no mandatory external identity provider or database dependency.
+     - persist the canonical gateway configuration model through the shared `bus-data` storage system so the same gateway-owned schemas and logical tables work on ordinary CSV-backed workspaces and on optional PostgreSQL-backed workspaces.
      - move generic auth/session/bootstrap-account logic out of `bus-inspection` into `bus-gateway` once the shared contract is stable enough to reuse across modules.
      - let the gateway own which users may access which modules through workspace-local service catalog rows plus per-user available-service settings, and start allowed modules and proxy browser/API requests to them.
    - Constraints and verification:
      - the gateway must remain optional module-specific infrastructure, not an excuse to pull downstream business logic into the gateway itself.
      - the post-login gateway UI must let the user choose among the currently available tools, and admin users must be able to configure the service catalog plus per-user visible services from gateway-owned settings.
      - the same user and service configuration model must also be manageable from non-interactive CLI commands with full CRUD-style control so gateway administration can be scripted completely.
+     - gateway-owned state must not fork into a private storage format that bypasses workspace storage selection; if the workspace selects PostgreSQL through `bus-data`, gateway configuration must use that backend too.
      - new gateway behavior must land with unit tests, module e2e coverage, and updated README plus matching public docs and SDD pages in the same change set.
      - extraction from `bus-inspection` must preserve the printed bootstrap-credential contract and the real login flow through automated regression coverage.
