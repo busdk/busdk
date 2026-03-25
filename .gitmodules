@@ -206,3 +206,8 @@
 	path = bus-gateway
 	url = git@github.com:busdk/bus-gateway.git
 	branch = main
+[submodule "aiz"]
+	path = aiz
+	url = git@github.com:busdk/aiz.git
+	branch = develop
+

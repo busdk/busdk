@@ -18,7 +18,7 @@ PREFIX ?= $(HOME_DIR)/.local
 BINDIR ?= $(PREFIX)/bin
 INSTALL ?= install
 
-MODULE_DIRS := $(sort $(foreach d,$(wildcard bus bus-*),$(if $(wildcard $(d)/Makefile),$(d),)))
+MODULE_DIRS := $(sort $(foreach d,$(wildcard bus aiz bus-*),$(if $(wildcard $(d)/Makefile),$(d),)))
 SKIP_MODULES ?=
 COMMA := ,
 SKIP_PATTERNS := $(strip $(subst $(COMMA), ,$(SKIP_MODULES)))
