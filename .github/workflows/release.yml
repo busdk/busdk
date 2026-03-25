@@ -99,7 +99,7 @@ jobs:
           import sys
           
           dest = pathlib.Path(sys.argv[1])
-          patterns = ["bin/*", "bus*/bin/*"]
+          patterns = ["bin/*", "aiz/bin/*", "bus*/bin/*"]
           copied = 0
           for pattern in patterns:
               for src in sorted(glob.glob(pattern)):
@@ -110,7 +110,7 @@ jobs:
                   copied += 1
           
           if copied == 0:
-              raise SystemExit("no binaries found under bin/* or bus*/bin/* after make build")
+              raise SystemExit("no binaries found under bin/*, aiz/bin/*, or bus*/bin/* after make build")
           PY
           if [ "$OS" = "Windows" ]; then
             SUFFIX="zip"
@@ -227,7 +227,7 @@ jobs:
           TARGET_DIR="${DESTDIR}${BINDIR}"
           
           if [ "$MODE" = "uninstall" ]; then
-            rm -f "$TARGET_DIR/bus" "$TARGET_DIR"/bus-*
+            rm -f "$TARGET_DIR/bus" "$TARGET_DIR"/bus-* "$TARGET_DIR/aiz" "$TARGET_DIR/unaiz" "$TARGET_DIR"/aiz-*
             echo "Removed BusDK binaries from $TARGET_DIR"
             exit 0
           fi
@@ -267,11 +267,13 @@ jobs:
             curl -fsSL -o "$TMP_DIR/$ARTIFACT" "$URL"
           fi
           
-          tar -xzf "$TMP_DIR/$ARTIFACT" -C "$TMP_DIR"
+          PAYLOAD_DIR="$TMP_DIR/payload"
+          mkdir -p "$PAYLOAD_DIR"
+          tar -xzf "$TMP_DIR/$ARTIFACT" -C "$PAYLOAD_DIR"
           
           mkdir -p "$TARGET_DIR"
           
-          for bin in "$TMP_DIR"/bus*; do
+          for bin in "$PAYLOAD_DIR"/*; do
             if [ -f "$bin" ]; then
               install -m 0755 "$bin" "$TARGET_DIR/"
             fi
@@ -411,7 +413,7 @@ jobs:
 
           \`\`\`sh
           tar -xzf busdk-${VERSION}-<os>-<arch>.tar.gz
-          install -m 0755 bus* /usr/local/bin/
+          install -m 0755 bus* aiz* unaiz /usr/local/bin/
           \`\`\`
 
           Windows package format:
@@ -425,6 +427,8 @@ jobs:
           \`\`\`sh
           bus --help
           bus-journal --help
+          aiz --help
+          unaiz --help
           \`\`\`
 
           Verify downloads:
