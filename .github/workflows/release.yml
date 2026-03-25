@@ -113,7 +113,8 @@ jobs:
               raise SystemExit("no binaries found under bin/* or bus*/bin/* after make build")
           PY
           if [ "$OS" = "Windows" ]; then
-            ARTIFACT="busdk-${VERSION}-${OS}-${ARCH}.zip"
+            SUFFIX="zip"
+            ARTIFACT="busdk-${VERSION}-${OS}-${ARCH}.${SUFFIX}"
             python - "$ARTIFACT" "$DIST_BIN" <<'PY'
           import os
           import sys
@@ -129,7 +130,8 @@ jobs:
                       zf.write(path, arcname)
           PY
           else
-            ARTIFACT="busdk-${VERSION}-${OS}-${ARCH}.tar.gz"
+            SUFFIX="tar.gz"
+            ARTIFACT="busdk-${VERSION}-${OS}-${ARCH}.${SUFFIX}"
             tar -czf "$ARTIFACT" -C "$DIST_BIN" .
           fi
           python - "$ARTIFACT" <<'PY'
@@ -141,6 +143,24 @@ jobs:
           digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
           pathlib.Path(str(artifact) + ".sha256").write_text(f"{digest}  {artifact.name}\n")
           PY
+          case "$ARCH" in
+            amd64) RELEASE_ARCH_ALIASES="x86_64" ;;
+            arm64) RELEASE_ARCH_ALIASES="aarch64" ;;
+            *) RELEASE_ARCH_ALIASES="" ;;
+          esac
+          for ALIAS_ARCH in $RELEASE_ARCH_ALIASES; do
+            ALIAS_ARTIFACT="busdk-${VERSION}-${OS}-${ALIAS_ARCH}.${SUFFIX}"
+            cp "$ARTIFACT" "$ALIAS_ARTIFACT"
+            python - "$ALIAS_ARTIFACT" <<'PY'
+          import hashlib
+          import pathlib
+          import sys
+
+          artifact = pathlib.Path(sys.argv[1])
+          digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+          pathlib.Path(str(artifact) + ".sha256").write_text(f"{digest}  {artifact.name}\n")
+          PY
+          done
 
       - name: Generate install script
         run: |
@@ -227,6 +247,12 @@ jobs:
             Linux) OS="Linux" ;;
             Darwin) OS="macOS" ;;
             *) echo "unsupported OS: $OS" >&2; exit 1 ;;
+          esac
+
+          case "$ARCH" in
+            x86_64|amd64) ARCH="amd64" ;;
+            aarch64|arm64) ARCH="arm64" ;;
+            *) echo "unsupported architecture: $ARCH" >&2; exit 1 ;;
           esac
           
           ARTIFACT="busdk-${VERSION}-${OS}-${ARCH}.tar.gz"
