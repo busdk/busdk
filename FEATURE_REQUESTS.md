@@ -116,6 +116,9 @@ Active requests:
    - verification must include automated tests against a real PostgreSQL instance running in Docker, not only mocks or pure unit tests.
 
 5. Add `bus-gateway` as the local authentication and module-entry layer for BusDK browser modules.
+   - Status update 2026-03-25:
+     - `bus-gateway` now ships a runnable runtime container image, a separate `Dockerfile.test` path for the standard `make test-docker` surface, and a checked-in Docker Compose example that brings up `bus-gateway` with PostgreSQL-backed workspace storage.
+     - the compose example uses the same shared `bus-data` PostgreSQL contract as the local module e2e flow, so gateway-owned schemas remain on the workspace volume while gateway rows live in PostgreSQL tables.
    - Current limitation:
      - BusDK has browser-facing modules such as `bus-ledger`, `bus-portal`, and `bus-inspection`, but there is no dedicated shared module that owns login, session handling, module access policy, startup orchestration, and authenticated reverse-proxy routing across those modules.
      - `bus-inspection` already contains local-first login/session/bootstrap account code, but that logic is inspection-specific today and cannot act as the shared gateway boundary for other modules.

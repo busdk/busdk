@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: busgateway
+      POSTGRES_USER: busgateway
+      POSTGRES_PASSWORD: busgateway
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U busgateway -d busgateway"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  bus-gateway:
+    build:
+      context: ../..
+      dockerfile: bus-gateway/Dockerfile
+    image: bus-gateway
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      BUS_GATEWAY_TOKEN: gateway-postgres
+      BUS_GATEWAY_STORAGE_BACKEND: postgresql
+      BUS_GATEWAY_POSTGRES_SCHEMA: bus_gateway
+      BUS_DATA_POSTGRES_DSN: postgres://busgateway:busgateway@postgres:5432/busgateway?sslmode=disable
+    ports:
+      - "8080:8080"
+    volumes:
+      - gateway-workspace:/workspace
+
+volumes:
+  gateway-workspace:
+  postgres-data:
