@@ -167,6 +167,27 @@ make status
 make build
 ```
 
+- **Run tests for changed modules only** (default for root `test` and `e2e`):
+
+```bash
+make test
+make e2e
+```
+
+- **Force a full sweep across all modules**:
+
+```bash
+make test TEST_SCOPE=all
+make e2e TEST_SCOPE=all
+```
+
+- **Manually choose the module subset**:
+
+```bash
+make test CHANGED_MODULES="bus-reports bus-bank"
+make e2e CHANGED_MODULES="bus-reports bus-bank"
+```
+
 - **Skip selected modules** (space-separated shell globs):
 
 ```bash
@@ -206,10 +227,16 @@ make distclean
 - `BIN_DIR`: local build output directory (default: `bin`)
 - `GO`: Go tool to use (default: `go`)
 - `SKIP_MODULES`: space-separated module names or shell globs to skip in root targets (default skips `bus-filing`, `bus-filing-prh`, `bus-filing-vero`)
+- `TEST_SCOPE`: `changed` (default) or `all` for root `make test` / `make e2e`
+- `CHANGED_MODULES`: explicit whitespace-separated module list overriding auto-detected changed modules for root `make test` / `make e2e`
 
 ## Tests
 
-The root repository has no test suite. Run tests in individual modules as needed, for example:
+The root repository provides orchestration checks plus changed-module runners.
+By default, `make test` and `make e2e` only run modules that Git currently
+shows as changed. Use `TEST_SCOPE=all` when you explicitly want a full
+cross-module sweep. You can still run an individual module directly, for
+example:
 
 ```bash
 make -C bus-journal test

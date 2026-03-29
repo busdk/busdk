@@ -205,9 +205,20 @@
 [submodule "bus-gateway"]
 	path = bus-gateway
 	url = git@github.com:busdk/bus-gateway.git
-	branch = main
+	branch = 1-bus-gateway
 [submodule "aiz"]
 	path = aiz
 	url = git@github.com:busdk/aiz.git
 	branch = develop
-
+[submodule "bus-customers"]
+	path = bus-customers
+	url = git@github.com:busdk/bus-customers.git
+	branch = 1-bus-customers
+[submodule "bus-vendors"]
+	path = bus-vendors
+	url = git@github.com:busdk/bus-vendors.git
+	branch = 1-bus-vendors
+[submodule "bus-memo"]
+	path = bus-memo
+	url = git@github.com:busdk/bus-memo.git
+	branch = 1-bus-memo

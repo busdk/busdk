@@ -20,11 +20,14 @@ INSTALL ?= install
 
 MODULE_DIRS := $(sort $(foreach d,$(wildcard bus aiz bus-*),$(if $(wildcard $(d)/Makefile),$(d),)))
 SKIP_MODULES ?=
+TEST_SCOPE ?= changed
+CHANGED_MODULES ?=
+ROOT_SELFTEST ?= 1
 COMMA := ,
 SKIP_PATTERNS := $(strip $(subst $(COMMA), ,$(SKIP_MODULES)))
 MODULE_MAKE_VARS := BIN_DIR="$(abspath $(BIN_DIR))" PREFIX="$(PREFIX)" BINDIR="$(BINDIR)" GO="$(GO)" GOFLAGS="$(GOFLAGS)" CGO_ENABLED="$(CGO_ENABLED)" BUILD_STATIC="$(BUILD_STATIC)"
 
-.PHONY: help init update upgrade status bootstrap test e2e build install clean distclean audit-cli-reachability audit-cli-reachability-full tidy tidy-mods
+.PHONY: help init update upgrade status bootstrap test e2e build install clean distclean audit-cli-reachability audit-cli-reachability-full tidy tidy-mods superproject-selftest print-test-modules print-e2e-modules
 
 help:
 	@printf "BusDK superproject\n\n"
@@ -53,10 +56,14 @@ help:
 	@printf "  PREFIX=%s\n" "$(PREFIX)"
 	@printf "  BINDIR=%s\n\n" "$(BINDIR)"
 	@printf "  SKIP_MODULES=%s\n\n" "$(SKIP_MODULES)"
+	@printf "  TEST_SCOPE=%s\n" "$(TEST_SCOPE)"
+	@printf "  CHANGED_MODULES=%s\n\n" "$(CHANGED_MODULES)"
 	@printf "Example:\n"
 	@printf "  make bootstrap\n"
 	@printf "  make bootstrap PREFIX=/opt/busdk\n"
 	@printf "  make bootstrap PREFIX=/c/busdk BINDIR=/c/busdk/bin\n"
+	@printf "  make test TEST_SCOPE=all\n"
+	@printf "  make e2e CHANGED_MODULES='bus-reports bus-bank'\n"
 
 init:
 	git submodule update --init --recursive
@@ -74,9 +81,96 @@ status:
 
 bootstrap: init build install
 
+superproject-selftest:
+	@bash ./tests/superproject/test_changed_scope.sh
+
+print-test-modules:
+	@set -eu; \
+	scope="$(TEST_SCOPE)"; \
+	case "$$scope" in \
+		all|changed) ;; \
+		*) printf "invalid TEST_SCOPE: %s\n" "$$scope" >&2; exit 2;; \
+	esac; \
+	changed_modules="$(CHANGED_MODULES)"; \
+	if [ "$$scope" = "changed" ] && [ -z "$$changed_modules" ]; then \
+		changed_modules="$$(git status --porcelain --ignore-submodules=none | awk '\
+			{ \
+				path = substr($$0, 4); \
+				sub(/^[[:space:]]+/, "", path); \
+				if (index(path, " -> ") > 0) path = substr(path, index(path, " -> ") + 4); \
+				if (path ~ /^aiz(\/|$$)/) print "aiz"; \
+				else if (path ~ /^bus(\/|$$)/) print "bus"; \
+				else if (path ~ /^bus-[^/]+(\/|$$)/) { split(path, parts, "/"); print parts[1]; } \
+			} \
+		' | awk '!seen[$$0]++')"; \
+	fi; \
+	for mod in $(MODULE_DIRS); do \
+		selected=1; \
+		if [ "$$scope" = "changed" ]; then \
+			selected=0; \
+			for chosen in $$changed_modules; do \
+				if [ "$$mod" = "$$chosen" ]; then selected=1; break; fi; \
+			done; \
+		fi; \
+		if [ "$$selected" -ne 1 ]; then \
+			continue; \
+		fi; \
+		skip=0; \
+		for pat in $(SKIP_PATTERNS); do \
+			case "$$mod" in $$pat) skip=1;; esac; \
+		done; \
+		if [ "$$skip" -eq 1 ]; then \
+			continue; \
+		fi; \
+		if [ -f "$$mod/Makefile" ]; then \
+			printf "%s\n" "$$mod"; \
+		fi; \
+	done
+
+print-e2e-modules:
+	@set -eu; \
+	for mod in $$("$(MAKE)" -s print-test-modules TEST_SCOPE="$(TEST_SCOPE)" CHANGED_MODULES="$(CHANGED_MODULES)" SKIP_MODULES="$(SKIP_MODULES)"); do \
+		if ! "$(MAKE)" -C "$$mod" -n e2e >/dev/null 2>&1; then \
+			continue; \
+		fi; \
+		printf "%s\n" "$$mod"; \
+	done
+
 test:
 	@set -eu; \
+	if [ "$(ROOT_SELFTEST)" = "1" ]; then \
+		"$(MAKE)" superproject-selftest; \
+	fi; \
+	scope="$(TEST_SCOPE)"; \
+	case "$$scope" in \
+		all|changed) ;; \
+		*) printf "invalid TEST_SCOPE: %s\n" "$$scope" >&2; exit 2;; \
+	esac; \
+	changed_modules="$(CHANGED_MODULES)"; \
+	if [ "$$scope" = "changed" ] && [ -z "$$changed_modules" ]; then \
+		changed_modules="$$(git status --porcelain --ignore-submodules=none | awk '\
+			{ \
+				path = substr($$0, 4); \
+				sub(/^[[:space:]]+/, "", path); \
+				if (index(path, " -> ") > 0) path = substr(path, index(path, " -> ") + 4); \
+				if (path ~ /^aiz(\/|$$)/) print "aiz"; \
+				else if (path ~ /^bus(\/|$$)/) print "bus"; \
+				else if (path ~ /^bus-[^/]+(\/|$$)/) { split(path, parts, "/"); print parts[1]; } \
+			} \
+		' | awk '!seen[$$0]++')"; \
+	fi; \
+	ran=0; \
 	for mod in $(MODULE_DIRS); do \
+		selected=1; \
+		if [ "$$scope" = "changed" ]; then \
+			selected=0; \
+			for chosen in $$changed_modules; do \
+				if [ "$$mod" = "$$chosen" ]; then selected=1; break; fi; \
+			done; \
+		fi; \
+		if [ "$$selected" -ne 1 ]; then \
+			continue; \
+		fi; \
 		skip=0; \
 		for pat in $(SKIP_PATTERNS); do \
 			case "$$mod" in $$pat) skip=1;; esac; \
@@ -88,13 +182,47 @@ test:
 		if [ -f "$$mod/Makefile" ]; then \
 			printf "==> %s\n" "$$mod"; \
 			"$(MAKE)" -C "$$mod" test $(MODULE_MAKE_VARS); \
+			ran=$$((ran + 1)); \
 		fi; \
-		done
+	done; \
+	if [ "$$ran" -eq 0 ]; then \
+		printf "test: no selected modules\n"; \
+	else \
+		printf "test: ran %d module(s)\n" "$$ran"; \
+	fi
 
 e2e:
 	@set -eu; \
+	scope="$(TEST_SCOPE)"; \
+	case "$$scope" in \
+		all|changed) ;; \
+		*) printf "invalid TEST_SCOPE: %s\n" "$$scope" >&2; exit 2;; \
+	esac; \
+	changed_modules="$(CHANGED_MODULES)"; \
+	if [ "$$scope" = "changed" ] && [ -z "$$changed_modules" ]; then \
+		changed_modules="$$(git status --porcelain --ignore-submodules=none | awk '\
+			{ \
+				path = substr($$0, 4); \
+				sub(/^[[:space:]]+/, "", path); \
+				if (index(path, " -> ") > 0) path = substr(path, index(path, " -> ") + 4); \
+				if (path ~ /^aiz(\/|$$)/) print "aiz"; \
+				else if (path ~ /^bus(\/|$$)/) print "bus"; \
+				else if (path ~ /^bus-[^/]+(\/|$$)/) { split(path, parts, "/"); print parts[1]; } \
+			} \
+		' | awk '!seen[$$0]++')"; \
+	fi; \
 	ran=0; \
 	for mod in $(MODULE_DIRS); do \
+		selected=1; \
+		if [ "$$scope" = "changed" ]; then \
+			selected=0; \
+			for chosen in $$changed_modules; do \
+				if [ "$$mod" = "$$chosen" ]; then selected=1; break; fi; \
+			done; \
+		fi; \
+		if [ "$$selected" -ne 1 ]; then \
+			continue; \
+		fi; \
 		skip=0; \
 		for pat in $(SKIP_PATTERNS); do \
 			case "$$mod" in $$pat) skip=1;; esac; \
@@ -115,7 +243,11 @@ e2e:
 		"$(MAKE)" -C "$$mod" e2e $(MODULE_MAKE_VARS); \
 		ran=$$((ran + 1)); \
 	done; \
-	printf "e2e: ran %d module(s)\n" "$$ran"
+	if [ "$$ran" -eq 0 ]; then \
+		printf "e2e: no selected modules\n"; \
+	else \
+		printf "e2e: ran %d module(s)\n" "$$ran"; \
+	fi
 
 build:
 	@set -eu; \
