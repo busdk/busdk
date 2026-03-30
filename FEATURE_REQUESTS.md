@@ -41,3 +41,9 @@ Active requests:
      - support a direct form such as `bus attachments add <file> --desc <text> --voucher <id>`.
      - fail if the chosen visible voucher id is already in use.
      - support unambiguous positional shorthand when one positional token is a file path and the other is a voucher id.
+
+5. Add clearer first-class account-group visual hierarchy to filing-grade chart-of-accounts PDFs.
+   - Remaining request:
+     - `bus accounts report --format pdf` should show account-group rows as explicit visual section rows between account rows.
+     - group rows should be visually distinct from accounts, at minimum by indentation and/or fill styling.
+     - the PDF should make it immediately obvious which rows are groups and which are leaf accounts.
