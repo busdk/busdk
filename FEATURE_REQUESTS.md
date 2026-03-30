@@ -47,3 +47,4 @@ Active requests:
      - `bus accounts report --format pdf` should show account-group rows as explicit visual section rows between account rows.
      - group rows should be visually distinct from accounts, at minimum by indentation and/or fill styling.
      - the PDF should make it immediately obvious which rows are groups and which are leaf accounts.
+     - when opening balances are requested, the tililuettelo should still show the current balance first and the opening balance in the rightmost last column.
