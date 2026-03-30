@@ -13,9 +13,4 @@ Goal note:
 - Operators should not need shell text pipelines (`grep/sed/awk/column`) to answer accounting control questions.
 
 Active requests:
-
-1. Allow first-class user-assigned voucher numbers for manually added evidence attachments.
-   - Remaining request:
-     - support a direct form such as `bus attachments add <file> --desc <text> --voucher <id>`.
-     - fail if the chosen visible voucher id is already in use.
-     - support unambiguous positional shorthand when one positional token is a file path and the other is a voucher id.
+None.
