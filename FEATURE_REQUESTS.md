@@ -47,4 +47,6 @@ Active requests:
      - `bus accounts report --format pdf` should show account-group rows as explicit visual section rows between account rows.
      - group rows should be visually distinct from accounts, at minimum by indentation and/or fill styling.
      - the PDF should make it immediately obvious which rows are groups and which are leaf accounts.
-     - when opening balances are requested, the tililuettelo should still show the current balance first and the opening balance in the rightmost last column.
+     - tililuettelo should keep account-group hierarchy active automatically whenever canonical `account-groups.csv` exists; operators should not need extra flags or manual mode switches to get grouped output.
+     - tililuettelo balance columns should be generated automatically from the current workspace period model: the leftmost first balance column must be the requested document date balance, intermediate columns should show prior period-end balances in newest-to-oldest order, and the rightmost last column should be the fiscal-year opening balance.
+     - when only one prior opening snapshot is available, preserve the same left-to-right rule: current/requested balance first, oldest opening balance last.
