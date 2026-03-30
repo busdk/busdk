@@ -13,4 +13,4 @@ Goal note:
 - Operators should not need shell text pipelines (`grep/sed/awk/column`) to answer accounting control questions.
 
 Active requests:
-- `bus-reports` needs a first-class explicit comparative-data input model for annual statements. When prior-year comparatives are not already present in the current workspace, operators must be able to provide them explicitly for that invocation from either a prior Bus workspace or another deterministic source such as an imported account-trial/chart snapshot. This must not rely on hidden persistent cross-workspace configuration; the command surface should require an explicit prior-data input and diagnostics must clearly report which comparative source was used.
+None.
