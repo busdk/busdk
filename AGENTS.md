@@ -179,10 +179,11 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 10. When a **system-level** CLI command fails due to incorrect parameters (for example `rg`, `sed`, `cat`, `find`, `git`, `make`), record the correct invocation or constraint in the most relevant `AGENTS.md` so the mistake is not repeated. Do not add rules for project-specific commands under active development.
 11. On macOS/BSD `cat`, `-A` is unsupported; use `cat -vet` or `sed -n 'l'` to visualize tabs and line endings instead.
 12. On macOS/BSD `awk`, avoid using `in` as a variable name (`in` is reserved in `for (x in y)`); use names like `inside` instead.
-13. When `printf` needs to print a format string that starts with `-`, use `printf -- '...'` so the format is not parsed as an option.
-14. When running shell commands that contain backticks in regex/pattern arguments (for example with `rg`), wrap the full command in single quotes or escape backticks to avoid command-substitution parse errors.
-15. `rg` does not support look-around by default; use `rg --pcre2` when patterns require look-ahead/look-behind.
-16. Use `python3` (not `python`) for Python scripting in this environment.
+13. On macOS/BSD `awk`, avoid slash-delimited regex fragments that try to carry `/` inside a character class in embedded scripts (for example `[^/]` in `... /.../ ...` within shell/Make recipes); prefer `index(...)`/`split(...)` or another BSD-safe formulation.
+14. When `printf` needs to print a format string that starts with `-`, use `printf -- '...'` so the format is not parsed as an option.
+15. When running shell commands that contain backticks in regex/pattern arguments (for example with `rg`), wrap the full command in single quotes or escape backticks to avoid command-substitution parse errors.
+16. `rg` does not support look-around by default; use `rg --pcre2` when patterns require look-ahead/look-behind.
+17. Use `python3` (not `python`) for Python scripting in this environment.
 12. Feature request implementation order is user-defined and must be followed unless explicitly revised: FR65, FR66, FR59, FR58, FR46, FR63.
 10. Prefer working inside the target module directory (`./bus` or `./bus-*`) for module implementation and tests; use superproject-root commands only for explicit superproject tasks.
 11. When the user provides `*.Update.md` tracker files (including `BUGS.Update.md` and `FEATURE_REQUESTS.Update.md`), merge their contents into the corresponding canonical tracker files in the same turn, then remove the update files.
@@ -236,6 +237,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 59. For affected user-facing modules, debug runs should include at least one alternate locale execution (for example `LANG=fi_FI.UTF-8` with mixed `LC_*`) before declaring a test green across environments.
 60. Root `make test` and `make e2e` should default to changed-module scope, not a whole-repository sweep; use `TEST_SCOPE=all` only when a full cross-module run is explicitly desired.
 61. When using `rg` from the superproject root, do not include nonexistent generic paths like `internal` as positional search roots; target the actual module directories explicitly.
+62. Before starting any new user-requested feature or behavior change, or immediately when noticing work is already in progress, first add or update the corresponding `PLAN.md` and/or `BUGS.md` and/or `FEATURE_REQUESTS.md` entries in the same turn so in-progress work always leaves a canonical repository trace.
 
 ## Documentation Paths (All Modules)
 

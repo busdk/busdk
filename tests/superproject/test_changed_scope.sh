@@ -8,7 +8,9 @@ OUT_CHANGED_TEST="$(mktemp)"
 OUT_CHANGED_E2E="$(mktemp)"
 OUT_ALL_TEST="$(mktemp)"
 OUT_NONE_TEST="$(mktemp)"
-trap 'rm -f "$OUT_CHANGED_TEST" "$OUT_CHANGED_E2E" "$OUT_ALL_TEST" "$OUT_NONE_TEST"' EXIT
+OUT_AUTO_CHANGED_TEST="$(mktemp)"
+TEMP_CHANGED_FILE="bus-reports/.changed-scope-selftest.tmp"
+trap 'rm -f "$OUT_CHANGED_TEST" "$OUT_CHANGED_E2E" "$OUT_ALL_TEST" "$OUT_NONE_TEST" "$OUT_AUTO_CHANGED_TEST" "$TEMP_CHANGED_FILE"' EXIT
 
 make -s print-test-modules TEST_SCOPE=changed CHANGED_MODULES="bus-reports" >"$OUT_CHANGED_TEST"
 grep -q '^bus-reports$' "$OUT_CHANGED_TEST"
@@ -30,3 +32,7 @@ grep -q '^bus-reports$' "$OUT_ALL_TEST"
 
 make -s print-test-modules TEST_SCOPE=changed CHANGED_MODULES="docs" >"$OUT_NONE_TEST"
 test ! -s "$OUT_NONE_TEST"
+
+touch "$TEMP_CHANGED_FILE"
+make -s print-test-modules TEST_SCOPE=changed CHANGED_MODULES="" >"$OUT_AUTO_CHANGED_TEST"
+grep -q '^bus-reports$' "$OUT_AUTO_CHANGED_TEST"

@@ -100,7 +100,7 @@ print-test-modules:
 				if (index(path, " -> ") > 0) path = substr(path, index(path, " -> ") + 4); \
 				if (path ~ /^aiz(\/|$$)/) print "aiz"; \
 				else if (path ~ /^bus(\/|$$)/) print "bus"; \
-				else if (path ~ /^bus-[^/]+(\/|$$)/) { split(path, parts, "/"); print parts[1]; } \
+				else if (index(path, "bus-") == 1) { split(path, parts, "/"); print parts[1]; } \
 			} \
 		' | awk '!seen[$$0]++')"; \
 	fi; \
@@ -155,7 +155,7 @@ test:
 				if (index(path, " -> ") > 0) path = substr(path, index(path, " -> ") + 4); \
 				if (path ~ /^aiz(\/|$$)/) print "aiz"; \
 				else if (path ~ /^bus(\/|$$)/) print "bus"; \
-				else if (path ~ /^bus-[^/]+(\/|$$)/) { split(path, parts, "/"); print parts[1]; } \
+				else if (index(path, "bus-") == 1) { split(path, parts, "/"); print parts[1]; } \
 			} \
 		' | awk '!seen[$$0]++')"; \
 	fi; \
@@ -207,7 +207,7 @@ e2e:
 				if (index(path, " -> ") > 0) path = substr(path, index(path, " -> ") + 4); \
 				if (path ~ /^aiz(\/|$$)/) print "aiz"; \
 				else if (path ~ /^bus(\/|$$)/) print "bus"; \
-				else if (path ~ /^bus-[^/]+(\/|$$)/) { split(path, parts, "/"); print parts[1]; } \
+				else if (index(path, "bus-") == 1) { split(path, parts, "/"); print parts[1]; } \
 			} \
 		' | awk '!seen[$$0]++')"; \
 	fi; \
