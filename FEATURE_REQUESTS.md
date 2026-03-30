@@ -14,29 +14,17 @@ Goal note:
 
 Active requests:
 
-1. Extend the shipped `bus journal balance assert` command with explicit opening/closing semantics for replay control flows.
-   - Already shipped:
-     - deterministic base assertion forms:
-       - `bus journal balance assert ACCOUNT YYYY-MM-DD AMOUNT`
-       - `bus journal balance assert ACCOUNT --as-of YYYY-MM-DD --amount AMOUNT`
-   - Remaining request:
-     - add explicit opening/closing shapes such as:
-       - `bus journal balance assert opening 1911 2023-01-01 190.00`
-       - `bus journal balance assert 1911 opening 2023-01-01 190.00`
-       - `bus journal balance assert 1911 2023-01-01 --opening 190.00 --closing 93.85`
-     - keep ambiguous positional forms as deterministic usage errors instead of guessing.
-
-2. Finish the layered Finnish reporting model beyond the currently shipped account-group basics.
+1. Finish the layered Finnish reporting model beyond the currently shipped account-group basics.
    - Remaining request:
      - make Finnish reporting semantics resolve deterministically from statutory taxonomy, canonical account semantics / `account-groups.csv`, workspace entity context, and explicit exceptional overrides.
      - keep layout-keyed mapping/override files as compatibility or migration inputs, not the normal long-term accounting model.
      - ensure `*-accounts` and other drill-down layouts inherit the same effective classification as the base statement instead of redefining report meaning at detail level.
 
-3. Finish the personal-finance / sole-proprietor reporting surface beyond the currently shipped private-capital basics.
+2. Finish the personal-finance / sole-proprietor reporting surface beyond the currently shipped private-capital basics.
    - Remaining request:
      - add first-class personal / sole-proprietor outputs such as net-worth, account-movement summary, transfer-aware presentation, and document metadata that do not assume Y-tunnus or corporate filing context.
 
-4. Allow first-class user-assigned voucher numbers for manually added evidence attachments.
+3. Allow first-class user-assigned voucher numbers for manually added evidence attachments.
    - Remaining request:
      - support a direct form such as `bus attachments add <file> --desc <text> --voucher <id>`.
      - fail if the chosen visible voucher id is already in use.
