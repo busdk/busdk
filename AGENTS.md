@@ -283,6 +283,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 - Whenever a `FIXME(refactor)` comment is added in code, add/update a corresponding `PLAN.md` item that references the owning file path in the same change set.
 - If an owning file already has a completed (`[x]`) refactor item in `PLAN.md`, adding a new `FIXME(refactor)` must reopen planning by adding a new open (`[ ]`) item for that same file path in the same change set.
 - Before completion, ensure active `FIXME(refactor)` comments and open `PLAN.md` items are in sync for the touched module.
+- Changes to canonical planning/tracking files must leave a durable git trace: whenever you add, reopen, complete, remove, or otherwise change entries in `PLAN.md`, `BUGS.md`, or `FEATURE_REQUESTS.md`, those changes must be committed rather than left only in the working tree where history could be lost.
 - When removing tracked inbox/update files that may already have staged changes, prefer `git rm -f <file>`; plain `git rm` can fail with "file has changes staged in the index".
 
 ## Refactor planning style rule

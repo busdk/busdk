@@ -7,4 +7,4 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-- None.
+None.
