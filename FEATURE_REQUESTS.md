@@ -23,3 +23,11 @@ Active requests:
      - if explicit opt-in is used, the output must still keep synthetic explanation separate from ordinary TASE account drill-down.
    - Why this matters:
      - reports should not silently paper over missing year-end close basis in a way that looks like ordinary balance-sheet accounting.
+
+2. Add a first-class table of contents at the beginning of `day-book` and `general-ledger` printable/PDF outputs.
+   - Requested behavior:
+     - human-facing `day-book` and `general-ledger` documents should start with a deterministic table of contents page or section.
+     - the table of contents should list the main section breaks with page numbers so long audit/review PDFs are easier to navigate.
+     - the same shared implementation should be used for both reports rather than separate one-off renderers.
+   - Why this matters:
+     - long accountant-facing review documents are difficult to navigate without page-level structure, especially when one report spans dozens of pages.
