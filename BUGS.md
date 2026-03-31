@@ -7,6 +7,16 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
+- Shared human-facing PDF row-text emission in `bus reports bank-transactions`, `day-book`, and `general-ledger` can collapse adjacent wrapped-table columns together, so headers and row data lose visible/extracted separation (for example `SummaSelite` instead of distinct `Summa` and `Selite` columns).
+  - Repro:
+    - generate current PDF exports for `bank-transactions`, `day-book`, or `general-ledger` on a workspace with the default wrapped review columns.
+    - inspect the visible PDF text or extracted text/annotation behavior around `Amount`/`Description` (`Summa`/`Selite`) and nearby row data.
+  - Current behavior:
+    - adjacent wrapped-table columns can render or extract as one merged text run, such as `SummaSelite`, with corresponding row values also collapsing together.
+    - the same regression shape appears across at least `bank-transactions`, `day-book`, and `general-ledger`, which points to the shared wrapped-table PDF row-text path rather than one report-specific renderer.
+  - Expected:
+    - wrapped review-table PDFs must preserve deterministic visible and extracted column separation for headers and row data without reverting to cell/MultiCell-based rendering.
+
 - `bus reports evidence-pack` can hang indefinitely on real Sendanor 2023/2024 workspaces because `day-book --format pdf` no longer completes in practical time after recent PDF-path changes.
   - Repro:
     - `timeout 20s bus -C exports/sendanor/2023/data reports evidence-pack --period 2023 --output-dir /tmp/ep2023-direct`
