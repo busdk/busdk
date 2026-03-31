@@ -7,18 +7,6 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-- `bus reports balance-sheet` currently treats explicit close-source basis as the default requirement for `fi-kpa-*` current-period result presentation, but normal Bus balance-sheet rendering should derive `Tilikauden voitto/tappio` directly from the period ledger without requiring manual closing postings.
-  - Repro:
-    - `bus reports balance-sheet --as-of 2025-12-31 --layout-id fi-kpa-tase-full`
-    - `bus reports statement-validate --report balance-sheet --as-of 2025-12-31 --layout-id fi-kpa-tase-full`
-  - Current behavior:
-    - `fi-kpa-*` balance-sheet flows can reject by default when no explicit postings exist on `bs_current_year_result`, unless `--allow-implicit-current-year-result` is passed.
-    - this makes normal deterministic balance-sheet rendering depend on replay-oriented close markers instead of deriving the current-period result straight from the journal.
-  - Expected:
-    - `fi-kpa-*` balance-sheet rendering should, by default, calculate `Tilikauden voitto/tappio` directly from the same current-period profit-and-loss activity that drives the income statement.
-    - manual `closing-result` postings must remain supported for replay/parity/import cases, but they must not be the default prerequisite for ordinary balance-sheet output.
-    - `fi-kpa-tase-full-accounts` still must not render ordinary `3xxx..9xxx` profit-and-loss accounts as visible TASE account rows under the derived result line.
-
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
     - generate the current `tililuettelo.pdf` from a workspace that has canonical `account-groups.csv`, fiscal-year/period metadata, and `--as-of` report usage.
