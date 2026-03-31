@@ -58,3 +58,11 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
     - the rendered `*-accounts` output still shows no account rows under those visible lines, only empty child/subtotal rows such as `Henkilösivukulut`, `Suunnitelman mukaiset poistot`, `Muille`, and `Tilikauden ja aikaisempien tilikausien verot`.
   - Expected:
     - in `*-accounts` variants, every visible statement line with non-zero account contributions should show deterministic per-account drill-down rows beneath that same visible line.
+
+- `bus journal add` treats duplicate `(source_system, source_id)` as a silent success no-op by default, which can hide replay mistakes and missing postings in bookkeeping workspaces.
+  - Current behavior:
+    - posting the same `(source_system, source_id)` again exits `0` and prints a skip/idempotent diagnostic instead of failing.
+    - this also masks accidental key reuse when the second posting content differs from the original.
+  - Expected:
+    - the normal replay-safe default should be a non-zero conflict failure when the key already exists.
+    - any skip-idempotent behavior must be explicit instead of the silent default.
