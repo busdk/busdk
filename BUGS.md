@@ -7,6 +7,20 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
+- `bus reports balance-sheet --layout-id fi-kpa-tase-full-accounts` renders ordinary `3xxx..9xxx` profit-and-loss accounts as visible balance-sheet account rows under `Tilikauden voitto/tappio`, even though that line is only the balance-sheet presentation of net current-year result.
+  - Repro:
+    - `timeout 30 bus -C exports/sendanor/2023/data reports balance-sheet --as-of 2023-12-31 --layout-id fi-kpa-tase-full-accounts --format text`
+    - `timeout 30 bus -C exports/sendanor/2023/data reports statement-explain --report balance-sheet --as-of 2023-12-31 --account 3000 --layout-id fi-kpa-tase-full --format csv`
+  - Current behavior:
+    - `tase-full-accounts` can print rows like `3000`, `3001`, `4100`, `9460`, and `9560` directly under `Tilikauden voitto/tappio`.
+    - this comes from `synthetic_current_year_result`: explainability resolves P&L accounts to `bs_current_year_result`, and the `*-accounts` breakdown then emits those contributing accounts as if they were ordinary TASE account rows.
+    - that makes revenue/expense accounts look like balance-sheet accounts inside a TASE account listing even though they are only the inputs of the derived net-result line.
+  - Expected:
+    - `Tilikauden voitto/tappio` may be computed from profit-and-loss accounts, but `fi-kpa-tase-full-accounts` must not render those `3xxx..9xxx` accounts as ordinary balance-sheet account rows.
+    - acceptable outcomes are either:
+      - show only the aggregate `Tilikauden voitto/tappio` line with no per-account drill-down, or
+      - show a clearly separate reconciliation/explanation block instead of TASE account rows.
+
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
     - generate the current `tililuettelo.pdf` from a workspace that has canonical `account-groups.csv`, fiscal-year/period metadata, and `--as-of` report usage.
