@@ -7,16 +7,17 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-- `bus reports balance-sheet --layout-id fi-kpa-tase-full-accounts` can still present derived current-year result in an audit-hostile way: without explicit closing-source setup it may synthesize `Tilikauden voitto/tappio` from live `3xxx..9xxx` P&L activity, and earlier repros showed those same accounts leaking as visible TASE account rows.
+- `bus reports balance-sheet` currently treats explicit close-source basis as the default requirement for `fi-kpa-*` current-period result presentation, but normal Bus balance-sheet rendering should derive `Tilikauden voitto/tappio` directly from the period ledger without requiring manual closing postings.
   - Repro:
-    - `timeout 30 bus -C exports/sendanor/2023/data reports balance-sheet --as-of 2023-12-31 --layout-id fi-kpa-tase-full-accounts --format text`
-    - `timeout 30 bus -C exports/sendanor/2023/data reports statement-explain --report balance-sheet --as-of 2023-12-31 --account 3000 --layout-id fi-kpa-tase-full --format csv`
+    - `bus reports balance-sheet --as-of 2025-12-31 --layout-id fi-kpa-tase-full`
+    - `bus reports statement-validate --report balance-sheet --as-of 2025-12-31 --layout-id fi-kpa-tase-full`
   - Current behavior:
-    - Bus can still accept a workspace where `Tilikauden voitto/tappio` is reached only through `synthetic_current_year_result`, even though there is no explicit year-end close source setup in the accounting material.
-    - in that state, TASE output may either synthesize the derived net-result line silently or, in earlier repros, leak underlying `3xxx..9xxx` rows into `*-accounts`.
+    - `fi-kpa-*` balance-sheet flows can reject by default when no explicit postings exist on `bs_current_year_result`, unless `--allow-implicit-current-year-result` is passed.
+    - this makes normal deterministic balance-sheet rendering depend on replay-oriented close markers instead of deriving the current-period result straight from the journal.
   - Expected:
-    - without explicit closing-source basis (or explicit operator opt-in), `fi-kpa-*` balance-sheet rendering should fail clearly instead of silently synthesizing current-year result from profit-and-loss activity.
-    - when the report is allowed to succeed, `fi-kpa-tase-full-accounts` must not render ordinary `3xxx..9xxx` accounts as balance-sheet account rows.
+    - `fi-kpa-*` balance-sheet rendering should, by default, calculate `Tilikauden voitto/tappio` directly from the same current-period profit-and-loss activity that drives the income statement.
+    - manual `closing-result` postings must remain supported for replay/parity/import cases, but they must not be the default prerequisite for ordinary balance-sheet output.
+    - `fi-kpa-tase-full-accounts` still must not render ordinary `3xxx..9xxx` profit-and-loss accounts as visible TASE account rows under the derived result line.
 
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
