@@ -7,16 +7,6 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-- Shared human-facing PDF row-text emission in `bus reports voucher-list`, `bank-transactions`, `day-book`, and `general-ledger` can collapse adjacent wrapped-table columns together, so headers and row data lose visible/extracted separation (for example `SummaSelite` instead of distinct `Summa` and `Selite` columns).
-  - Repro:
-    - generate current PDF exports for `bank-transactions`, `day-book`, or `general-ledger` on a workspace with the default wrapped review columns.
-    - inspect the visible PDF text or extracted text/annotation behavior around `Amount`/`Description` (`Summa`/`Selite`) and nearby row data.
-  - Current behavior:
-    - adjacent wrapped-table columns can render or extract as one merged text run, such as `SummaSelite`, with corresponding row values also collapsing together.
-    - the same regression shape appears across at least `voucher-list`, `bank-transactions`, `day-book`, and `general-ledger`, which points to the shared wrapped-table PDF row-text path rather than one report-specific renderer.
-  - Expected:
-    - wrapped review-table PDFs must preserve deterministic visible and extracted column separation for headers and row data without reverting to cell/MultiCell-based rendering.
-
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
     - generate the current `tililuettelo.pdf` from a workspace that has canonical `account-groups.csv`, fiscal-year/period metadata, and `--as-of` report usage.
