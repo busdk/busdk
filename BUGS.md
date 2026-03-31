@@ -30,14 +30,6 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
     - when the report is requested with `--as-of`, the PDF should show the same requested-date / prior-period-end / opening balance columns as the shared tililuettelo report model.
     - the trailing signature section must never overflow beyond the printable page area.
 
-- `bus reports balance-sheet-specification --format pdf` can let the trailing `Allekirjoitukset` section overflow beyond the final page bottom instead of moving the signature block to a fresh page when the remaining space is insufficient.
-  - Repro:
-    - generate a multi-page `tase-erittely` / `balance-sheet-specification` PDF where the final content leaves only a small remainder before the page bottom.
-  - Current behavior:
-    - the final `Allekirjoitukset` block can continue below the printable bottom margin on the last page.
-  - Expected:
-    - the signature section must reserve enough space and start on a fresh page whenever it would otherwise overflow.
-
 - `bus reports evidence-pack` can hang indefinitely on real Sendanor 2023/2024 workspaces because `day-book --format pdf` no longer completes in practical time after recent PDF-path changes.
   - Repro:
     - `timeout 20s bus -C exports/sendanor/2023/data reports evidence-pack --period 2023 --output-dir /tmp/ep2023-direct`
