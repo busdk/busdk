@@ -14,4 +14,4 @@ Goal note:
 
 Active requests:
 
-None.
+- Add first-class internal PDF navigation links to `bus reports day-book` and `bus reports general-ledger` table-of-contents pages so readers can jump directly from TOC entries to the linked month/account section in the same document.
