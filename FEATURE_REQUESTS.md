@@ -14,4 +14,12 @@ Goal note:
 
 Active requests:
 
-None.
+1. Disallow implicit current-year-result synthesis in default `fi-kpa-*` statement rendering unless explicit close sourcing or explicit opt-in is present.
+   - Current behavior:
+     - `fi-kpa-*` balance-sheet rendering can still derive `Tilikauden voitto/tappio` from accumulated P&L activity through `synthetic_current_year_result` even when the accounting material contains no explicit close-source basis for that line.
+   - Requested behavior:
+     - the default `fi-kpa-*` rendering path should reject that implicit fallback unless the workspace has explicit close-source setup or the operator explicitly opts in for that invocation.
+     - diagnostics should explain that current-year result has no explicit closing basis and point operators to `statement-explain` / `statement-validate` style reconciliation output.
+     - if explicit opt-in is used, the output must still keep synthetic explanation separate from ordinary TASE account drill-down.
+   - Why this matters:
+     - reports should not silently paper over missing year-end close basis in a way that looks like ordinary balance-sheet accounting.

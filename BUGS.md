@@ -7,6 +7,17 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
+- `bus reports balance-sheet --layout-id fi-kpa-tase-full-accounts` can still present derived current-year result in an audit-hostile way: without explicit closing-source setup it may synthesize `Tilikauden voitto/tappio` from live `3xxx..9xxx` P&L activity, and earlier repros showed those same accounts leaking as visible TASE account rows.
+  - Repro:
+    - `timeout 30 bus -C exports/sendanor/2023/data reports balance-sheet --as-of 2023-12-31 --layout-id fi-kpa-tase-full-accounts --format text`
+    - `timeout 30 bus -C exports/sendanor/2023/data reports statement-explain --report balance-sheet --as-of 2023-12-31 --account 3000 --layout-id fi-kpa-tase-full --format csv`
+  - Current behavior:
+    - Bus can still accept a workspace where `Tilikauden voitto/tappio` is reached only through `synthetic_current_year_result`, even though there is no explicit year-end close source setup in the accounting material.
+    - in that state, TASE output may either synthesize the derived net-result line silently or, in earlier repros, leak underlying `3xxx..9xxx` rows into `*-accounts`.
+  - Expected:
+    - without explicit closing-source basis (or explicit operator opt-in), `fi-kpa-*` balance-sheet rendering should fail clearly instead of silently synthesizing current-year result from profit-and-loss activity.
+    - when the report is allowed to succeed, `fi-kpa-tase-full-accounts` must not render ordinary `3xxx..9xxx` accounts as balance-sheet account rows.
+
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
     - generate the current `tililuettelo.pdf` from a workspace that has canonical `account-groups.csv`, fiscal-year/period metadata, and `--as-of` report usage.
