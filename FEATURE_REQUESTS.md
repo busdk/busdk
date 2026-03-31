@@ -19,6 +19,7 @@ Active requests:
      - `fi-kpa-*` balance-sheet rendering can still derive `Tilikauden voitto/tappio` from accumulated P&L activity through `synthetic_current_year_result` even when the accounting material contains no explicit close-source basis for that line.
    - Requested behavior:
      - the default `fi-kpa-*` rendering path should reject that implicit fallback unless the workspace has explicit close-source setup or the operator explicitly opts in for that invocation.
+     - first implement one manual Bus-native path where operators can post the close entries themselves with semantic source metadata (for example `--source-kind closing_current_year_result`) and reports must recognize that semantic source kind without depending on hardcoded raw `source_id` string prefixes.
      - diagnostics should explain that current-year result has no explicit closing basis and point operators to `statement-explain` / `statement-validate` style reconciliation output.
      - if explicit opt-in is used, the output must still keep synthetic explanation separate from ordinary TASE account drill-down.
    - Why this matters:
