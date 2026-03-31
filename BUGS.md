@@ -3,20 +3,9 @@
 Track defects/blockers that affect this repo's replay/parity workflows.
 Feature work belongs in `FEATURE_REQUESTS.md`.
 
-**Last reviewed:** 2026-03-31.
+**Last reviewed:** 2026-04-01.
 
 ## Active defects
-
-- `bus reports day-book --format pdf` and `bus reports general-ledger --format pdf` still have shared row-alignment drift in the human-facing printable table path: visible values can shift slightly between rows/pages even though the same columns should stay visually aligned, and the issue is most obvious in `day-book` while still reproducible in smaller form in `general-ledger`.
-  - Repro:
-    - generate multi-page `day-book.pdf` and `general-ledger.pdf` from a workspace with mixed-width account labels, amounts, voucher/document IDs, and long descriptions.
-    - inspect repeated pages and compare whether date/document/account/amount columns stay on the same visual x positions from row to row and page to page.
-  - Current behavior:
-    - `day-book` can show visibly drifting values where adjacent rows do not share one stable column grid.
-    - `general-ledger` is closer to correct but still shows smaller alignment variation in some rows/pages.
-    - the same shared PDF row-text pipeline underlies both reports, so the drift is not isolated to one report-specific renderer.
-  - Expected:
-    - all human-facing ledger/day-book PDF rows should render on one deterministic column grid per page, with values visually aligned under their headers and with no row-by-row horizontal drift.
 
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
