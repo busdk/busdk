@@ -283,8 +283,12 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 - Whenever a `FIXME(refactor)` comment is added in code, add/update a corresponding `PLAN.md` item that references the owning file path in the same change set.
 - If an owning file already has a completed (`[x]`) refactor item in `PLAN.md`, adding a new `FIXME(refactor)` must reopen planning by adding a new open (`[ ]`) item for that same file path in the same change set.
 - Before completion, ensure active `FIXME(refactor)` comments and open `PLAN.md` items are in sync for the touched module.
-- Changes to canonical planning/tracking files must leave a durable git trace: whenever you add, reopen, complete, remove, or otherwise change entries in `PLAN.md`, `BUGS.md`, or `FEATURE_REQUESTS.md`, those changes must be committed rather than left only in the working tree where history could be lost.
+- Changes to canonical planning/tracking files must leave a durable git trace, but tracker commits are the only autonomous commits allowed by default: whenever you add, reopen, complete, remove, or otherwise change entries in `PLAN.md`, `BUGS.md`, or `FEATURE_REQUESTS.md`, commit only those tracker-file changes and do not include implementation/docs/test changes in the same autonomous commit.
+- Do not make autonomous commits for non-tracker work unless the user explicitly asks for commits.
+- When tracker files change in the same turn as implementation/docs/test files, leave the non-tracker changes uncommitted for the user's own commit workflow; only the tracker-only commit may be created automatically.
 - When removing tracked inbox/update files that may already have staged changes, prefer `git rm -f <file>`; plain `git rm` can fail with "file has changes staged in the index".
+- For tracker-only commits, prefer `scripts/commit-tracker-only.sh <repo-path> <message> <tracker-file>...` so the commit uses `git commit --only -- ...` and cannot accidentally include other staged files from that repository; `scripts/commit-plan-only.sh` remains only as a compatibility wrapper for `PLAN.md`.
+- For user-facing CLI tokens and flag values, accept both hyphenated and underscore-separated spellings when they represent the same canonical concept and no ambiguity is introduced. Keep one canonical internal/stored form, but do not force operators to guess whether Bus expects `-` or `_`. The same rule applies to other shorthand or alternate invocation forms: accept them only when normalization is deterministic and exact; if input could mean multiple things, fail with a usage error instead of guessing.
 
 ## Refactor planning style rule
 
