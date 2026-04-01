@@ -7,16 +7,6 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-- `bus reports day-book --format pdf` and the shared accountant-facing PDF table path can still allocate review-table widths incorrectly after the recent single-layer cell-renderer change: narrow fields such as `Päivä` may wrap into two lines on a page even when a wide `Selite` column on that same page still has slack that should be redistributed.
-  - Repro:
-    - generate a `day-book.pdf` from a real workspace where one page has ISO-style `Päivä` values wrapping even though the same page still shows a visibly roomy `Selite` column.
-    - inspect the same shared renderer family in `general-ledger`, `voucher-list`, and `bank-transactions` for similarly unnecessary wrapping in narrow identifier/date columns.
-  - Current behavior:
-    - after the move to one visible text block per logical cell, the shared width resolver can still leave narrow fixed columns with too little visible width because gutter handling is not reflected correctly in width allocation.
-    - this shows up as avoidable multi-line dates or similarly narrow identifiers while a description column on the same page still has width to spare.
-  - Expected:
-    - page-local width allocation should account for the visible text width of guttered cells so short fixed fields such as `Päivä` do not wrap unnecessarily when another column can still yield space on that page.
-
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
     - generate the current `tililuettelo.pdf` from a workspace that has canonical `account-groups.csv`, fiscal-year/period metadata, and `--as-of` report usage.
