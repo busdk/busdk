@@ -7,6 +7,14 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
+- `bus reports day-book --format pdf` and the shared accountant-facing PDF table path can still let adjacent visible cell selection regions bleed together in Apple Preview on some pages even though the logical columns are separate; for example `Selite` and `Tx` can look merged on one page while behaving correctly on the next page of the same report.
+  - Repro:
+    - generate a real multi-page `day-book.pdf` or `general-ledger.pdf` where one page lets Preview selection around `Selite` spill over the `Tx` column boundary even though another nearby page with similar content behaves correctly.
+  - Current behavior:
+    - the shared single-layer cell renderer keeps logical cells separate in code, but some page-local layouts still leave adjacent text regions close enough that Preview draws a selection rectangle across the column boundary.
+  - Expected:
+    - the shared accountant-facing PDF table renderer should keep all logical cells visually and semantically separate enough that Preview-like viewers do not merge neighboring cell selection regions page by page.
+
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
     - generate the current `tililuettelo.pdf` from a workspace that has canonical `account-groups.csv`, fiscal-year/period metadata, and `--as-of` report usage.
