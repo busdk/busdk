@@ -7,17 +7,6 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-- `bus reports` accountant-facing PDF tables still expose cell-like non-annotatable row geometry in Apple Preview because shared body rows have zero vertical gap between adjacent rows even after the single-layer cell renderer and column gutters were added.
-  - Repro:
-    - generate a real `day-book` or `general-ledger` PDF after the recent shared cell-boundary debugging change where light gray cell outlines are visible.
-    - inspect later pages in Apple Preview and try selecting/annotating a number or text cell.
-    - note that rows touch vertically with no visible gap, and Preview still shows cell-like selection boxes that do not accept normal annotation even when horizontal gutters are present.
-  - Current behavior:
-    - shared accountant-facing body rows still stack directly against each other with no vertical separation.
-    - Preview can therefore keep treating the page as a continuous table-like grid, so text is selectable but still behaves like cell boxes instead of normal annotatable text.
-  - Expected:
-    - the shared accountant-facing PDF table renderer should reserve a small real vertical gap between adjacent body rows, and its page-fit calculations must account for that same gap so row geometry stays consistent across pages.
-
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
     - generate the current `tililuettelo.pdf` from a workspace that has canonical `account-groups.csv`, fiscal-year/period metadata, and `--as-of` report usage.
