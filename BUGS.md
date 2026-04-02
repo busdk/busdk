@@ -7,19 +7,6 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-- `bus reports day-book` and `bus reports general-ledger` still reject custom non-calendar / cross-year `period_id` values even though Bus periods now support arbitrary ids end-to-end when added with explicit `--start-date` and `--end-date`.
-  - Repro:
-    - `make -C exports/jhh-meri-laskelmat/data export`
-    - `cd exports/jhh-meri-laskelmat/data && bus reports day-book --period JHH-MERI-ONGOING --format csv`
-    - `cd exports/jhh-meri-laskelmat/data && bus reports general-ledger --period JHH-MERI-ONGOING --format csv`
-  - Current behavior:
-    - workspace period setup succeeds with custom id `JHH-MERI-ONGOING` covering `2025-01-01 .. 2026-04-02`
-    - `day-book` and `general-ledger` still reject the real custom period id with `invalid period "JHH-MERI-ONGOING"`
-    - repo-local workaround has to split report generation into `2025` and `2026` even though the workspace period is one continuous custom period
-  - Expected:
-    - report commands that take `--period` should accept the same custom `period_id` values that the period subsystem now supports
-    - `day-book`, `general-ledger`, and wrappers that depend on them should be able to render one report for the real workspace period `JHH-MERI-ONGOING`
-
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
     - generate the current `tililuettelo.pdf` from a workspace that has canonical `account-groups.csv`, fiscal-year/period metadata, and `--as-of` report usage.
