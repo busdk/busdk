@@ -14,4 +14,10 @@ Goal note:
 
 Active requests:
 
-- None.
+- Hide redundant `Vienti` from printable ledger/day-book reports when `Tx` and `Rivi` are already shown.
+  - Current behavior:
+    - printable `day-book` and `general-ledger` can show `Tx`, `Rivi`, and `Vienti` together even though `Vienti` is redundant once transaction id plus row sequence are already visible.
+  - Requested behavior:
+    - omit `Vienti` by default whenever both `Tx` and `Rivi` are already present, or add one deterministic report option that removes the redundant column.
+  - Why this matters:
+    - printable accountant-facing reports should use the smallest identifier set that still preserves audit traceability.

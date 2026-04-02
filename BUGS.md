@@ -7,15 +7,18 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-- `bus period add` / period coverage currently reject arbitrary accounting periods and only accept period ids in shapes `YYYY`, `YYYY-MM`, or `YYYYQn`, which blocks normal non-calendar and cross-year accounting periods.
+- `bus reports day-book` and `bus reports general-ledger` still reject custom non-calendar / cross-year `period_id` values even though Bus periods now support arbitrary ids end-to-end when added with explicit `--start-date` and `--end-date`.
   - Repro:
-    - initialize a workspace with fiscal-year config that spans multiple calendar years.
-    - run `bus period add --period 2025-01-01_2026-04-02 --retained-earnings-account 3000`.
+    - `make -C exports/jhh-meri-laskelmat/data export`
+    - `cd exports/jhh-meri-laskelmat/data && bus reports day-book --period JHH-MERI-ONGOING --format csv`
+    - `cd exports/jhh-meri-laskelmat/data && bus reports general-ledger --period JHH-MERI-ONGOING --format csv`
   - Current behavior:
-    - Bus rejects the period id immediately as invalid usage because it is not one of the hardcoded calendar token shapes.
-    - this prevents one continuous custom accounting period from covering postings that naturally span into the following calendar year.
+    - workspace period setup succeeds with custom id `JHH-MERI-ONGOING` covering `2025-01-01 .. 2026-04-02`
+    - `day-book` and `general-ledger` still reject the real custom period id with `invalid period "JHH-MERI-ONGOING"`
+    - repo-local workaround has to split report generation into `2025` and `2026` even though the workspace period is one continuous custom period
   - Expected:
-    - Bus should support explicit arbitrary accounting periods, including non-calendar and cross-year ranges, instead of limiting operators to `YYYY`, `YYYY-MM`, and `YYYYQn` tokens only.
+    - report commands that take `--period` should accept the same custom `period_id` values that the period subsystem now supports
+    - `day-book`, `general-ledger`, and wrappers that depend on them should be able to render one report for the real workspace period `JHH-MERI-ONGOING`
 
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
