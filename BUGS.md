@@ -3,9 +3,19 @@
 Track defects/blockers that affect this repo's replay/parity workflows.
 Feature work belongs in `FEATURE_REQUESTS.md`.
 
-**Last reviewed:** 2026-04-01.
+**Last reviewed:** 2026-04-02.
 
 ## Active defects
+
+- `bus period add` / period coverage currently reject arbitrary accounting periods and only accept period ids in shapes `YYYY`, `YYYY-MM`, or `YYYYQn`, which blocks normal non-calendar and cross-year accounting periods.
+  - Repro:
+    - initialize a workspace with fiscal-year config that spans multiple calendar years.
+    - run `bus period add --period 2025-01-01_2026-04-02 --retained-earnings-account 3000`.
+  - Current behavior:
+    - Bus rejects the period id immediately as invalid usage because it is not one of the hardcoded calendar token shapes.
+    - this prevents one continuous custom accounting period from covering postings that naturally span into the following calendar year.
+  - Expected:
+    - Bus should support explicit arbitrary accounting periods, including non-calendar and cross-year ranges, instead of limiting operators to `YYYY`, `YYYY-MM`, and `YYYYQn` tokens only.
 
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
@@ -34,3 +44,36 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
   - Expected:
     - `day-book --format pdf` should complete in practical time on real year workspaces such as Sendanor 2023/2024.
     - `evidence-pack` should therefore complete normally once it reaches the day-book stage.
+
+- `bus reports balance-sheet --layout-id fi-kpa-tase-full-accounts` renders `3xxx..9xxx` profit-and-loss accounts as ordinary balance-sheet account rows under `Tilikauden voitto/tappio`, even though the line itself is only the balance-sheet presentation of net current-year result.
+  - Repro:
+    - run `bus -C exports/sendanor/2023/data reports balance-sheet --as-of 2023-12-31 --layout-id fi-kpa-tase-full-accounts --format text`.
+    - compare with `reports statement-explain --report balance-sheet --as-of 2023-12-31 --account 3000 --layout-id fi-kpa-tase-full`.
+  - Current behavior:
+    - the visible TASE account breakdown under `Tilikauden voitto/tappio` contains raw `3xxx..9xxx` income/expense accounts as if they were ordinary balance-sheet accounts.
+  - Expected:
+    - the current-year result line may be derived from profit-and-loss accounts, but `fi-kpa-tase-full-accounts` must not present those P&L inputs as normal TASE account rows.
+
+- `bus reports profit-and-loss` `fi-kpa-tuloslaskelma-full` and `fi-kpa-tuloslaskelma-full-accounts` do not render visible deeper descendant rows from canonical `account-groups.csv` even though `statement-explain` resolves accounts into those deeper groups.
+  - Repro:
+    - run the HG 2025/2023 repros from `BUGS.Update.md` against `statement-explain`, `fi-kpa-tuloslaskelma-full`, and `fi-kpa-tuloslaskelma-full-accounts`.
+  - Current behavior:
+    - visible output collapses deeper descendants such as `Eläkekulut` and `Muut henkilösivukulut` back into ancestor subtotal rows.
+  - Expected:
+    - Finnish `*-full` profit-and-loss layouts should visibly inject documented deeper descendants from canonical `account-groups.csv`, with child rows before subtotals.
+
+- `bus reports profit-and-loss` prints expense-side child rows in grouped/full layouts, including `*-accounts`, with positive visible amounts even though statutory statement output is documented to show expense amounts as negative.
+  - Repro:
+    - run the HG 2022/2025/2023 repros from `BUGS.Update.md` against `fi-kpa-tuloslaskelma-full` and `fi-kpa-tuloslaskelma-full-accounts`.
+  - Current behavior:
+    - child rows under expense-side sections can render as positive values while the parent expense row renders negative.
+  - Expected:
+    - expense-side child rows should follow the same negative statutory presentation as their parent expense rows.
+
+- `bus reports profit-and-loss` `fi-kpa-tuloslaskelma-full-accounts` omits per-account drill-down rows for some visible statement lines even though `statement-explain` resolves accounts to those same visible lines.
+  - Repro:
+    - run the HG 2023 repros from `BUGS.Update.md` against `statement-explain` and `fi-kpa-tuloslaskelma-full-accounts`.
+  - Current behavior:
+    - visible rows such as `Henkilöstökulut yhteensä`, `Poistot ja arvonalentumiset`, `Rahoituskulut`, and `TULOVEROT` can show no account drill-down even when `statement-explain` resolves non-zero account contributions to them.
+  - Expected:
+    - every visible `*-accounts` statement line with non-zero account contributions should show deterministic per-account drill-down rows beneath that same visible line.
