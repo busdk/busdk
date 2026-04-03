@@ -21,14 +21,15 @@ Active requests:
   - Requested behavior:
     - add one `bus journal match <selector...> [apply <action...>]` command surface.
     - without `apply`, the command only lists matched journal rows.
-    - with `apply`, the command creates new journal rows from those matches; `apply --try` must print the exact journal-add style rows it would create without writing anything.
+    - with `apply`, the command creates new journal rows from those matches; `apply --print` must print the exact journal-add style rows it would create without writing anything, and `--dry-run` should be accepted as an alias.
     - shorthand parsing must stay user-friendly but strictly deterministic:
       - before `apply`, accept one or many exact input accounts plus deterministic `x`-wildcard account selectors such as `1xxx`, `19xx`, and `191x`
       - after `apply`, accept either one target account for a `100 %` move, repeated split targets like `50%=4000`, or a trailing fallback/remainder account
       - any ambiguous interpretation must fail as a usage error instead of guessing
     - example accepted shapes:
       - `bus journal match 1910 apply 1920`
-      - `bus journal match 1910 apply --try 1920`
+      - `bus journal match 1910 apply --print 1920`
+      - `bus journal match 1910 apply --dry-run 1920`
       - `bus journal match 1910 1920 'K-Market|Prisma' apply --desc 'Kauppakuitti' 50%=4000 50%=4010 1790`
   - Why this matters:
     - operators need a very simple way to express repeatable automatic handling for matched journal rows without shell pipelines or long manual posting blocks.
