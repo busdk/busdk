@@ -28,6 +28,7 @@ Active requests:
       - any ambiguous interpretation must fail as a usage error instead of guessing
     - example accepted shapes:
       - `bus journal match 1910 apply 1920`
+      - `bus journal match 1910 apply --try 1920`
       - `bus journal match 1910 1920 'K-Market|Prisma' apply --desc 'Kauppakuitti' 50%=4000 50%=4010 1790`
   - Why this matters:
     - operators need a very simple way to express repeatable automatic handling for matched journal rows without shell pipelines or long manual posting blocks.
