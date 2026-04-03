@@ -289,6 +289,8 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 - When removing tracked inbox/update files that may already have staged changes, prefer `git rm -f <file>`; plain `git rm` can fail with "file has changes staged in the index".
 - For tracker-only commits, prefer `scripts/commit-tracker-only.sh <repo-path> <message> <tracker-file>...` so the commit uses `git commit --only -- ...` and cannot accidentally include other staged files from that repository; `scripts/commit-plan-only.sh` remains only as a compatibility wrapper for `PLAN.md`.
 - For user-facing CLI tokens and flag values, accept both hyphenated and underscore-separated spellings when they represent the same canonical concept and no ambiguity is introduced. Keep one canonical internal/stored form, but do not force operators to guess whether Bus expects `-` or `_`. The same rule applies to other shorthand or alternate invocation forms: accept them only when normalization is deterministic and exact; if input could mean multiple things, fail with a usage error instead of guessing.
+- Before changing user-facing CLI `--help` text, define or follow the shared help-style contract under `sdd/docs/cli/`. Do not expand help ad hoc into dense prose; prefer syntax-first, structured help modeled on common system tools such as `git -h`, `git add -h`, `tar --help`, and similar command surfaces.
+- When improving BusDK help output, do not use older Bus help text as the style reference. Compare against common operating-system and Git help surfaces first, then apply the shared `sdd/docs/cli/help-output-contract.md` rules.
 
 ## Refactor planning style rule
 
