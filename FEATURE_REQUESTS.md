@@ -28,6 +28,7 @@ Active requests:
       - `parse` extracts file-level metadata/content from one or many files
       - `parse rows` extracts line/item rows when the file type supports it
       - `find` scans directories, fingerprints files, and reports duplicates
+    - this surface should also own generic native parsing of common bank-statement PDFs and similar evidence files, so statement-file parsing is not a separate sidecar-oriented special case in `bus-bank`
     - CLI ergonomics should stay lightweight like `bus journal add`:
       - `bus files parse receipt.pdf`
       - `bus files parse a.pdf b.pdf`
@@ -36,20 +37,6 @@ Active requests:
     - duplicate detection in `find` should be deterministic, for example via exact file hashes and other explicit non-fuzzy identity signals.
   - Why this matters:
     - Bus needs a first-class file-oriented tool for local evidence parsing and duplicate control without conflating that work with attachments storage or journal posting.
-
-- Add a first-class generic native bank-statement PDF parse/extract surface without mandatory sidecar files.
-  - Current behavior:
-    - direct PDF statement handling exists in `bus-bank`, but the remaining gap is broad generic coverage for ordinary text-extractable statement PDFs without falling back to sidecar-only workflows.
-    - the desired capability should not be hardcoded around one bank or one statement layout family.
-  - Requested behavior:
-    - make `bus bank statement parse|extract --file <statement.pdf>` work directly on common statement PDFs through deterministic native parsing, without requiring manually prepared `.statement.csv` or similar sidecar files.
-    - keep the implementation generic and reusable:
-      - prefer shared statement-extraction primitives and profile/layout hints over one-vendor hardcoding
-      - allow deterministic explicit hints when needed, but do not make sidecars the normal prerequisite
-      - preserve stable diagnostics when a PDF still cannot be parsed confidently
-    - extracted output must be good enough to drive opening/closing balance checks, deterministic bank-row replay support, and statement reconciliation workflows.
-  - Why this matters:
-    - bank statements are primary bookkeeping evidence in these workspaces, so Bus should remove manual sidecar preparation work instead of depending on it for common PDF inputs.
 
 - Add a first-class deterministic `bus journal match ... [apply ...]` surface for rule-based split postings.
   - Current behavior:
