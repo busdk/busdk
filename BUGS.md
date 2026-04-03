@@ -3,9 +3,24 @@
 Track defects/blockers that affect this repo's replay/parity workflows.
 Feature work belongs in `FEATURE_REQUESTS.md`.
 
-**Last reviewed:** 2026-04-02.
+**Last reviewed:** 2026-04-03.
 
 ## Active defects
+
+- `bus bank add` and `bus journal add` do not expose a working command-local help path via `-h` or `--help`, even though that is the practical discovery path when operators build replay files by hand.
+  - Repro:
+    - `bus bank add -h`
+    - `bus bank add --help`
+    - `bus journal add -h`
+    - `bus journal add --help`
+  - Current behavior:
+    - `bus bank add -h` fails with `unknown add flag: -h`.
+    - `bus bank add --help` fails with `unknown add flag: --help`.
+    - `bus journal add -h` fails with `bus-journal: add accepts only long flags`.
+    - `bus journal add --help` fails with `bus-journal: unknown add flag: --help`.
+  - Expected:
+    - `bank add` and `journal add` should support a predictable command-local help surface, ideally both `-h` and `--help`, or at minimum one clearly documented and working help flag.
+    - the help output should describe the accepted flags for that concrete subcommand so replay authors do not need to reverse-engineer argument shapes from repo examples.
 
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
