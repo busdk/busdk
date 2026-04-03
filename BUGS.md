@@ -7,6 +7,19 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
+- `bus -C <workspace> <path-to-file.bus>` can be parsed as a normal missing subcommand instead of executing the busfile relative to the changed working directory.
+  - Repro:
+    - create `/tmp/minimal.bus` with:
+      - `#!/usr/bin/env bus`
+      - `validate`
+    - `cd exports/jhh-meri-laskelmat/data && bus /tmp/minimal.bus` succeeds.
+    - `bus -C exports/jhh-meri-laskelmat/data /tmp/minimal.bus` fails with a missing-subcommand-style dispatcher error.
+  - Current behavior:
+    - once global `-C` is used, the dispatcher can treat the busfile path as an ordinary subcommand token and fail with diagnostics such as `missing subcommand` / `expected executable named bus-... in PATH`.
+  - Expected:
+    - `bus -C <workspace> <busfile>` should keep the longstanding replay workflow working for relative or absolute busfile paths, resolving the busfile after changing into the selected workspace.
+    - if this invocation shape is intentionally unsupported, the command should fail with an explicit busfile/deprecation diagnostic instead of generic missing-subcommand parsing.
+
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
     - generate the current `tililuettelo.pdf` from a workspace that has canonical `account-groups.csv`, fiscal-year/period metadata, and `--as-of` report usage.
