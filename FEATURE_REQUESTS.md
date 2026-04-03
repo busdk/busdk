@@ -14,4 +14,20 @@ Goal note:
 
 Active requests:
 
-None.
+- Add a first-class deterministic `bus journal match ... [apply ...]` surface for rule-based split postings.
+  - Current behavior:
+    - recurring split logic for bank, clearing, and similar source-account rows still requires hand-authored `journal add` postings.
+    - Bus lacks one simple Unix-style surface that first shows matched rows and then, optionally, creates the corresponding new journal rows.
+  - Requested behavior:
+    - add one `bus journal match <selector...> [apply <action...>]` command surface.
+    - without `apply`, the command only lists matched journal rows.
+    - with `apply`, the command creates new journal rows from those matches; `apply --try` must print the exact journal-add style rows it would create without writing anything.
+    - shorthand parsing must stay user-friendly but strictly deterministic:
+      - before `apply`, accept one or many exact input accounts plus deterministic `x`-wildcard account selectors such as `1xxx`, `19xx`, and `191x`
+      - after `apply`, accept either one target account for a `100 %` move, repeated split targets like `50%=4000`, or a trailing fallback/remainder account
+      - any ambiguous interpretation must fail as a usage error instead of guessing
+    - example accepted shapes:
+      - `bus journal match 1910 apply 1920`
+      - `bus journal match 1910 1920 'K-Market|Prisma' apply --desc 'Kauppakuitti' 50%=4000 50%=4010 1790`
+  - Why this matters:
+    - operators need a very simple way to express repeatable automatic handling for matched journal rows without shell pipelines or long manual posting blocks.
