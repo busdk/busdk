@@ -83,6 +83,7 @@ bootstrap: init build install
 
 superproject-selftest:
 	@bash ./tests/superproject/test_changed_scope.sh
+	@bash ./tests/superproject/test_agent_container.sh
 
 print-test-modules:
 	@set -eu; \
@@ -193,6 +194,7 @@ test:
 
 e2e:
 	@set -eu; \
+	bash ./tests/superproject/e2e_agent_container.sh; \
 	scope="$(TEST_SCOPE)"; \
 	case "$$scope" in \
 		all|changed) ;; \

@@ -13,29 +13,62 @@ fi
 
 REPO_ROOT="$(pwd -P)"
 WORKTREE_PATH="$REPO_ROOT/work/$TOPIC"
-IMAGE_NAME="agent"
 USER_ID="$(id -u)"
 GROUP_ID="$(id -g)"
+HOST_HOME="${HOME:-}"
+WORK_HOME="$WORKTREE_PATH/.home"
+IMAGE_HASH="$(shasum -a 256 containers/agent/Dockerfile | awk '{print substr($1, 1, 12)}')"
+IMAGE_NAME="agent:${IMAGE_HASH}"
 
 ./scripts/init-worktree.sh "$TOPIC"
 
+mkdir -p \
+  "$WORK_HOME" \
+  "$WORK_HOME/.cache" \
+  "$WORK_HOME/.cache/go-build" \
+  "$WORK_HOME/go/pkg/mod" \
+  "$WORK_HOME/.config"
+
+cat >"$WORK_HOME/.bashrc" <<EOF
+export PROMPT_DIRTRIM=3
+PS1='[busdk:\h \W]\\$ '
+EOF
+
 if ! docker image inspect "$IMAGE_NAME" >/dev/null 2>&1; then
-  docker build -t "$IMAGE_NAME" -f containers/agent/Dockerfile .
+  docker build --pull -t "$IMAGE_NAME" -f containers/agent/Dockerfile .
 fi
 
 if [ "$#" -eq 0 ]; then
   set -- bash
 fi
 
-docker run --rm -it \
-  --hostname "$TOPIC" \
-  --user "$USER_ID:$GROUP_ID" \
-  -e HOME="$WORKTREE_PATH/.home" \
-  -e USER=agent \
-  -e LOGNAME=agent \
-  -e PS1='[\h \W]\$ ' \
-  -v "$REPO_ROOT:$REPO_ROOT:ro" \
-  -v "$WORKTREE_PATH:$WORKTREE_PATH:rw" \
-  -w "$WORKTREE_PATH" \
-  "$IMAGE_NAME" \
-  "$@"
+DOCKER_RUN_ARGS=(
+  --rm
+  --hostname "$TOPIC"
+  --user "$USER_ID:$GROUP_ID"
+  -e HOME="$WORK_HOME"
+  -e USER=agent
+  -e LOGNAME=agent
+  -e XDG_CACHE_HOME="$WORK_HOME/.cache"
+  -e GOPATH="$WORK_HOME/go"
+  -e GOCACHE="$WORK_HOME/.cache/go-build"
+  -e GOMODCACHE="$WORK_HOME/go/pkg/mod"
+  -v "$REPO_ROOT:$REPO_ROOT:ro"
+  -v "$WORKTREE_PATH:$WORKTREE_PATH:rw"
+  -w "$WORKTREE_PATH"
+)
+
+if [ -t 0 ] && [ -t 1 ]; then
+  DOCKER_RUN_ARGS=(-it "${DOCKER_RUN_ARGS[@]}")
+fi
+
+if [ -n "$HOST_HOME" ] && [ -d "$HOST_HOME/.codex" ]; then
+  mkdir -p "$WORK_HOME/.codex"
+  DOCKER_RUN_ARGS+=(-v "$HOST_HOME/.codex:$WORK_HOME/.codex:rw")
+fi
+
+if [ -n "$HOST_HOME" ] && [ -f "$HOST_HOME/.gitconfig" ]; then
+  DOCKER_RUN_ARGS+=(-v "$HOST_HOME/.gitconfig:$WORK_HOME/.gitconfig:ro")
+fi
+
+exec docker run "${DOCKER_RUN_ARGS[@]}" "$IMAGE_NAME" "$@"
