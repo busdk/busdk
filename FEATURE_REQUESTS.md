@@ -14,6 +14,20 @@ Goal note:
 
 Active requests:
 
+- Add a first-class non-corporate personal/family reporting MVP in `bus-reports`.
+  - Current behavior:
+    - Bus has improved personal/private-capital support, but report outputs still too often remain business/corporate in shape.
+    - natural-person, family, and mixed personal/sole-proprietor books still need a simpler way to suppress or customize business-oriented report lines and headings.
+  - Requested behavior:
+    - add a minimum viable non-corporate reporting surface in `bus-reports`.
+    - start from simple, user-visible controls such as:
+      - enable a native `net worth` / `varallisuus` report as the preferred non-corporate surface
+      - allow business/corporate-specific report lines or sections to be turned off
+      - allow report content/headings to be customized for natural persons and family/shared books
+    - keep this as a non-corporate reporting/profile feature, not as a workaround through corporate statement outputs.
+  - Why this matters:
+    - natural-person and family books need reports that can be shaped for their actual use case instead of always starting from business-style statements and filing assumptions.
+
 - Add a first-class filesystem-oriented `bus files` surface for parsing and finding local evidence files.
   - Current behavior:
     - receipt and other evidence-file discovery/parsing needs are still handled ad hoc outside Bus.
