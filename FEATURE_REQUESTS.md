@@ -14,6 +14,29 @@ Goal note:
 
 Active requests:
 
+- Add a first-class filesystem-oriented `bus files` surface for parsing and finding local evidence files.
+  - Current behavior:
+    - receipt and other evidence-file discovery/parsing needs are still handled ad hoc outside Bus.
+    - there is no clean Unix-style Bus surface that separates file parsing, row extraction, and directory scanning from journal creation.
+  - Requested behavior:
+    - add a `bus files` module for local filesystem work on evidence files.
+    - support at least these command shapes:
+      - `bus files parse <file...>`
+      - `bus files parse rows <file...>`
+      - `bus files find <dir...>`
+    - keep parsing and journal creation clearly separate:
+      - `parse` extracts file-level metadata/content from one or many files
+      - `parse rows` extracts line/item rows when the file type supports it
+      - `find` scans directories, fingerprints files, and reports duplicates
+    - CLI ergonomics should stay lightweight like `bus journal add`:
+      - `bus files parse receipt.pdf`
+      - `bus files parse a.pdf b.pdf`
+      - with one file, default human output may be one readable block
+      - with many files, default human output may be one block per file separated by blank lines, or one line per file when that is clearer for the chosen subcommand
+    - duplicate detection in `find` should be deterministic, for example via exact file hashes and other explicit non-fuzzy identity signals.
+  - Why this matters:
+    - Bus needs a first-class file-oriented tool for local evidence parsing and duplicate control without conflating that work with attachments storage or journal posting.
+
 - Add a first-class generic native bank-statement PDF parse/extract surface without mandatory sidecar files.
   - Current behavior:
     - direct PDF statement handling exists in `bus-bank`, but the remaining gap is broad generic coverage for ordinary text-extractable statement PDFs without falling back to sidecar-only workflows.
