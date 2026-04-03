@@ -14,6 +14,14 @@ Goal note:
 
 Active requests:
 
+- Add a first-class deterministic journal account-sorting surface.
+  - Current behavior:
+    - `bus journal` preserves explicit CLI posting-line order and has fixed command-specific review ordering, but there is no explicit first-class user surface for account-ordered journal presentation when operators want the same posting grouped or sorted by account deterministically.
+  - Requested behavior:
+    - add one explicit, deterministic journal account-sorting surface instead of forcing operators to pre-sort input manually or rely on downstream shell processing.
+  - Why this matters:
+    - replay, review, and audit work sometimes need the same journal content in a stable account-oriented order, and that ordering should be a Bus feature rather than an operator-side workaround.
+
 - Hide redundant `Vienti` from printable ledger/day-book reports when `Tx` and `Rivi` are already shown.
   - Current behavior:
     - printable `day-book` and `general-ledger` can show `Tx`, `Rivi`, and `Vienti` together even though `Vienti` is redundant once transaction id plus row sequence are already visible.
@@ -21,11 +29,3 @@ Active requests:
     - omit `Vienti` by default whenever both `Tx` and `Rivi` are already present, or add one deterministic report option that removes the redundant column.
   - Why this matters:
     - printable accountant-facing reports should use the smallest identifier set that still preserves audit traceability.
-
-- Allow `bus bank add` rows without mandatory `--counterparty-name` when statement evidence does not provide one.
-  - Current behavior:
-    - `bus bank add` rejects rows that omit `--counterparty-name`, even when the source statement only gives date, amount, IBAN/reference, and message text without a reliable human-readable counterparty.
-  - Requested behavior:
-    - allow `bus bank add` without `--counterparty-name`, or accept an explicitly empty value without error, so replay authors do not need to fabricate placeholder names.
-  - Why this matters:
-    - statement-backed replay should preserve source evidence faithfully instead of forcing invented counterparties into the audit trail.
