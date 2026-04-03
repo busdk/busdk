@@ -14,6 +14,20 @@ Goal note:
 
 Active requests:
 
+- Add a first-class generic native bank-statement PDF parse/extract surface without mandatory sidecar files.
+  - Current behavior:
+    - direct PDF statement handling exists in `bus-bank`, but the remaining gap is broad generic coverage for ordinary text-extractable statement PDFs without falling back to sidecar-only workflows.
+    - the desired capability should not be hardcoded around one bank or one statement layout family.
+  - Requested behavior:
+    - make `bus bank statement parse|extract --file <statement.pdf>` work directly on common statement PDFs through deterministic native parsing, without requiring manually prepared `.statement.csv` or similar sidecar files.
+    - keep the implementation generic and reusable:
+      - prefer shared statement-extraction primitives and profile/layout hints over one-vendor hardcoding
+      - allow deterministic explicit hints when needed, but do not make sidecars the normal prerequisite
+      - preserve stable diagnostics when a PDF still cannot be parsed confidently
+    - extracted output must be good enough to drive opening/closing balance checks, deterministic bank-row replay support, and statement reconciliation workflows.
+  - Why this matters:
+    - bank statements are primary bookkeeping evidence in these workspaces, so Bus should remove manual sidecar preparation work instead of depending on it for common PDF inputs.
+
 - Add a first-class deterministic `bus journal match ... [apply ...]` surface for rule-based split postings.
   - Current behavior:
     - recurring split logic for bank, clearing, and similar source-account rows still requires hand-authored `journal add` postings.
