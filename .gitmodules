@@ -222,3 +222,7 @@
 	path = bus-memo
 	url = git@github.com:busdk/bus-memo.git
 	branch = 1-bus-memo
+[submodule "bus-files"]
+	path = bus-files
+	url = git@github.com:busdk/bus-files.git
+	branch = 1-bus-files
