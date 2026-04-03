@@ -21,7 +21,9 @@ Active requests:
   - Requested behavior:
     - add one `bus journal match <selector...> [apply <action...>]` command surface.
     - without `apply`, the command only lists matched journal rows.
-    - with `apply`, the command creates new journal rows from those matches; `apply --print` must print the exact journal-add style rows it would create without writing anything, and `--dry-run` should be accepted as an alias.
+    - with `apply`, the command creates new journal rows from those matches.
+    - `apply --print` must print the exact journal-add style rows it would create, without attempting to execute them.
+    - `apply --dry-run` must run the same validation, resolution, and error path as a real apply, but stop before any persistent write.
     - shorthand parsing must stay user-friendly but strictly deterministic:
       - before `apply`, accept one or many exact input accounts plus deterministic `x`-wildcard account selectors such as `1xxx`, `19xx`, and `191x`
       - after `apply`, accept either one target account for a `100 %` move, repeated split targets like `50%=4000`, or a trailing fallback/remainder account
