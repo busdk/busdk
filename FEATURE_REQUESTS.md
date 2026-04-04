@@ -14,6 +14,28 @@ Goal note:
 
 Active requests:
 
+- Replace the current append-only journal-row model with a first-class mutable audit-trail journal surface in `bus-journal` and dependent accounting modules.
+  - Current behavior:
+    - Bus journal rows are still modeled as append-only immutable postings without first-class created/updated audit metadata.
+    - operators cannot correct an existing stored transaction in place while preserving who changed it and when.
+    - `bus journal add` cannot preserve imported historical creation/update metadata, and there is no first-class `bus journal update` surface for deterministic correction of earlier journal transactions.
+  - Requested behavior:
+    - extend canonical journal rows to preserve at least:
+      - visible voucher number
+      - posting date
+      - voucher-level description
+      - row-level description
+      - actor identity for the latest change
+      - created timestamp with time-of-day
+      - updated timestamp with time-of-day
+      - existing row data such as account/debit/credit/source metadata
+    - add a first-class `bus journal update ...` surface that can modify previously stored transactions, including account lines and descriptions, while leaving a deterministic audit trail of who changed the posting and when.
+    - extend `bus journal add` and structured import/replay inputs so creation/update audit fields can also be provided explicitly when Bus is importing/exporting existing accounting history and must preserve original audit metadata.
+    - keep list/match/report surfaces aligned so the stored audit metadata and row/voucher descriptions are visible and scriptable.
+  - Why this matters:
+    - real bookkeeping must allow corrections, but those corrections must remain auditable.
+    - Bus currently protects immutability better than it protects real accounting correction workflows, and that is the wrong data model for the journal layer.
+
 - Extend `bus journal assert ...` with first-class grouped coverage controls for replay and receipt-split audits.
   - Current behavior:
     - `bus journal assert ...` now supports the main scalar measures `balance`, `debit`, `credit`, and `net`, plus date/range shorthand, explicit subset filters, and comparison operators.
