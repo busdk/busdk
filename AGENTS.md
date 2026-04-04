@@ -238,6 +238,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 60. Root `make test` and `make e2e` should default to changed-module scope, not a whole-repository sweep; use `TEST_SCOPE=all` only when a full cross-module run is explicitly desired.
 61. When using `rg` from the superproject root, do not include nonexistent generic paths like `internal` as positional search roots; target the actual module directories explicitly.
 62. Before starting any new user-requested feature or behavior change, or immediately when noticing work is already in progress, first add or update the corresponding `PLAN.md` and/or `BUGS.md` and/or `FEATURE_REQUESTS.md` entries in the same turn so in-progress work always leaves a canonical repository trace.
+63. Do not run `make install`, `go install`, or other user-environment install steps on the user's behalf unless they explicitly ask for that exact installation action. Tell the user what install command to run instead.
 
 ## Documentation Paths (All Modules)
 
@@ -291,6 +292,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 - For user-facing CLI tokens and flag values, accept both hyphenated and underscore-separated spellings when they represent the same canonical concept and no ambiguity is introduced. Keep one canonical internal/stored form, but do not force operators to guess whether Bus expects `-` or `_`. The same rule applies to other shorthand or alternate invocation forms: accept them only when normalization is deterministic and exact; if input could mean multiple things, fail with a usage error instead of guessing.
 - Before changing user-facing CLI `--help` text, define or follow the shared help-style contract under `sdd/docs/cli/`. Do not expand help ad hoc into dense prose; prefer syntax-first, structured help modeled on common system tools such as `git -h`, `git add -h`, `tar --help`, and similar command surfaces.
 - When improving BusDK help output, do not use older Bus help text as the style reference. Compare against common operating-system and Git help surfaces first, then apply the shared `sdd/docs/cli/help-output-contract.md` rules.
+- Do not install software or module binaries into the user's personal paths on their behalf. When PATH or dispatcher verification depends on a fresh installed binary, ask the user to run the relevant `make install` themselves and then continue verification against that installed binary.
 
 ## Refactor planning style rule
 

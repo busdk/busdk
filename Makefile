@@ -94,16 +94,25 @@ print-test-modules:
 	esac; \
 	changed_modules="$(CHANGED_MODULES)"; \
 	if [ "$$scope" = "changed" ] && [ -z "$$changed_modules" ]; then \
-		changed_modules="$$(git status --porcelain --ignore-submodules=none | awk '\
+		changed_modules="$$( \
 			{ \
-				path = substr($$0, 4); \
-				sub(/^[[:space:]]+/, "", path); \
-				if (index(path, " -> ") > 0) path = substr(path, index(path, " -> ") + 4); \
-				if (path ~ /^aiz(\/|$$)/) print "aiz"; \
-				else if (path ~ /^bus(\/|$$)/) print "bus"; \
-				else if (index(path, "bus-") == 1) { split(path, parts, "/"); print parts[1]; } \
-			} \
-		' | awk '!seen[$$0]++')"; \
+				git status --porcelain --ignore-submodules=none | awk '\
+					{ \
+						path = substr($$0, 4); \
+						sub(/^[[:space:]]+/, "", path); \
+						if (index(path, " -> ") > 0) path = substr(path, index(path, " -> ") + 4); \
+						if (path ~ /^aiz(\/|$$)/) print "aiz"; \
+						else if (path ~ /^bus(\/|$$)/) print "bus"; \
+						else if (index(path, "bus-") == 1) { split(path, parts, "/"); print parts[1]; } \
+					} \
+				'; \
+				for mod in $(MODULE_DIRS); do \
+					if git -C "$$mod" rev-parse --git-dir >/dev/null 2>&1 && [ -n "$$(git -C "$$mod" status --porcelain 2>/dev/null)" ]; then \
+						printf "%s\n" "$$mod"; \
+					fi; \
+				done; \
+			} | awk '!seen[$$0]++' \
+		)"; \
 	fi; \
 	for mod in $(MODULE_DIRS); do \
 		selected=1; \
@@ -149,16 +158,25 @@ test:
 	esac; \
 	changed_modules="$(CHANGED_MODULES)"; \
 	if [ "$$scope" = "changed" ] && [ -z "$$changed_modules" ]; then \
-		changed_modules="$$(git status --porcelain --ignore-submodules=none | awk '\
+		changed_modules="$$( \
 			{ \
-				path = substr($$0, 4); \
-				sub(/^[[:space:]]+/, "", path); \
-				if (index(path, " -> ") > 0) path = substr(path, index(path, " -> ") + 4); \
-				if (path ~ /^aiz(\/|$$)/) print "aiz"; \
-				else if (path ~ /^bus(\/|$$)/) print "bus"; \
-				else if (index(path, "bus-") == 1) { split(path, parts, "/"); print parts[1]; } \
-			} \
-		' | awk '!seen[$$0]++')"; \
+				git status --porcelain --ignore-submodules=none | awk '\
+					{ \
+						path = substr($$0, 4); \
+						sub(/^[[:space:]]+/, "", path); \
+						if (index(path, " -> ") > 0) path = substr(path, index(path, " -> ") + 4); \
+						if (path ~ /^aiz(\/|$$)/) print "aiz"; \
+						else if (path ~ /^bus(\/|$$)/) print "bus"; \
+						else if (index(path, "bus-") == 1) { split(path, parts, "/"); print parts[1]; } \
+					} \
+				'; \
+				for mod in $(MODULE_DIRS); do \
+					if git -C "$$mod" rev-parse --git-dir >/dev/null 2>&1 && [ -n "$$(git -C "$$mod" status --porcelain 2>/dev/null)" ]; then \
+						printf "%s\n" "$$mod"; \
+					fi; \
+				done; \
+			} | awk '!seen[$$0]++' \
+		)"; \
 	fi; \
 	ran=0; \
 	for mod in $(MODULE_DIRS); do \
@@ -202,16 +220,25 @@ e2e:
 	esac; \
 	changed_modules="$(CHANGED_MODULES)"; \
 	if [ "$$scope" = "changed" ] && [ -z "$$changed_modules" ]; then \
-		changed_modules="$$(git status --porcelain --ignore-submodules=none | awk '\
+		changed_modules="$$( \
 			{ \
-				path = substr($$0, 4); \
-				sub(/^[[:space:]]+/, "", path); \
-				if (index(path, " -> ") > 0) path = substr(path, index(path, " -> ") + 4); \
-				if (path ~ /^aiz(\/|$$)/) print "aiz"; \
-				else if (path ~ /^bus(\/|$$)/) print "bus"; \
-				else if (index(path, "bus-") == 1) { split(path, parts, "/"); print parts[1]; } \
-			} \
-		' | awk '!seen[$$0]++')"; \
+				git status --porcelain --ignore-submodules=none | awk '\
+					{ \
+						path = substr($$0, 4); \
+						sub(/^[[:space:]]+/, "", path); \
+						if (index(path, " -> ") > 0) path = substr(path, index(path, " -> ") + 4); \
+						if (path ~ /^aiz(\/|$$)/) print "aiz"; \
+						else if (path ~ /^bus(\/|$$)/) print "bus"; \
+						else if (index(path, "bus-") == 1) { split(path, parts, "/"); print parts[1]; } \
+					} \
+				'; \
+				for mod in $(MODULE_DIRS); do \
+					if git -C "$$mod" rev-parse --git-dir >/dev/null 2>&1 && [ -n "$$(git -C "$$mod" status --porcelain 2>/dev/null)" ]; then \
+						printf "%s\n" "$$mod"; \
+					fi; \
+				done; \
+			} | awk '!seen[$$0]++' \
+		)"; \
 	fi; \
 	ran=0; \
 	for mod in $(MODULE_DIRS); do \

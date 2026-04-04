@@ -9,7 +9,7 @@ OUT_CHANGED_E2E="$(mktemp)"
 OUT_ALL_TEST="$(mktemp)"
 OUT_NONE_TEST="$(mktemp)"
 OUT_AUTO_CHANGED_TEST="$(mktemp)"
-TEMP_CHANGED_FILE="bus-reports/.changed-scope-selftest.tmp"
+TEMP_CHANGED_FILE="bus-reports/.changed-scope-selftest.touch"
 trap 'rm -f "$OUT_CHANGED_TEST" "$OUT_CHANGED_E2E" "$OUT_ALL_TEST" "$OUT_NONE_TEST" "$OUT_AUTO_CHANGED_TEST" "$TEMP_CHANGED_FILE"' EXIT
 
 make -s print-test-modules TEST_SCOPE=changed CHANGED_MODULES="bus-reports" >"$OUT_CHANGED_TEST"
