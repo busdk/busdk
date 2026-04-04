@@ -7,6 +7,19 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
+- `bus reports evidence-pack` / printable profit-and-loss PDF layouts can drop the comparative/prior-year column from rendered PDFs even when the same report data and generated CSV artifacts contain the `prior` values correctly.
+  - Repro:
+    - `cd exports/sendanor/2024/data && bus reports profit-and-loss --period 2024 --comparatives --comparative-workspace ../../2023/data --layout-id fi-kpa-tuloslaskelma-full --format csv`
+    - `cd exports/sendanor/2024/data && bus reports evidence-pack --period 2024 --output-dir ../reports --comparatives --comparative-workspace ../../2023/data`
+    - inspect the generated `20241231-tuloslaskelma*.csv` and `20241231-tuloslaskelma*.pdf` artifacts under `exports/sendanor/2024/reports/`
+  - Current behavior:
+    - direct `profit-and-loss --format csv` and the evidence-pack CSV artifacts both contain the expected comparative `prior` values
+    - the corresponding printable profit-and-loss PDFs can still render only the current-year column even while the PDF metadata banner says `Vertailutiedot: Kyllä`
+    - in the same evidence-pack run, balance-sheet PDFs can still render the prior-year column correctly
+  - Expected:
+    - whenever comparative data is present in the report model and CSV artifact, the printable profit-and-loss PDFs should render that same prior-year column visibly
+    - profit-and-loss PDF behavior should match balance-sheet PDF behavior under the same `evidence-pack --comparatives --comparative-workspace ...` run
+
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
     - generate the current `tililuettelo.pdf` from a workspace that has canonical `account-groups.csv`, fiscal-year/period metadata, and `--as-of` report usage.
