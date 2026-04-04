@@ -94,6 +94,18 @@ grep -F " ${EXPECTED_TAG} go version" "$FAKE_DOCKER_LOG" >/dev/null
   PATH="$FAKE_BIN:$PATH" \
   HOME="$HOST_HOME" \
   FAKE_DOCKER_LOG="$FAKE_DOCKER_LOG" \
+  ./scripts/start-shell.sh "$TOPIC"
+)
+
+grep -F " ${EXPECTED_TAG} bash" "$FAKE_DOCKER_LOG" >/dev/null
+
+: >"$FAKE_DOCKER_LOG"
+
+(
+  cd "$TEST_REPO"
+  PATH="$FAKE_BIN:$PATH" \
+  HOME="$HOST_HOME" \
+  FAKE_DOCKER_LOG="$FAKE_DOCKER_LOG" \
   ./scripts/start-agent.sh "$TOPIC" --version
 )
 

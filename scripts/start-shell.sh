@@ -11,6 +11,8 @@ if [ -z "$TOPIC" ]; then
   exit 1
 fi
 
+ORIGINAL_ARGC=$#
+
 REPO_ROOT="$(pwd -P)"
 WORKTREE_PATH="$REPO_ROOT/work/$TOPIC"
 USER_ID="$(id -u)"
@@ -58,7 +60,7 @@ DOCKER_RUN_ARGS=(
   -w "$WORKTREE_PATH"
 )
 
-if [ -t 0 ] && [ -t 1 ]; then
+if [ "$ORIGINAL_ARGC" -eq 0 ] && [ -t 0 ] && [ -t 1 ]; then
   DOCKER_RUN_ARGS=(-it "${DOCKER_RUN_ARGS[@]}")
 fi
 
