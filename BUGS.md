@@ -7,4 +7,4 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-- No active defects currently recorded after re-verifying the reported `.bus` replay row-description regression against current implementation, unit coverage, module e2e suites, and root `make test`/`make e2e` on 2026-04-05.
+- No active defects currently recorded after re-verifying the reported `.bus` replay row-description regressions against current implementation, including the real replay-side unquoted `ACCOUNT=AMOUNT=ROW_DESCRIPTION with spaces` tokenization path, with unit coverage, module e2e suites, and root `make test`/`make e2e` on 2026-04-05.
