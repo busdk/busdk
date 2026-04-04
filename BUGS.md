@@ -7,19 +7,6 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-- `bus reports evidence-pack` / printable profit-and-loss PDF layouts can drop the comparative/prior-year column from rendered PDFs even when the same report data and generated CSV artifacts contain the `prior` values correctly.
-  - Repro:
-    - `cd exports/sendanor/2024/data && bus reports profit-and-loss --period 2024 --comparatives --comparative-workspace ../../2023/data --layout-id fi-kpa-tuloslaskelma-full --format csv`
-    - `cd exports/sendanor/2024/data && bus reports evidence-pack --period 2024 --output-dir ../reports --comparatives --comparative-workspace ../../2023/data`
-    - inspect the generated `20241231-tuloslaskelma*.csv` and `20241231-tuloslaskelma*.pdf` artifacts under `exports/sendanor/2024/reports/`
-  - Current behavior:
-    - direct `profit-and-loss --format csv` and the evidence-pack CSV artifacts both contain the expected comparative `prior` values
-    - the corresponding printable profit-and-loss PDFs can still render only the current-year column even while the PDF metadata banner says `Vertailutiedot: Kyllä`
-    - in the same evidence-pack run, balance-sheet PDFs can still render the prior-year column correctly
-  - Expected:
-    - whenever comparative data is present in the report model and CSV artifact, the printable profit-and-loss PDFs should render that same prior-year column visibly
-    - profit-and-loss PDF behavior should match balance-sheet PDF behavior under the same `evidence-pack --comparatives --comparative-workspace ...` run
-
 - `bus accounts report --format pdf` still misses requested tililuettelo features and layout safety in real output: account-group hierarchy rows are not visible as expected, requested balance-history columns are not present, and the trailing `Allekirjoitukset` section can overflow past the page bottom instead of moving to a fresh page.
   - Repro:
     - generate the current `tililuettelo.pdf` from a workspace that has canonical `account-groups.csv`, fiscal-year/period metadata, and `--as-of` report usage.
@@ -32,21 +19,6 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
     - `tililuettelo.pdf` should visibly include canonical account-group hierarchy rows whenever `account-groups.csv` is present.
     - when the report is requested with `--as-of`, the PDF should show the same requested-date / prior-period-end / opening balance columns as the shared tililuettelo report model.
     - the trailing signature section must never overflow beyond the printable page area.
-
-- `bus reports evidence-pack` can hang indefinitely on real Sendanor 2023/2024 workspaces because `day-book --format pdf` no longer completes in practical time after recent PDF-path changes.
-  - Repro:
-    - `timeout 20s bus -C exports/sendanor/2023/data reports evidence-pack --period 2023 --output-dir /tmp/ep2023-direct`
-    - `timeout 20s bus -C exports/sendanor/2024/data reports evidence-pack --period 2024 --output-dir /tmp/ep2024-direct`
-    - `timeout 20s bus -C exports/sendanor/2023/data -o /tmp/day2023.pdf reports day-book --period 2023 --format pdf`
-    - `timeout 20s bus -C exports/sendanor/2024/data -o /tmp/day2024.pdf reports day-book --period 2024 --format pdf`
-  - Current behavior:
-    - 2023/2024 `evidence-pack` does not finish within 20 seconds and leaves partial output behind.
-    - the run gets as far as `trial-balance.pdf`, `tase.pdf`, `tuloslaskelma.pdf`, `pankkitapahtumat.pdf`, and `tositeluettelo.pdf`, then stalls on a temp file like `.20231231-day-book.pdf.tmp-*`.
-    - `day-book --format text` stays fast on the same workspaces, and `day-book --format pdf` still completes on a smaller comparison year such as Sendanor 2025.
-    - this isolates the regression to the shared printable PDF path used by `day-book`, not to generic report loading or to the `evidence-pack` wrapper itself.
-  - Expected:
-    - `day-book --format pdf` should complete in practical time on real year workspaces such as Sendanor 2023/2024.
-    - `evidence-pack` should therefore complete normally once it reaches the day-book stage.
 
 - `bus reports balance-sheet --layout-id fi-kpa-tase-full-accounts` renders `3xxx..9xxx` profit-and-loss accounts as ordinary balance-sheet account rows under `Tilikauden voitto/tappio`, even though the line itself is only the balance-sheet presentation of net current-year result.
   - Repro:
