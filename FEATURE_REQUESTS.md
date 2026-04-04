@@ -6,28 +6,13 @@ Privacy rule for request write-ups:
 - Keep examples/repro snippets sanitized (no real customer names/emails/IBANs/account numbers/invoice numbers/local paths).
 - Prefer placeholders and aggregated outputs over raw customer-linked row dumps.
 
-Last reviewed: 2026-04-04.
+Last reviewed: 2026-04-05.
 
 Goal note:
 - Target workflow is Bus-only for bookkeeping/audit operations.
 - Operators should not need shell text pipelines (`grep/sed/awk/column`) to answer accounting control questions.
 
 Active requests:
-
-- Extend `bus journal` with first-class three-level description support for voucher, posting, and row text.
-  - Current behavior:
-    - `bus journal` preserves one shared `description` value plus optional `row_description`.
-    - in practice that means one voucher-level text is often shown on every debit and credit row, which is misleading when the operator needs to distinguish voucher text, posting text, and one explicit line-level note.
-  - Requested behavior:
-    - preserve and expose three distinct description levels:
-      - voucher description (`Tositteen kuvaus`)
-      - posting description (`Kirjauksen kuvaus`)
-      - row description (`Rivikohtainen kuvaus`)
-    - `add`, `update`, list/review surfaces, and replay/import-compatible write paths must allow these values to be set explicitly.
-    - `list` and other row-review outputs must be able to show these fields separately instead of forcing one shared description across all debit/credit rows.
-    - help output must document the exact flags and input shapes for all three description levels.
-  - Why this matters:
-    - one voucher-level text repeated on every row is not a sufficient accounting review surface and can mislead the operator about what was actually described at voucher, posting, and line level.
 
 - Extend `bus journal assert ...` with first-class grouped coverage controls for replay and receipt-split audits.
   - Current behavior:
