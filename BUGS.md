@@ -7,4 +7,194 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-- No active defects currently tracked.
+- `bus journal add` row descriptions still break when free-text `ACCOUNT=AMOUNT=DESCRIPTION` content contains whitespace-separated tokens that start with punctuation such as `+` or `-`, even though ordinary multi-word row descriptions now otherwise work in real replay files.
+  - the same replay path also still breaks when `ACCOUNT=AMOUNT=DESCRIPTION` row text contains semicolon-separated free text such as `Titan 1 GB foo; Rekisteröintimaksu bar`, even though semicolons are valid ordinary description content elsewhere in replay files.
+  - Repro:
+    - in [2024-04-19.bus](/Users/jhh/git/sendanor/sendanor-books-2023/exports/sendanor/2024/2024-04-19.bus) use a row description like:
+      - `--credit 9290=25.00=Muistutusmaksutulot viidestä Reminder Fee -rivistä`
+    - then run:
+      - `make -C exports/sendanor/2024 export`
+  - Current behavior:
+    - replay stops on that row with:
+      - `bus-journal: add accepts only long flags`
+    - the same local runtime now successfully accepts ordinary row descriptions with spaces, for example:
+      - `--debit 1911=924.10=Asiakkaan maksusuoritus pankkiin`
+    - a closely related local test also failed earlier when row-description text used standalone `+` segments in free text, so the parser/path still appears sensitive to punctuation-delimited tokens inside the documented `ACCOUNT=AMOUNT=DESCRIPTION` form
+    - after enabling row descriptions widely in `exports/sendanor/2024`, replay also failed on lines like `--credit 3001=37.26=Titan 1GB autokoma@autokoma.fi; Rekister intimaksu autokoma.fi` with `syntax error: disallowed token ";"`, so punctuation handling is still incomplete for row-description free text
+  - Expected:
+    - once the third component is parsed as free-text row description, punctuation inside that free text should not be reinterpreted as command flags or positional syntax
+    - strings such as `... + ...` and `... -rivistä` should be accepted as ordinary description text
+  - Repo impact:
+    - mixed-revenue row descriptions in Sendanor 2024 must currently avoid natural descriptive punctuation in free text, which makes audit labels less readable than the feature otherwise allows
+
+- `bus reports evidence-pack` / printable profit-and-loss PDF layouts can drop the comparative/prior-year column from the rendered PDF even when the same report data contains `prior` correctly and the PDF metadata banner still says `Vertailutiedot: Kyllä`.
+  - Repro:
+    - `cd exports/sendanor/2024/data && bus reports profit-and-loss --period 2024 --comparatives --comparative-workspace ../../2023/data --layout-id fi-kpa-tuloslaskelma-full --format csv`
+    - `cd exports/sendanor/2024/data && bus reports evidence-pack --period 2024 --output-dir ../reports --comparatives --comparative-workspace ../../2023/data`
+    - inspect:
+      - `exports/sendanor/2024/reports/20241231-tuloslaskelma.csv`
+      - `exports/sendanor/2024/reports/20241231-tuloslaskelma-full.csv`
+      - `exports/sendanor/2024/reports/20241231-tuloslaskelma.pdf`
+      - `exports/sendanor/2024/reports/20241231-tuloslaskelma-full.pdf`
+      - `exports/sendanor/2024/reports/20241231-tuloslaskelma-accounts.pdf`
+  - Current behavior:
+    - direct CSV output from `profit-and-loss` contains `prior` correctly, for example:
+      - `Liikevaihto,36794.17,69655.71`
+      - `TILIKAUDEN VOITTO (-TAPPIO),14341.70,18646.25`
+    - evidence-pack also writes CSV artifacts with the same correct `prior` column:
+      - `20241231-tuloslaskelma.csv`
+      - `20241231-tuloslaskelma-full.csv`
+      - `20241231-tuloslaskelma-accounts.csv`
+    - but the corresponding PDF artifacts render only the current-year column, while the header still states `Vertailutiedot: Kyllä`
+    - in the same evidence-pack run, balance-sheet PDFs render the prior-year column normally, for example `20241231-tase.pdf` and `20241231-tase-full.pdf`
+  - Expected:
+    - when comparative/prior data is present in the profit-and-loss report model and in the generated CSV artifact, the printable PDF variants should render that same prior-year column visibly
+    - at minimum, profit-and-loss PDF behavior should match balance-sheet PDF behavior under the same `evidence-pack --comparatives --comparative-workspace ...` run
+  - Repo impact:
+    - Sendanor 2024 evidence-pack currently gives a misleading result: tuloslaskelma PDFs visually look single-year even though the underlying comparative data exists and the run explicitly requested comparatives
+    - this makes it look like our Makefile or workspace comparatives are wrong, even though the fault is in the PDF/rendering path
+
+- `bus journal assert --help` and `bus journal match --help` do not provide usable command-local help, even though these are now practical operator entrypoints for replay-side audit checks and journal triage.
+  - Repro:
+    - `bus journal assert --help`
+    - `bus journal match --help`
+  - Current behavior:
+    - `bus journal assert --help` exits with:
+      - `bus-journal: assert measure must be one of: balance, debit, credit, net`
+    - `bus journal match --help` exits with:
+      - `bus-journal: unknown match flag: --help`
+    - neither command prints the concrete flag set, positional syntax, or examples for the subcommand the operator is trying to use
+  - Expected:
+    - both subcommands should accept a standard command-local help path such as `--help`
+    - the help output should describe the actual supported syntax, including:
+      - positional date and range shorthand such as `2026-01-01` and `2026-01-01..2026-02-01`
+      - account selectors / masks such as `1701` and `1xxx`
+      - exact and prefix filters for `source_id` and description
+      - comparison arguments such as `>=1000` and `<=0.00`
+  - Repo impact:
+    - slows down adoption of the shipped `bus journal assert ...` workflow in `exports/jhh-meri-laskelmat`
+    - makes `journal match` harder to use safely for manual triage because the most natural discovery path is currently broken
+
+- `bus -C <workspace> ../file.bus` does not execute Bus replay files in the current local `bus` binary, even though the same `.bus` file still runs when invoked from inside the workspace without global `-C`.
+  - Repro:
+    - `bus -C exports/jhh-meri-laskelmat/data ../2025-11.bus`
+    - `bus -C exports/sendanor/2025/data ../all.bus`
+    - minimal content repro:
+      - create `/tmp/codex-minimal.bus` with:
+        - `#!/usr/bin/env bus`
+        - `validate`
+      - `cd exports/jhh-meri-laskelmat/data && bus /tmp/codex-minimal.bus` -> succeeds
+      - `bus -C exports/jhh-meri-laskelmat/data /tmp/codex-minimal.bus` -> fails with `missing subcommand`
+  - Current behavior:
+    - both commands fail immediately with:
+      - `bus: missing subcommand: ../2025-11.bus; expected executable named bus-../2025-11.bus in PATH`
+      - or the corresponding `../all.bus` variant
+    - the same failure reproduces with a trivial one-line `validate` busfile, so the symptom is not caused by repo-specific replay content
+    - the same replay file still works when run from the target workspace directory directly, for example:
+      - `cd exports/jhh-meri-laskelmat/data && bus ../2025-11.bus`
+  - Expected:
+    - global `-C` should preserve the longstanding `bus -C <workspace> ../all.bus` / `bus -C <workspace> ../YYYY-MM.bus` workflow and execute the `.bus` replay file relative to the changed working directory
+    - if this invocation shape is intentionally retired, Bus should fail with an explicit deprecation/error message that points to the replacement replay command, not with generic subcommand parsing
+  - Repo impact:
+    - breaks documented and repo-wide replay entrypoints such as `bus -C exports/sendanor/YYYY/data ../all.bus`
+    - breaks `exports/jhh-meri-laskelmat/data/Makefile`-style month workflows that rely on running year/month `.bus` files from the workspace context
+    - forces manual fallback to executing `.bus` files directly via shebang from inside the workspace, bypassing the normal `-C` pattern used throughout this repo
+
+- `bus bank add` and `bus journal add` do not expose a working command-local help path via `-h` or `--help`, even though this is the practical discovery path when building replay files by hand.
+  - Repro:
+    - `bus bank add -h`
+    - `bus bank add --help`
+    - `bus journal add -h`
+    - `bus journal add --help`
+  - Current behavior:
+    - `bus bank add -h` fails with `unknown add flag: -h`
+    - `bus bank add --help` fails with `unknown add flag: --help`
+    - `bus journal add -h` fails with `bus-journal: add accepts only long flags`
+    - `bus journal add --help` fails with `bus-journal: unknown add flag: --help`
+  - Expected:
+    - subcommands like `bank add` and `journal add` should support a predictable help form, ideally both `-h` and `--help`, or at minimum one clearly documented and working command-local help flag
+    - the help output should describe the accepted flags for that concrete subcommand so replay authors do not need to reverse-engineer argument shapes from existing repo examples
+  - Repo impact:
+    - slows down replay authoring in personal workspaces like `exports/jhh-meri-laskelmat`
+    - makes it harder to add statement-backed bank rows and source-linked journal entries safely and consistently
+
+- `bus reports balance-sheet --layout-id fi-kpa-tase-full-accounts` renders `3xxx..9xxx` profit-and-loss accounts as if they were ordinary balance-sheet account rows under `Tilikauden voitto/tappio`, even though the line itself is only the balance-sheet presentation of net current-year result.
+  - Repro:
+    - `timeout 30 bus -C exports/sendanor/2023/data reports balance-sheet --as-of 2023-12-31 --layout-id fi-kpa-tase-full-accounts --format text`
+    - `timeout 30 bus -C exports/sendanor/2023/data reports statement-explain --report balance-sheet --as-of 2023-12-31 --account 3000 --layout-id fi-kpa-tase-full --format csv`
+  - Current behavior:
+    - Sendanor 2023 `tase-full-accounts` prints rows like `3000`, `3001`, `4100`, `9460`, `9560` directly under visible TASE row `Tilikauden voitto/tappio`
+    - current Bus tests and docs confirm that this comes from `synthetic_current_year_result`: balance-sheet explainability resolves P&L accounts to `bs_current_year_result`, and `fi-kpa-tase-full-accounts` then emits those contributing accounts as visible account-breakdown rows
+    - this makes revenue/expense accounts look like balance-sheet accounts in a TASE account listing even though they are only the calculation inputs of the net result line
+  - Expected:
+    - the balance-sheet line `Tilikauden voitto/tappio` may be computed from profit-and-loss accounts only when explicit closing-source setup exists
+    - without explicit closing-source entries (or explicit opt-in), reporting should fail with a clear error (or hard warning) instead of silently synthesizing a value
+    - when the report succeeds, `fi-kpa-tase-full-accounts` should not render `3xxx..9xxx` accounts as ordinary TASE account rows
+    - accepted alternatives would be:
+      - show only the aggregate `Tilikauden voitto/tappio` line with no account drill-down, or
+      - show a clearly separate reconciliation/explanation block rather than balance-sheet account rows
+  - Why this looks wrong relative to source accounting:
+    - original Sendanor 2023 year-end daybook does not contain a closing journal that transfers all `3xxx..9xxx` accounts onto `2300`; [Päiväkirja.csv](/Users/jhh/git/sendanor/sendanor-books-2023/original/2023/data/Sendanor-Kirjanpito%202023%20-%20P%C3%A4iv%C3%A4kirja.csv) only contains year-end adjustments such as VAT, depreciation, and loan reclassifications
+    - original ledgers and balance sheet present `Tilikauden voitto / tappio` as a derived own-equity line, not as a list of revenue/expense accounts inside TASE: [Pääkirja-joulukuu-3.0.csv#L594](/Users/jhh/git/sendanor/sendanor-books-2023/original/2023/data/Sendanor-Kirjanpito%202023%20-%20P%C3%A4%C3%A4kirja-joulukuu-3.0.csv#L594), [TASE 31.12.2023.csv](/Users/jhh/git/sendanor/sendanor-books-2023/original/2023/data/Sendanor-Kirjanpito%202023%20-%20TASE%2031.12.2023.csv)
+  - Repo impact:
+    - Sendanor `tase-accounts` looks semantically wrong and audit-hostile because it appears to claim that profit-and-loss accounts belong to the balance sheet
+
+- `bus reports evidence-pack` can hang indefinitely on real Sendanor 2023/2024 workspaces because `day-book --format pdf` no longer completes in practical time after recent PDF-path changes.
+  - Repro:
+    - `timeout 20s bus -C exports/sendanor/2023/data reports evidence-pack --period 2023 --output-dir /tmp/ep2023-direct`
+    - `timeout 20s bus -C exports/sendanor/2024/data reports evidence-pack --period 2024 --output-dir /tmp/ep2024-direct`
+    - `timeout 20s bus -C exports/sendanor/2023/data -o /tmp/day2023.pdf reports day-book --period 2023 --format pdf`
+    - `timeout 20s bus -C exports/sendanor/2024/data -o /tmp/day2024.pdf reports day-book --period 2024 --format pdf`
+  - Current behavior:
+    - 2023/2024 `evidence-pack` does not finish within 20 seconds and leaves partial output behind
+    - the run gets as far as `trial-balance.pdf`, `tase.pdf`, `tuloslaskelma.pdf`, `pankkitapahtumat.pdf`, and `tositeluettelo.pdf`, then stalls on a temp file like `.20231231-day-book.pdf.tmp-*`
+    - `day-book --format text` stays fast on the same workspaces, and `day-book --format pdf` still completes on a smaller comparison year such as Sendanor 2025
+    - this isolates the regression to the shared printable PDF path used by `day-book`, not to generic report loading or to the `evidence-pack` wrapper itself
+  - Expected:
+    - `day-book --format pdf` should complete in practical time on real year workspaces such as Sendanor 2023/2024
+    - `evidence-pack` should therefore complete normally once it reaches the day-book stage
+  - Repo impact:
+    - `make -C exports/sendanor/2023/data reports` and `make -C exports/sendanor/2024/data reports` appear hung in normal use
+
+- `bus reports profit-and-loss` `fi-kpa-tuloslaskelma-full` / `fi-kpa-tuloslaskelma-full-accounts` do not render visible deeper descendant rows from canonical `account-groups.csv` even though the module docs promise that `*-full` layouts expand those descendants.
+  - Repro:
+    - `make -C exports/hg/2025/data export`
+    - `cd exports/hg/2025/data && bus reports statement-explain --report profit-and-loss --period 2025 | sed -n '1,40p'`
+    - `cd exports/hg/2025/data && bus reports profit-and-loss --period 2025 --layout-id fi-kpa-tuloslaskelma-full --format text | sed -n '1,80p'`
+    - `cd exports/hg/2023/data && bus reports profit-and-loss --period 2023 --layout-id fi-kpa-tuloslaskelma-full-accounts --format text | sed -n '18,70p'`
+  - Current behavior:
+    - canonical HG groups contain deeper descendants such as `Eläkekulut`, `Muut henkilösivukulut`, and more specific finance/tax rows
+    - `statement-explain` resolves accounts into those deeper groups, but the visible output collapses them back into ancestor rows like `Henkilöstökulut yhteensä`
+    - in HG 2023 `*-accounts`, the subtotal `Henkilöstökulut yhteensä` is printed before the child block, and rows like `Eläkekulut` / `Muut henkilösivukulut` never appear visibly
+  - Expected:
+    - documented deeper descendants from canonical `account-groups.csv` should be injected into Finnish `*-full` profit-and-loss layouts, similarly to how the full TASE layout already expands visible descendants
+    - grouped row order should remain child rows first, subtotal last
+  - Repo impact:
+    - HG profit-and-loss parity against `original/hg/tilinpaatos/*` remains incomplete even after local group-tree normalization
+
+- `bus reports profit-and-loss` prints expense-side child rows in grouped/full layouts, including `*-accounts`, with positive visible amounts even though statutory statement output is documented to show expense amounts as negative.
+  - Repro:
+    - `make -C exports/hg/2022/data export`
+    - `cd exports/hg/2022/data && bus reports profit-and-loss --period 2022 --layout-id fi-kpa-tuloslaskelma-full --format text | sed -n '1,80p'`
+    - `cd exports/hg/2025/data && bus reports profit-and-loss --period 2025 --layout-id fi-kpa-tuloslaskelma-full --format text | sed -n '1,80p'`
+    - `cd exports/hg/2023/data && bus reports profit-and-loss --period 2023 --layout-id fi-kpa-tuloslaskelma-full-accounts --format text | sed -n '18,70p'`
+  - Current behavior:
+    - parent expense/subtotal rows render negative statement amounts, but child rows often render positive values, for example `Suunnitelman mukaiset poistot|5 543,74` under `Poistot ja arvonalentumiset|-5 543,74`
+    - the same sign flip appears under personnel costs, finance costs, and income taxes
+  - Expected:
+    - child rows under expense-side sections should follow the same negative statement-sign presentation as the parent expense rows
+  - Repo impact:
+    - even when account placement is otherwise correct, HG profit-and-loss parity remains visually wrong and harder to audit
+
+- `bus reports profit-and-loss` `fi-kpa-tuloslaskelma-full-accounts` omits per-account drill-down rows for some visible statement lines even though `statement-explain` resolves accounts to those exact visible lines.
+  - Repro:
+    - `make -C exports/hg/2023/data export`
+    - `cd exports/hg/2023/data && bus reports statement-explain --report profit-and-loss --period 2023 --layout-id fi-kpa-tuloslaskelma-full-accounts | rg '6130|6300|6870|9490|9940'`
+    - `cd exports/hg/2023/data && bus reports profit-and-loss --period 2023 --layout-id fi-kpa-tuloslaskelma-full-accounts --format text | sed -n '18,70p'`
+  - Current behavior:
+    - `statement-explain` resolves accounts like `6130`, `6870`, `9490`, and `9940` to visible lines such as `Henkilöstökulut yhteensä`, `Poistot ja arvonalentumiset`, `Rahoituskulut`, and `TULOVEROT`
+    - the rendered `*-accounts` output still shows no account rows under those visible lines, only empty child/subtotal rows such as `Henkilösivukulut`, `Suunnitelman mukaiset poistot`, `Muille`, and `Tilikauden ja aikaisempien tilikausien verot`
+  - Expected:
+    - in `*-accounts` variants, every visible statement line with non-zero account contributions should show deterministic per-account drill-down rows beneath that same visible line
+  - Repo impact:
+    - HG `tuloslaskelma-full-accounts` cannot currently serve as a complete tilitason audit/review document
