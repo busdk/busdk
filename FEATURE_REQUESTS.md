@@ -14,4 +14,8 @@ Goal note:
 
 Active requests:
 
-- None currently.
+- first-class `bus files` surface
+  - `bus files parse <file...>`
+  - `bus files parse rows <file...>`
+  - `bus files find <dir...>`
+  - includes generic local evidence parsing and deterministic duplicate detection
