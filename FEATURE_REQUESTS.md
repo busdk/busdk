@@ -14,6 +14,12 @@ Goal note:
 
 Active requests:
 
+- extend `bus files assert` with expression-based aggregate CSV/TSV assertions
+  - auto-detect `csv` / `tsv` by file extension or file contents unless `--format` overrides it
+  - header-based row selection bindings such as `--select-one`, `--select-many`, and flexible `--select`
+  - arithmetic assertions over selected row/column values such as `sum(...)`, `avg(...)`, `min(...)`, `max(...)`, `count(...)`, and addition/subtraction between selected values and sets
+  - deterministic pass/fail output that shows the expression, matched filters, included values, computed result, and expected result
+
 - first-class `bus files` surface
   - `bus files parse <file...>`
   - `bus files parse rows <file...>`
