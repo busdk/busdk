@@ -13,7 +13,3 @@ Goal note:
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 Active requests:
-- Always render visible zero amounts as explicit zeroes in reports
-  - in report outputs, render numeric zeroes as `0`/`0.00` instead of empty amount cells whenever the row is a numeric statement, subtotal, result, or account row
-  - keep truly structural heading rows visually blank only when they are non-numeric section headings
-  - make CSV and PDF follow the same zero-value visibility contract as text/markdown/json
