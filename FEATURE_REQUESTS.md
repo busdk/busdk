@@ -13,4 +13,4 @@ Goal note:
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 Active requests:
-  - none
+  - None currently.
