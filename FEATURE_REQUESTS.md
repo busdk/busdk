@@ -13,8 +13,4 @@ Goal note:
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 Active requests:
-  - add an AI-annotated `*-accounts` report variant in `bus-reports`
-  - keep the existing statement/group/account hierarchy and add a third visible level under each posting account
-  - render accountant-facing AI summaries of what each account contains, including tabular subtotal rows where useful
-  - implement the AI integration through the `bus-agent` Go library surface rather than shelling out through the CLI
-  - allow `evidence-pack` to include the AI-annotated account report artifacts opportunistically when AI is available, but do not make ordinary non-AI evidence-pack generation fail just because AI is unavailable
+  - none
