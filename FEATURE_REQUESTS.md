@@ -13,7 +13,6 @@ Goal note:
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 Active requests:
-- Remove duplicated account code from the first visible label field in `*-accounts` reports
   - in `balance-sheet` and `profit-and-loss` `*-accounts` outputs, keep `account_code` and `account_name` as their own columns
   - stop repeating the account code in the first visible `section`/label field for account rows
   - keep indentation and subgroup/account structure unchanged across text/csv/markdown/json/pdf
