@@ -13,3 +13,7 @@ Goal note:
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 Active requests:
+- Uniform TASE / tuloslaskelma subtotal presentation in CSV and PDF
+  - make main groups and subgroups follow the same visible subtotal contract
+  - when a statement subgroup has rendered descendant rows between its label and its total, render the total on its own indented `yhteensä` row after those descendants
+  - when no descendant rows are rendered, keep the current inline total presentation
