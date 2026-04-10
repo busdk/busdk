@@ -13,4 +13,7 @@ Goal note:
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 Active requests:
-  - None currently.
+  - speed up `bus-reports` AI-annotated account report variants further beyond 4-way parallelism
+  - expose an explicit fast-model / AI-runtime tuning surface for AI-annotated report generation
+  - render AI-generated account summary rows in PDFs without bold emphasis
+  - make `bus-reports evidence-pack` include AI-annotated statement artifacts only behind an explicit opt-in flag instead of enabling them by default whenever AI is available
