@@ -13,7 +13,3 @@ Goal note:
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 Active requests:
-- `bus dev each` configurable parallel module execution
-  - support running selected child modules concurrently with an explicit jobs option such as `--jobs 4`
-  - keep token execution sequential inside each child module (for example `stage` then `commit` in that module)
-  - preserve deterministic preflight, failure reporting, tests, and docs
