@@ -13,9 +13,3 @@ Goal note:
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 Active requests:
-
-- first-class `bus files` surface
-  - `bus files parse <file...>`
-  - `bus files parse rows <file...>`
-  - `bus files find <dir...>`
-  - includes generic local evidence parsing and deterministic duplicate detection
