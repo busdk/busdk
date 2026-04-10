@@ -13,6 +13,7 @@ Goal note:
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 Active requests:
-  - in `balance-sheet` and `profit-and-loss` `*-accounts` outputs, keep `account_code` and `account_name` as their own columns
-  - stop repeating the account code in the first visible `section`/label field for account rows
-  - keep indentation and subgroup/account structure unchanged across text/csv/markdown/json/pdf
+  - add an AI-annotated `*-accounts` report variant in `bus-reports`
+  - keep the existing statement/group/account hierarchy and add a third visible level under each posting account
+  - render accountant-facing AI summaries of what each account contains, including tabular subtotal rows where useful
+  - implement the AI integration through the `bus-agent` Go library surface rather than shelling out through the CLI
