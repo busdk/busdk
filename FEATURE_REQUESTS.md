@@ -16,4 +16,3 @@ Active requests:
   - speed up `bus-reports` AI-annotated account report variants further beyond 4-way parallelism
   - expose an explicit fast-model / AI-runtime tuning surface for AI-annotated report generation
   - render AI-generated account summary rows in PDFs without bold emphasis
-  - label `bus-reports` statement CSV amount columns with resolved period-end dates instead of generic `amount` / `prior` headers
