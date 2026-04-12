@@ -226,3 +226,7 @@
 	path = bus-files
 	url = git@github.com:busdk/bus-files.git
 	branch = 1-bus-files
+[submodule "bus-debts"]
+	path = bus-debts
+	url = git@github.com:busdk/bus-debts.git
+	branch = 1-bus-debts

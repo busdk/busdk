@@ -1,0 +1,158 @@
+# BUGS.md
+
+Track defects/blockers that affect this repo's replay/parity workflows.
+Feature work belongs in `FEATURE_REQUESTS.md`.
+
+**Last reviewed:** 2026-04-12.
+
+## Active defects
+
+- `bus reports evidence-pack` / `profit-and-loss --layout-id fi-kpa-tuloslaskelma-full-accounts` can leave `account_name` empty for prior-only finance-cost rows even though the account names exist and the same rows render correctly in the previous year.
+  - Repro:
+    - `make -C exports/sendanor/2024 rebuild`
+    - inspect:
+      - [20241231-tuloslaskelma-accounts.csv](/Users/jhh/git/sendanor/sendanor-books-2023/exports/sendanor/2024/reports/20241231-tuloslaskelma-accounts.csv)
+      - [20231231-tuloslaskelma-accounts.csv](/Users/jhh/git/sendanor/sendanor-books-2023/exports/sendanor/2023/reports/20231231-tuloslaskelma-accounts.csv)
+      - [accounts.csv](/Users/jhh/git/sendanor/sendanor-books-2023/exports/sendanor/2024/data/accounts.csv)
+  - Current behavior:
+    - in 2024 `tuloslaskelma-accounts.csv`, under `Rahoituskulut`, these rows lose the `account_name` value:
+      - `8560 Lainojen hoitokulut (source labeling)` -> row renders as `,8560,,0.00,-20.00`
+      - `9480 Viivästyskorot ostoveloista (source labeling)` -> row renders as `,9480,,0.00,-0.11`
+    - the account names do exist in the workspace account master:
+      - `8560,Lainojen hoitokulut (source labeling),...`
+      - `9480,Viivästyskorot ostoveloista (source labeling),...`
+    - the same account rows render names correctly in the 2023 comparative source report:
+      - `8560,Lainojen hoitokulut (source labeling),-20.00,0.00`
+      - `9480,Viivästyskorot ostoveloista (source labeling),-0.11,0.00`
+  - Expected:
+    - `account_name` should remain populated in 2024 `fi-kpa-tuloslaskelma-full-accounts` CSV output for `8560 Lainojen hoitokulut (source labeling)` and `9480 Viivästyskorot ostoveloista (source labeling)`, just like it does in the 2023 report and in the workspace `accounts.csv`
+  - Repo impact:
+    - breaks account-level audit readability in Sendanor 2024 exactly on two finance-cost rows
+    - makes the generated CSV look like the account master is incomplete even though the defect is only in report rendering
+
+- `bus reports evidence-pack` / printable profit-and-loss PDF layouts can drop the comparative/prior-year column from the rendered PDF even when the same report data contains `prior` correctly and the PDF metadata banner still says `Vertailutiedot: Kyllä`.
+  - Repro:
+    - `cd exports/sendanor/2024/data && bus reports profit-and-loss --period 2024 --comparatives --comparative-workspace ../../2023/data --layout-id fi-kpa-tuloslaskelma-full --format csv`
+    - `cd exports/sendanor/2024/data && bus reports evidence-pack --period 2024 --output-dir ../reports --comparatives --comparative-workspace ../../2023/data`
+    - inspect:
+      - `exports/sendanor/2024/reports/20241231-tuloslaskelma.csv`
+      - `exports/sendanor/2024/reports/20241231-tuloslaskelma-full.csv`
+      - `exports/sendanor/2024/reports/20241231-tuloslaskelma.pdf`
+      - `exports/sendanor/2024/reports/20241231-tuloslaskelma-full.pdf`
+      - `exports/sendanor/2024/reports/20241231-tuloslaskelma-accounts.pdf`
+  - Current behavior:
+    - direct CSV output from `profit-and-loss` contains `prior` correctly, for example:
+      - `Liikevaihto,36794.17,69655.71`
+      - `TILIKAUDEN VOITTO (-TAPPIO),14341.70,18646.25`
+    - evidence-pack also writes CSV artifacts with the same correct `prior` column:
+      - `20241231-tuloslaskelma.csv`
+      - `20241231-tuloslaskelma-full.csv`
+      - `20241231-tuloslaskelma-accounts.csv`
+    - but the corresponding PDF artifacts render only the current-year column, while the header still states `Vertailutiedot: Kyllä`
+    - in the same evidence-pack run, balance-sheet PDFs render the prior-year column normally, for example `20241231-tase.pdf` and `20241231-tase-full.pdf`
+  - Expected:
+    - when comparative/proir data is present in the profit-and-loss report model and in the generated CSV artifact, the printable PDF variants should render that same prior-year column visibly
+    - at minimum, profit-and-loss PDF behavior should match balance-sheet PDF behavior under the same `evidence-pack --comparatives --comparative-workspace ...` run
+  - Repo impact:
+    - Sendanor 2024 evidence-pack currently gives a misleading result: tuloslaskelma PDFs visually look single-year even though the underlying comparative data exists and the run explicitly requested comparatives
+    - this makes it look like our Makefile or workspace comparatives are wrong, even though the fault is in the PDF/rendering path
+
+- `bus reports balance-sheet --layout-id fi-kpa-tase-full-accounts` renders `3xxx..9xxx` profit-and-loss accounts as if they were ordinary balance-sheet account rows under `Tilikauden voitto/tappio`, even though the line itself is only the balance-sheet presentation of net current-year result.
+  - Repro:
+    - `timeout 30 bus -C exports/sendanor/2023/data reports balance-sheet --as-of 2023-12-31 --layout-id fi-kpa-tase-full-accounts --format text`
+    - `timeout 30 bus -C exports/sendanor/2023/data reports statement-explain --report balance-sheet --as-of 2023-12-31 --account 3000 --layout-id fi-kpa-tase-full --format csv`
+  - Current behavior:
+    - Sendanor 2023 `tase-full-accounts` prints rows like `3000`, `3001`, `4100`, `9460`, `9560` directly under visible TASE row `Tilikauden voitto/tappio`.
+    - current Bus tests and docs confirm that this comes from `synthetic_current_year_result`: balance-sheet explainability resolves P&L accounts to `bs_current_year_result`, and `fi-kpa-tase-full-accounts` then emits those contributing accounts as visible account-breakdown rows.
+    - this makes revenue/expense accounts look like balance-sheet accounts in a TASE account listing even though they are only the calculation inputs of the net result line.
+  - Expected:
+    - the balance-sheet line `Tilikauden voitto/tappio` may be computed from profit-and-loss accounts only when explicit closing-source setup exists.
+    - without explicit closing-source entries (or explicit opt-in), reporting should fail with a clear error (or hard warning) instead of silently synthesizing a value.
+    - when the report succeeds, `fi-kpa-tase-full-accounts` should not render `3xxx..9xxx` accounts as ordinary TASE account rows.
+    - accepted alternatives would be:
+      - show only the aggregate `Tilikauden voitto/tappio` line with no account drill-down, or
+      - show a clearly separate reconciliation/explanation block rather than balance-sheet account rows.
+  - Why this looks wrong relative to source accounting:
+    - original Sendanor 2023 year-end daybook does not contain a closing journal that transfers all `3xxx..9xxx` accounts onto `2300`; [Päiväkirja.csv](/Users/jhh/git/sendanor/sendanor-books-2023/original/2023/data/Sendanor-Kirjanpito%202023%20-%20P%C3%A4iv%C3%A4kirja.csv) only contains year-end adjustments such as VAT, depreciation, and loan reclassifications.
+    - original ledgers and balance sheet present `Tilikauden voitto / tappio` as a derived own-equity line, not as a list of revenue/expense accounts inside TASE: [Pääkirja-joulukuu-3.0.csv#L594](/Users/jhh/git/sendanor/sendanor-books-2023/original/2023/data/Sendanor-Kirjanpito%202023%20-%20P%C3%A4%C3%A4kirja-joulukuu-3.0.csv#L594), [TASE 31.12.2023.csv](/Users/jhh/git/sendanor/sendanor-books-2023/original/2023/data/Sendanor-Kirjanpito%202023%20-%20TASE%2031.12.2023.csv)
+  - Repo impact:
+    - Sendanor `tase-accounts` looks semantically wrong and audit-hostile because it appears to claim that profit-and-loss accounts belong to the balance sheet.
+
+- `bus reports profit-and-loss` `fi-kpa-tuloslaskelma-full` / `fi-kpa-tuloslaskelma-full-accounts` do not render visible deeper descendant rows from canonical `account-groups.csv` even though the module docs promise that `*-full` layouts expand those descendants.
+  - Repro:
+    - `make -C exports/hg/2025/data export`
+    - `cd exports/hg/2025/data && bus reports statement-explain --report profit-and-loss --period 2025 | sed -n '1,40p'`
+    - `cd exports/hg/2025/data && bus reports profit-and-loss --period 2025 --layout-id fi-kpa-tuloslaskelma-full --format text | sed -n '1,80p'`
+    - `cd exports/hg/2023/data && bus reports profit-and-loss --period 2023 --layout-id fi-kpa-tuloslaskelma-full-accounts --format text | sed -n '18,70p'`
+  - Current behavior:
+    - canonical HG groups contain deeper descendants such as `Eläkekulut`, `Muut henkilösivukulut`, and more specific finance/tax rows.
+    - `statement-explain` resolves accounts into those deeper groups, but the visible output collapses them back into ancestor rows like `Henkilöstökulut yhteensä`.
+    - in HG 2023 `*-accounts`, the subtotal `Henkilöstökulut yhteensä` is printed before the child block, and rows like `Eläkekulut` / `Muut henkilösivukulut` never appear visibly.
+  - Expected:
+    - documented deeper descendants from canonical `account-groups.csv` should be injected into Finnish `*-full` profit-and-loss layouts, similarly to how the full TASE layout already expands visible descendants.
+    - grouped row order should remain child rows first, subtotal last.
+  - Repo impact:
+    - HG profit-and-loss parity against `original/hg/tilinpaatos/*` remains incomplete even after local group-tree normalization.
+
+- `bus reports profit-and-loss` prints expense-side child rows in grouped/full layouts, including `*-accounts`, with positive visible amounts even though statutory statement output is documented to show expense amounts as negative.
+  - Repro:
+    - `make -C exports/hg/2022/data export`
+    - `cd exports/hg/2022/data && bus reports profit-and-loss --period 2022 --layout-id fi-kpa-tuloslaskelma-full --format text | sed -n '1,80p'`
+    - `cd exports/hg/2025/data && bus reports profit-and-loss --period 2025 --layout-id fi-kpa-tuloslaskelma-full --format text | sed -n '1,80p'`
+    - `cd exports/hg/2023/data && bus reports profit-and-loss --period 2023 --layout-id fi-kpa-tuloslaskelma-full-accounts --format text | sed -n '18,70p'`
+  - Current behavior:
+    - parent expense/subtotal rows render negative statement amounts, but child rows often render positive values, for example `Suunnitelman mukaiset poistot|5 543,74` under `Poistot ja arvonalentumiset|-5 543,74`.
+    - the same sign flip appears under personnel costs, finance costs, and income taxes.
+  - Expected:
+    - child rows under expense-side sections should follow the same negative statement-sign presentation as the parent expense rows.
+  - Repo impact:
+    - even when account placement is otherwise correct, HG profit-and-loss parity remains visually wrong and harder to audit.
+
+- `bus reports profit-and-loss` `fi-kpa-tuloslaskelma-full-accounts` omits per-account drill-down rows for some visible statement lines even though `statement-explain` resolves accounts to those exact visible lines.
+  - Repro:
+    - `make -C exports/hg/2023/data export`
+    - `cd exports/hg/2023/data && bus reports statement-explain --report profit-and-loss --period 2023 --layout-id fi-kpa-tuloslaskelma-full-accounts | rg '6130|6300|6870|9490|9940'`
+    - `cd exports/hg/2023/data && bus reports profit-and-loss --period 2023 --layout-id fi-kpa-tuloslaskelma-full-accounts --format text | sed -n '18,70p'`
+  - Current behavior:
+    - `statement-explain` resolves accounts like `6130`, `6870`, `9490`, and `9940` to visible lines such as `Henkilöstökulut yhteensä`, `Poistot ja arvonalentumiset`, `Rahoituskulut`, and `TULOVEROT`.
+    - the rendered `*-accounts` output still shows no account rows under those visible lines, only empty child/subtotal rows such as `Henkilösivukulut`, `Suunnitelman mukaiset poistot`, `Muille`, and `Tilikauden ja aikaisempien tilikausien verot`.
+  - Expected:
+    - in `*-accounts` variants, every visible statement line with non-zero account contributions should show deterministic per-account drill-down rows beneath that same visible line.
+  - Repo impact:
+    - HG `tuloslaskelma-full-accounts` cannot currently serve as a complete tilitason audit/review document.
+
+- `bus reports balance-sheet --layout-id fi-kpa-tase-full-accounts` can duplicate the same balance-sheet account on two different visible rows when the account's report group hierarchy changed between the current year and the comparative year.
+  - Repro:
+    - `make -C exports/sendanor/2025 rebuild`
+    - inspect [2025 group membership](/Users/jhh/git/sendanor/sendanor-books-2023/exports/sendanor/2025/2025-00-00-025-group-membership.bus) and [2024 group membership](/Users/jhh/git/sendanor/sendanor-books-2023/exports/sendanor/2024/2024-00-00-group-membership.bus)
+    - inspect [20251231-tase-accounts.csv](/Users/jhh/git/sendanor/sendanor-books-2023/exports/sendanor/2025/reports/20251231-tase-accounts.csv)
+  - Current behavior:
+    - `2660 Ennakkoon maksetut palvelut/tuotteet (pa)` is grouped in `2024` under short-term advance payments:
+      - `accounts set --code 2660 --group-id bs_advance_payments_short`
+    - the same account is grouped in `2025` under long-term liabilities:
+      - `accounts set --code 2660 --group-id bs_long_term_liab`
+    - `2025` `fi-kpa-tase-full-accounts` then renders the same account twice:
+      - once under `Pitkäaikainen vieras pääoma` with `amount=10083.64` and `prior=0.00`
+      - once under `Lyhytaikainen vieras pääoma` with `amount=0.00` and `prior=10083.64`
+    - exact rows in [20251231-tase-accounts.csv](/Users/jhh/git/sendanor/sendanor-books-2023/exports/sendanor/2025/reports/20251231-tase-accounts.csv):
+      - row with `2660,Ennakkoon maksetut palvelut/tuotteet (pa),10083.64,0.00`
+      - row with `2660,Ennakkoon maksetut palvelut/tuotteet (pa),0.00,10083.64`
+  - Expected:
+    - the report should choose one visible hierarchy for the rendered account row, preferably the current year's hierarchy used by the report being rendered.
+    - comparative/prior amounts for the same account should be mapped onto that same visible row instead of creating a second row under the old comparative-year hierarchy.
+    - if the renderer intentionally wants to preserve the comparative hierarchy, it should still avoid printing the same account code twice as if they were separate balance-sheet lines.
+  - Repo impact:
+    - Sendanor `2025` TASE looks misleading and audit-hostile because `2660 Ennakkoon maksetut palvelut/tuotteet (pa)` appears to exist simultaneously in both long-term and short-term liabilities even though there is only one account and one balance.
+  - Additional real-world manifestation in the same defect family:
+    - `make -C exports/sendanor/2024 reports` with `--comparative-workspace ../../2023/data`
+    - in `2023`, `2641 Siirto lyhytaikaisiin pankkilainasta #3` belongs to `bs_loans_financial_long`
+    - in `2024`, the same account belongs to `bs_shareholder_loans_long`
+    - `2024` balance-sheet comparative subtotal `Lainat rahoituslaitoksilta / 31.12.2023 = 40917.40` therefore still includes `2641=34118.15` from the comparative workspace's old hierarchy:
+      - `2620=0.00`
+      - `2630=1255.64`
+      - `2640=5543.61`
+      - `2641=34118.15`
+    - but the current-year `*-accounts` breakdown no longer lists `2641` under that visible row because the current workspace maps it under shareholder loans
+  - Additional expected behavior:
+    - when a comparative subtotal uses prior-year group hierarchy, the `*-accounts` breakdown should still expose every contributing comparative account under a deterministic visible row, or otherwise state clearly that the subtotal includes accounts omitted from the current hierarchy listing
+    - operators should be able to audit any printed comparative subtotal directly from the corresponding `*-accounts` artifact without reverse-engineering cross-year group membership changes
