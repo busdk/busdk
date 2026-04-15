@@ -13,13 +13,29 @@ fi
 
 ORIGINAL_ARGC=$#
 
+hash_file_sha256() {
+  local file="${1:?missing file}"
+  if command -v shasum >/dev/null 2>&1; then
+    if shasum -a 256 "$file" | awk '{print substr($1, 1, 12)}'; then
+      return
+    fi
+  fi
+  if command -v sha256sum >/dev/null 2>&1; then
+    if sha256sum "$file" | awk '{print substr($1, 1, 12)}'; then
+      return
+    fi
+  fi
+  echo "start-shell: missing shasum/sha256sum for image tag hashing" >&2
+  exit 1
+}
+
 REPO_ROOT="$(pwd -P)"
 WORKTREE_PATH="$REPO_ROOT/work/$TOPIC"
 USER_ID="$(id -u)"
 GROUP_ID="$(id -g)"
 HOST_HOME="${HOME:-}"
 WORK_HOME="$WORKTREE_PATH/.home"
-IMAGE_HASH="$(shasum -a 256 containers/agent/Dockerfile | awk '{print substr($1, 1, 12)}')"
+IMAGE_HASH="$(hash_file_sha256 containers/agent/Dockerfile)"
 IMAGE_NAME="agent:${IMAGE_HASH}"
 
 ./scripts/init-worktree.sh "$TOPIC"

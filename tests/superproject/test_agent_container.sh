@@ -5,6 +5,22 @@ ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
+hash_file_sha256() {
+  local file="${1:?missing file}"
+  if command -v shasum >/dev/null 2>&1; then
+    if shasum -a 256 "$file" | awk '{print substr($1, 1, 12)}'; then
+      return
+    fi
+  fi
+  if command -v sha256sum >/dev/null 2>&1; then
+    if sha256sum "$file" | awk '{print substr($1, 1, 12)}'; then
+      return
+    fi
+  fi
+  echo "missing shasum/sha256sum for agent-container selftest" >&2
+  exit 1
+}
+
 TEST_REPO="$TMP_DIR/repo"
 HOST_HOME="$TMP_DIR/host-home"
 FAKE_BIN="$TMP_DIR/bin"
@@ -52,7 +68,7 @@ fi
 EOF
 chmod +x "$FAKE_BIN/docker"
 
-EXPECTED_TAG="agent:$(shasum -a 256 "$TEST_REPO/containers/agent/Dockerfile" | awk '{print substr($1, 1, 12)}')"
+EXPECTED_TAG="agent:$(hash_file_sha256 "$TEST_REPO/containers/agent/Dockerfile")"
 
 (
   cd "$TEST_REPO"
@@ -110,3 +126,37 @@ grep -F " ${EXPECTED_TAG} bash" "$FAKE_DOCKER_LOG" >/dev/null
 )
 
 grep -F " ${EXPECTED_TAG} codex --version" "$FAKE_DOCKER_LOG" >/dev/null
+
+cat >"$FAKE_BIN/shasum" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+exit 99
+EOF
+chmod +x "$FAKE_BIN/shasum"
+
+cat >"$FAKE_BIN/sha256sum" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+/usr/bin/env python3 - "$1" <<'PY'
+import hashlib
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+print(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path}")
+PY
+EOF
+chmod +x "$FAKE_BIN/sha256sum"
+
+: >"$FAKE_DOCKER_LOG"
+
+(
+  cd "$TEST_REPO"
+  PATH="$FAKE_BIN:$PATH" \
+  HOME="$HOST_HOME" \
+  FAKE_DOCKER_LOG="$FAKE_DOCKER_LOG" \
+  ./scripts/start-shell.sh "$TOPIC" go version
+)
+
+grep -F "image inspect ${EXPECTED_TAG}" "$FAKE_DOCKER_LOG" >/dev/null
+grep -F " ${EXPECTED_TAG} go version" "$FAKE_DOCKER_LOG" >/dev/null

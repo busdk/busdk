@@ -255,6 +255,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 68. Treat repo initialization, docs-only changes, pin bumps, and scaffolding as
     separate from feature delivery unless the diff shows a real user-visible
     capability, command surface, workflow, or documentation milestone.
+69. In portable shell scripts and selftests, do not assume `shasum` exists on Linux runners; use `shasum` with deterministic fallback to `sha256sum` for SHA-256 file hashing.
 
 ## Documentation Paths (All Modules)
 
