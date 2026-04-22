@@ -256,6 +256,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
     separate from feature delivery unless the diff shows a real user-visible
     capability, command surface, workflow, or documentation milestone.
 69. In portable shell scripts and selftests, do not assume `shasum` exists on Linux runners; use `shasum` with deterministic fallback to `sha256sum` for SHA-256 file hashing.
+70. Command ownership reminder: `bus` is only the dispatcher. Any behavior for `bus <module> ...` belongs to the corresponding `bus-<module>` repository. In particular, `bus dev ...` is implemented by `bus-dev`, not by the `bus` dispatcher; when changing `bus dev` behavior, start in `./bus-dev` and record module-specific guidance there if needed.
 
 ## Documentation Paths (All Modules)
 

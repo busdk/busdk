@@ -18,6 +18,10 @@ Goal note:
 - speed up `bus-reports` AI-annotated account report variants further beyond 4-way parallelism
 - expose an explicit fast-model / AI-runtime tuning surface for AI-annotated report generation
 - render AI-generated account summary rows in PDFs without bold emphasis
+- add a standalone `bus-chat` module that exposes only the shared BusDK AI chat panel as an independent local web UI, supports `bus-agent`-compatible runtime configuration, and can use local OpenAI-compatible HTTP models such as Gemma without requiring a ChatGPT account
+- add opt-in normalized text matching for `bus files assert cell` so report assertions can trim/collapse presentation whitespace while preserving exact matching by default
+- extend `bus journal assert ...` with grouped receipt/source coverage controls for first-class receipt-split audit parity
+- expand `bus journal --help` and command-local help so assert/match date, account, source, description, and comparison syntax is discoverable from built-in help
 
 ### Support native statutory profit-and-loss lines for nonstandard tax-like adjustments without legacy mapping
 

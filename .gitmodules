@@ -230,3 +230,7 @@
 	path = bus-debts
 	url = git@github.com:busdk/bus-debts.git
 	branch = 1-bus-debts
+[submodule "bus-chat"]
+	path = bus-chat
+	url = git@github.com:busdk/bus-chat.git
+	branch = 1-bus-chat
