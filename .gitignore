@@ -43,3 +43,5 @@ tmp/
 logs/*.log
 work/
 .codex
+
+.bus/bus-chat/ai-state.json
