@@ -215,6 +215,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 37. When running `git -C <subrepo> ...`, keep pathspecs relative to that subrepo root (for example `git -C docs diff -- PLAN.md`), and do not use `../` pathspecs that point outside the repository.
 38. Before reading optional module docs/inventory files with `sed`/`cat` (for example `FEATURES.md`), verify existence with `ls` or `rg --files` in that module; do not assume every module has the same top-level files.
 39. When searching for text that includes backticks using `rg`, pass the pattern with `-e` and single-quote the full command to avoid shell command-substitution errors.
+39.1. When an `rg` search has multiple alternative patterns and one alternative includes backticks, pass each alternative with its own single-quoted `-e` argument; do not place the alternation inside a double-quoted shell string.
 40. When searching literal placeholder text with `rg` that contains `{` or `}` (for example `V-{inc}`), use `rg -F` or escape the braces; otherwise default regex parsing treats them as quantifiers and fails.
 41. `rg` does not accept a literal `\n` escape in normal regex mode; when a search needs newline-aware matching, use `-U`/`--multiline` (and `--multiline-dotall` if needed) or split the search into separate patterns instead of passing `\n` literally.
 42. When a refactor changes canonical data modeling or report semantics, and it is unclear whether a concept should be represented as user-configured data versus synthesized in code, stop and ask the user to define that boundary before implementing. Do not guess domain structure for accounting/reporting hierarchies.
@@ -257,6 +258,8 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
     capability, command surface, workflow, or documentation milestone.
 69. In portable shell scripts and selftests, do not assume `shasum` exists on Linux runners; use `shasum` with deterministic fallback to `sha256sum` for SHA-256 file hashing.
 70. Command ownership reminder: `bus` is only the dispatcher. Any behavior for `bus <module> ...` belongs to the corresponding `bus-<module>` repository. In particular, `bus dev ...` is implemented by `bus-dev`, not by the `bus` dispatcher; when changing `bus dev` behavior, start in `./bus-dev` and record module-specific guidance there if needed.
+71. Shared AI-host rule: cross-module AI host behavior such as auth/login handling, approval request/response bookkeeping, streamed event ingestion, terminal-session derivation, and thread-isolation/lock handling must be implemented as reusable library code in `bus-agent` and/or `bus-ui`, with host modules consuming that shared implementation instead of reimplementing parallel AI-flow logic locally.
+72. Shared Codex rule: reusable AI-host and runtime integrations must support both hosted Codex sessions and locally hosted LLMs reached through Codex configuration (for example operator-selected Gemma-class local models); do not design shared AI libraries as hosted-only paths with separate per-host local-model implementations.
 
 ## Documentation Paths (All Modules)
 
@@ -301,6 +304,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 - In this repository, do not estimate calendar time, engineer-days, or duration as the default planning output. When users ask how big a job is, answer with scope, dependencies, risks, sequencing, and optional phase breakdowns instead of time forecasts unless the user explicitly requires a time estimate.
 - Always treat active `BUGS.md` work as higher priority than `PLAN.md` or feature work: verify and fix unresolved bugs before continuing open plan items unless the user explicitly reprioritizes.
 - When the user sets the DoD for plan execution to leaving no plan work undone, continue consuming relevant open `PLAN.md` items sequentially and do not report the plan effort complete while those open items remain.
+- When the user explicitly asks for very small plan items for a task, split the affected `PLAN.md` work into the smallest practical end-to-end checklist items and update their statuses incrementally as each slice is completed.
 - Whenever a `FIXME(refactor)` comment is added in code, add/update a corresponding `PLAN.md` item that references the owning file path in the same change set.
 - If an owning file already has a completed (`[x]`) refactor item in `PLAN.md`, adding a new `FIXME(refactor)` must reopen planning by adding a new open (`[ ]`) item for that same file path in the same change set.
 - Before completion, ensure active `FIXME(refactor)` comments and open `PLAN.md` items are in sync for the touched module.

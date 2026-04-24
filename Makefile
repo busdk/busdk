@@ -18,16 +18,24 @@ PREFIX ?= $(HOME_DIR)/.local
 BINDIR ?= $(PREFIX)/bin
 INSTALL ?= install
 
-MODULE_DIRS := $(sort $(foreach d,$(wildcard bus aiz bus-*),$(if $(wildcard $(d)/Makefile),$(d),)))
+MODULE_DIRS := $(sort $(foreach d,$(wildcard bus bus-*),$(if $(wildcard $(d)/Makefile),$(d),)))
 SKIP_MODULES ?=
 TEST_SCOPE ?= changed
 CHANGED_MODULES ?=
 ROOT_SELFTEST ?= 1
+QUALITY_BUS_DEV ?= $(abspath bus-dev/bin/bus-dev)
+QUALITY_SCOPE ?= changed
+QUALITY_PROFILE ?= cli
+QUALITY_HTTP_MODULES ?=
+QUALITY_LIBRARY_MODULES ?=
+QUALITY_TARGETS ?= lint security test-race test-fuzz test-bench test-docker
+QUALITY_KEEP_GOING ?= 0
+QUALITY_PROGRESS ?= 0
 COMMA := ,
 SKIP_PATTERNS := $(strip $(subst $(COMMA), ,$(SKIP_MODULES)))
 MODULE_MAKE_VARS := BIN_DIR="$(abspath $(BIN_DIR))" PREFIX="$(PREFIX)" BINDIR="$(BINDIR)" GO="$(GO)" GOFLAGS="$(GOFLAGS)" CGO_ENABLED="$(CGO_ENABLED)" BUILD_STATIC="$(BUILD_STATIC)"
 
-.PHONY: help init update upgrade status bootstrap test e2e build install clean distclean audit-cli-reachability audit-cli-reachability-full tidy tidy-mods superproject-selftest print-test-modules print-e2e-modules
+.PHONY: help init update upgrade status bootstrap test e2e quality build install clean distclean audit-cli-reachability audit-cli-reachability-full tidy tidy-mods superproject-selftest print-test-modules print-e2e-modules print-quality-modules
 
 help:
 	@printf "BusDK superproject\n\n"
@@ -38,6 +46,7 @@ help:
 	@printf "  status      Show pinned submodule SHAs\n"
 	@printf "  test        Run module test suites\n"
 	@printf "  e2e         Run module end-to-end suites (when target exists)\n"
+	@printf "  quality     Run reusable Go quality checks and module validation targets\n"
 	@printf "  build       Build all tools into ./%s\n" "$(BIN_DIR)"
 	@printf "  install     Install tools into %s\n" "$(BINDIR)"
 	@printf "  clean       Remove local build artifacts\n"
@@ -58,12 +67,22 @@ help:
 	@printf "  SKIP_MODULES=%s\n\n" "$(SKIP_MODULES)"
 	@printf "  TEST_SCOPE=%s\n" "$(TEST_SCOPE)"
 	@printf "  CHANGED_MODULES=%s\n\n" "$(CHANGED_MODULES)"
+	@printf "  QUALITY_SCOPE=%s\n" "$(QUALITY_SCOPE)"
+	@printf "  QUALITY_TARGETS=%s\n" "$(QUALITY_TARGETS)"
+	@printf "  QUALITY_PROFILE=%s\n" "$(QUALITY_PROFILE)"
+	@printf "  QUALITY_HTTP_MODULES=%s\n" "$(QUALITY_HTTP_MODULES)"
+	@printf "  QUALITY_LIBRARY_MODULES=%s\n" "$(QUALITY_LIBRARY_MODULES)"
+	@printf "  QUALITY_KEEP_GOING=%s\n" "$(QUALITY_KEEP_GOING)"
+	@printf "  QUALITY_PROGRESS=%s\n\n" "$(QUALITY_PROGRESS)"
 	@printf "Example:\n"
 	@printf "  make bootstrap\n"
 	@printf "  make bootstrap PREFIX=/opt/busdk\n"
 	@printf "  make bootstrap PREFIX=/c/busdk BINDIR=/c/busdk/bin\n"
 	@printf "  make test TEST_SCOPE=all\n"
 	@printf "  make e2e CHANGED_MODULES='bus-reports bus-bank'\n"
+	@printf "  make quality QUALITY_KEEP_GOING=1\n"
+	@printf "  make quality CHANGED_MODULES='bus-reports bus-bank'\n"
+	@printf "  make quality QUALITY_SCOPE=all\n"
 
 init:
 	git submodule update --init --recursive
@@ -83,6 +102,7 @@ bootstrap: init build install
 
 superproject-selftest:
 	@bash ./tests/superproject/test_changed_scope.sh
+	@bash ./tests/superproject/test_quality_quiet.sh
 	@bash ./tests/superproject/test_agent_container.sh
 
 print-test-modules:
@@ -145,6 +165,9 @@ print-e2e-modules:
 		fi; \
 		printf "%s\n" "$$mod"; \
 	done
+
+print-quality-modules:
+	@$(MAKE) -s print-test-modules TEST_SCOPE="$(QUALITY_SCOPE)" CHANGED_MODULES="$(CHANGED_MODULES)" SKIP_MODULES="$(SKIP_MODULES)"
 
 test:
 	@set -eu; \
@@ -276,6 +299,76 @@ e2e:
 		printf "e2e: no selected modules\n"; \
 	else \
 		printf "e2e: ran %d module(s)\n" "$$ran"; \
+	fi
+
+quality:
+	@set -eu; \
+	tmp_files=""; \
+	cleanup() { for f in $$tmp_files; do rm -f "$$f"; done; }; \
+	trap cleanup EXIT HUP INT TERM; \
+	step_log=$$(mktemp); \
+	tmp_files="$$tmp_files $$step_log"; \
+	if ! "$(MAKE)" -C bus-dev build $(MODULE_MAKE_VARS) >"$$step_log" 2>&1; then \
+		if [ -s "$$step_log" ]; then cat "$$step_log" >&2; fi; \
+		printf "Quality tool build failed, run this for more information: make -C bus-dev build\n" >&2; \
+		exit 1; \
+	fi; \
+	ran=0; \
+	failed=0; \
+	for mod in $$(MAKEFLAGS= "$(MAKE)" -s print-quality-modules QUALITY_SCOPE="$(QUALITY_SCOPE)" CHANGED_MODULES="$(CHANGED_MODULES)" SKIP_MODULES="$(SKIP_MODULES)"); do \
+		if [ ! -f "$$mod/go.mod" ]; then \
+			if [ "$(QUALITY_PROGRESS)" = "1" ]; then printf "==> %s (skipped: no go.mod)\n" "$$mod"; fi; \
+			continue; \
+		fi; \
+		profile="$(QUALITY_PROFILE)"; \
+		for pat in $(QUALITY_HTTP_MODULES); do \
+			case "$$mod" in $$pat) profile="http-service";; esac; \
+		done; \
+		for pat in $(QUALITY_LIBRARY_MODULES); do \
+			case "$$mod" in $$pat) profile="library";; esac; \
+		done; \
+		if [ "$(QUALITY_PROGRESS)" = "1" ]; then printf "==> %s (quality profile: %s)\n" "$$mod" "$$profile"; fi; \
+		step_log=$$(mktemp); \
+		tmp_files="$$tmp_files $$step_log"; \
+		if ! "$(QUALITY_BUS_DEV)" quality lint --profile "$$profile" "$$mod" >"$$step_log" 2>&1; then \
+			if [ -s "$$step_log" ]; then cat "$$step_log" >&2; fi; \
+			printf "Quality lint for %s failed, run this for more information: %s quality lint --profile %s %s\n" "$$mod" "$(QUALITY_BUS_DEV)" "$$profile" "$$mod" >&2; \
+			failed=$$((failed + 1)); \
+			if [ "$(QUALITY_KEEP_GOING)" != "1" ]; then exit 1; fi; \
+		fi; \
+		for target in $(QUALITY_TARGETS); do \
+			if ! "$(MAKE)" -C "$$mod" -n "$$target" >/dev/null 2>&1; then \
+				if [ "$(QUALITY_PROGRESS)" = "1" ]; then printf "==> %s:%s (skipped: no target)\n" "$$mod" "$$target"; fi; \
+				continue; \
+			fi; \
+			if [ "$(QUALITY_PROGRESS)" = "1" ]; then printf "==> %s:%s\n" "$$mod" "$$target"; fi; \
+			step_log=$$(mktemp); \
+			tmp_files="$$tmp_files $$step_log"; \
+			if ! "$(MAKE)" -C "$$mod" "$$target" $(MODULE_MAKE_VARS) BUS_DEV="$(QUALITY_BUS_DEV)" BUS_GO_QUALITY_PROFILE="$$profile" >"$$step_log" 2>&1; then \
+				case "$$target" in \
+					test|test-race) label="Unit tests"; show_log=0;; \
+					test-fuzz) label="Fuzz tests"; show_log=0;; \
+					test-bench) label="Benchmarks"; show_log=0;; \
+					test-docker) label="Docker tests"; show_log=0;; \
+					lint) label="Lint"; show_log=1;; \
+					security) label="Security checks"; show_log=1;; \
+					*) label="Quality target $$target"; show_log=1;; \
+				esac; \
+				if [ "$$show_log" -eq 1 ] && [ -s "$$step_log" ]; then cat "$$step_log" >&2; fi; \
+				printf "%s for %s failed, run this for more information: make -C %s %s\n" "$$label" "$$mod" "$$mod" "$$target" >&2; \
+				failed=$$((failed + 1)); \
+				if [ "$(QUALITY_KEEP_GOING)" != "1" ]; then exit 1; fi; \
+			fi; \
+		done; \
+		ran=$$((ran + 1)); \
+	done; \
+	if [ "$$ran" -eq 0 ]; then \
+		printf "quality: no selected modules\n"; \
+	elif [ "$$failed" -ne 0 ]; then \
+		printf "quality: %d module step(s) failed across %d module(s)\n" "$$failed" "$$ran"; \
+		exit 1; \
+	else \
+		printf "quality: ran %d module(s)\n" "$$ran"; \
 	fi
 
 build:

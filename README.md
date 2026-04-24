@@ -174,11 +174,18 @@ make test
 make e2e
 ```
 
-- **Force a full sweep across all modules**:
+- **Run Go quality checks and validation targets for changed modules only** (default for root `quality`):
+
+```bash
+make quality
+```
+
+- **Force a full test/e2e/quality sweep across all modules**:
 
 ```bash
 make test TEST_SCOPE=all
 make e2e TEST_SCOPE=all
+make quality QUALITY_SCOPE=all
 ```
 
 - **Manually choose the module subset**:
@@ -186,6 +193,7 @@ make e2e TEST_SCOPE=all
 ```bash
 make test CHANGED_MODULES="bus-reports bus-bank"
 make e2e CHANGED_MODULES="bus-reports bus-bank"
+make quality CHANGED_MODULES="bus-reports bus-bank"
 ```
 
 - **Skip selected modules** (space-separated shell globs):
@@ -228,18 +236,46 @@ make distclean
 - `GO`: Go tool to use (default: `go`)
 - `SKIP_MODULES`: space-separated module names or shell globs to skip in root targets (default skips `bus-filing`, `bus-filing-prh`, `bus-filing-vero`)
 - `TEST_SCOPE`: `changed` (default) or `all` for root `make test` / `make e2e`
-- `CHANGED_MODULES`: explicit whitespace-separated module list overriding auto-detected changed modules for root `make test` / `make e2e`
+- `CHANGED_MODULES`: explicit whitespace-separated module list overriding auto-detected changed modules for root `make test`, `make e2e`, or focused `make quality` runs
+- `QUALITY_SCOPE`: `changed` (default) or `all` for root `make quality`; setting `CHANGED_MODULES` narrows quality to those modules unless `QUALITY_SCOPE=all` is also set
+- `QUALITY_TARGETS`: whitespace-separated module Makefile targets for `make quality` to run after `bus-dev quality lint` (default: `lint security test-race test-fuzz test-bench test-docker`; missing module targets are skipped)
+- `QUALITY_PROFILE`: default `bus-dev quality lint` profile for root `make quality` (default: `cli`)
+- `QUALITY_HTTP_MODULES`: module names or shell globs that should use the `http-service` quality profile
+- `QUALITY_LIBRARY_MODULES`: module names or shell globs that should use the `library` quality profile
+- `QUALITY_KEEP_GOING`: set to `1` to continue across modules and report all failed steps instead of stopping at the first failure
+- `QUALITY_PROGRESS`: set to `1` to print module/target progress during `make quality`; by default successful steps stay quiet
 
 ## Tests
 
 The root repository provides orchestration checks plus changed-module runners.
 By default, `make test` and `make e2e` only run modules that Git currently
 shows as changed. Use `TEST_SCOPE=all` when you explicitly want a full
-cross-module sweep. You can still run an individual module directly, for
-example:
+cross-module test/e2e sweep. You can still run an individual module directly,
+for example:
 
 ```bash
 make -C bus-journal test
+```
+
+For AI-assisted cleanup loops, use the root quality sweep so findings are
+reported module by module in deterministic order. By default, `make quality`
+uses the same changed-module scope as root `make test` and `make e2e`; use
+`QUALITY_SCOPE=all` when you explicitly want the slower full-fleet sweep.
+Successful module target output and progress lines are hidden; failed
+lint/security steps print their diagnostics, and failed test targets print the
+module-local rerun command. A full collection run can continue after failures:
+
+```bash
+make quality QUALITY_KEEP_GOING=1
+make quality QUALITY_SCOPE=all QUALITY_KEEP_GOING=1
+```
+
+During tighter repair loops, narrow the target set:
+
+```bash
+make quality CHANGED_MODULES="bus-ledger" QUALITY_TARGETS="lint"
+make quality QUALITY_SCOPE=changed QUALITY_TARGETS="lint"
+make quality QUALITY_PROGRESS=1
 ```
 
 ## Roadmap

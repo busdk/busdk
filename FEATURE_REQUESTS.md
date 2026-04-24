@@ -18,10 +18,12 @@ Goal note:
 - speed up `bus-reports` AI-annotated account report variants further beyond 4-way parallelism
 - expose an explicit fast-model / AI-runtime tuning surface for AI-annotated report generation
 - render AI-generated account summary rows in PDFs without bold emphasis
-- add a standalone `bus-chat` module that exposes only the shared BusDK AI chat panel as an independent local web UI, supports `bus-agent`-compatible runtime configuration, and can use local OpenAI-compatible HTTP models such as Gemma without requiring a ChatGPT account
 - add opt-in normalized text matching for `bus files assert cell` so report assertions can trim/collapse presentation whitespace while preserving exact matching by default
 - extend `bus journal assert ...` with grouped receipt/source coverage controls for first-class receipt-split audit parity
 - expand `bus journal --help` and command-local help so assert/match date, account, source, description, and comparison syntax is discoverable from built-in help
+- extract a reusable shared AI host library in `bus-agent` and/or `bus-ui` for approval handling, terminal-session state, thread-isolation/lock reporting, streamed agent event propagation, and runtime auth/login handling, then migrate `bus-chat`, `bus-ledger`, `bus-factory`, and `bus-portal` to consume that shared implementation instead of keeping per-host copies
+- add a first-class configurable Codex local-model contract across BusDK AI hosts so modules such as `bus-ledger`, `bus-portal`, and other `bus-agent` consumers can target operator-selected local models like Gemma 4 without losing current hosted-model defaults
+- add `bus-chat` as a supported optional service in `bus-gateway`, including service-catalog setup, launcher visibility, and authenticated proxy launch flow
 
 ### Support native statutory profit-and-loss lines for nonstandard tax-like adjustments without legacy mapping
 
