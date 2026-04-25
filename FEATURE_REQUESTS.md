@@ -5,6 +5,7 @@ Enhancement requests for BusDK in this repo context.
 Privacy rule for request write-ups:
 - Keep examples/repro snippets sanitized.
 - Prefer placeholders and aggregated outputs over raw customer-linked row dumps.
+- This public superproject must not contain real secrets. Local Docker Compose examples must use non-secret development defaults only and read any real SMTP, database, JWT, or AI Platform credentials from operator-provided environment/config outside git.
 
 Last reviewed: 2026-04-25.
 
@@ -23,6 +24,7 @@ Goal note:
 - extract a reusable shared AI host library in `bus-agent` and/or `bus-ui` for approval handling, terminal-session state, thread-isolation/lock reporting, streamed agent event propagation, and runtime auth/login handling, then migrate `bus-chat`, `bus-ledger`, `bus-factory`, and `bus-portal` to consume that shared implementation instead of keeping per-host copies
 - add a first-class configurable Codex local-model contract across BusDK AI hosts so modules such as `bus-ledger`, `bus-portal`, and other `bus-agent` consumers can target operator-selected local models like Gemma 4 without losing current hosted-model defaults
 - add `bus-chat` as a supported optional service in `bus-gateway`, including service-catalog setup, launcher visibility, and authenticated proxy launch flow
+- add a local Docker Compose integration environment for `bus-api-provider-auth` and `bus-auth` with PostgreSQL persistence, MailHog SMTP delivery, MailHog HTTP email inspection in e2e tests, no checked-in secrets, documented environment-variable overrides for real deployments, optional AI Platform `https://ai.hg.fi/v1` smoke usage through an externally supplied API token command, and full module/root quality coverage
 
 ## Implemented requests
 
