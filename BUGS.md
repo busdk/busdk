@@ -14,5 +14,5 @@ None currently.
 - [x] Linux CI `make test` fails in `superproject-selftest`
   - Reported: 2026-04-25 from GitHub Actions publish run `24927523868`.
   - Symptom: `make test` exits through `Makefile:104: superproject-selftest`.
-  - Fixed: changed `tests/superproject/test_changed_scope.sh` exact-match checks from doubled end anchors to portable single `$` anchors.
-  - Verified: `bash ./tests/superproject/test_changed_scope.sh`, `make superproject-selftest`, `make test`, and `make e2e`.
+  - Fixed: changed `tests/superproject/test_changed_scope.sh` exact-match checks from doubled end anchors to portable single `$` anchors and isolated selftest scripts from inherited recursive GNU make state.
+  - Verified: `bash ./tests/superproject/test_changed_scope.sh`, `make superproject-selftest`, `make test`, `make e2e`, Linux-container `bash ./tests/superproject/test_changed_scope.sh`, and Linux-container `make test`.
