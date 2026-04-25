@@ -261,6 +261,8 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 70. Command ownership reminder: `bus` is only the dispatcher. Any behavior for `bus <module> ...` belongs to the corresponding `bus-<module>` repository. In particular, `bus dev ...` is implemented by `bus-dev`, not by the `bus` dispatcher; when changing `bus dev` behavior, start in `./bus-dev` and record module-specific guidance there if needed.
 71. Shared AI-host rule: cross-module AI host behavior such as auth/login handling, approval request/response bookkeeping, streamed event ingestion, terminal-session derivation, and thread-isolation/lock handling must be implemented as reusable library code in `bus-agent` and/or `bus-ui`, with host modules consuming that shared implementation instead of reimplementing parallel AI-flow logic locally.
 72. Shared Codex rule: reusable AI-host and runtime integrations must support both hosted Codex sessions and locally hosted LLMs reached through Codex configuration (for example operator-selected Gemma-class local models); do not design shared AI libraries as hosted-only paths with separate per-host local-model implementations.
+73. In portable shell scripts and selftests, use a single `$` end anchor in `grep` basic regular expressions (for example `grep -q '^name$'`); do not write doubled anchors such as `$$`, which can behave differently across GNU/BSD grep.
+74. When a Makefile selftest script invokes `make` internally and can also run from a parent make recipe, clear inherited recursive make state for the script entrypoint (for example `MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/...`) so GNU make recursion variables do not change the selftest's assertions.
 
 ## Documentation Paths (All Modules)
 

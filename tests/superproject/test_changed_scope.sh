@@ -15,28 +15,28 @@ trap 'rm -f "$OUT_CHANGED_TEST" "$OUT_CHANGED_E2E" "$OUT_CHANGED_QUALITY" "$OUT_
 
 make -s print-test-modules TEST_SCOPE=changed CHANGED_MODULES="bus-reports" >"$OUT_CHANGED_TEST"
 grep -q '^bus-reports$' "$OUT_CHANGED_TEST"
-if grep -q '^bus-accounts$$' "$OUT_CHANGED_TEST"; then
+if grep -q '^bus-accounts$' "$OUT_CHANGED_TEST"; then
 	echo "expected changed-scope test run to skip bus-accounts" >&2
 	exit 1
 fi
 
 make -s print-e2e-modules TEST_SCOPE=changed CHANGED_MODULES="bus-reports" >"$OUT_CHANGED_E2E"
 grep -q '^bus-reports$' "$OUT_CHANGED_E2E"
-if grep -q '^bus-accounts$$' "$OUT_CHANGED_E2E"; then
+if grep -q '^bus-accounts$' "$OUT_CHANGED_E2E"; then
 	echo "expected changed-scope e2e run to skip bus-accounts" >&2
 	exit 1
 fi
 
 make -s print-quality-modules QUALITY_SCOPE=changed CHANGED_MODULES="bus-reports" >"$OUT_CHANGED_QUALITY"
 grep -q '^bus-reports$' "$OUT_CHANGED_QUALITY"
-if grep -q '^bus-accounts$$' "$OUT_CHANGED_QUALITY"; then
+if grep -q '^bus-accounts$' "$OUT_CHANGED_QUALITY"; then
 	echo "expected changed-scope quality run to skip bus-accounts" >&2
 	exit 1
 fi
 
 make -s print-quality-modules CHANGED_MODULES="bus-reports" >"$OUT_CHANGED_QUALITY"
 grep -q '^bus-reports$' "$OUT_CHANGED_QUALITY"
-if grep -q '^bus-accounts$$' "$OUT_CHANGED_QUALITY"; then
+if grep -q '^bus-accounts$' "$OUT_CHANGED_QUALITY"; then
 	echo "expected explicit changed quality module list to skip bus-accounts" >&2
 	exit 1
 fi

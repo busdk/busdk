@@ -101,9 +101,9 @@ status:
 bootstrap: init build install
 
 superproject-selftest:
-	@bash ./tests/superproject/test_changed_scope.sh
-	@bash ./tests/superproject/test_quality_quiet.sh
-	@bash ./tests/superproject/test_agent_container.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_changed_scope.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_quiet.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_agent_container.sh
 
 print-test-modules:
 	@set -eu; \
