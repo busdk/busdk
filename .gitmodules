@@ -234,3 +234,10 @@
 	path = bus-chat
 	url = git@github.com:busdk/bus-chat.git
 	branch = 1-bus-chat
+[submodule "bus-auth"]
+	path = bus-auth
+	url = git@github.com:busdk/bus-auth.git
+	branch = 1-bus-auth
+[submodule "bus-api-provider-auth"]
+	path = bus-api-provider-auth
+	url = git@github.com:busdk/bus-api-provider-auth.git
