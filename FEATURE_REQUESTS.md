@@ -24,6 +24,7 @@ Goal note:
 - extract a reusable shared AI host library in `bus-agent` and/or `bus-ui` for approval handling, terminal-session state, thread-isolation/lock reporting, streamed agent event propagation, and runtime auth/login handling, then migrate `bus-chat`, `bus-ledger`, `bus-factory`, and `bus-portal` to consume that shared implementation instead of keeping per-host copies
 - add a first-class configurable Codex local-model contract across BusDK AI hosts so modules such as `bus-ledger`, `bus-portal`, and other `bus-agent` consumers can target operator-selected local models like Gemma 4 without losing current hosted-model defaults
 - add `bus-chat` as a supported optional service in `bus-gateway`, including service-catalog setup, launcher visibility, and authenticated proxy launch flow
+- align Bus-owned AI Platform API planning with the in-progress AI Platform docs: keep OpenAI-compatible model calls under `/v1/*` and supply tokens through `bus-auth`; keep VM lifecycle status under `/api/v1/vm/status` owned by `bus-status`; expose end-user container runner APIs under `/api/v1/containers/status`, `/api/v1/containers/runs`, and `/api/v1/containers/runner` owned by `bus-containers`; leave `/api/internal/usage-events` as api-proxy/internal infrastructure with no Bus CLI module for now; and keep auth/admin paths in `bus-auth`/`bus-api-provider-auth` pending final API docs
 
 ## Implemented requests
 
