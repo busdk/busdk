@@ -241,4 +241,12 @@
 [submodule "bus-api-provider-auth"]
 	path = bus-api-provider-auth
 	url = git@github.com:busdk/bus-api-provider-auth.git
-	branch = main
+	branch = 1-bus-api-provider-auth
+[submodule "bus-containers"]
+	path = bus-containers
+	url = git@github.com:busdk/bus-containers.git
+	branch = 1-bus-containers
+[submodule "bus-vm"]
+	path = bus-vm
+	url = git@github.com:busdk/bus-vm.git
+	branch = 1-bus-vm
