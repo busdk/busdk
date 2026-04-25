@@ -6,14 +6,13 @@ Privacy rule for request write-ups:
 - Keep examples/repro snippets sanitized.
 - Prefer placeholders and aggregated outputs over raw customer-linked row dumps.
 
-Last reviewed: 2026-04-12.
+Last reviewed: 2026-04-25.
 
 Goal note:
 - Target workflow is Bus-only for bookkeeping/audit operations.
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 ## Active requests
-
 - add a first-class `bus reports closing-review` report that assembles tilinpäätös preparation and review findings into one deterministic markdown/json review artifact without changing existing statutory statement commands
 - speed up `bus-reports` AI-annotated account report variants further beyond 4-way parallelism
 - expose an explicit fast-model / AI-runtime tuning surface for AI-annotated report generation
@@ -24,6 +23,14 @@ Goal note:
 - extract a reusable shared AI host library in `bus-agent` and/or `bus-ui` for approval handling, terminal-session state, thread-isolation/lock reporting, streamed agent event propagation, and runtime auth/login handling, then migrate `bus-chat`, `bus-ledger`, `bus-factory`, and `bus-portal` to consume that shared implementation instead of keeping per-host copies
 - add a first-class configurable Codex local-model contract across BusDK AI hosts so modules such as `bus-ledger`, `bus-portal`, and other `bus-agent` consumers can target operator-selected local models like Gemma 4 without losing current hosted-model defaults
 - add `bus-chat` as a supported optional service in `bus-gateway`, including service-catalog setup, launcher visibility, and authenticated proxy launch flow
+
+## Implemented requests
+
+- standardize documentation for the remaining Bus API-related modules (`bus-api`, `bus-api-provider-books`, `bus-api-provider-data`, and `bus-api-provider-session`) across README, `docs/docs`, `sdd/docs`, and CLI `--help`, with deterministic help-format validation included in normal quality gates
+- standardize `bus-api-provider-auth` and `bus-auth` documentation across `sdd/docs`, `docs/docs`, README, and CLI `--help`, with Git-style help sections and automated deterministic help-format validation in the normal quality gates
+- add a development OTP sender for `bus-api-provider-auth` that writes dummy OTP codes to the console log, can be enabled without SMTP, and acts as the example/template for future OTP provider implementations
+- extend the Bus auth platform for AI Platform access registration: end users register by email, verify with OTP, remain waitlisted until admin approval/rejection, and only approved users receive `aud=ai.hg.fi/api` `scope=llm:proxy` JWTs; auth-service/admin tokens use `aud=ai.hg.fi/auth` with scope-only powers such as `waitlist:read`, `waitlist:approve`, and `admin:manage`, while api-proxy remains outside Bus and only validates signed JWTs and reads `sub` as the stable AI Platform account UUID
+- add a reusable Bus auth platform split into `bus-api-provider-auth` and `bus-auth`: the provider exposes pluggable passwordless OTP authenticators, stable account UUID identities, short-lived JWT issuing for api-proxy/internal jobs, secret-backed signer abstraction for future key rotation/JWKS algorithms, rate limiting by email/IP, file-backed and in-memory stores, SMTP and in-memory senders, and fuzz/property test coverage for token and request parsing; the CLI is a thin script-friendly client for `bus auth login/logout/whoami/refresh`
 
 ### Support native statutory profit-and-loss lines for nonstandard tax-like adjustments without legacy mapping
 
