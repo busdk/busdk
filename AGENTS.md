@@ -103,17 +103,18 @@ Apply this section when touching Go files.
 5. Manage resources safely (`defer` cleanup after acquisition).
 6. Make concurrency ownership/lifetimes explicit; pass `context.Context` for cancelable work.
 7. Refactor long functions into focused helpers with clear inputs/outputs.
-8. Testing:
+8. For fixed string output to stdout-style `io.Writer` values, prefer `io.WriteString` or direct writer methods over `fmt.Fprint`, `fmt.Fprintln`, or `fmt.Fprintf`; `bus dev quality lint` enforces fixed-string fmt stdout writer-output cases.
+9. Testing:
    1. Cover success, failures, and edge cases.
    2. Prefer table-driven tests/subtests where useful.
    3. Use fuzz tests/benchmarks for relevant risk or performance areas.
    4. Run with race detection where appropriate.
-9. Layout guidance:
+10. Layout guidance:
    1. Entrypoints: `cmd/<binary>/main.go`
    2. Internal reusable code: `internal/...`
    3. Public importable packages only in `pkg/` when intentionally external.
    4. Tests alongside code; fixtures in `testdata/`.
-10. Currency and money calculations must use decimal-safe arithmetic only (for example scaled integer cents or exact decimal/rational types). Do not use binary floating-point (`float32`/`float64`) for business money logic.
+11. Currency and money calculations must use decimal-safe arithmetic only (for example scaled integer cents or exact decimal/rational types). Do not use binary floating-point (`float32`/`float64`) for business money logic.
 
 ## Diverse Test Strategy (Risk-Based, Optional Amplification)
 
@@ -243,6 +244,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 63. Root `make test` and `make e2e` should default to changed-module scope, not a whole-repository sweep; use `TEST_SCOPE=all` only when a full cross-module run is explicitly desired.
 64. When using `rg` from the superproject root, do not include nonexistent generic paths like `internal` as positional search roots; target the actual module directories explicitly.
 65. Before starting any new user-requested feature or behavior change, or immediately when noticing work is already in progress, first add or update the corresponding `PLAN.md` and/or `BUGS.md` and/or `FEATURE_REQUESTS.md` entries in the same turn so in-progress work always leaves a canonical repository trace.
+65.1. Whenever there is implementation work still to do, keep the relevant module `PLAN.md` item updated before continuing so the active checklist remains a reliable memory of remaining work, not just a completion summary.
 66. Do not run `make install`, `go install`, or other user-environment install steps on the user's behalf unless they explicitly ask for that exact installation action. Tell the user what install command to run instead.
 67. Before making any historical claim about what changed on a given date, verify
     the actual Git diff first. Do not infer behavior from commit subjects,
@@ -268,6 +270,17 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 77. AI Platform smoke examples for Bus auth should use the token produced by the local `bus auth` login/token flow. Do not document or depend on developer-specific `ai-platform` checkout commands for issuing JWTs.
 78. Public docs, tests, scripts, and compose files must not depend on absolute developer-machine paths such as `/Users/...` or repositories outside this superproject. Use repo-relative paths, published artifacts, or operator-supplied environment variables instead.
 79. Current AI Platform API planning: `/v1/*` remains OpenAI-compatible and SDK-facing; `bus-agent` may use `bus-auth` AI Platform sessions as one provider/auth option, but existing providers and credential flows must remain supported. Domain modules own their API clients and Go libraries: `bus-vm` owns `/api/v1/vm/status`; `bus-containers` owns user-owned `/api/v1/containers/status` and `/api/v1/containers/runs*` lifecycle APIs; `bus-status` is an aggregate status UX that imports those domain libraries rather than reimplementing their HTTP clients. `bus-api-provider-auth` owns the auth service implementation, while `bus-auth` owns the auth client CLI. `/api/internal/usage-events` is internal api-proxy/billing infrastructure and should not get a Bus CLI module unless explicitly requested.
+80. Bus user-level configuration and auth/session state should use a unified Bus config root: `BUS_CONFIG_DIR` when set, otherwise `$XDG_CONFIG_HOME/bus` or `~/.config/bus` on Unix-like systems, and `%APPDATA%\Bus` on Windows. Do not introduce new defaults under `.config/busdk` for runtime config/state.
+81. Never auto-write JWTs, API tokens, refresh tokens, or auth-session files under repository-local `.bus/` paths or any other working-tree-relative default. Use the unified user config root, explicit operator-supplied paths, environment variables, or OS credential storage instead.
+82. End-user-facing command examples and help text should use dispatcher command form (`bus containers`, `bus auth`, `bus events`, etc.) instead of standalone binary names (`bus-containers`, `bus-auth`, `bus-events`). Standalone binary names may still appear in implementation docs, module titles, version output, tests, and low-level developer references.
+80. Bus Events authorization should use the normal Bus API JWT audience `ai.hg.fi/api` plus domain scopes such as `vm:write`, `usage:read`, `usage:delete`, `container:run`, and `container:read`, not a separate Events API audience or generic event-pattern scopes such as `events:send:bus.vm.*`; the Events API maps event names/prefixes to those domain scopes for send and receive authorization.
+81. `bus-api-provider-llm` `/v1/models` should default to a cached/configured model catalog that does not wake every GPU backend and does not expose internal GPU/provider topology; proxying `/v1/models` to a backend should be explicitly configured fallback behavior. Runtime wake-up is still required for model execution endpoints such as `/v1/responses`, `/v1/chat/completions`, `/v1/completions`, and `/v1/embeddings`.
+82. When running `gofmt` or other file-specific commands from the superproject root across submodules, include each submodule directory in the path (for example `bus-events/internal/cli/cli.go`), or run the command inside the target module. Module-relative paths such as `cmd/foo/main.go` only work from that module's root.
+83. In `set -o pipefail` shell scripts, avoid piping verbose `--help` output directly into `grep -q` because `grep -q` can exit early and cause the producer to fail with SIGPIPE. Capture help text into a variable or file first, then grep the captured content.
+82. Internal service-to-service control in the Bus platform should prefer protected Bus Events through `bus-integration-*` workers. Add private/internal HTTP endpoints only when a concrete service requirement cannot reasonably use events.
+83. `bus-integration-*` README files must document each Bus Event the worker listens for and sends, using one compact subsection per event rather than tables.
+84. `bus-api-provider-*` README files must document each API endpoint using one compact subsection per endpoint and must state which Bus Events the endpoint triggers, or explicitly state that it triggers no Bus Events.
+85. Bus integration architecture: all `bus-integration-*` modules are independent event-listening microservices. They must compose through Bus Events by publishing/listening to module-owned event names, not by calling each other’s implementation logic in-process. Sharing across integrations should happen through Go library DTO/client contracts only (event names, request/response payload structs, small clients), so one integration can trigger another by publishing events while each service owns its own runtime, credentials, and side effects. Generic integrations must accept domain-specific behavior as input: for example `bus-integration-ssh-runner` owns SSH transport and executes caller-supplied scripts, while cloud/container modules own provisioning and Podman/bootstrap script construction.
 
 ## Documentation Paths (All Modules)
 

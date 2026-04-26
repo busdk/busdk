@@ -250,3 +250,39 @@
 	path = bus-vm
 	url = git@github.com:busdk/bus-vm.git
 	branch = 1-bus-vm
+[submodule "bus-api-provider-events"]
+	path = bus-api-provider-events
+	url = git@github.com:busdk/bus-api-provider-events.git
+	branch = 1-bus-api-provider-events
+[submodule "bus-api-provider-llm"]
+	path = bus-api-provider-llm
+	url = git@github.com:busdk/bus-api-provider-llm.git
+	branch = 1-bus-api-provider-llm
+[submodule "bus-api-provider-vm"]
+	path = bus-api-provider-vm
+	url = git@github.com:busdk/bus-api-provider-vm.git
+	branch = 1-bus-api-provider-vm
+[submodule "bus-api-provider-containers"]
+	path = bus-api-provider-containers
+	url = git@github.com:busdk/bus-api-provider-containers.git
+	branch = 1-bus-api-provider-containers
+[submodule "bus-api-provider-usage"]
+	path = bus-api-provider-usage
+	url = git@github.com:busdk/bus-api-provider-usage.git
+	branch = 1-bus-api-provider-usage
+[submodule "bus-integration-upcloud"]
+	path = bus-integration-upcloud
+	url = git@github.com:busdk/bus-integration-upcloud.git
+	branch = 1-bus-integration-upcloud
+[submodule "bus-integration-ssh-runner"]
+	path = bus-integration-ssh-runner
+	url = git@github.com:busdk/bus-integration-ssh-runner.git
+	branch = 1-bus-integration-ssh-runner
+[submodule "bus-integration"]
+	path = bus-integration
+	url = git@github.com:busdk/bus-integration.git
+	branch = main
+[submodule "bus-integration-usage"]
+	path = bus-integration-usage
+	url = git@github.com:busdk/bus-integration-usage.git
+	branch = main
