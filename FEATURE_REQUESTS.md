@@ -14,6 +14,7 @@ Goal note:
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 ## Active requests
+- add `bus-work` as the generic Bus Events-backed durable work-stream module: users can create work for the current context or `@recipient` targets, fan out one request to multiple recipients with independent per-recipient streams, read/watch/wait/say while work is in progress, claim the next item with `next`, close/fail/block through events, use incremental human refs (`123`, `123.1`, `owner#123`), configure non-secret project/host/recipient aliases in `.bus/work/config.json`, protect `bus.work.*` with dedicated work JWT scopes, and keep the protocol independent of Codex, development tooling, or any specific worker backend; `bus dev task` can later wrap this generic protocol with repository-oriented defaults while preserving existing `bus dev work`
 - add a first-class `bus reports closing-review` report that assembles tilinpäätös preparation and review findings into one deterministic markdown/json review artifact without changing existing statutory statement commands
 - speed up `bus-reports` AI-annotated account report variants further beyond 4-way parallelism
 - expose an explicit fast-model / AI-runtime tuning surface for AI-annotated report generation

@@ -281,8 +281,12 @@
 [submodule "bus-integration"]
 	path = bus-integration
 	url = git@github.com:busdk/bus-integration.git
-	branch = main
+	branch = 1-bus-integration
 [submodule "bus-integration-usage"]
 	path = bus-integration-usage
 	url = git@github.com:busdk/bus-integration-usage.git
-	branch = main
+	branch = 1-bus-integration-usage
+[submodule "bus-work"]
+	path = bus-work
+	url = git@github.com:busdk/bus-work.git
+	branch = 1-bus-work
