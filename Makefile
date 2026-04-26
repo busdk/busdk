@@ -3,6 +3,7 @@
 SHELL ?= sh
 GO ?= go
 GOFLAGS ?=
+GOCACHE ?= $(abspath .cache/go-build)
 CGO_ENABLED ?= 0
 BUILD_STATIC ?= 1
 
@@ -28,12 +29,16 @@ QUALITY_SCOPE ?= changed
 QUALITY_PROFILE ?= cli
 QUALITY_HTTP_MODULES ?=
 QUALITY_LIBRARY_MODULES ?=
-QUALITY_TARGETS ?= lint help-check security test-race test-fuzz test-bench test-docker
+QUALITY_TARGETS ?= lint security
+QUALITY_DEEP ?= 0
+QUALITY_DEEP_TARGETS ?=
+QUALITY_ALLOW_TEST_TARGETS ?= 0
+QUALITY_EFFECTIVE_TARGETS := $(strip $(QUALITY_TARGETS) $(if $(filter 1,$(QUALITY_DEEP)),$(QUALITY_DEEP_TARGETS)))
 QUALITY_KEEP_GOING ?= 0
 QUALITY_PROGRESS ?= 0
 COMMA := ,
 SKIP_PATTERNS := $(strip $(subst $(COMMA), ,$(SKIP_MODULES)))
-MODULE_MAKE_VARS := BIN_DIR="$(abspath $(BIN_DIR))" PREFIX="$(PREFIX)" BINDIR="$(BINDIR)" GO="$(GO)" GOFLAGS="$(GOFLAGS)" CGO_ENABLED="$(CGO_ENABLED)" BUILD_STATIC="$(BUILD_STATIC)"
+MODULE_MAKE_VARS := BIN_DIR="$(abspath $(BIN_DIR))" PREFIX="$(PREFIX)" BINDIR="$(BINDIR)" GO="$(GO)" GOFLAGS="$(GOFLAGS)" GOCACHE="$(GOCACHE)" CGO_ENABLED="$(CGO_ENABLED)" BUILD_STATIC="$(BUILD_STATIC)"
 
 .PHONY: help init update upgrade status bootstrap test e2e quality build install clean distclean audit-cli-reachability audit-cli-reachability-full tidy tidy-mods superproject-selftest print-test-modules print-e2e-modules print-quality-modules
 
@@ -46,7 +51,7 @@ help:
 	@printf "  status      Show pinned submodule SHAs\n"
 	@printf "  test        Run module test suites\n"
 	@printf "  e2e         Run module end-to-end suites (when target exists)\n"
-	@printf "  quality     Run reusable Go quality checks and module validation targets\n"
+	@printf "  quality     Run reusable Go source/static quality checks\n"
 	@printf "  build       Build all tools into ./%s\n" "$(BIN_DIR)"
 	@printf "  install     Install tools into %s\n" "$(BINDIR)"
 	@printf "  clean       Remove local build artifacts\n"
@@ -69,6 +74,9 @@ help:
 	@printf "  CHANGED_MODULES=%s\n\n" "$(CHANGED_MODULES)"
 	@printf "  QUALITY_SCOPE=%s\n" "$(QUALITY_SCOPE)"
 	@printf "  QUALITY_TARGETS=%s\n" "$(QUALITY_TARGETS)"
+	@printf "  QUALITY_DEEP=%s\n" "$(QUALITY_DEEP)"
+	@printf "  QUALITY_DEEP_TARGETS=%s\n" "$(QUALITY_DEEP_TARGETS)"
+	@printf "  QUALITY_ALLOW_TEST_TARGETS=%s\n" "$(QUALITY_ALLOW_TEST_TARGETS)"
 	@printf "  QUALITY_PROFILE=%s\n" "$(QUALITY_PROFILE)"
 	@printf "  QUALITY_HTTP_MODULES=%s\n" "$(QUALITY_HTTP_MODULES)"
 	@printf "  QUALITY_LIBRARY_MODULES=%s\n" "$(QUALITY_LIBRARY_MODULES)"
@@ -313,6 +321,15 @@ quality:
 		printf "Quality tool build failed, run this for more information: make -C bus-dev build\n" >&2; \
 		exit 1; \
 	fi; \
+	if [ "$(QUALITY_ALLOW_TEST_TARGETS)" != "1" ]; then \
+		for target in $(QUALITY_EFFECTIVE_TARGETS); do \
+			case "$$target" in \
+				test|test-*|*-test|e2e|test-e2e|bench|test-bench|docker-image|test-docker) \
+					printf "invalid quality target %s: root make quality is source/static analysis only; run tests with make test, make e2e, or module-specific test targets\n" "$$target" >&2; \
+					exit 2;; \
+			esac; \
+		done; \
+	fi; \
 	ran=0; \
 	failed=0; \
 	for mod in $$(MAKEFLAGS= "$(MAKE)" -s print-quality-modules QUALITY_SCOPE="$(QUALITY_SCOPE)" CHANGED_MODULES="$(CHANGED_MODULES)" SKIP_MODULES="$(SKIP_MODULES)"); do \
@@ -336,7 +353,7 @@ quality:
 			failed=$$((failed + 1)); \
 			if [ "$(QUALITY_KEEP_GOING)" != "1" ]; then exit 1; fi; \
 		fi; \
-		for target in $(QUALITY_TARGETS); do \
+		for target in $(QUALITY_EFFECTIVE_TARGETS); do \
 			if ! "$(MAKE)" -C "$$mod" -n "$$target" >/dev/null 2>&1; then \
 				if [ "$(QUALITY_PROGRESS)" = "1" ]; then printf "==> %s:%s (skipped: no target)\n" "$$mod" "$$target"; fi; \
 				continue; \

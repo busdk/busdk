@@ -174,13 +174,13 @@ make test
 make e2e
 ```
 
-- **Run Go quality checks and validation targets for changed modules only** (default for root `quality`):
+- **Run Go source quality checks for changed modules only** (default for root `quality`):
 
 ```bash
 make quality
 ```
 
-- **Force a full test/e2e/quality sweep across all modules**:
+- **Force full test/e2e/source-quality sweeps across all modules**:
 
 ```bash
 make test TEST_SCOPE=all
@@ -238,7 +238,10 @@ make distclean
 - `TEST_SCOPE`: `changed` (default) or `all` for root `make test` / `make e2e`
 - `CHANGED_MODULES`: explicit whitespace-separated module list overriding auto-detected changed modules for root `make test`, `make e2e`, or focused `make quality` runs
 - `QUALITY_SCOPE`: `changed` (default) or `all` for root `make quality`; setting `CHANGED_MODULES` narrows quality to those modules unless `QUALITY_SCOPE=all` is also set
-- `QUALITY_TARGETS`: whitespace-separated module Makefile targets for `make quality` to run after `bus-dev quality lint` (default: `lint security test-race test-fuzz test-bench test-docker`; missing module targets are skipped)
+- `QUALITY_TARGETS`: whitespace-separated source/static-analysis module Makefile targets for `make quality` to run after the required direct `bus-dev quality lint` custom AST pass (default: `lint security`; missing module targets are skipped)
+- `QUALITY_DEEP`: set to `1` to append `QUALITY_DEEP_TARGETS` to the normal quality run; by default no deep targets are configured because root quality is not a test runner
+- `QUALITY_DEEP_TARGETS`: extra source/static-analysis targets appended when `QUALITY_DEEP=1` (default: empty)
+- `QUALITY_ALLOW_TEST_TARGETS`: set to `1` only for temporary compatibility if an operator deliberately puts test-style targets in `QUALITY_TARGETS`; normal root quality rejects `test*`, `e2e`, `bench`, and Docker targets
 - `QUALITY_PROFILE`: default `bus-dev quality lint` profile for root `make quality` (default: `cli`)
 - `QUALITY_HTTP_MODULES`: module names or shell globs that should use the `http-service` quality profile
 - `QUALITY_LIBRARY_MODULES`: module names or shell globs that should use the `library` quality profile
@@ -257,13 +260,27 @@ for example:
 make -C bus-journal test
 ```
 
-For AI-assisted cleanup loops, use the root quality sweep so findings are
-reported module by module in deterministic order. By default, `make quality`
-uses the same changed-module scope as root `make test` and `make e2e`; use
-`QUALITY_SCOPE=all` when you explicitly want the slower full-fleet sweep.
+For AI-assisted cleanup loops, use the root quality sweep before running tests
+so source-code findings are reported module by module in deterministic order.
+By default, `make quality` uses the same changed-module scope as root
+`make test` and `make e2e`; use `QUALITY_SCOPE=all` when you explicitly want
+the slower full-fleet static sweep. Root quality always runs the core Bus custom
+AST checks directly through `bus-dev quality lint` for every selected Go module;
+these checks are not hidden inside Go tests or module test targets. The default
+additional source-quality target set is `lint security`. Root quality is
+intentionally not a test runner: unit tests, race tests, fuzzing, benchmarks,
+Docker validation, and e2e checks belong under `make test`, `make e2e`, or
+module-specific test targets.
+
+Module-local `make lint` targets also run `bus-dev quality lint`, so the same
+custom AST bad-pattern checks are available when working inside an individual
+module. In the superproject, root `make quality` passes the freshly built local
+`bus-dev` binary into those module targets; standalone module checkouts should
+have `bus-dev` available on `PATH` or pass `BUS_DEV=/path/to/bus-dev`.
+
 Successful module target output and progress lines are hidden; failed
-lint/security steps print their diagnostics, and failed test targets print the
-module-local rerun command. A full collection run can continue after failures:
+lint/security steps print their diagnostics. A full collection run can continue
+after failures:
 
 ```bash
 make quality QUALITY_KEEP_GOING=1
