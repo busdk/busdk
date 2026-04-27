@@ -215,6 +215,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 35.1. When building `sed` substitution commands that insert file paths into the replacement text, do not use `/` as the delimiter unless paths are escaped first; prefer `awk`, `printf`, or a non-conflicting delimiter so path slashes are not parsed as sed flags.
 36. When running shell commands with `rg --pcre2` patterns that include quotes or look-arounds, wrap the full command in single quotes to avoid bash quote-termination errors.
 37. When running `git -C <subrepo> ...`, keep pathspecs relative to that subrepo root (for example `git -C docs diff -- PLAN.md`), and do not use `../` pathspecs that point outside the repository.
+37.1. When excluding Git pathspecs that begin with `_`, use the long exclusion form such as `':(exclude)_site'`; shorthand like `':!_site'` can be parsed as invalid pathspec magic on some Git versions.
 38. Before reading optional module docs/inventory files with `sed`/`cat` (for example `FEATURES.md`), verify existence with `ls` or `rg --files` in that module; do not assume every module has the same top-level files.
 39. When searching for text that includes backticks using `rg`, pass the pattern with `-e` and single-quote the full command to avoid shell command-substitution errors.
 39.1. When an `rg` search has multiple alternative patterns and one alternative includes backticks, pass each alternative with its own single-quoted `-e` argument; do not place the alternation inside a double-quoted shell string.
