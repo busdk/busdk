@@ -290,3 +290,7 @@
 	path = bus-work
 	url = git@github.com:busdk/bus-work.git
 	branch = 1-bus-work
+[submodule "bus-operator"]
+	path = bus-operator
+	url = git@github.com:busdk/bus-operator.git
+	branch = 1-bus-operator
