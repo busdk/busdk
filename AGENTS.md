@@ -233,6 +233,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 51. When using `rg --files` with path globs, pass each glob via `-g` (for example `rg --files -g 'bus*/AGENTS.md'`); do not pass the glob as a positional path argument.
 52. Each module-specific `AGENTS.md` must stand on its own for agents working in an independently checked out module; copy any generally needed operational guidance into the module file instead of assuming this root `AGENTS.md` is available.
 53. When running commands from inside a module directory, use module-relative paths by default (for example `gofmt -w internal/app/run.go`), not superproject-prefixed paths.
+53.1. When running commands from the superproject root, use explicit module-relative paths (for example `bus-integration-upcloud/cmd/...`) rather than paths that would only exist inside the module workdir.
 54. Module e2e scripts should be quiet by default: successful runs print only a short stable success line, and detailed shell tracing is enabled only with `BUS_E2E_VERBOSE=1`.
 55. Module `test-e2e` Makefile targets should capture script output and print it only on failure; do not stream verbose e2e logs during successful runs by default.
 56. For date-bounded Git history inspection, use `git log --since=... --until=...` (optionally with `--stat` or `--name-only`). Do not try to pass date strings as a revision range to `git show`; `git show` expects commit-ish arguments, not calendar boundaries.
@@ -244,6 +245,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 62. For affected user-facing modules, debug runs should include at least one alternate locale execution (for example `LANG=fi_FI.UTF-8` with mixed `LC_*`) before declaring a test green across environments.
 63. Root `make test` and `make e2e` should default to changed-module scope, not a whole-repository sweep; use `TEST_SCOPE=all` only when a full cross-module run is explicitly desired.
 64. When using `rg` from the superproject root, do not include nonexistent generic paths like `internal` as positional search roots; target the actual module directories explicitly.
+64.1. When using `rg` inside a module, first verify generic roots such as `cmd`, `internal`, and `pkg` exist before passing them as positional search roots; not every module has every standard Go directory.
 65. Before starting any new user-requested feature or behavior change, or immediately when noticing work is already in progress, first add or update the corresponding `PLAN.md` and/or `BUGS.md` and/or `FEATURE_REQUESTS.md` entries in the same turn so in-progress work always leaves a canonical repository trace.
 65.1. Whenever there is implementation work still to do, keep the relevant module `PLAN.md` item updated before continuing so the active checklist remains a reliable memory of remaining work, not just a completion summary.
 66. Do not run `make install`, `go install`, or other user-environment install steps on the user's behalf unless they explicitly ask for that exact installation action. Tell the user what install command to run instead.
