@@ -350,6 +350,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 - When improving BusDK help output, do not use older Bus help text as the style reference. Compare against common operating-system and Git help surfaces first, then apply the shared `sdd/docs/cli/help-output-contract.md` rules.
 - Do not install software or module binaries into the user's personal paths on their behalf. When PATH or dispatcher verification depends on a fresh installed binary, ask the user to run the relevant `make install` themselves and then continue verification against that installed binary.
 - For temporary historical verification work such as `git worktree` checkouts, prefer the repository-root `./tmp/` directory over system `/tmp` so scratch state stays inside the workspace and can usually be used without extra permission prompts.
+- If Go commands fail in the sandbox with `operation not permitted` under `~/Library/Caches/go-build`, rerun the same module command with `GOCACHE=/tmp/busdk-go-cache` instead of treating it as a code failure.
 
 ## Refactor planning style rule
 

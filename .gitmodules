@@ -326,3 +326,19 @@
 	path = bus-operator-token
 	url = git@github.com:busdk/bus-operator-token.git
 	branch = 1-bus-operator-token
+[submodule "bus-portal-auth"]
+	path = bus-portal-auth
+	url = git@github.com:busdk/bus-portal-auth.git
+	branch = 1-bus-portal-auth
+[submodule "bus-portal-ai"]
+	path = bus-portal-ai
+	url = git@github.com:busdk/bus-portal-ai.git
+	branch = 1-bus-portal-ai
+[submodule "bus-api-provider-terminal"]
+	path = bus-api-provider-terminal
+	url = git@github.com:busdk/bus-api-provider-terminal.git
+	branch = 1-bus-api-provider-terminal
+[submodule "bus-portal-accounting"]
+	path = bus-portal-accounting
+	url = git@github.com:busdk/bus-portal-accounting.git
+	branch = main
