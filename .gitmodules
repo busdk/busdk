@@ -294,3 +294,35 @@
 	path = bus-operator
 	url = git@github.com:busdk/bus-operator.git
 	branch = 1-bus-operator
+[submodule "bus-billing"]
+	path = bus-billing
+	url = git@github.com:busdk/bus-billing.git
+	branch = 1-bus-billing
+[submodule "bus-api-provider-billing"]
+	path = bus-api-provider-billing
+	url = git@github.com:busdk/bus-api-provider-billing.git
+	branch = 1-bus-api-provider-billing
+[submodule "bus-integration-billing"]
+	path = bus-integration-billing
+	url = git@github.com:busdk/bus-integration-billing.git
+	branch = 1-bus-integration-billing
+[submodule "bus-integration-stripe"]
+	path = bus-integration-stripe
+	url = git@github.com:busdk/bus-integration-stripe.git
+	branch = 1-bus-integration-stripe
+[submodule "bus-operator-billing"]
+	path = bus-operator-billing
+	url = git@github.com:busdk/bus-operator-billing.git
+	branch = 1-bus-operator-billing
+[submodule "bus-operator-stripe"]
+	path = bus-operator-stripe
+	url = git@github.com:busdk/bus-operator-stripe.git
+	branch = 1-bus-operator-stripe
+[submodule "bus-operator-auth"]
+	path = bus-operator-auth
+	url = git@github.com:busdk/bus-operator-auth.git
+	branch = 1-bus-operator-auth
+[submodule "bus-operator-token"]
+	path = bus-operator-token
+	url = git@github.com:busdk/bus-operator-token.git
+	branch = 1-bus-operator-token

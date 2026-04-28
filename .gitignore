@@ -45,3 +45,4 @@ work/
 .codex
 
 .bus/bus-chat/ai-state.json
+.env

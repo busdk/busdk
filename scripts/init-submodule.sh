@@ -25,3 +25,7 @@ cp -a ./bus-accounts/Makefile.local "./$NAME/Makefile.local"
 
 touch "sdd/docs/modules/$NAME.md"
 touch "./docs/docs/modules/$NAME.md"
+
+(
+  cd $NAME && git checkout "1-$NAME" && git merge main && git push
+)
