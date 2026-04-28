@@ -333,10 +333,8 @@ quality:
 	ran=0; \
 	failed=0; \
 	for mod in $$(MAKEFLAGS= "$(MAKE)" -s print-quality-modules QUALITY_SCOPE="$(QUALITY_SCOPE)" CHANGED_MODULES="$(CHANGED_MODULES)" SKIP_MODULES="$(SKIP_MODULES)"); do \
-		if [ ! -f "$$mod/go.mod" ]; then \
-			if [ "$(QUALITY_PROGRESS)" = "1" ]; then printf "==> %s (skipped: no go.mod)\n" "$$mod"; fi; \
-			continue; \
-		fi; \
+		has_go=0; \
+		target_ran=0; \
 		profile="$(QUALITY_PROFILE)"; \
 		for pat in $(QUALITY_HTTP_MODULES); do \
 			case "$$mod" in $$pat) profile="http-service";; esac; \
@@ -344,20 +342,26 @@ quality:
 		for pat in $(QUALITY_LIBRARY_MODULES); do \
 			case "$$mod" in $$pat) profile="library";; esac; \
 		done; \
-		if [ "$(QUALITY_PROGRESS)" = "1" ]; then printf "==> %s (quality profile: %s)\n" "$$mod" "$$profile"; fi; \
-		step_log=$$(mktemp); \
-		tmp_files="$$tmp_files $$step_log"; \
-		if ! "$(QUALITY_BUS_DEV)" quality lint --profile "$$profile" "$$mod" >"$$step_log" 2>&1; then \
-			if [ -s "$$step_log" ]; then cat "$$step_log" >&2; fi; \
-			printf "Quality lint for %s failed, run this for more information: %s quality lint --profile %s %s\n" "$$mod" "$(QUALITY_BUS_DEV)" "$$profile" "$$mod" >&2; \
-			failed=$$((failed + 1)); \
-			if [ "$(QUALITY_KEEP_GOING)" != "1" ]; then exit 1; fi; \
+		if [ -f "$$mod/go.mod" ]; then \
+			has_go=1; \
+			if [ "$(QUALITY_PROGRESS)" = "1" ]; then printf "==> %s (quality profile: %s)\n" "$$mod" "$$profile"; fi; \
+			step_log=$$(mktemp); \
+			tmp_files="$$tmp_files $$step_log"; \
+			if ! "$(QUALITY_BUS_DEV)" quality lint --profile "$$profile" "$$mod" >"$$step_log" 2>&1; then \
+				if [ -s "$$step_log" ]; then cat "$$step_log" >&2; fi; \
+				printf "Quality lint for %s failed, run this for more information: %s quality lint --profile %s %s\n" "$$mod" "$(QUALITY_BUS_DEV)" "$$profile" "$$mod" >&2; \
+				failed=$$((failed + 1)); \
+				if [ "$(QUALITY_KEEP_GOING)" != "1" ]; then exit 1; fi; \
+			fi; \
+		elif [ "$(QUALITY_PROGRESS)" = "1" ]; then \
+			printf "==> %s (no go.mod; delegated targets only)\n" "$$mod"; \
 		fi; \
 		for target in $(QUALITY_EFFECTIVE_TARGETS); do \
 			if ! "$(MAKE)" -C "$$mod" -n "$$target" >/dev/null 2>&1; then \
 				if [ "$(QUALITY_PROGRESS)" = "1" ]; then printf "==> %s:%s (skipped: no target)\n" "$$mod" "$$target"; fi; \
 				continue; \
 			fi; \
+			target_ran=1; \
 			if [ "$(QUALITY_PROGRESS)" = "1" ]; then printf "==> %s:%s\n" "$$mod" "$$target"; fi; \
 			step_log=$$(mktemp); \
 			tmp_files="$$tmp_files $$step_log"; \
@@ -377,7 +381,9 @@ quality:
 				if [ "$(QUALITY_KEEP_GOING)" != "1" ]; then exit 1; fi; \
 			fi; \
 		done; \
-		ran=$$((ran + 1)); \
+		if [ "$$has_go" -eq 1 ] || [ "$$target_ran" -eq 1 ]; then \
+			ran=$$((ran + 1)); \
+		fi; \
 	done; \
 	if [ "$$ran" -eq 0 ]; then \
 		printf "quality: no selected modules\n"; \
