@@ -308,9 +308,10 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
    2. Module implementation SDD location is `./sdd/docs/modules/{NAME}.md`.
 4. The same topic may exist in both `./docs/docs` and `./sdd/docs`, but each version must be refined for its audience (end-user vs implementer/developer) without losing core information.
 5. When implementation changes alter behavior, update the corresponding end-user and SDD documents in the same change set.
-6. Do not defer documentation updates to a follow-up change.
-7. End-user docs readability DoD: prefer short paragraphs, avoid repeated wording, and keep pages task-oriented.
-8. End-user docs style rule: avoid bullet lists by default; use paragraphs unless a list/table is the only clear way to present structured data.
+6. When design discussion clarifies architecture, security boundaries, module ownership, feature scope, or deployment assumptions, update the relevant `./sdd/docs/` page in the same turn so the SDD remains the canonical design memory even before code changes.
+7. Do not defer documentation updates to a follow-up change.
+8. End-user docs readability DoD: prefer short paragraphs, avoid repeated wording, and keep pages task-oriented.
+9. End-user docs style rule: avoid bullet lists by default; use paragraphs unless a list/table is the only clear way to present structured data.
 
 ## Gitignore Rule
 
