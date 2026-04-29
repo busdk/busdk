@@ -11,12 +11,14 @@ die() { echo "error: $*" >&2; exit 1; }
 # -----------------------------------------------------------------------------
 # Config (all script constants)
 # -----------------------------------------------------------------------------
-COMMIT_COUNTS_CMD="scripts/get-total-commit-counts.sh"
-HUMAN_LABOR_PROJECT_BASE_EUR="0"
-HUMAN_LABOR_MODULE_BASE_EUR="0"
-HUMAN_LABOR_IMPL_PER_COMMIT_EUR="6.785714285714286"
-HUMAN_LABOR_REVIEW_PER_COMMIT_EUR="6.195652173913044"
-HUMAN_LABOR_UPKEEP_PER_COMMIT_EUR="6"
+COMMIT_COUNTS_CMD="${COMMIT_COUNTS_CMD:-scripts/get-total-commit-counts.sh}"
+HUMAN_LABOR_BASE_START_DATE="${HUMAN_LABOR_BASE_START_DATE:-2026-01-23}"
+HUMAN_LABOR_BASE_END_DATE="${HUMAN_LABOR_BASE_END_DATE:-$(date -u +%F)}"
+HUMAN_LABOR_BASE_PER_DAY_EUR="${HUMAN_LABOR_BASE_PER_DAY_EUR:-500}"
+HUMAN_LABOR_MODULE_BASE_EUR="${HUMAN_LABOR_MODULE_BASE_EUR:-0}"
+HUMAN_LABOR_IMPL_PER_COMMIT_EUR="${HUMAN_LABOR_IMPL_PER_COMMIT_EUR:-6.785714285714286}"
+HUMAN_LABOR_REVIEW_PER_COMMIT_EUR="${HUMAN_LABOR_REVIEW_PER_COMMIT_EUR:-6.195652173913044}"
+HUMAN_LABOR_UPKEEP_PER_COMMIT_EUR="${HUMAN_LABOR_UPKEEP_PER_COMMIT_EUR:-6}"
 PYTHON_BIN="python3"
 
 readonly COMMIT_COUNTS_CMD PYTHON_BIN
@@ -29,8 +31,10 @@ have "$PYTHON_BIN" || die "$PYTHON_BIN not found"
 eval "$("$COMMIT_COUNTS_CMD")"
 
 "$PYTHON_BIN" - "$MODULE_COUNT" "$TOTAL_COMMITS" \
-  "$HUMAN_LABOR_PROJECT_BASE_EUR" "$HUMAN_LABOR_MODULE_BASE_EUR" \
+  "$HUMAN_LABOR_BASE_START_DATE" "$HUMAN_LABOR_BASE_END_DATE" \
+  "$HUMAN_LABOR_BASE_PER_DAY_EUR" "$HUMAN_LABOR_MODULE_BASE_EUR" \
   "$HUMAN_LABOR_IMPL_PER_COMMIT_EUR" "$HUMAN_LABOR_REVIEW_PER_COMMIT_EUR" "$HUMAN_LABOR_UPKEEP_PER_COMMIT_EUR" <<'PY'
+from datetime import date
 import shlex
 import sys
 from decimal import Decimal, ROUND_HALF_UP
@@ -38,7 +42,9 @@ from decimal import Decimal, ROUND_HALF_UP
 (
     module_count_s,
     total_commits_s,
-    human_project_base_s,
+    base_start_s,
+    base_end_s,
+    base_per_day_s,
     human_module_base_s,
     human_impl_s,
     human_review_s,
@@ -56,13 +62,24 @@ def q2(x: Decimal) -> Decimal:
     return x.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
-human_project_base = D(human_project_base_s)
 human_module_base = D(human_module_base_s)
 human_impl = D(human_impl_s)
 human_review = D(human_review_s)
 human_upkeep = D(human_upkeep_s)
+base_per_day = D(base_per_day_s)
+
+try:
+    base_start = date.fromisoformat(base_start_s)
+    base_end = date.fromisoformat(base_end_s)
+except ValueError as exc:
+    raise SystemExit(f"error: invalid human labor base date: {exc}") from exc
+
+if base_end < base_start:
+    raise SystemExit("error: HUMAN_LABOR_BASE_END_DATE must be on or after HUMAN_LABOR_BASE_START_DATE")
 
 human_per_commit = human_impl + human_review + human_upkeep
+human_base_days = (base_end - base_start).days + 1
+human_project_base = base_per_day * Decimal(human_base_days)
 human_module_base_total = human_module_base * module_count
 human_commit_total = human_per_commit * total_commits
 human_total = human_project_base + human_module_base_total + human_commit_total
@@ -78,6 +95,10 @@ out = {
         "module_count": module_count,
         "total_commits": total_commits,
         "human_labor_module_base_eur": float(q2(human_module_base)),
+        "human_labor_base_start_date": base_start_s,
+        "human_labor_base_end_date": base_end_s,
+        "human_labor_base_days": human_base_days,
+        "human_labor_base_per_day_eur": float(q2(base_per_day)),
         "human_labor_impl_per_commit_eur": float(q2(human_impl)),
         "human_labor_review_per_commit_eur": float(q2(human_review)),
         "human_labor_upkeep_per_commit_eur": float(q2(human_upkeep)),
@@ -91,5 +112,10 @@ print(f"BREAKDOWN_HUMAN_MODULE_BASE_TOTAL_EUR={shlex.quote(str(out['breakdown_eu
 print(f"BREAKDOWN_HUMAN_COMMIT_TOTAL_EUR={shlex.quote(str(out['breakdown_eur']['human_commit_total']))}")
 print(f"ASSUMPTION_MODULE_COUNT={shlex.quote(str(out['assumptions']['module_count']))}")
 print(f"ASSUMPTION_TOTAL_COMMITS={shlex.quote(str(out['assumptions']['total_commits']))}")
+print(f"ASSUMPTION_HUMAN_LABOR_MODULE_BASE_EUR={shlex.quote(str(out['assumptions']['human_labor_module_base_eur']))}")
+print(f"ASSUMPTION_HUMAN_LABOR_BASE_START_DATE={shlex.quote(str(out['assumptions']['human_labor_base_start_date']))}")
+print(f"ASSUMPTION_HUMAN_LABOR_BASE_END_DATE={shlex.quote(str(out['assumptions']['human_labor_base_end_date']))}")
+print(f"ASSUMPTION_HUMAN_LABOR_BASE_DAYS={shlex.quote(str(out['assumptions']['human_labor_base_days']))}")
+print(f"ASSUMPTION_HUMAN_LABOR_BASE_PER_DAY_EUR={shlex.quote(str(out['assumptions']['human_labor_base_per_day_eur']))}")
 print(f"ASSUMPTION_HUMAN_LABOR_PER_COMMIT_TOTAL_EUR={shlex.quote(str(out['assumptions']['human_labor_per_commit_total_eur']))}")
 PY

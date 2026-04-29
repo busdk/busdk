@@ -24,6 +24,7 @@ SKIP_MODULES ?=
 TEST_SCOPE ?= changed
 CHANGED_MODULES ?=
 ROOT_SELFTEST ?= 1
+ROOT_E2E_SELFTEST ?= 0
 QUALITY_BUS_DEV ?= $(abspath bus-dev/bin/bus-dev)
 QUALITY_SCOPE ?= changed
 QUALITY_PROFILE ?= cli
@@ -72,6 +73,7 @@ help:
 	@printf "  SKIP_MODULES=%s\n\n" "$(SKIP_MODULES)"
 	@printf "  TEST_SCOPE=%s\n" "$(TEST_SCOPE)"
 	@printf "  CHANGED_MODULES=%s\n\n" "$(CHANGED_MODULES)"
+	@printf "  ROOT_E2E_SELFTEST=%s\n\n" "$(ROOT_E2E_SELFTEST)"
 	@printf "  QUALITY_SCOPE=%s\n" "$(QUALITY_SCOPE)"
 	@printf "  QUALITY_TARGETS=%s\n" "$(QUALITY_TARGETS)"
 	@printf "  QUALITY_DEEP=%s\n" "$(QUALITY_DEEP)"
@@ -111,6 +113,7 @@ bootstrap: init build install
 superproject-selftest:
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_changed_scope.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_quiet.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= sh ./tests/superproject/test_pricing_costs.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_agent_container.sh
 
 print-test-modules:
@@ -243,7 +246,9 @@ test:
 
 e2e:
 	@set -eu; \
-	bash ./tests/superproject/e2e_agent_container.sh; \
+	if [ "$(ROOT_E2E_SELFTEST)" = "1" ]; then \
+		bash ./tests/superproject/e2e_agent_container.sh; \
+	fi; \
 	scope="$(TEST_SCOPE)"; \
 	case "$$scope" in \
 		all|changed) ;; \

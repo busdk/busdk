@@ -174,6 +174,10 @@ make test
 make e2e
 ```
 
+Root `make e2e` does not run the superproject agent-container Docker selftest
+by default. Use `ROOT_E2E_SELFTEST=1 make e2e` when explicitly validating that
+developer container path.
+
 - **Run Go source quality checks for changed modules only** (default for root `quality`):
 
 ```bash
@@ -237,6 +241,7 @@ make distclean
 - `SKIP_MODULES`: space-separated module names or shell globs to skip in root targets (default skips `bus-filing`, `bus-filing-prh`, `bus-filing-vero`)
 - `TEST_SCOPE`: `changed` (default) or `all` for root `make test` / `make e2e`
 - `CHANGED_MODULES`: explicit whitespace-separated module list overriding auto-detected changed modules for root `make test`, `make e2e`, or focused `make quality` runs
+- `ROOT_E2E_SELFTEST`: set to `1` to include the superproject agent-container Docker selftest in root `make e2e`
 - `QUALITY_SCOPE`: `changed` (default) or `all` for root `make quality`; setting `CHANGED_MODULES` narrows quality to those modules unless `QUALITY_SCOPE=all` is also set
 - `QUALITY_TARGETS`: whitespace-separated source/static-analysis module Makefile targets for `make quality` to run after the required direct `bus-dev quality lint` custom AST pass (default: `lint security`; missing module targets are skipped)
 - `QUALITY_DEEP`: set to `1` to append `QUALITY_DEEP_TARGETS` to the normal quality run; by default no deep targets are configured because root quality is not a test runner

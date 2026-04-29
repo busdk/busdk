@@ -11,9 +11,9 @@ die() { echo "error: $*" >&2; exit 1; }
 # -----------------------------------------------------------------------------
 # Config (all script constants)
 # -----------------------------------------------------------------------------
-MODULES_GLOB="bus-*"
-TOTAL_COSTS_CMD="scripts/get-total-costs.sh"
-COMMIT_COUNTS_CMD="scripts/get-total-commit-counts.sh"
+MODULES_GLOB="${MODULES_GLOB:-bus-*}"
+TOTAL_COSTS_CMD="${TOTAL_COSTS_CMD:-scripts/get-total-costs.sh}"
+COMMIT_COUNTS_CMD="${COMMIT_COUNTS_CMD:-scripts/get-total-commit-counts.sh}"
 PYTHON_BIN="python3"
 
 readonly MODULES_GLOB TOTAL_COSTS_CMD COMMIT_COUNTS_CMD PYTHON_BIN
@@ -22,26 +22,62 @@ have "$PYTHON_BIN" || die "$PYTHON_BIN not found"
 [ -x "$TOTAL_COSTS_CMD" ] || die "total costs command not executable: $TOTAL_COSTS_CMD"
 [ -x "$COMMIT_COUNTS_CMD" ] || die "commit counts command not executable: $COMMIT_COUNTS_CMD"
 
-eval "$("$TOTAL_COSTS_CMD")"
+total_costs_output="$("$TOTAL_COSTS_CMD")" || die "total costs command failed: $TOTAL_COSTS_CMD"
+eval "$total_costs_output"
 [ -n "${TOTAL_COST_EUR:-}" ] || die "TOTAL_COST_EUR missing from $TOTAL_COSTS_CMD"
-TOTAL_PRICE_EUR="$TOTAL_COST_EUR"
+AI_COST_EUR="${AI_COST_EUR:-0}"
+BREAKDOWN_HUMAN_PROJECT_BASE_EUR="${BREAKDOWN_HUMAN_PROJECT_BASE_EUR:-0}"
+ASSUMPTION_CHATGPT_BASE_START_DATE="${ASSUMPTION_CHATGPT_BASE_START_DATE:-}"
+ASSUMPTION_CHATGPT_BASE_END_DATE="${ASSUMPTION_CHATGPT_BASE_END_DATE:-}"
+ASSUMPTION_CHATGPT_MONTHS="${ASSUMPTION_CHATGPT_MONTHS:-0}"
+ASSUMPTION_CHATGPT_MONTHLY_EUR="${ASSUMPTION_CHATGPT_MONTHLY_EUR:-0}"
+ASSUMPTION_CURSOR_TOTAL_USD="${ASSUMPTION_CURSOR_TOTAL_USD:-0}"
+ASSUMPTION_USD_TO_EUR_RATE="${ASSUMPTION_USD_TO_EUR_RATE:-0}"
+ASSUMPTION_HUMAN_LABOR_MODULE_BASE_EUR="${ASSUMPTION_HUMAN_LABOR_MODULE_BASE_EUR:-0}"
+ASSUMPTION_HUMAN_LABOR_BASE_START_DATE="${ASSUMPTION_HUMAN_LABOR_BASE_START_DATE:-}"
+ASSUMPTION_HUMAN_LABOR_BASE_END_DATE="${ASSUMPTION_HUMAN_LABOR_BASE_END_DATE:-}"
+ASSUMPTION_HUMAN_LABOR_BASE_DAYS="${ASSUMPTION_HUMAN_LABOR_BASE_DAYS:-0}"
+ASSUMPTION_HUMAN_LABOR_BASE_PER_DAY_EUR="${ASSUMPTION_HUMAN_LABOR_BASE_PER_DAY_EUR:-0}"
+ASSUMPTION_HUMAN_LABOR_PER_COMMIT_TOTAL_EUR="${ASSUMPTION_HUMAN_LABOR_PER_COMMIT_TOTAL_EUR:-0}"
 
-# Validate total is numeric and non-negative.
-"$PYTHON_BIN" - <<'PY' "$TOTAL_PRICE_EUR"
+# Validate pricing inputs are numeric and non-negative.
+"$PYTHON_BIN" - <<'PY' \
+  "$TOTAL_COST_EUR" \
+  "$AI_COST_EUR" \
+  "$BREAKDOWN_HUMAN_PROJECT_BASE_EUR" \
+  "$ASSUMPTION_CHATGPT_MONTHS" \
+  "$ASSUMPTION_CHATGPT_MONTHLY_EUR" \
+  "$ASSUMPTION_CURSOR_TOTAL_USD" \
+  "$ASSUMPTION_USD_TO_EUR_RATE" \
+  "$ASSUMPTION_HUMAN_LABOR_MODULE_BASE_EUR" \
+  "$ASSUMPTION_HUMAN_LABOR_PER_COMMIT_TOTAL_EUR"
 from decimal import Decimal
 import sys
-try:
-    value = Decimal(sys.argv[1])
-except Exception:
-    raise SystemExit("error: TOTAL_PRICE_EUR must be a valid decimal number")
-if value < 0:
-    raise SystemExit("error: TOTAL_PRICE_EUR must be >= 0")
+names = [
+    "TOTAL_COST_EUR",
+    "AI_COST_EUR",
+    "BREAKDOWN_HUMAN_PROJECT_BASE_EUR",
+    "ASSUMPTION_CHATGPT_MONTHS",
+    "ASSUMPTION_CHATGPT_MONTHLY_EUR",
+    "ASSUMPTION_CURSOR_TOTAL_USD",
+    "ASSUMPTION_USD_TO_EUR_RATE",
+    "ASSUMPTION_HUMAN_LABOR_MODULE_BASE_EUR",
+    "ASSUMPTION_HUMAN_LABOR_PER_COMMIT_TOTAL_EUR",
+]
+for name, raw in zip(names, sys.argv[1:]):
+    try:
+        value = Decimal(raw)
+    except Exception:
+        raise SystemExit(f"error: {name} must be a valid decimal number")
+    if value < 0:
+        raise SystemExit(f"error: {name} must be >= 0")
 PY
 
 tmp_modules="$(mktemp)"
 trap 'rm -f "$tmp_modules"' EXIT
 
-eval "$("$COMMIT_COUNTS_CMD")"
+commit_counts_output="$("$COMMIT_COUNTS_CMD")" || die "commit counts command failed: $COMMIT_COUNTS_CMD"
+eval "$commit_counts_output"
 
 [ -n "${MODULE_KEYS:-}" ] || die "no modules found"
 IFS=',' read -r -a module_keys_arr <<< "$MODULE_KEYS"
@@ -61,7 +97,24 @@ done
 
 [ -s "$tmp_modules" ] || die "no modules found (MODULES_GLOB=$MODULES_GLOB)"
 
-"$PYTHON_BIN" - "$tmp_modules" "$TOTAL_PRICE_EUR" "." <<'PY'
+"$PYTHON_BIN" - \
+  "$tmp_modules" \
+  "$TOTAL_COST_EUR" \
+  "$AI_COST_EUR" \
+  "$BREAKDOWN_HUMAN_PROJECT_BASE_EUR" \
+  "$ASSUMPTION_CHATGPT_BASE_START_DATE" \
+  "$ASSUMPTION_CHATGPT_BASE_END_DATE" \
+  "$ASSUMPTION_CHATGPT_MONTHS" \
+  "$ASSUMPTION_CHATGPT_MONTHLY_EUR" \
+  "$ASSUMPTION_CURSOR_TOTAL_USD" \
+  "$ASSUMPTION_USD_TO_EUR_RATE" \
+  "$ASSUMPTION_HUMAN_LABOR_MODULE_BASE_EUR" \
+  "$ASSUMPTION_HUMAN_LABOR_BASE_START_DATE" \
+  "$ASSUMPTION_HUMAN_LABOR_BASE_END_DATE" \
+  "$ASSUMPTION_HUMAN_LABOR_BASE_DAYS" \
+  "$ASSUMPTION_HUMAN_LABOR_BASE_PER_DAY_EUR" \
+  "$ASSUMPTION_HUMAN_LABOR_PER_COMMIT_TOTAL_EUR" \
+  "." <<'PY'
 import re
 import shlex
 import sys
@@ -69,8 +122,22 @@ from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
 path = sys.argv[1]
-total_price_eur = Decimal(sys.argv[2])
-repo_root = Path(sys.argv[3])
+source_total_price_eur = Decimal(sys.argv[2])
+ai_cost_eur = Decimal(sys.argv[3])
+human_project_base_eur = Decimal(sys.argv[4])
+chatgpt_start = sys.argv[5]
+chatgpt_end = sys.argv[6]
+chatgpt_months = sys.argv[7]
+chatgpt_monthly = sys.argv[8]
+cursor_total_usd = sys.argv[9]
+usd_to_eur_rate = sys.argv[10]
+human_module_base_eur = Decimal(sys.argv[11])
+human_base_start = sys.argv[12]
+human_base_end = sys.argv[13]
+human_base_days = sys.argv[14]
+human_base_per_day = sys.argv[15]
+human_per_commit_eur = Decimal(sys.argv[16])
+repo_root = Path(sys.argv[17])
 
 rows = []
 with open(path, "r", encoding="utf-8") as f:
@@ -90,22 +157,31 @@ if not rows:
 rows.sort(key=lambda x: x[0])
 module_names = {name for name, _ in rows}
 
-# Allocate to integer cents deterministically with largest-remainder method.
-total_cents = int((total_price_eur * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 weights = {name: commits for name, commits in rows}
 weight_sum = sum(weights.values())
+shared_cost_cents = (ai_cost_eur + human_project_base_eur) * Decimal("100")
+module_base_cents = human_module_base_eur * Decimal("100")
+commit_cents = human_per_commit_eur * Decimal("100")
 
 if weight_sum == 0:
-    # If all repos have zero commits, split equally.
+    # If all repos have zero commits, split shared costs equally.
     n = len(rows)
-    exact = {name: Decimal(total_cents) / Decimal(n) for name, _ in rows}
+    exact = {
+        name: module_base_cents + (shared_cost_cents / Decimal(n))
+        for name, _ in rows
+    }
 else:
     exact = {
-        name: Decimal(total_cents) * Decimal(weights[name]) / Decimal(weight_sum)
+        name: (
+            module_base_cents
+            + (commit_cents * Decimal(weights[name]))
+            + (shared_cost_cents * Decimal(weights[name]) / Decimal(weight_sum))
+        )
         for name, _ in rows
     }
 
 base = {name: int(v) for name, v in exact.items()}
+total_cents = int(sum(exact.values()).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 remainder = total_cents - sum(base.values())
 
 order = sorted(rows, key=lambda x: (-(exact[x[0]] - Decimal(base[x[0]])), x[0]))
@@ -238,7 +314,23 @@ for name, _ in rows:
 def emit(name: str, value) -> None:
     print(f"{name}={shlex.quote(str(value))}")
 
-emit("TOTAL_PRICE_EUR", float((Decimal(total_cents) / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)))
+def q2(value: Decimal) -> Decimal:
+    return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+emit("TOTAL_PRICE_EUR", float(q2(Decimal(total_cents) / Decimal("100"))))
+emit("SOURCE_TOTAL_COST_EUR", float(q2(source_total_price_eur)))
+emit("ASSUMPTION_CHATGPT_BASE_START_DATE", chatgpt_start)
+emit("ASSUMPTION_CHATGPT_BASE_END_DATE", chatgpt_end)
+emit("ASSUMPTION_CHATGPT_MONTHS", chatgpt_months)
+emit("ASSUMPTION_CHATGPT_MONTHLY_EUR", chatgpt_monthly)
+emit("ASSUMPTION_CURSOR_TOTAL_USD", cursor_total_usd)
+emit("ASSUMPTION_USD_TO_EUR_RATE", usd_to_eur_rate)
+emit("ASSUMPTION_HUMAN_LABOR_MODULE_BASE_EUR", float(q2(human_module_base_eur)))
+emit("ASSUMPTION_HUMAN_LABOR_BASE_START_DATE", human_base_start)
+emit("ASSUMPTION_HUMAN_LABOR_BASE_END_DATE", human_base_end)
+emit("ASSUMPTION_HUMAN_LABOR_BASE_DAYS", human_base_days)
+emit("ASSUMPTION_HUMAN_LABOR_BASE_PER_DAY_EUR", human_base_per_day)
+emit("ASSUMPTION_HUMAN_LABOR_PER_COMMIT_TOTAL_EUR", float(q2(human_per_commit_eur)))
 
 sorted_modules = sorted(base.keys())
 module_keys = []
