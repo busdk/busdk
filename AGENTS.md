@@ -321,6 +321,17 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 4. Do not treat `.bus/`, `Makefile.local`, or `./tests` as temporary files; they are tracked by default unless a repository explicitly documents an exception.
 5. Never add `FEATURES.md` to `.gitignore` in any module. If `FEATURES.md` exists in a module's git history, restore and keep it tracked.
 
+## Secret Argument Rule
+
+1. Do not accept secret values as command-line arguments in BusDK tools or
+   services. JWTs, API tokens, provider tokens, webhook secrets, signing
+   secrets, passwords, private keys, and DSNs that may contain passwords must
+   come from environment variables, user config secret files, deployment secret
+   files, or standard input where explicitly designed.
+2. Command-line flags may accept non-secret paths, URLs, names, IDs, and public
+   key paths, but not literal secret material because argv leaks through shell
+   history, process listings, crash reports, and service managers.
+
 ## Global unit documentation traceability rule
 
 - Every top-level production-code unit (`func`, `type`, `var`, and `const` blocks when they define global API/behavior) must include an inline comment that states its purpose.
