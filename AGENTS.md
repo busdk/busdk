@@ -292,6 +292,9 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 86. Root `make quality` is the normal changed-module AI cleanup gate and must stay source/static-analysis focused. It must invoke the core Bus custom AST checks directly through `bus-dev quality lint` for every selected Go module, not only through module `lint` targets and never through Go test functions. Do not add unit tests, race tests, fuzzing, benchmarks, Docker validation, or e2e checks to the normal quality path; those belong under `make test`, `make e2e`, or explicit module-specific test targets.
 87. Go module `lint` targets should also invoke `$(BUS_DEV) quality lint --profile "$(BUS_GO_QUALITY_PROFILE)" .` so module-local linting catches the same custom Bus source-quality rules as the superproject. Keep this as a command invocation, not a Go test.
 88. Every top-level submodule Makefile must provide a source/static-only `quality` target. For Go modules, `quality` should run formatting plus lint/static checks and must not run unit tests, e2e tests, fuzzing, benchmarks, Docker tests, or install steps. Non-Go documentation/site modules may use a no-op `quality` target until they have concrete source-quality checks.
+89. When prefixing `PATH` through `env`, quote the full assignment (for
+    example `env "PATH=/path/bin:$PATH" cmd`) because this developer
+    environment's `PATH` can contain directories with spaces.
 
 ## Documentation Paths (All Modules)
 
