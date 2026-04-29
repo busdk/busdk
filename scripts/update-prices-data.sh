@@ -56,30 +56,7 @@ for key in keys:
 out = {
     "prices_utc_time": vars_map.get("PRICES_UTC_TIME", ""),
     "total_price_eur": float(Decimal(vars_map.get("TOTAL_PRICE_EUR", "0"))),
-    "source_total_cost_eur": float(Decimal(vars_map.get("SOURCE_TOTAL_COST_EUR", "0"))),
     "module_count": len(modules),
-    "assumptions": {
-        "chatgpt_base_start_date": vars_map.get("ASSUMPTION_CHATGPT_BASE_START_DATE", ""),
-        "chatgpt_base_end_date": vars_map.get("ASSUMPTION_CHATGPT_BASE_END_DATE", ""),
-        "chatgpt_months": int(vars_map.get("ASSUMPTION_CHATGPT_MONTHS", "0")),
-        "chatgpt_monthly_eur": float(
-            Decimal(vars_map.get("ASSUMPTION_CHATGPT_MONTHLY_EUR", "0"))
-        ),
-        "cursor_total_usd": float(Decimal(vars_map.get("ASSUMPTION_CURSOR_TOTAL_USD", "0"))),
-        "usd_to_eur_rate": float(Decimal(vars_map.get("ASSUMPTION_USD_TO_EUR_RATE", "0"))),
-        "human_labor_module_base_eur": float(
-            Decimal(vars_map.get("ASSUMPTION_HUMAN_LABOR_MODULE_BASE_EUR", "0"))
-        ),
-        "human_labor_base_start_date": vars_map.get("ASSUMPTION_HUMAN_LABOR_BASE_START_DATE", ""),
-        "human_labor_base_end_date": vars_map.get("ASSUMPTION_HUMAN_LABOR_BASE_END_DATE", ""),
-        "human_labor_base_days": int(vars_map.get("ASSUMPTION_HUMAN_LABOR_BASE_DAYS", "0")),
-        "human_labor_base_per_day_eur": float(
-            Decimal(vars_map.get("ASSUMPTION_HUMAN_LABOR_BASE_PER_DAY_EUR", "0"))
-        ),
-        "human_labor_per_commit_total_eur": float(
-            Decimal(vars_map.get("ASSUMPTION_HUMAN_LABOR_PER_COMMIT_TOTAL_EUR", "0"))
-        ),
-    },
     "modules": modules,
 }
 
