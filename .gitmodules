@@ -342,3 +342,7 @@
 	path = bus-portal-accounting
 	url = git@github.com:busdk/bus-portal-accounting.git
 	branch = main
+[submodule "bus-lint"]
+	path = bus-lint
+	url = git@github.com:busdk/bus-lint.git
+	branch = main
