@@ -346,3 +346,11 @@
 	path = bus-lint
 	url = git@github.com:busdk/bus-lint.git
 	branch = main
+[submodule "bus-api-provider-mcp"]
+	path = bus-api-provider-mcp
+	url = git@github.com:busdk/bus-api-provider-mcp.git
+	branch = main
+[submodule "bus-mcp"]
+	path = bus-mcp
+	url = git@github.com:busdk/bus-mcp.git
+	branch = main
