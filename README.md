@@ -192,6 +192,16 @@ make e2e TEST_SCOPE=all
 make quality QUALITY_SCOPE=all
 ```
 
+- **Run the complete slow quality sweep**:
+
+```bash
+make quality-complete
+```
+
+This runs the all-module source/static quality sweep, then uses `bus lint` to
+check each module's published end-user documentation page and each available
+module binary's `--help` output.
+
 - **Manually choose the module subset**:
 
 ```bash
@@ -252,6 +262,11 @@ make distclean
 - `QUALITY_LIBRARY_MODULES`: module names or shell globs that should use the `library` quality profile
 - `QUALITY_KEEP_GOING`: set to `1` to continue across modules and report all failed steps instead of stopping at the first failure
 - `QUALITY_PROGRESS`: set to `1` to print module/target progress during `make quality`; by default successful steps stay quiet
+- `QUALITY_COMPLETE_SCOPE`: module scope for `make quality-complete`; defaults to `all`
+- `QUALITY_COMPLETE_BUILD`: set to `0` only for harnesses that provide prebuilt module binaries; default `1`
+- `QUALITY_COMPLETE_SOURCE`: set to `0` to skip the source/static quality phase; default `1`
+- `QUALITY_COMPLETE_PROGRESS`: set to `1` to print module-level progress during `make quality-complete`
+- `QUALITY_DOCS_MODULE_DIR`: module documentation directory for `make quality-complete`; default `docs/docs/modules`
 
 ## Tests
 
@@ -276,6 +291,12 @@ additional source-quality target set is `lint security`. Root quality is
 intentionally not a test runner: unit tests, race tests, fuzzing, benchmarks,
 Docker validation, and e2e checks belong under `make test`, `make e2e`, or
 module-specific test targets.
+
+Use `make quality-complete` when the slower reader-facing lint surface matters.
+It defaults to `QUALITY_COMPLETE_SCOPE=all`, builds the local dispatcher and
+`bus-lint`, builds selected module binaries, and checks
+`docs/docs/modules/<module>.md` plus captured `--help` output through `bus lint`.
+A clean run prints only the summary unless progress is enabled.
 
 Module-local `make lint` targets also run `bus-dev quality lint`, so the same
 custom AST bad-pattern checks are available when working inside an individual

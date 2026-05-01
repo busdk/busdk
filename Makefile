@@ -37,11 +37,19 @@ QUALITY_ALLOW_TEST_TARGETS ?= 0
 QUALITY_EFFECTIVE_TARGETS := $(strip $(QUALITY_TARGETS) $(if $(filter 1,$(QUALITY_DEEP)),$(QUALITY_DEEP_TARGETS)))
 QUALITY_KEEP_GOING ?= 0
 QUALITY_PROGRESS ?= 0
+QUALITY_COMPLETE_SCOPE ?= all
+QUALITY_COMPLETE_SOURCE ?= 1
+QUALITY_COMPLETE_BUILD ?= 1
+QUALITY_COMPLETE_KEEP_GOING ?= $(QUALITY_KEEP_GOING)
+QUALITY_COMPLETE_PROGRESS ?= $(QUALITY_PROGRESS)
+QUALITY_BUS ?= $(abspath bus/bin/bus)
+QUALITY_BUS_LINT ?= $(abspath bus-lint/bin/bus-lint)
+QUALITY_DOCS_MODULE_DIR ?= docs/docs/modules
 COMMA := ,
 SKIP_PATTERNS := $(strip $(subst $(COMMA), ,$(SKIP_MODULES)))
 MODULE_MAKE_VARS := BIN_DIR="$(abspath $(BIN_DIR))" PREFIX="$(PREFIX)" BINDIR="$(BINDIR)" GO="$(GO)" GOFLAGS="$(GOFLAGS)" GOCACHE="$(GOCACHE)" CGO_ENABLED="$(CGO_ENABLED)" BUILD_STATIC="$(BUILD_STATIC)"
 
-.PHONY: help init update upgrade status bootstrap test e2e quality build install clean distclean audit-cli-reachability audit-cli-reachability-full tidy tidy-mods superproject-selftest print-test-modules print-e2e-modules print-quality-modules
+.PHONY: help init update upgrade status bootstrap test e2e quality quality-complete build install clean distclean audit-cli-reachability audit-cli-reachability-full tidy tidy-mods superproject-selftest print-test-modules print-e2e-modules print-quality-modules
 
 help:
 	@printf "BusDK superproject\n\n"
@@ -53,6 +61,7 @@ help:
 	@printf "  test        Run module test suites\n"
 	@printf "  e2e         Run module end-to-end suites (when target exists)\n"
 	@printf "  quality     Run reusable Go source/static quality checks\n"
+	@printf "  quality-complete  Run source quality plus slow bus lint checks for help/docs\n"
 	@printf "  build       Build all tools into ./%s\n" "$(BIN_DIR)"
 	@printf "  install     Install tools into %s\n" "$(BINDIR)"
 	@printf "  clean       Remove local build artifacts\n"
@@ -84,6 +93,12 @@ help:
 	@printf "  QUALITY_LIBRARY_MODULES=%s\n" "$(QUALITY_LIBRARY_MODULES)"
 	@printf "  QUALITY_KEEP_GOING=%s\n" "$(QUALITY_KEEP_GOING)"
 	@printf "  QUALITY_PROGRESS=%s\n\n" "$(QUALITY_PROGRESS)"
+	@printf "  QUALITY_COMPLETE_SCOPE=%s\n" "$(QUALITY_COMPLETE_SCOPE)"
+	@printf "  QUALITY_COMPLETE_SOURCE=%s\n" "$(QUALITY_COMPLETE_SOURCE)"
+	@printf "  QUALITY_COMPLETE_BUILD=%s\n" "$(QUALITY_COMPLETE_BUILD)"
+	@printf "  QUALITY_COMPLETE_KEEP_GOING=%s\n" "$(QUALITY_COMPLETE_KEEP_GOING)"
+	@printf "  QUALITY_COMPLETE_PROGRESS=%s\n" "$(QUALITY_COMPLETE_PROGRESS)"
+	@printf "  QUALITY_DOCS_MODULE_DIR=%s\n\n" "$(QUALITY_DOCS_MODULE_DIR)"
 	@printf "Example:\n"
 	@printf "  make bootstrap\n"
 	@printf "  make bootstrap PREFIX=/opt/busdk\n"
@@ -93,6 +108,7 @@ help:
 	@printf "  make quality QUALITY_KEEP_GOING=1\n"
 	@printf "  make quality CHANGED_MODULES='bus-reports bus-bank'\n"
 	@printf "  make quality QUALITY_SCOPE=all\n"
+	@printf "  make quality-complete\n"
 
 init:
 	git submodule update --init --recursive
@@ -113,6 +129,7 @@ bootstrap: init build install
 superproject-selftest:
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_changed_scope.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_quiet.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_complete.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= sh ./tests/superproject/test_pricing_costs.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_agent_container.sh
 
@@ -318,7 +335,8 @@ quality:
 	@set -eu; \
 	tmp_files=""; \
 	cleanup() { for f in $$tmp_files; do rm -f "$$f"; done; }; \
-	trap cleanup EXIT HUP INT TERM; \
+	trap cleanup EXIT; \
+	trap 'cleanup; exit 130' HUP INT TERM; \
 	step_log=$$(mktemp); \
 	tmp_files="$$tmp_files $$step_log"; \
 	if ! "$(MAKE)" -C bus-dev build $(MODULE_MAKE_VARS) >"$$step_log" 2>&1; then \
@@ -397,6 +415,107 @@ quality:
 		exit 1; \
 	else \
 		printf "quality: ran %d module(s)\n" "$$ran"; \
+	fi
+
+quality-complete:
+	@set -eu; \
+	failed=0; \
+	if [ "$(QUALITY_COMPLETE_SOURCE)" = "1" ]; then \
+		if ! "$(MAKE)" quality QUALITY_SCOPE="$(QUALITY_COMPLETE_SCOPE)" CHANGED_MODULES="$(CHANGED_MODULES)" SKIP_MODULES="$(SKIP_MODULES)" QUALITY_KEEP_GOING="$(QUALITY_COMPLETE_KEEP_GOING)" QUALITY_PROGRESS="$(QUALITY_COMPLETE_PROGRESS)"; then \
+			failed=$$((failed + 1)); \
+			if [ "$(QUALITY_COMPLETE_KEEP_GOING)" != "1" ]; then exit 1; fi; \
+		fi; \
+	fi; \
+	if [ "$(QUALITY_COMPLETE_BUILD)" = "1" ]; then \
+		if ! "$(MAKE)" -C bus build $(MODULE_MAKE_VARS); then \
+			printf "quality-complete: failed to build bus dispatcher\n" >&2; \
+			exit 1; \
+		fi; \
+		if ! "$(MAKE)" -C bus-lint build $(MODULE_MAKE_VARS); then \
+			printf "quality-complete: failed to build bus-lint\n" >&2; \
+			exit 1; \
+		fi; \
+	fi; \
+	if [ ! -x "$(QUALITY_BUS)" ]; then \
+		printf "quality-complete: bus dispatcher not executable: %s\n" "$(QUALITY_BUS)" >&2; \
+		exit 1; \
+	fi; \
+	if [ ! -x "$(QUALITY_BUS_LINT)" ]; then \
+		printf "quality-complete: bus-lint not executable: %s\n" "$(QUALITY_BUS_LINT)" >&2; \
+		exit 1; \
+	fi; \
+	tmp_files=""; \
+	cleanup() { for f in $$tmp_files; do rm -f "$$f"; done; }; \
+	trap cleanup EXIT HUP INT TERM; \
+	modules="$$(MAKEFLAGS= "$(MAKE)" -s print-quality-modules QUALITY_SCOPE="$(QUALITY_COMPLETE_SCOPE)" CHANGED_MODULES="$(CHANGED_MODULES)" SKIP_MODULES="$(SKIP_MODULES)")"; \
+	lint_tool_dir=$$(dirname "$(QUALITY_BUS_LINT)"); \
+	bus_tool_dir=$$(dirname "$(QUALITY_BUS)"); \
+	lint_path="$$lint_tool_dir:$$bus_tool_dir:$$PATH"; \
+	for mod in $$modules; do \
+		lint_path="$$(pwd)/$$mod/bin:$$lint_path"; \
+	done; \
+	ran=0; \
+	doc_ran=0; \
+	help_ran=0; \
+	for mod in $$modules; do \
+		if [ "$(QUALITY_COMPLETE_PROGRESS)" = "1" ]; then printf "==> %s (complete quality)\n" "$$mod"; fi; \
+		if [ "$(QUALITY_COMPLETE_BUILD)" = "1" ]; then \
+			step_log=$$(mktemp); \
+			tmp_files="$$tmp_files $$step_log"; \
+			if ! "$(MAKE)" -C "$$mod" build $(MODULE_MAKE_VARS) >"$$step_log" 2>&1; then \
+				if [ -s "$$step_log" ]; then cat "$$step_log" >&2; fi; \
+				printf "Complete quality build for %s failed, run this for more information: make -C %s build\n" "$$mod" "$$mod" >&2; \
+				failed=$$((failed + 1)); \
+				if [ "$(QUALITY_COMPLETE_KEEP_GOING)" != "1" ]; then exit 1; fi; \
+			fi; \
+		fi; \
+		doc_path="$(QUALITY_DOCS_MODULE_DIR)/$$mod.md"; \
+		if [ ! -f "$$doc_path" ]; then \
+			printf "Complete quality documentation lint for %s failed: missing %s\n" "$$mod" "$$doc_path" >&2; \
+			failed=$$((failed + 1)); \
+			if [ "$(QUALITY_COMPLETE_KEEP_GOING)" != "1" ]; then exit 1; fi; \
+		else \
+			if [ "$(QUALITY_COMPLETE_PROGRESS)" = "1" ]; then printf "==> %s:doc-lint\n" "$$mod"; fi; \
+			step_log=$$(mktemp); \
+			tmp_files="$$tmp_files $$step_log"; \
+			if ! PATH="$$lint_path" "$(QUALITY_BUS)" lint --type documentation "$$doc_path" >"$$step_log" 2>&1; then \
+				if [ -s "$$step_log" ]; then cat "$$step_log" >&2; fi; \
+				printf "Complete quality documentation lint for %s failed; rerun: make quality-complete QUALITY_COMPLETE_SCOPE=changed CHANGED_MODULES='%s' QUALITY_COMPLETE_SOURCE=0 QUALITY_COMPLETE_PROGRESS=1\n" "$$mod" "$$mod" >&2; \
+				failed=$$((failed + 1)); \
+				if [ "$(QUALITY_COMPLETE_KEEP_GOING)" != "1" ]; then exit 1; fi; \
+			fi; \
+			doc_ran=$$((doc_ran + 1)); \
+		fi; \
+		bin_path="$$mod/bin/$$mod"; \
+		if [ ! -x "$$bin_path" ]; then \
+			if [ "$(QUALITY_COMPLETE_PROGRESS)" = "1" ]; then printf "==> %s:help-lint (skipped: no executable)\n" "$$mod"; fi; \
+		else \
+			if [ "$(QUALITY_COMPLETE_PROGRESS)" = "1" ]; then printf "==> %s:help-lint\n" "$$mod"; fi; \
+			help_file=$$(mktemp "$${TMPDIR:-/tmp}/$$mod.help.XXXXXX"); \
+			step_log=$$(mktemp); \
+			tmp_files="$$tmp_files $$help_file $$step_log"; \
+			if ! "$$bin_path" --help >"$$help_file" 2>&1; then \
+				if [ -s "$$help_file" ]; then cat "$$help_file" >&2; fi; \
+				printf "Complete quality help capture for %s failed, run this for more information: %s --help\n" "$$mod" "$$bin_path" >&2; \
+				failed=$$((failed + 1)); \
+				if [ "$(QUALITY_COMPLETE_KEEP_GOING)" != "1" ]; then exit 1; fi; \
+			elif ! PATH="$$lint_path" "$(QUALITY_BUS)" lint --type cli-help "$$help_file" >"$$step_log" 2>&1; then \
+				if [ -s "$$step_log" ]; then cat "$$step_log" >&2; fi; \
+				printf "Complete quality help lint for %s failed; rerun: make quality-complete QUALITY_COMPLETE_SCOPE=changed CHANGED_MODULES='%s' QUALITY_COMPLETE_SOURCE=0 QUALITY_COMPLETE_PROGRESS=1\n" "$$mod" "$$mod" >&2; \
+				failed=$$((failed + 1)); \
+				if [ "$(QUALITY_COMPLETE_KEEP_GOING)" != "1" ]; then exit 1; fi; \
+			fi; \
+			help_ran=$$((help_ran + 1)); \
+		fi; \
+		ran=$$((ran + 1)); \
+	done; \
+	if [ "$$ran" -eq 0 ]; then \
+		printf "quality-complete: no selected modules\n"; \
+	elif [ "$$failed" -ne 0 ]; then \
+		printf "quality-complete: %d step(s) failed across %d module(s) (doc lint %d, help lint %d)\n" "$$failed" "$$ran" "$$doc_ran" "$$help_ran"; \
+		exit 1; \
+	else \
+		printf "quality-complete: ran %d module(s) (doc lint %d, help lint %d)\n" "$$ran" "$$doc_ran" "$$help_ran"; \
 	fi
 
 build:
