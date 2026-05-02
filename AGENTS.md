@@ -318,6 +318,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 7. Do not defer documentation updates to a follow-up change.
 8. End-user docs readability DoD: prefer short paragraphs, avoid repeated wording, and keep pages task-oriented.
 9. End-user docs style rule: avoid bullet lists by default; use paragraphs unless a list/table is the only clear way to present structured data.
+10. When editing Markdown tables, align columns with padding so raw plain-text Markdown remains readable, not only the rendered view.
 
 ## Gitignore Rule
 
@@ -436,3 +437,8 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
   `bus-integration-ollama` behind `bus-integration-inference` /
   `bus-api-provider-inference` / `bus-operator-inference` contracts from the
   start so Bus does not hardcode Ollama into deployment or runtime workflows.
+- Modules that intentionally read process environment through an allowlist must
+  not silently ignore relevant variables. They should warn with variable names
+  only, redact secret-like values, provide an invocation-scoped allow override,
+  and support persistent allowlist entries through `bus-preferences` where
+  user-level configuration is appropriate.
