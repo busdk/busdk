@@ -91,6 +91,8 @@ Apply this section only when editing CLI module repositories or shared CLI parsi
 14. Always update end-to-end (e2e) tests to cover new features; new functionality is not done until e2e coverage is added.
 15. Every user-visible behavior change (feature, bug fix, CLI/output/validation change, migration/replay behavior change) MUST include updated or new e2e coverage in the same change set.
 16. If no existing e2e harness can cover the change, add one; do not mark work done without e2e unless the user explicitly approves a temporary exception.
+17. Restricted API e2e coverage must test both missing credentials and valid-but-underprivileged credentials. A valid JWT with the wrong scope must be rejected for every protected endpoint family so tests catch accidental "any valid JWT" authorization regressions.
+18. API access-control tests must be deterministic and scope-matrix based: for every public/protected API family, e2e tests should assert the expected status for no JWT, wrong-audience or malformed JWT where relevant, valid JWT with insufficient scope, and valid JWT with the exact required scope. Avoid relying only on one happy-path token shared across all endpoints.
 
 ## Go Language And Project Conventions (When Go Code Exists)
 
