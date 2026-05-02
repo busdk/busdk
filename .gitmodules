@@ -354,3 +354,63 @@
 	path = bus-mcp
 	url = git@github.com:busdk/bus-mcp.git
 	branch = main
+[submodule "bus-operator-deploy"]
+	path = bus-operator-deploy
+	url = git@github.com:busdk/bus-operator-deploy.git
+	branch = main
+[submodule "bus-operator-cloud"]
+	path = bus-operator-cloud
+	url = git@github.com:busdk/bus-operator-cloud.git
+	branch = main
+[submodule "bus-api-provider-cloud"]
+	path = bus-api-provider-cloud
+	url = git@github.com:busdk/bus-api-provider-cloud.git
+	branch = main
+[submodule "bus-integration-cloud"]
+	path = bus-integration-cloud
+	url = git@github.com:busdk/bus-integration-cloud.git
+	branch = main
+[submodule "bus-operator-node"]
+	path = bus-operator-node
+	url = git@github.com:busdk/bus-operator-node.git
+	branch = main
+[submodule "bus-api-provider-node"]
+	path = bus-api-provider-node
+	url = git@github.com:busdk/bus-api-provider-node.git
+	branch = main
+[submodule "bus-integration-node"]
+	path = bus-integration-node
+	url = git@github.com:busdk/bus-integration-node.git
+	branch = main
+[submodule "bus-operator-inference"]
+	path = bus-operator-inference
+	url = git@github.com:busdk/bus-operator-inference.git
+	branch = main
+[submodule "bus-api-provider-inference"]
+	path = bus-api-provider-inference
+	url = git@github.com:busdk/bus-api-provider-inference.git
+	branch = main
+[submodule "bus-integration-inference"]
+	path = bus-integration-inference
+	url = git@github.com:busdk/bus-integration-inference.git
+	branch = main
+[submodule "bus-integration-ollama"]
+	path = bus-integration-ollama
+	url = git@github.com:busdk/bus-integration-ollama.git
+	branch = main
+[submodule "bus-operator-database"]
+	path = bus-operator-database
+	url = git@github.com:busdk/bus-operator-database.git
+	branch = main
+[submodule "bus-api-provider-database"]
+	path = bus-api-provider-database
+	url = git@github.com:busdk/bus-api-provider-database.git
+	branch = main
+[submodule "bus-integration-database"]
+	path = bus-integration-database
+	url = git@github.com:busdk/bus-integration-database.git
+	branch = main
+[submodule "bus-integration-postgres"]
+	path = bus-integration-postgres
+	url = git@github.com:busdk/bus-integration-postgres.git
+	branch = main

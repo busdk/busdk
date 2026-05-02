@@ -378,3 +378,55 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
   file path(s) that contain the authoritative `FIXME(refactor)` notes.
 - Do not duplicate long technical refactor instructions in `PLAN.md` when the
   same details already exist in inline `FIXME(refactor)` comments.
+
+## Bus framework naming rule
+
+- Treat “AI Platform” and hostnames such as `ai.hg.fi` as deployment/profile
+  labels, not as the product or module boundary. The software framework is Bus:
+  an AI-powered general software-development framework and runtime architecture
+  for building many kinds of software, not only a separate AI Platform product.
+- Name new generic deployment, operator, and runtime tooling around Bus concepts
+  (`bus operator deploy`, `bus operator systemd`, Bus profiles, providers,
+  integrations, gateways) rather than `ai-platform` unless the feature is truly
+  specific to one deployment profile.
+- For deployment automation, prefer an installed Bus control plane driving
+  remote runtime-node bootstrap through Bus providers/integrations/events
+  instead of documenting operator-side SSH shell recipes as the primary path.
+  For example, GPU VM runtime installation should be modeled as Bus-managed
+  runtime-node provisioning after the Bus system is installed.
+- Do not introduce separate plugin protocols for Bus deployment/provider
+  extensibility when existing Bus integration mechanisms fit. New provider
+  logic should be implemented as Bus modules using the established patterns:
+  asynchronous Events through `bus-integration-*`/`bus-integration`, REST APIs
+  through `bus-api-provider-*`/`bus-api`, Go interfaces/library access between
+  Bus modules, and `bus-portal-*`/`bus-portal` for frontends.
+- For bootstrap installers, reuse the same provider implementation used by the
+  running Bus environment. Provider modules such as `bus-integration-upcloud`
+  should expose reusable Go-library registration/direct-call surfaces for early
+  bootstrap, while also registering Events workers for the installed Bus
+  control plane. Avoid duplicating cloud/runtime/node business logic in
+  installer-only code.
+- Bootstrap installers and deployment operators must call provider-neutral Bus
+  abstractions first (for example `bus-cloud`/`bus-operator-cloud` contracts),
+  not provider-specific modules directly. Provider-specific integrations such
+  as `bus-integration-upcloud` should register behind those abstractions as one
+  implementation selected by deployment config.
+- When proposing new Bus modules, justify each module by its command ownership,
+  dependency boundary, and integration interactions. Do not add modules merely
+  as future placeholders. A split is justified when the modules have different
+  users, dependencies, transport boundaries, or retry/lifecycle semantics.
+- Deployment tooling should remain composable and should not assume a single
+  mandatory global config file. Prefer module-local flags, environment files,
+  credential-file references, and small reusable config fragments where that
+  keeps tools independently usable; a deployment profile may orchestrate those
+  inputs but should not be required by every underlying tool.
+- Avoid vague deployment/runtime module names such as generic `runtime` or
+  `models` when the actual domain is narrower. For AI model-serving
+  infrastructure, prefer names that state the operational purpose, such as
+  inference or model-serving, so the module is not confused with process
+  runtimes, container runtimes, data models, or generic model catalogs.
+- Do not defer provider-neutral inference abstractions when adding the first
+  concrete inference provider. Implement concrete providers such as
+  `bus-integration-ollama` behind `bus-integration-inference` /
+  `bus-api-provider-inference` / `bus-operator-inference` contracts from the
+  start so Bus does not hardcode Ollama into deployment or runtime workflows.
