@@ -206,16 +206,16 @@ The default local task command is:
 
 The Codex process already runs inside a Docker-created task container, so the
 local stack uses Codex's full-access sandbox mode inside that container. The
-default production-like post-command stages and commits with `bus dev`, then
+default production-like post-command deterministically stages, commits, and
 pushes the task branch so work survives disposable task containers:
 
 ```bash
-bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","go run ../bus-dev/cmd/bus-dev --agent codex stage commit && git push -u origin {branch}"]'
+bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && (git diff --cached --quiet || git -c user.name=BusDevTask -c user.email=bus-dev-task@localhost commit -m chore:dev-task-{work_ref}) && git push -u origin {branch}"]'
 ```
 
-`bus-dev` itself still does not perform remote Git operations; the push is a
-trusted worker post-command. Smoke tests override this post-command to `[]` so
-they never contact a real upstream.
+The push is a trusted worker post-command, not normal `bus-dev` behavior.
+Smoke tests override this post-command to `[]` so they never contact a real
+upstream.
 
 The LLM route uses `bus-api-provider-llm --execution-backend events` and
 `bus-integration-codex`; it no longer uses a local echo/stub model service.
@@ -223,6 +223,10 @@ The `bus-codex` service builds a local image with the Codex CLI and mounts
 `${BUS_CODEX_HOME:-$HOME/.codex}` at `/root/.codex`. Docker-created task
 containers also use `${BUS_DOCKER_CODEX_HOME_HOST:-$BUS_CODEX_HOME or
 $HOME/.codex}` and mount the current superproject as `/workspace` by default.
+For branch pushes, configure trusted local SSH access with
+`BUS_DOCKER_CODEX_SSH_HOST=$HOME/.ssh`, optional
+`BUS_DOCKER_CODEX_SSH_AGENT_HOST=$SSH_AUTH_SOCK`, and
+`BUS_DOCKER_CODEX_GIT_SSH_COMMAND`.
 The default smoke script overrides the task command to `codex --version` so it
 can prove the container path without consuming quota. Live chat execution is
 opt-in because it consumes real ChatGPT-backed Codex quota:
@@ -299,7 +303,7 @@ ChatGPT-backed Codex quota or push to upstream. To customize hooks:
 
 ```bash
 bus configure BUS_DEV_TASK_PRE_COMMAND_JSON='["git","status","--short"]'
-bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","go run ../bus-dev/cmd/bus-dev --agent codex stage commit && git push -u origin {branch}"]'
+bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && (git diff --cached --quiet || git -c user.name=BusDevTask -c user.email=bus-dev-task@localhost commit -m chore:dev-task-{work_ref}) && git push -u origin {branch}"]'
 docker compose -f compose.dev-task-docker.yaml up --build -d
 ```
 

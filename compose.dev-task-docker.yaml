@@ -96,6 +96,9 @@ services:
       DOCKER_CONTAINER_CODEX_IMAGE: ${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}
       BUS_DOCKER_CODEX_HOME_HOST: ${BUS_DOCKER_CODEX_HOME_HOST:-${BUS_CODEX_HOME:-${HOME}/.codex}}
       BUS_DOCKER_CODEX_HOME_WRITABLE: ${BUS_DOCKER_CODEX_HOME_WRITABLE:-true}
+      BUS_DOCKER_CODEX_SSH_HOST: ${BUS_DOCKER_CODEX_SSH_HOST:-${HOME}/.ssh}
+      BUS_DOCKER_CODEX_SSH_AGENT_HOST: ${BUS_DOCKER_CODEX_SSH_AGENT_HOST:-${SSH_AUTH_SOCK:-}}
+      BUS_DOCKER_CODEX_GIT_SSH_COMMAND: ${BUS_DOCKER_CODEX_GIT_SSH_COMMAND:-ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/tmp/bus-known-hosts}
       BUS_DOCKER_CODEX_WORKSPACE_HOST: ${BUS_DOCKER_CODEX_WORKSPACE_HOST:-${PWD}}
       BUS_DOCKER_CODEX_WORKSPACE_CONTAINER: ${BUS_DOCKER_CODEX_WORKSPACE_CONTAINER:-/workspace}
     command:
@@ -117,6 +120,9 @@ services:
         $$(if [ "$${BUS_DOCKER_CODEX_HOME_WRITABLE}" = "true" ] ||
         [ "$${BUS_DOCKER_CODEX_HOME_WRITABLE}" = "1" ]; then
         printf '%s' '--codex-home-writable'; fi)
+        --codex-ssh-host-path "$${BUS_DOCKER_CODEX_SSH_HOST}"
+        --codex-ssh-agent-host-path "$${BUS_DOCKER_CODEX_SSH_AGENT_HOST}"
+        --codex-git-ssh-command "$${BUS_DOCKER_CODEX_GIT_SSH_COMMAND}"
         --codex-workspace-host-path "$${BUS_DOCKER_CODEX_WORKSPACE_HOST}"
         --codex-workspace-container-path "$${BUS_DOCKER_CODEX_WORKSPACE_CONTAINER}"
     volumes:
@@ -171,7 +177,7 @@ services:
       BUS_DEV_TASK_WORKSPACE_ROOT: ${BUS_DEV_TASK_WORKSPACE_ROOT:-/workspace}
       BUS_DEV_TASK_COMMAND_JSON: ${BUS_DEV_TASK_COMMAND_JSON:-["codex","exec","--skip-git-repo-check","--sandbox","danger-full-access","{prompt}"]}
       BUS_DEV_TASK_PRE_COMMAND_JSON: ${BUS_DEV_TASK_PRE_COMMAND_JSON:-[]}
-      BUS_DEV_TASK_POST_COMMAND_JSON: ${BUS_DEV_TASK_POST_COMMAND_JSON:-["sh","-c","go run ../bus-dev/cmd/bus-dev --agent codex stage commit && git push -u origin {branch}"]}
+      BUS_DEV_TASK_POST_COMMAND_JSON: ${BUS_DEV_TASK_POST_COMMAND_JSON:-["sh","-c","cd {repo_path} && git add . && (git diff --cached --quiet || git -c user.name=BusDevTask -c user.email=bus-dev-task@localhost commit -m chore:dev-task-{work_ref}) && git push -u origin {branch}"]}
     command:
       - sh
       - -c
