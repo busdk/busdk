@@ -36,7 +36,14 @@ bus --help
 
 Expected output includes the dispatcher help header and a list of available subcommands.
 
-Each module also installs a standalone binary, for example:
+Use modules through the dispatcher, for example:
+
+```bash
+bus journal --help
+```
+
+Each module also installs a standalone binary for direct/debug use, but the
+intended user-facing command form remains `bus <module> ...`:
 
 ```bash
 bus-journal --help
@@ -52,6 +59,8 @@ Prerequisites:
 - Docker Desktop or Docker Engine with Compose support.
 - This superproject as the current working directory.
 - Submodules initialized so the `bus` and `bus-*` module directories exist.
+- `bus` installed and on `PATH` for `bus configure`, or use the equivalent
+  source-tree command `go run ./bus-configure/cmd/bus-configure`.
 - A trusted local development machine. The stack mounts `/var/run/docker.sock`
   into `bus-integration-docker`, which grants host-level Docker control.
 - Optional live Codex auth in `${BUS_CODEX_HOME:-$HOME/.codex}` when running
@@ -59,17 +68,53 @@ Prerequisites:
   smoke does not require Codex credentials.
 
 ```bash
-cp .env.example .env
+bus configure edit LOCAL_AI_PLATFORM_PORT=8080
+bus configure edit LOCAL_AI_PLATFORM_POSTGRES_PORT=15432
+bus configure edit LOCAL_AI_PLATFORM_MAILHOG_PORT=8025
+bus configure edit BUS_CODEX_MODEL=auto
+bus configure edit BUS_PORTAL_TOKEN=local-dev
 docker compose up --build -d
 docker compose exec testing-agent sh
 ```
 
 The stack reads configuration from `.env` automatically and uses non-secret
-development defaults. It starts PostgreSQL, MailHog, nginx, Events, Auth, LLM,
-Usage, Billing, Stripe webhook ingress, VM, Containers, the Bus portal, a local
-Docker container execution worker, and a Codex-backed LLM execution worker. It
-does not provision UpCloud resources, public DNS, TLS certificates, or systemd
-units.
+development defaults for values that are not present. Use `bus configure edit`
+for local overrides instead of hand-editing `.env`; it creates the file when it
+does not exist and preserves existing comments and unknown values. Use
+`.env.example` only as a checked-in reference for the local defaults.
+
+The stack starts PostgreSQL, MailHog, nginx, Events, Auth, LLM, Usage, Billing,
+Stripe webhook ingress, VM, Containers, the Bus portal, a local Docker container
+execution worker, and a Codex-backed LLM execution worker. It does not provision
+UpCloud resources, public DNS, TLS certificates, or systemd units.
+
+Useful configuration commands:
+
+```bash
+bus configure list
+bus configure --module portal list
+bus configure --module portal doctor
+bus configure --module integration-docker list
+bus configure --module integration-docker doctor
+bus configure --module integration-codex list
+bus configure --module integration-codex doctor
+```
+
+To move the local HTTP port or MailHog UI port, update the dotenv file through
+`bus configure` and restart Compose:
+
+```bash
+bus configure edit LOCAL_AI_PLATFORM_PORT=8081
+bus configure edit LOCAL_AI_PLATFORM_MAILHOG_PORT=18025
+docker compose up --build -d
+```
+
+To point the Codex worker at a non-default local Codex config directory:
+
+```bash
+bus configure edit BUS_CODEX_HOME=/path/to/codex-home
+docker compose up --build -d bus-codex bus-llm
+```
 
 The public local base URL is:
 
