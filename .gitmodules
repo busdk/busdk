@@ -437,4 +437,8 @@
 [submodule "bus-integration-podman"]
 	path = bus-integration-podman
 	url = git@github.com:busdk/bus-integration-podman.git
-	branch = main
+	branch = 1-bus-integration-podman
+[submodule "bus-integration-containers"]
+	path = bus-integration-containers
+	url = git@github.com:busdk/bus-integration-containers.git
+	branch = 1-bus-integration-containers

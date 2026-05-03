@@ -1,5 +1,6 @@
 # Local development stack for bus dev task -> provider-neutral containers ->
-# local Docker execution. This file uses only non-secret development defaults.
+# bus-integration-containers -> bus.docker.* local Docker execution. This
+# file uses only non-secret development defaults.
 #
 # Start:
 #   docker compose -f compose.dev-task-docker.yaml up --build -d
@@ -75,6 +76,7 @@ services:
       BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
       BUS_EVENTS_API_URL: http://bus-events:8081
       BUS_DOCKER_PROVIDER: docker
+      BUS_DOCKER_EVENT_PREFIX: bus.docker
       DOCKER_HOST: unix:///var/run/docker.sock
       DOCKER_CONTAINER_CODEX_IMAGE: ${DOCKER_CONTAINER_CODEX_IMAGE:-docker.io/library/alpine:3.20}
     command:
@@ -90,10 +92,42 @@ services:
         go run ./cmd/bus-integration-docker
         --provider docker
         --events-url http://bus-events:8081
+        --event-prefix bus.docker
         --container-codex-image "$${DOCKER_CONTAINER_CODEX_IMAGE}"
     volumes:
       - .:/workspace
       - /var/run/docker.sock:/var/run/docker.sock
+
+  bus-integration-containers:
+    image: golang:1.24
+    working_dir: /workspace/bus-integration-containers
+    depends_on:
+      - bus-events
+      - bus-integration-docker
+    environment:
+      PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+      BUS_EVENTS_API_URL: http://bus-events:8081
+      BUS_CONTAINERS_PROVIDER: events
+      BUS_CONTAINERS_BACKEND_EVENT_PREFIX: bus.docker
+      BUS_CONTAINERS_REQUEST_TIMEOUT: 30m
+    command:
+      - sh
+      - -c
+      - >-
+        export BUS_API_TOKEN="$(cd /workspace/bus-operator-token &&
+        go run ./cmd/bus-operator-token --format token issue --local
+        --subject local-dev
+        --audience ai.hg.fi/api
+        --scope 'container:read container:run container:delete container:admin'
+        --ttl 12h)" &&
+        go run ./cmd/bus-integration-containers
+        --provider events
+        --events-url http://bus-events:8081
+        --backend-event-prefix bus.docker
+        --request-timeout 30m
+    volumes:
+      - .:/workspace
 
   bus-integration-dev-task:
     image: golang:1.24
@@ -101,6 +135,7 @@ services:
     depends_on:
       - bus-events
       - bus-api-provider-containers
+      - bus-integration-containers
       - bus-integration-docker
     environment:
       PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin

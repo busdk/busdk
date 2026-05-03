@@ -131,7 +131,9 @@ MailHog is exposed on `http://127.0.0.1:${LOCAL_AI_PLATFORM_MAILHOG_PORT:-8025}`
 ## Local dev-task Docker stack
 
 For live testing of `bus dev task` with local Docker-backed container runs,
-start the root Compose stack.
+start the root Compose stack. The API emits public `bus.containers.*` events,
+`bus-integration-containers` routes them to `bus.docker.*`, and
+`bus-integration-docker` performs the local Docker work.
 
 Prerequisites:
 
@@ -384,7 +386,8 @@ make distclean
 
 - `PREFIX`: install prefix (default: `$(HOME)/.local`, or `$(USERPROFILE)/.local` when `HOME` is unset)
 - `BINDIR`: install directory (default: `$(PREFIX)/bin`)
-- `BIN_DIR`: local build output directory (default: `bin`)
+- Module-local build outputs are written to each module's literal `./bin`
+  directory.
 - `GO`: Go tool to use (default: `go`)
 - `SKIP_MODULES`: space-separated module names or shell globs to skip in root targets (default skips `bus-filing`, `bus-filing-prh`, `bus-filing-vero`)
 - `TEST_SCOPE`: `changed` (default) or `all` for root `make test` / `make e2e`

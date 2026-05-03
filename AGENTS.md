@@ -82,7 +82,7 @@ Apply this section only when editing CLI module repositories or shared CLI parsi
 7. Quality gates must pass: build, tests, formatting, linting/static checks, and security/secret checks.
 8. After any code change, always run automated tests before reporting completion; if a module `make` target is a no-op or stale, run the underlying test/build commands directly for that module.
 8.1. During development, first run the affected module's unit/e2e tests for fast iteration and debugging.
-8.2. Because cross-module dependency effects are common in this superproject, the final verification step before reporting completion must still be the full superproject `make test` and `make e2e`.
+8.2. Because cross-module dependency effects are common in this superproject, the final verification step before reporting completion must still include root `make test` and `make e2e`; by default those targets may run changed-module scope, and `TEST_SCOPE=all` is required only when the user explicitly asks for a full cross-repository sweep.
 8.3. Module-local unit/e2e runs are required for fast feedback during debugging, but they do not replace the required final root-level `make test` and `make e2e`.
 9. Maintain backward compatibility unless a linked issue explicitly allows breaking change with migration path.
 10. Update docs in same change set (README and operational/developer docs as needed).
@@ -146,7 +146,7 @@ For this superproject specifically, README must emphasize:
 
 1. Purpose: pinning/orchestrating `bus` + `bus-*` submodules.
 2. Common flows: `make bootstrap`, `make update`, maintainer `make upgrade`.
-3. Output/install variables: `BIN_DIR`, `PREFIX`, `BINDIR`.
+3. Output/install variables: module-local `./bin`, `PREFIX`, and `BINDIR`.
 
 ## Commit Workflow (When Asked To Commit)
 
@@ -257,7 +257,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 64.6. Do not assume the superproject root has a `make check` target; use the root `make test` and `make e2e` targets plus module-local `make lint`/`make check` targets when they exist.
 65. Before starting any new user-requested feature or behavior change, or immediately when noticing work is already in progress, first add or update the corresponding `PLAN.md` and/or `BUGS.md` and/or `FEATURE_REQUESTS.md` entries in the same turn so in-progress work always leaves a canonical repository trace.
 65.1. Whenever there is implementation work still to do, keep the relevant module `PLAN.md` item updated before continuing so the active checklist remains a reliable memory of remaining work, not just a completion summary.
-66. Do not run `make install`, `go install`, or other user-environment install steps on the user's behalf unless they explicitly ask for that exact installation action. Tell the user what install command to run instead.
+66. Do not run `make install`, `make bootstrap`, `go install`, or other user-environment install steps on the user's behalf unless they explicitly ask for that exact installation action. Tell the user what install command to run instead.
 67. Before making any historical claim about what changed on a given date, verify
     the actual Git diff first. Do not infer behavior from commit subjects,
     repository creation dates, or assumptions about what "must have" happened.
@@ -443,3 +443,8 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
   only, redact secret-like values, provide an invocation-scoped allow override,
   and support persistent allowlist entries through `bus-preferences` where
   user-level configuration is appropriate.
+- Event integration naming convention: a `bus-integration-{name}` module should
+  own Events names under `bus.{name}.*` by default. Provider-neutral routers may
+  translate from their own public domain events to another integration's
+  `bus.{name}.*` backend events, but should not invent nested provider event
+  namespaces such as `bus.containers.docker.*` for `bus-integration-docker`.
