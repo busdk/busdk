@@ -48,6 +48,7 @@ Merged guidance from `.cursor/rules/*.mdc`.
 2. Command results go to stdout (or `--output`); diagnostics, warnings, and errors go to stderr; help/version go to stdout.
 3. Avoid network and Git operations in module code and tests unless a module spec explicitly requires them.
 4. When a module provides a Makefile, use its targets (`build`, `test`, `fmt`, `lint`, `check`, `test-e2e` as applicable) as the standard interface; tests must be hermetic and deterministic.
+5. When e2e coverage needs PostgreSQL, prefer the repository's Docker/Compose support (`compose.yaml` or module-local compose files where present) instead of assuming PostgreSQL is unavailable; tests may still skip clearly when the required service or DSN is not configured.
 
 ## CLI Global Flag Standard (When Implementing `bus-*` CLI Modules)
 

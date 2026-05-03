@@ -341,76 +341,100 @@
 [submodule "bus-portal-accounting"]
 	path = bus-portal-accounting
 	url = git@github.com:busdk/bus-portal-accounting.git
-	branch = main
+	branch = 1-bus-portal-accounting
 [submodule "bus-lint"]
 	path = bus-lint
 	url = git@github.com:busdk/bus-lint.git
-	branch = main
+	branch = 1-bus-lint
 [submodule "bus-api-provider-mcp"]
 	path = bus-api-provider-mcp
 	url = git@github.com:busdk/bus-api-provider-mcp.git
-	branch = main
+	branch = 1-bus-api-provider-mcp
 [submodule "bus-mcp"]
 	path = bus-mcp
 	url = git@github.com:busdk/bus-mcp.git
-	branch = main
+	branch = 1-bus-mcp
 [submodule "bus-operator-deploy"]
 	path = bus-operator-deploy
 	url = git@github.com:busdk/bus-operator-deploy.git
-	branch = main
+	branch = 1-bus-operator-deploy
 [submodule "bus-operator-cloud"]
 	path = bus-operator-cloud
 	url = git@github.com:busdk/bus-operator-cloud.git
-	branch = main
+	branch = 1-bus-operator-cloud
 [submodule "bus-api-provider-cloud"]
 	path = bus-api-provider-cloud
 	url = git@github.com:busdk/bus-api-provider-cloud.git
-	branch = main
+	branch = 1-bus-api-provider-cloud
 [submodule "bus-integration-cloud"]
 	path = bus-integration-cloud
 	url = git@github.com:busdk/bus-integration-cloud.git
-	branch = main
+	branch = 1-bus-integration-cloud
 [submodule "bus-operator-node"]
 	path = bus-operator-node
 	url = git@github.com:busdk/bus-operator-node.git
-	branch = main
+	branch = 1-bus-operator-node
 [submodule "bus-api-provider-node"]
 	path = bus-api-provider-node
 	url = git@github.com:busdk/bus-api-provider-node.git
-	branch = main
+	branch = 1-bus-api-provider-node
 [submodule "bus-integration-node"]
 	path = bus-integration-node
 	url = git@github.com:busdk/bus-integration-node.git
-	branch = main
+	branch = 1-bus-integration-node
 [submodule "bus-operator-inference"]
 	path = bus-operator-inference
 	url = git@github.com:busdk/bus-operator-inference.git
-	branch = main
+	branch = 1-bus-operator-inference
 [submodule "bus-api-provider-inference"]
 	path = bus-api-provider-inference
 	url = git@github.com:busdk/bus-api-provider-inference.git
-	branch = main
+	branch = 1-bus-api-provider-inference
 [submodule "bus-integration-inference"]
 	path = bus-integration-inference
 	url = git@github.com:busdk/bus-integration-inference.git
-	branch = main
+	branch = 1-bus-integration-inference
 [submodule "bus-integration-ollama"]
 	path = bus-integration-ollama
 	url = git@github.com:busdk/bus-integration-ollama.git
-	branch = main
+	branch = 1-bus-integration-ollama
 [submodule "bus-operator-database"]
 	path = bus-operator-database
 	url = git@github.com:busdk/bus-operator-database.git
-	branch = main
+	branch = 1-bus-operator-database
 [submodule "bus-api-provider-database"]
 	path = bus-api-provider-database
 	url = git@github.com:busdk/bus-api-provider-database.git
-	branch = main
+	branch = 1-bus-api-provider-database
 [submodule "bus-integration-database"]
 	path = bus-integration-database
 	url = git@github.com:busdk/bus-integration-database.git
-	branch = main
+	branch = 1-bus-integration-database
 [submodule "bus-integration-postgres"]
 	path = bus-integration-postgres
 	url = git@github.com:busdk/bus-integration-postgres.git
+	branch = 1-bus-integration-postgres
+[submodule "bus-integration-docker"]
+	path = bus-integration-docker
+	url = git@github.com:busdk/bus-integration-docker.git
+	branch = 1-bus-integration-docker
+[submodule "bus-integration-dev-task"]
+	path = bus-integration-dev-task
+	url = git@github.com:busdk/bus-integration-dev-task.git
+	branch = 1-bus-integration-dev-task
+[submodule "bus-integration-codex"]
+	path = bus-integration-codex
+	url = git@github.com:busdk/bus-integration-codex.git
+	branch = 1-bus-integration-codex
+[submodule "bus-help"]
+	path = bus-help
+	url = git@github.com:busdk/bus-help.git
+	branch = 1-bus-help
+[submodule "bus-configure"]
+	path = bus-configure
+	url = git@github.com:busdk/bus-configure.git
+	branch = 1-bus-configure
+[submodule "bus-integration-podman"]
+	path = bus-integration-podman
+	url = git@github.com:busdk/bus-integration-podman.git
 	branch = main

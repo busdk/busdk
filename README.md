@@ -7,6 +7,10 @@ BusDK is a modular, CLI-first toolkit for running a business with Git-native, au
 
 ## Quick install
 
+Use this on Linux or macOS with `bash`, `curl`, and permission to write the
+install directory. The default install path is `$(HOME)/.local/bin`; add that
+directory to `PATH` before running `bus`.
+
 ```bash
 curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh | bash
 ```
@@ -38,11 +42,145 @@ Each module also installs a standalone binary, for example:
 bus-journal --help
 ```
 
+## Local Bus cloud platform stack
+
+For local validation of the Bus cloud platform flow described by the
+UpCloud/Stripe deployment tutorial, start the root Compose stack.
+
+Prerequisites:
+
+- Docker Desktop or Docker Engine with Compose support.
+- This superproject as the current working directory.
+- Submodules initialized so the `bus` and `bus-*` module directories exist.
+- A trusted local development machine. The stack mounts `/var/run/docker.sock`
+  into `bus-integration-docker`, which grants host-level Docker control.
+- Optional live Codex auth only when running the live chat smoke with
+  `BUS_LOCAL_AI_PLATFORM_LIVE_CODEX=1`; the default smoke does not require
+  Codex credentials.
+
+```bash
+cp .env.example .env
+docker compose up --build -d
+docker compose exec testing-agent sh
+```
+
+The stack reads configuration from `.env` automatically and uses non-secret
+development defaults. It starts PostgreSQL, MailHog, nginx, Events, Auth, LLM,
+Usage, Billing, Stripe webhook ingress, VM, Containers, a local Docker container
+execution worker, and a Codex-backed LLM execution worker. It does not provision
+UpCloud resources, public DNS, TLS certificates, or systemd units.
+
+The public local base URL is:
+
+```bash
+http://127.0.0.1:${LOCAL_AI_PLATFORM_PORT:-8080}
+```
+
+nginx exposes the same local route families used by the production tutorial:
+
+```text
+/v1/*
+/api/v1/auth/*
+/api/v1/events*
+/api/v1/billing/*
+/api/v1/vm/*
+/api/v1/containers/*
+/api/internal/auth/*
+/api/internal/billing/*
+/api/internal/usage-events*
+/api/internal/containers/*
+/api/internal/stripe/webhook
+```
+
+Inside `testing-agent`, generated local JWTs are available at:
+
+```text
+~/.config/bus/auth/api-token
+~/.config/bus/auth/auth-token
+```
+
+Smoke-check the local OpenAI-compatible route:
+
+```bash
+TOKEN="$(cat ~/.config/bus/auth/api-token)"
+wget -qO- --header="Authorization: Bearer $TOKEN" http://nginx:8080/v1/models
+```
+
+The LLM route uses `bus-api-provider-llm --execution-backend events` and
+`bus-integration-codex`; it no longer uses a local echo/stub model service.
+The default smoke script checks the authenticated `/v1/models` path. Live chat
+execution is opt-in because the `bus-codex` container must be able to run Codex
+and access local Codex authentication:
+
+```bash
+BUS_LOCAL_AI_PLATFORM_LIVE_CODEX=1 \
+bash tests/superproject/test_local_ai_platform_compose_smoke.sh
+```
+
+Run the full local smoke script from the superproject root:
+
+```bash
+bash tests/superproject/test_local_ai_platform_compose_smoke.sh
+```
+
+Set `BUS_LOCAL_AI_PLATFORM_KEEP=1` to leave the stack running after that smoke
+script exits.
+
+MailHog is exposed on `http://127.0.0.1:${LOCAL_AI_PLATFORM_MAILHOG_PORT:-8025}`.
+
+## Local dev-task Docker stack
+
+For live testing of `bus dev task` with local Docker-backed container runs,
+start the root Compose stack.
+
+Prerequisites:
+
+- Docker Desktop or Docker Engine with Compose support.
+- This superproject as the current working directory.
+- Submodules initialized so the `bus` and `bus-*` module directories exist.
+- A trusted local development machine. The stack mounts `/var/run/docker.sock`
+  into `bus-integration-docker`, which grants host-level Docker control.
+
+```bash
+docker compose -f compose.dev-task-docker.yaml up --build -d
+docker compose -f compose.dev-task-docker.yaml exec testing-agent sh
+```
+
+Inside the testing shell, the stack has generated a local development JWT at
+`~/.config/bus/auth/api-token` and exposes:
+
+```bash
+export BUS_EVENTS_API_URL=http://bus-events:8081
+export BUS_AI_API_URL=http://bus-api-provider-containers:8080
+```
+
+Create a task and watch the Docker-backed bridge process it:
+
+```bash
+cd /workspace
+go run ./bus-dev/cmd/bus-dev task new @bus-dev "Reply hello from Docker."
+go run ./bus-dev/cmd/bus-dev task watch <task-ref-from-task-new-output> --timeout 5m
+```
+
+Use the task reference printed by `task new`, for example `task_01example`
+when that exact value appears in the command output.
+
+The same stack can test the container API directly:
+
+```bash
+go run ./bus-containers/cmd/bus-containers run --profile codex -- sh -lc 'printf OK'
+```
+
+The stack mounts `/var/run/docker.sock` into `bus-integration-docker`; use it
+only on trusted local development machines.
+
 ## Install from source
 
 Prerequisites:
 
 - `git` with submodule support
+- read access to the private `bus-*` submodule repositories, or credentials
+  configured for the pinned submodule remotes
 - POSIX `make`
 - Go toolchain available as `go`
 
@@ -132,15 +270,15 @@ curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh | 
 Install location overrides (also respected for uninstall):
 
 ```bash
-PREFIX=/opt/busdk BINDIR=/opt/busdk/bin \
-  curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh | bash
+curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh |
+  PREFIX=/opt/busdk BINDIR=/opt/busdk/bin bash
 ```
 
 Packaging with `DESTDIR`:
 
 ```bash
-DESTDIR=/tmp/pkg PREFIX=/usr \
-  curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh | bash
+curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh |
+  DESTDIR=/tmp/pkg PREFIX=/usr bash
 ```
 
 - **Initialize modules** (fresh clone):

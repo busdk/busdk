@@ -1,0 +1,156 @@
+# Local development stack for bus dev task -> provider-neutral containers ->
+# local Docker execution. This file uses only non-secret development defaults.
+#
+# Start:
+#   docker compose -f compose.dev-task-docker.yaml up --build -d
+#
+# Open a testing shell:
+#   docker compose -f compose.dev-task-docker.yaml exec testing-agent sh
+#
+# In that shell, create and watch a task:
+#   cd /workspace
+#   go run ./bus-dev/cmd/bus-dev task new @bus-dev "Reply hello from a Docker-backed task container."
+#   go run ./bus-dev/cmd/bus-dev task watch <printed-task-ref> --timeout 5m
+#
+# Run the container API directly:
+#   go run ./bus-containers/cmd/bus-containers run --profile codex -- sh -lc 'printf OK'
+
+services:
+  bus-events:
+    image: golang:1.24
+    working_dir: /workspace/bus-api-provider-events
+    environment:
+      PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      BUS_EVENTS_JWT_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+    command:
+      - sh
+      - -c
+      - >-
+        go run ./cmd/bus-api-provider-events
+        --addr 0.0.0.0:8081
+        --events-backend memory
+    ports:
+      - "127.0.0.1:8081:8081"
+    volumes:
+      - .:/workspace
+
+  bus-api-provider-containers:
+    image: golang:1.24
+    working_dir: /workspace/bus-api-provider-containers
+    depends_on:
+      - bus-events
+    environment:
+      PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+      BUS_CONTAINERS_JWT_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+      BUS_EVENTS_API_URL: http://bus-events:8081
+    command:
+      - sh
+      - -c
+      - >-
+        export BUS_API_TOKEN="$(cd /workspace/bus-operator-token &&
+        go run ./cmd/bus-operator-token --format token issue --local
+        --subject local-dev
+        --audience ai.hg.fi/api
+        --scope 'container:read container:run container:delete container:admin usage:read billing:read'
+        --ttl 12h)" &&
+        go run ./cmd/bus-api-provider-containers
+        --addr 0.0.0.0:8080
+        --backend events
+        --usage-backend memory
+        --events-url http://bus-events:8081
+        --timeout 30m
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - .:/workspace
+
+  bus-integration-docker:
+    image: golang:1.24
+    working_dir: /workspace/bus-integration-docker
+    depends_on:
+      - bus-events
+    environment:
+      PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+      BUS_EVENTS_API_URL: http://bus-events:8081
+      BUS_DOCKER_PROVIDER: docker
+      DOCKER_HOST: unix:///var/run/docker.sock
+      DOCKER_CONTAINER_CODEX_IMAGE: ${DOCKER_CONTAINER_CODEX_IMAGE:-docker.io/library/alpine:3.20}
+    command:
+      - sh
+      - -c
+      - >-
+        export BUS_API_TOKEN="$(cd /workspace/bus-operator-token &&
+        go run ./cmd/bus-operator-token --format token issue --local
+        --subject local-dev
+        --audience ai.hg.fi/api
+        --scope 'container:read container:run container:delete container:admin'
+        --ttl 12h)" &&
+        go run ./cmd/bus-integration-docker
+        --provider docker
+        --events-url http://bus-events:8081
+        --container-codex-image "$${DOCKER_CONTAINER_CODEX_IMAGE}"
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  bus-integration-dev-task:
+    image: golang:1.24
+    working_dir: /workspace/bus-integration-dev-task
+    depends_on:
+      - bus-events
+      - bus-api-provider-containers
+      - bus-integration-docker
+    environment:
+      PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+      BUS_EVENTS_API_URL: http://bus-events:8081
+      BUS_DEV_TASK_RECIPIENT: ${BUS_DEV_TASK_RECIPIENT:-bus-dev}
+      BUS_DEV_TASK_CONTAINER_PROFILE: codex
+      BUS_DEV_TASK_COMMAND_JSON: ${BUS_DEV_TASK_COMMAND_JSON:-["printf","%s\n","{prompt}"]}
+    command:
+      - sh
+      - -c
+      - >-
+        export BUS_API_TOKEN="$(cd /workspace/bus-operator-token &&
+        go run ./cmd/bus-operator-token --format token issue --local
+        --subject local-dev
+        --audience ai.hg.fi/api
+        --scope 'dev:task:send dev:task:read dev:task:reply dev:task:claim container:read container:run container:delete'
+        --ttl 12h)" &&
+        go run ./cmd/bus-integration-dev-task
+        --events-url http://bus-events:8081
+        --recipient "$${BUS_DEV_TASK_RECIPIENT}"
+        --container-profile "$${BUS_DEV_TASK_CONTAINER_PROFILE}"
+        --command-json "$${BUS_DEV_TASK_COMMAND_JSON}"
+        --timeout 30m
+    volumes:
+      - .:/workspace
+
+  testing-agent:
+    image: golang:1.24
+    working_dir: /workspace
+    depends_on:
+      - bus-events
+      - bus-api-provider-containers
+      - bus-integration-dev-task
+    environment:
+      PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+      BUS_EVENTS_API_URL: http://bus-events:8081
+      BUS_AI_API_URL: http://bus-api-provider-containers:8080
+    command:
+      - sh
+      - -c
+      - >-
+        mkdir -p /root/.config/bus/auth &&
+        cd /workspace/bus-operator-token &&
+        go run ./cmd/bus-operator-token --format token issue --local
+        --subject local-dev
+        --audience ai.hg.fi/api
+        --scope 'dev:task:send dev:task:read dev:task:reply dev:task:claim container:read container:run container:delete'
+        --ttl 12h > /root/.config/bus/auth/api-token &&
+        sleep infinity
+    volumes:
+      - .:/workspace

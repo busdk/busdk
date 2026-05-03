@@ -46,3 +46,4 @@ work/
 
 .bus/bus-chat/ai-state.json
 .env
+.DS_Store

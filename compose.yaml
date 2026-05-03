@@ -1,0 +1,306 @@
+name: bus-local-ai-platform
+
+x-go-service: &go-service
+  image: ${BUS_LOCAL_GO_IMAGE:-golang:1.24}
+  working_dir: /workspace
+  volumes:
+    - .:/workspace
+  environment: &go-env
+    PATH: /usr/local/go/bin:/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    CGO_ENABLED: "0"
+    BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+    BUS_API_JWT_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+    BUS_EVENTS_JWT_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+    BUS_LLM_JWT_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+    BUS_USAGE_JWT_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+    BUS_BILLING_JWT_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+    BUS_VM_JWT_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+    BUS_CONTAINERS_JWT_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+    BUS_AUTH_POSTGRES_DSN: postgres://${LOCAL_AI_PLATFORM_POSTGRES_USER:-bus}:${LOCAL_AI_PLATFORM_POSTGRES_PASSWORD:-bus}@postgres:5432/${LOCAL_AI_PLATFORM_POSTGRES_DB:-bus_local}?sslmode=disable
+    BUS_EVENTS_POSTGRES_DSN: postgres://${LOCAL_AI_PLATFORM_POSTGRES_USER:-bus}:${LOCAL_AI_PLATFORM_POSTGRES_PASSWORD:-bus}@postgres:5432/${LOCAL_AI_PLATFORM_POSTGRES_DB:-bus_local}?sslmode=disable
+    BUS_USAGE_DATABASE_URL: postgres://${LOCAL_AI_PLATFORM_POSTGRES_USER:-bus}:${LOCAL_AI_PLATFORM_POSTGRES_PASSWORD:-bus}@postgres:5432/${LOCAL_AI_PLATFORM_POSTGRES_DB:-bus_local}?sslmode=disable
+    BUS_BILLING_DATABASE_URL: postgres://${LOCAL_AI_PLATFORM_POSTGRES_USER:-bus}:${LOCAL_AI_PLATFORM_POSTGRES_PASSWORD:-bus}@postgres:5432/${LOCAL_AI_PLATFORM_POSTGRES_DB:-bus_local}?sslmode=disable
+    BUS_EVENTS_API_URL: http://bus-events:8081
+    BUS_AI_API_URL: http://nginx:8080
+    BUS_API_BASE_URL: http://nginx:8080
+    BUS_LOCAL_ACCOUNT_ID: ${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
+    BUS_LOCAL_TOKEN_SCOPES: ${BUS_LOCAL_TOKEN_SCOPES:-events:send events:listen llm:proxy usage:write usage:read usage:delete billing:read billing:setup billing:entitlement:check billing:subscription:write billing:usage:export billing:provider vm:read vm:write container:read container:run container:delete container:admin ssh:run cloud:read cloud:write cloud:destroy database:read database:admin node:read node:admin inference:read inference:admin work:send work:reply work:claim work:read dev:task:send dev:task:reply dev:task:claim dev:task:read}
+
+services:
+  postgres:
+    image: ${BUS_LOCAL_POSTGRES_IMAGE:-postgres:17-alpine}
+    environment:
+      POSTGRES_DB: ${LOCAL_AI_PLATFORM_POSTGRES_DB:-bus_local}
+      POSTGRES_USER: ${LOCAL_AI_PLATFORM_POSTGRES_USER:-bus}
+      POSTGRES_PASSWORD: ${LOCAL_AI_PLATFORM_POSTGRES_PASSWORD:-bus}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 2s
+      timeout: 5s
+      retries: 30
+    ports:
+      - "127.0.0.1:${LOCAL_AI_PLATFORM_POSTGRES_PORT:-15432}:5432"
+    volumes:
+      - local-ai-platform-postgres:/var/lib/postgresql/data
+
+  mailhog:
+    image: ${BUS_LOCAL_MAILHOG_IMAGE:-mailhog/mailhog:latest}
+    logging:
+      driver: none
+    ports:
+      - "127.0.0.1:${LOCAL_AI_PLATFORM_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${LOCAL_AI_PLATFORM_MAILHOG_PORT:-8025}:8025"
+
+  bus-events:
+    <<: *go-service
+    working_dir: /workspace/bus-api-provider-events
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - go
+      - run
+      - ./cmd/bus-api-provider-events
+      - --addr
+      - 0.0.0.0:8081
+      - --events-backend
+      - postgres
+
+  bus-auth:
+    <<: *go-service
+    working_dir: /workspace/bus-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    environment:
+      <<: *go-env
+      BUS_AUTH_INTERNAL_SHARED_KEY: ${BUS_AUTH_INTERNAL_SHARED_KEY:-not-a-secret-local-development-internal-key}
+      BUS_AUTH_OTP_SENDER: smtp
+      BUS_AUTH_SMTP_HOST: mailhog
+      BUS_AUTH_SMTP_PORT: "1025"
+      BUS_AUTH_SMTP_FROM: ${BUS_AUTH_SMTP_FROM:-bus-auth@example.invalid}
+    command:
+      - go
+      - run
+      - ./cmd/bus-api
+      - serve
+      - --listen
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --token
+      - local-dev
+      - --provider
+      - auth
+      - --enable-module
+      - auth
+
+  bus-usage-api:
+    <<: *go-service
+    working_dir: /workspace/bus-api-provider-usage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - go
+      - run
+      - ./cmd/bus-api-provider-usage
+      - --addr
+      - 0.0.0.0:8082
+
+  bus-usage-worker:
+    <<: *go-service
+    working_dir: /workspace/bus-integration-usage
+    depends_on:
+      bus-events:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    command:
+      - sh
+      - -ec
+      - |
+        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        exec go run ./cmd/bus-integration-usage --events-url http://bus-events:8081 --usage-backend postgres
+
+  bus-billing-api:
+    <<: *go-service
+    working_dir: /workspace/bus-api-provider-billing
+    depends_on:
+      bus-events:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    command:
+      - sh
+      - -ec
+      - |
+        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        exec go run ./cmd/bus-api-provider-billing --addr 0.0.0.0:8083 --backend events --events-url http://bus-events:8081
+
+  bus-billing-worker:
+    <<: *go-service
+    working_dir: /workspace/bus-integration-billing
+    depends_on:
+      bus-events:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    command:
+      - sh
+      - -ec
+      - |
+        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        exec go run ./cmd/bus-integration-billing --events-url http://bus-events:8081 --store-backend postgres --provider-backend ${BUS_LOCAL_BILLING_PROVIDER_BACKEND:-local}
+
+  bus-stripe:
+    <<: *go-service
+    working_dir: /workspace/bus-integration-stripe
+    depends_on:
+      bus-events:
+        condition: service_started
+    environment:
+      <<: *go-env
+      BUS_STRIPE_WEBHOOK_SECRET: ${BUS_STRIPE_WEBHOOK_SECRET:-whsec_local_not_secret}
+      BUS_STRIPE_SECRET_KEY: ${BUS_STRIPE_SECRET_KEY:-}
+      BUS_STRIPE_DEFAULT_PRICE_ID: ${BUS_STRIPE_DEFAULT_PRICE_ID:-}
+    command:
+      - sh
+      - -ec
+      - |
+        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        exec go run ./cmd/bus-integration-stripe --events-url http://bus-events:8081 --webhook-addr 0.0.0.0:8084
+
+  bus-vm:
+    <<: *go-service
+    working_dir: /workspace/bus-api-provider-vm
+    depends_on:
+      bus-events:
+        condition: service_started
+    command:
+      - sh
+      - -ec
+      - |
+        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        exec go run ./cmd/bus-api-provider-vm --addr 0.0.0.0:8085 --backend static --usage-backend memory --billing-backend none --events-url http://bus-events:8081
+
+  bus-containers:
+    <<: *go-service
+    working_dir: /workspace/bus-api-provider-containers
+    depends_on:
+      bus-events:
+        condition: service_started
+    command:
+      - sh
+      - -ec
+      - |
+        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        exec go run ./cmd/bus-api-provider-containers --addr 0.0.0.0:8086 --backend events --usage-backend memory --billing-backend none --events-url http://bus-events:8081
+
+  bus-docker:
+    <<: *go-service
+    working_dir: /workspace/bus-integration-docker
+    depends_on:
+      bus-events:
+        condition: service_started
+    environment:
+      <<: *go-env
+      DOCKER_HOST: ${DOCKER_HOST:-unix:///var/run/docker.sock}
+      DOCKER_CONTAINER_CODEX_IMAGE: ${DOCKER_CONTAINER_CODEX_IMAGE:-alpine:3.20}
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - sh
+      - -ec
+      - |
+        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        exec go run ./cmd/bus-integration-docker --provider docker --events-url http://bus-events:8081
+
+  bus-codex:
+    <<: *go-service
+    working_dir: /workspace/bus-integration-codex
+    depends_on:
+      bus-events:
+        condition: service_started
+    environment:
+      <<: *go-env
+      BUS_CODEX_PROVIDER: ${BUS_CODEX_PROVIDER:-codex}
+      BUS_CODEX_WORKDIR: ${BUS_CODEX_WORKDIR:-/workspace}
+      BUS_CODEX_MODEL: ${BUS_CODEX_MODEL:-}
+      BUS_CODEX_COMMAND: ${BUS_CODEX_COMMAND:-codex}
+    command:
+      - sh
+      - -ec
+      - |
+        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        exec go run ./cmd/bus-integration-codex --provider "$${BUS_CODEX_PROVIDER}" --events-url http://bus-events:8081 --workdir "$${BUS_CODEX_WORKDIR}" --model "$${BUS_CODEX_MODEL}" --codex-command "$${BUS_CODEX_COMMAND}"
+
+  bus-llm:
+    <<: *go-service
+    working_dir: /workspace/bus-api-provider-llm
+    depends_on:
+      bus-events:
+        condition: service_started
+      bus-codex:
+        condition: service_started
+    environment:
+      <<: *go-env
+      BUS_LLM_EXECUTION_BACKEND: events
+      BUS_LLM_MODEL_CATALOG: /workspace/deploy/local-ai-platform/model-catalog.json
+    command:
+      - sh
+      - -ec
+      - |
+        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        exec go run ./cmd/bus-api-provider-llm --addr 0.0.0.0:8088 --execution-backend events --usage-backend events --runtime-backend none --billing-backend ${BUS_LLM_BILLING_BACKEND:-none} --events-url http://bus-events:8081
+
+  nginx:
+    image: ${BUS_LOCAL_NGINX_IMAGE:-nginx:1.27-alpine}
+    depends_on:
+      bus-auth:
+        condition: service_started
+      bus-events:
+        condition: service_started
+      bus-usage-api:
+        condition: service_started
+      bus-billing-api:
+        condition: service_started
+      bus-stripe:
+        condition: service_started
+      bus-vm:
+        condition: service_started
+      bus-containers:
+        condition: service_started
+      bus-llm:
+        condition: service_started
+    ports:
+      - "127.0.0.1:${LOCAL_AI_PLATFORM_PORT:-8080}:8080"
+    volumes:
+      - ./deploy/local-ai-platform/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  testing-agent:
+    <<: *go-service
+    depends_on:
+      nginx:
+        condition: service_started
+    environment:
+      <<: *go-env
+      BUS_AI_API_URL: http://nginx:8080
+      BUS_EVENTS_API_URL: http://bus-events:8081
+    command:
+      - sh
+      - -ec
+      - |
+        mkdir -p /root/.config/bus/auth
+        cd /workspace/bus-operator-token
+        go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h > /root/.config/bus/auth/api-token
+        go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/auth --scope "waitlist:read waitlist:approve admin:manage" --ttl 12h > /root/.config/bus/auth/auth-token
+        exec sleep infinity
+
+volumes:
+  local-ai-platform-postgres:

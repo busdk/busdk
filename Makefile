@@ -132,6 +132,7 @@ superproject-selftest:
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_complete.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= sh ./tests/superproject/test_pricing_costs.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_agent_container.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_local_ai_platform_compose.sh
 
 print-test-modules:
 	@set -eu; \
