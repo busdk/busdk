@@ -68,17 +68,17 @@ Prerequisites:
   smoke does not require Codex credentials.
 
 ```bash
-bus configure edit LOCAL_AI_PLATFORM_PORT=8080
-bus configure edit LOCAL_AI_PLATFORM_POSTGRES_PORT=15432
-bus configure edit LOCAL_AI_PLATFORM_MAILHOG_PORT=8025
-bus configure edit BUS_CODEX_MODEL=auto
-bus configure edit BUS_PORTAL_TOKEN=local-dev
+bus configure LOCAL_AI_PLATFORM_PORT=8080
+bus configure LOCAL_AI_PLATFORM_POSTGRES_PORT=15432
+bus configure LOCAL_AI_PLATFORM_MAILHOG_PORT=8025
+bus configure BUS_CODEX_MODEL=auto
+bus configure BUS_PORTAL_TOKEN=local-dev
 docker compose up --build -d
 docker compose exec testing-agent sh
 ```
 
 The stack reads configuration from `.env` automatically and uses non-secret
-development defaults for values that are not present. Use `bus configure edit`
+development defaults for values that are not present. Use `bus configure KEY=VALUE`
 for local overrides instead of hand-editing `.env`; it creates the file when it
 does not exist and preserves existing comments and unknown values. Use
 `.env.example` only as a checked-in reference for the local defaults.
@@ -104,15 +104,15 @@ To move the local HTTP port or MailHog UI port, update the dotenv file through
 `bus configure` and restart Compose:
 
 ```bash
-bus configure edit LOCAL_AI_PLATFORM_PORT=8081
-bus configure edit LOCAL_AI_PLATFORM_MAILHOG_PORT=18025
+bus configure LOCAL_AI_PLATFORM_PORT=8081
+bus configure LOCAL_AI_PLATFORM_MAILHOG_PORT=18025
 docker compose up --build -d
 ```
 
 To point the Codex worker at a non-default local Codex config directory:
 
 ```bash
-bus configure edit BUS_CODEX_HOME=/path/to/codex-home
+bus configure BUS_CODEX_HOME=/path/to/codex-home
 docker compose up --build -d bus-codex bus-llm
 ```
 

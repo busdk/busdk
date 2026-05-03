@@ -1,5 +1,6 @@
 # PLAN.md
 
+- [x] Refine `bus configure` top-level get/set syntax end to end: document `bus configure KEY=VALUE [KEY2=VALUE2]` as the primary write form and `bus configure KEY [KEY2]` as the read-only lookup form, keep previous `edit` and `--set` compatibility, update root/module README examples, and verify module/root checks.
 - [x] Clarify README module invocation guidance end to end: document dispatcher-first usage such as `bus journal ...`, explain that standalone `bus-*` binaries are installed for direct/debug use, and verify README lint.
 - [x] Refine `bus configure` assignment syntax end to end: make README examples use `bus configure edit KEY=VALUE` instead of the redundant `edit --set KEY=VALUE` form, rely on default `.env` discovery in examples, preserve compatibility for older `--set` invocations, and verify README lint.
 - [x] Refine README configure examples end to end: rely on default `.env` discovery instead of documenting redundant `--env-file .env` flags, keep the local stack setup commands script-friendly, and verify README lint.

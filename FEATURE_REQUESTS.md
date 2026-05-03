@@ -32,6 +32,7 @@ Goal note:
 
 ## Implemented requests
 
+- refine Bus configure command shape so common dotenv access is top-level and concise: `bus configure KEY=VALUE [KEY2=VALUE2]` writes values, `bus configure KEY [KEY2]` reads values, and older `edit`/`--set` forms remain compatibility paths
 - clarify README module invocation guidance so standalone `bus-*` binaries are described as available for direct/debug use while the intended user-facing command form remains dispatcher-first, for example `bus journal ...`
 - refine Bus configure examples and command guidance so dotenv assignment uses the concise `bus configure edit KEY=VALUE` form, with the older `edit --set KEY=VALUE` treated as compatibility syntax rather than the primary documented path
 - refine the local Docker Compose setup examples so `bus configure` relies on the default `.env` file in the working directory instead of repeating `--env-file .env` in every command
