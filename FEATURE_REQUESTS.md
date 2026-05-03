@@ -32,6 +32,7 @@ Goal note:
 
 ## Implemented requests
 
+- verify and harden the local Docker Compose development-task stack so `bus dev task` can create a task, execute it through the Docker-backed Codex container profile, and replay/follow the result deterministically through `bus dev task watch`; the stack now builds a Codex CLI image, protects backend `bus.docker.*` Events API access with `container:*` scopes, supports optional Codex home/workspace host mounts for live `codex exec`, and includes a repeatable Docker Compose smoke test
 - refine Bus configure command shape so common dotenv access is top-level and concise: `bus configure KEY=VALUE [KEY2=VALUE2]` writes values, `bus configure KEY [KEY2]` reads values, and older `edit`/`--set` forms remain compatibility paths
 - clarify README module invocation guidance so standalone `bus-*` binaries are described as available for direct/debug use while the intended user-facing command form remains dispatcher-first, for example `bus journal ...`
 - refine Bus configure examples and command guidance so dotenv assignment uses the concise `bus configure edit KEY=VALUE` form, with the older `edit --set KEY=VALUE` treated as compatibility syntax rather than the primary documented path

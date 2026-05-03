@@ -266,6 +266,7 @@ e2e:
 	@set -eu; \
 	if [ "$(ROOT_E2E_SELFTEST)" = "1" ]; then \
 		bash ./tests/superproject/e2e_agent_container.sh; \
+		bash ./tests/superproject/test_dev_task_docker_compose_smoke.sh; \
 	fi; \
 	scope="$(TEST_SCOPE)"; \
 	case "$$scope" in \

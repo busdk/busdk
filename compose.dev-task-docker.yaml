@@ -9,14 +9,26 @@
 #   docker compose -f compose.dev-task-docker.yaml exec testing-agent sh
 #
 # In that shell, create and watch a task:
-#   cd /workspace
-#   go run ./bus-dev/cmd/bus-dev task new @bus-dev "Reply hello from a Docker-backed task container."
-#   go run ./bus-dev/cmd/bus-dev task watch <printed-task-ref> --timeout 5m
+#   cd /workspace/bus-dev
+#   go run ./cmd/bus-dev task new @bus-dev "Reply hello from a Docker-backed task container."
+#   go run ./cmd/bus-dev task watch <printed-task-ref> --timeout 5m
 #
 # Run the container API directly:
-#   go run ./bus-containers/cmd/bus-containers run --profile codex -- sh -lc 'printf OK'
+#   cd /workspace/bus-containers
+#   go run ./cmd/bus-containers run --profile codex -- codex --version
 
 services:
+  codex-image:
+    image: ${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}
+    build:
+      context: ./deploy/local-ai-platform/codex
+      args:
+        CODEX_NPM_PACKAGE: ${BUS_LOCAL_CODEX_NPM_PACKAGE:-@openai/codex}
+        CODEX_NPM_VERSION: ${BUS_LOCAL_CODEX_NPM_VERSION:-0.128.0}
+    command:
+      - codex
+      - --version
+
   bus-events:
     image: golang:1.24
     working_dir: /workspace/bus-api-provider-events
@@ -70,7 +82,10 @@ services:
     image: golang:1.24
     working_dir: /workspace/bus-integration-docker
     depends_on:
-      - bus-events
+      codex-image:
+        condition: service_completed_successfully
+      bus-events:
+        condition: service_started
     environment:
       PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
@@ -78,7 +93,11 @@ services:
       BUS_DOCKER_PROVIDER: docker
       BUS_DOCKER_EVENT_PREFIX: bus.docker
       DOCKER_HOST: unix:///var/run/docker.sock
-      DOCKER_CONTAINER_CODEX_IMAGE: ${DOCKER_CONTAINER_CODEX_IMAGE:-docker.io/library/alpine:3.20}
+      DOCKER_CONTAINER_CODEX_IMAGE: ${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}
+      BUS_DOCKER_CODEX_HOME_HOST: ${BUS_DOCKER_CODEX_HOME_HOST:-}
+      BUS_DOCKER_CODEX_HOME_WRITABLE: ${BUS_DOCKER_CODEX_HOME_WRITABLE:-false}
+      BUS_DOCKER_CODEX_WORKSPACE_HOST: ${BUS_DOCKER_CODEX_WORKSPACE_HOST:-}
+      BUS_DOCKER_CODEX_WORKSPACE_CONTAINER: ${BUS_DOCKER_CODEX_WORKSPACE_CONTAINER:-/workspace}
     command:
       - sh
       - -c
@@ -94,6 +113,12 @@ services:
         --events-url http://bus-events:8081
         --event-prefix bus.docker
         --container-codex-image "$${DOCKER_CONTAINER_CODEX_IMAGE}"
+        --codex-home-host-path "$${BUS_DOCKER_CODEX_HOME_HOST}"
+        $$(if [ "$${BUS_DOCKER_CODEX_HOME_WRITABLE}" = "true" ] ||
+        [ "$${BUS_DOCKER_CODEX_HOME_WRITABLE}" = "1" ]; then
+        printf '%s' '--codex-home-writable'; fi)
+        --codex-workspace-host-path "$${BUS_DOCKER_CODEX_WORKSPACE_HOST}"
+        --codex-workspace-container-path "$${BUS_DOCKER_CODEX_WORKSPACE_CONTAINER}"
     volumes:
       - .:/workspace
       - /var/run/docker.sock:/var/run/docker.sock
@@ -143,7 +168,7 @@ services:
       BUS_EVENTS_API_URL: http://bus-events:8081
       BUS_DEV_TASK_RECIPIENT: ${BUS_DEV_TASK_RECIPIENT:-bus-dev}
       BUS_DEV_TASK_CONTAINER_PROFILE: codex
-      BUS_DEV_TASK_COMMAND_JSON: ${BUS_DEV_TASK_COMMAND_JSON:-["printf","%s\n","{prompt}"]}
+      BUS_DEV_TASK_COMMAND_JSON: ${BUS_DEV_TASK_COMMAND_JSON:-["codex","--version"]}
     command:
       - sh
       - -c

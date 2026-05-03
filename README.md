@@ -119,8 +119,11 @@ docker compose up --build -d bus-codex bus-llm
 The public local base URL is:
 
 ```bash
-http://127.0.0.1:${LOCAL_AI_PLATFORM_PORT:-8080}
+http://127.0.0.1:8080
 ```
+
+If `LOCAL_AI_PLATFORM_PORT` is changed, replace `8080` with the configured
+port.
 
 nginx exposes the same local route families used by the production tutorial:
 
@@ -142,8 +145,11 @@ nginx exposes the same local route families used by the production tutorial:
 The local portal is available at:
 
 ```bash
-http://127.0.0.1:${LOCAL_AI_PLATFORM_PORT:-8080}/portal/local-dev/
+http://127.0.0.1:8080/portal/local-dev/
 ```
+
+If `LOCAL_AI_PLATFORM_PORT` is changed, replace `8080` with the configured
+port.
 
 It runs `bus-portal` with `bus-portal-auth`, `bus-portal-ai`, and experimental
 `bus-portal-accounting` mounted. Portal modules remain frontend-only; auth,
@@ -185,12 +191,15 @@ bash tests/superproject/test_local_ai_platform_compose_smoke.sh
 Set `BUS_LOCAL_AI_PLATFORM_KEEP=1` to leave the stack running after that smoke
 script exits.
 
-MailHog is exposed on `http://127.0.0.1:${LOCAL_AI_PLATFORM_MAILHOG_PORT:-8025}`.
+MailHog is exposed on `http://127.0.0.1:8025`; if
+`LOCAL_AI_PLATFORM_MAILHOG_PORT` is changed, replace `8025` with the configured
+port.
 
 ## Local dev-task Docker stack
 
 For live testing of `bus dev task` with local Docker-backed container runs,
-start the root Compose stack. The API emits public `bus.containers.*` events,
+start the root Compose stack. The stack builds a local Codex CLI image for the
+`codex` container profile. The API emits public `bus.containers.*` events,
 `bus-integration-containers` routes them to `bus.docker.*`, and
 `bus-integration-docker` performs the local Docker work.
 
@@ -218,18 +227,32 @@ export BUS_AI_API_URL=http://bus-api-provider-containers:8080
 Create a task and watch the Docker-backed bridge process it:
 
 ```bash
-cd /workspace
-go run ./bus-dev/cmd/bus-dev task new @bus-dev "Reply hello from Docker."
-go run ./bus-dev/cmd/bus-dev task watch <task-ref-from-task-new-output> --timeout 5m
+cd /workspace/bus-dev
+go run ./cmd/bus-dev task new @bus-dev "Reply hello from Docker."
+go run ./cmd/bus-dev task watch <task-ref-from-task-new-output> --timeout 5m
 ```
 
 Use the task reference printed by `task new`, for example `task_01example`
 when that exact value appears in the command output.
 
+The default task command runs `codex --version` in the Codex container image so
+the smoke does not consume ChatGPT-backed Codex quota. To run live Codex task
+execution, make Codex credentials and the host workspace available to
+Docker-created task containers, then override the task command:
+
+```bash
+bus configure BUS_DOCKER_CODEX_HOME_HOST="${BUS_CODEX_HOME:-$HOME/.codex}"
+bus configure BUS_DOCKER_CODEX_HOME_WRITABLE=true
+bus configure BUS_DOCKER_CODEX_WORKSPACE_HOST="$(pwd)"
+bus configure BUS_DEV_TASK_COMMAND_JSON='["codex","exec","--skip-git-repo-check","{prompt}"]'
+docker compose -f compose.dev-task-docker.yaml up --build -d
+```
+
 The same stack can test the container API directly:
 
 ```bash
-go run ./bus-containers/cmd/bus-containers run --profile codex -- sh -lc 'printf OK'
+cd /workspace/bus-containers
+go run ./cmd/bus-containers run --profile codex -- codex --version
 ```
 
 The stack mounts `/var/run/docker.sock` into `bus-integration-docker`; use it
