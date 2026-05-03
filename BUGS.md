@@ -7,12 +7,15 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-- [ ] Root local AI Platform compose bypasses the provider-neutral container router
-  - Reported: 2026-05-03 while testing the local Docker Compose environment for Docker-backed containers and ChatGPT-powered LLM use.
-  - Symptom: `compose.yaml` starts `bus-integration-docker` directly on public `bus.containers.*` events instead of routing through `bus-integration-containers` to backend-prefixed `bus.docker.*` events, so the full local stack does not exercise the intended provider-neutral container abstraction. The smoke harness also forces `.env.example`, which can hide local Codex/App Server settings from `.env`.
-  - Required fix: wire `bus-integration-containers` into the root compose stack, run the Docker backend on `bus.docker.*`, default the smoke harness to `.env` when present, and add a container-run assertion to the compose smoke test.
+No active defects.
 
 ## Fixed defects
+
+- [x] Root local AI Platform compose bypasses the provider-neutral container router
+  - Reported: 2026-05-03 while testing the local Docker Compose environment for Docker-backed containers and ChatGPT-powered LLM use.
+  - Symptom: `compose.yaml` starts `bus-integration-docker` directly on public `bus.containers.*` events instead of routing through `bus-integration-containers` to backend-prefixed `bus.docker.*` events, so the full local stack does not exercise the intended provider-neutral container abstraction. The smoke harness also forces `.env.example`, which can hide local Codex/App Server settings from `.env`.
+  - Fixed: wired the full local stack through `bus-integration-containers`, kept Docker on the `bus.docker.*` backend prefix, made the smoke harness use `.env` when present, added a real `bus containers run` assertion, and built the compose Codex worker with Codex CLI plus mounted local Codex auth for live ChatGPT-backed testing.
+  - Verified: `BUS_LOCAL_AI_PLATFORM_LIVE_CODEX=1 bash tests/superproject/test_local_ai_platform_compose_smoke.sh`.
 
 - [x] Bus replacement cutover lacks security proof for critical API/event/stream invariants
   - Reported: 2026-04-26 during Bus replacement cutover checks for the old AI Platform api-proxy.

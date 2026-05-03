@@ -245,8 +245,16 @@ services:
         exec go run ./cmd/bus-integration-containers --provider events --events-url http://bus-events:8081 --backend-event-prefix bus.docker --request-timeout 30m
 
   bus-codex:
-    <<: *go-service
+    image: ${BUS_LOCAL_CODEX_IMAGE:-bus-local-codex:dev}
+    build:
+      context: ./deploy/local-ai-platform/codex
+      args:
+        CODEX_NPM_PACKAGE: ${BUS_LOCAL_CODEX_NPM_PACKAGE:-@openai/codex}
+        CODEX_NPM_VERSION: ${BUS_LOCAL_CODEX_NPM_VERSION:-0.128.0}
     working_dir: /workspace/bus-integration-codex
+    volumes:
+      - .:/workspace
+      - ${BUS_CODEX_HOME:-${HOME}/.codex}:/root/.codex
     depends_on:
       bus-events:
         condition: service_started
@@ -254,7 +262,7 @@ services:
       <<: *go-env
       BUS_CODEX_PROVIDER: ${BUS_CODEX_PROVIDER:-codex}
       BUS_CODEX_WORKDIR: ${BUS_CODEX_WORKDIR:-/workspace}
-      BUS_CODEX_MODEL: ${BUS_CODEX_MODEL:-}
+      BUS_CODEX_MODEL: ${BUS_CODEX_MODEL:-auto}
       BUS_CODEX_COMMAND: ${BUS_CODEX_COMMAND:-codex}
     command:
       - sh

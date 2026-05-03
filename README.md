@@ -54,9 +54,9 @@ Prerequisites:
 - Submodules initialized so the `bus` and `bus-*` module directories exist.
 - A trusted local development machine. The stack mounts `/var/run/docker.sock`
   into `bus-integration-docker`, which grants host-level Docker control.
-- Optional live Codex auth only when running the live chat smoke with
-  `BUS_LOCAL_AI_PLATFORM_LIVE_CODEX=1`; the default smoke does not require
-  Codex credentials.
+- Optional live Codex auth in `${BUS_CODEX_HOME:-$HOME/.codex}` when running
+  the live chat smoke with `BUS_LOCAL_AI_PLATFORM_LIVE_CODEX=1`; the default
+  smoke does not require Codex credentials.
 
 ```bash
 cp .env.example .env
@@ -108,9 +108,10 @@ wget -qO- --header="Authorization: Bearer $TOKEN" http://nginx:8080/v1/models
 
 The LLM route uses `bus-api-provider-llm --execution-backend events` and
 `bus-integration-codex`; it no longer uses a local echo/stub model service.
-The default smoke script checks the authenticated `/v1/models` path. Live chat
-execution is opt-in because the `bus-codex` container must be able to run Codex
-and access local Codex authentication:
+The `bus-codex` service builds a local image with the Codex CLI and mounts
+`${BUS_CODEX_HOME:-$HOME/.codex}` at `/root/.codex`. The default smoke script
+checks the authenticated `/v1/models` path. Live chat execution is opt-in
+because it consumes real ChatGPT-backed Codex quota:
 
 ```bash
 BUS_LOCAL_AI_PLATFORM_LIVE_CODEX=1 \

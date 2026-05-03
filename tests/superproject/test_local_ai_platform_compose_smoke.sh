@@ -22,7 +22,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-docker compose "${compose_args[@]}" up -d
+docker compose "${compose_args[@]}" up --build -d
 
 ready=0
 for _ in $(seq 1 90); do
@@ -45,8 +45,8 @@ docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
     wget -qO- --header="Authorization: Bearer $TOKEN" http://nginx:8080/v1/models | grep -q codex-chatgpt
     wget -qO- --header="Authorization: Bearer $TOKEN" http://nginx:8080/api/v1/vm/status | grep -q "\"provider\":\"static\""
     wget -qO- --header="Authorization: Bearer $TOKEN" http://nginx:8080/api/v1/containers/status | grep -q "\"items\""
-    cd /workspace
-    go run ./bus-containers/cmd/bus-containers run --profile codex -- sh -lc "printf OK" | grep -q "\"stdout\": \"OK\""
+    cd /workspace/bus-containers
+    go run ./cmd/bus-containers run --profile codex -- sh -lc "printf OK" | grep -q "\"stdout\": \"OK\""
     wget -qO- --header="Content-Type: application/json" --post-data="{\"email\":\"local-smoke-'"$$"'@example.invalid\"}" http://nginx:8080/api/v1/auth/register | grep -q "\"status\":\"waitlisted\""
 '
 
