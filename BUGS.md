@@ -3,13 +3,56 @@
 Track defects/blockers that affect this repo's replay/parity workflows.
 Feature work belongs in `FEATURE_REQUESTS.md`.
 
-**Last reviewed:** 2026-04-26.
+**Last reviewed:** 2026-05-03.
 
 ## Active defects
 
 No active defects.
 
 ## Fixed defects
+
+- [x] `bus dev task watch 1.1` matches stale tasks from other modules instead
+  of resolving shorthand refs relative to the current project.
+  - Reported: 2026-05-03 from `bus dev -C ./bus-vat task new ...` printing
+    `bus-vat#1.1`, then `bus dev -C ./bus-vat task watch 1.1 --timeout 5m`
+    replaying old `bus-dev#1.1` events before the intended `bus-vat#1.1`
+    events.
+  - Required fix: scope unqualified task refs such as `1` and `1.1` to the
+    current `-C` project for show/watch/wait/list-style matching, keep fully
+    qualified refs such as `bus-dev#1.1` cross-project capable, add unit/e2e
+    coverage, update docs/help if shorthand semantics are clarified, and verify
+    focused module plus root gates.
+  - Fixed: unqualified task refs such as `1` and `1.1` now match only task
+    events that belong to the current repository selected by `-C`; fully
+    qualified refs such as `bus-dev#1.1` still target the named module.
+    README and task help now document the shorthand behavior.
+  - Verified: `make test` and `make e2e` in `bus-dev`.
+
+- [x] README local `docker compose up` + `bus configure` + `bus dev task` quickstart does not work end to end.
+  - Reported: 2026-05-03 from the documented command sequence:
+    `docker compose up --build -d`; configure `BUS_API_TOKEN` from
+    `tmp/local-ai-platform/bus-config/auth/api-token`; configure
+    `BUS_EVENTS_API_URL=http://127.0.0.1:8080`; run
+    `bus dev -C ./bus-dev task new "Show the Codex CLI version."`; then watch
+    the printed task reference.
+  - Required fix: reproduce the exact README flow, identify whether the defect
+    is token timing, `.env` loading, dispatcher/module behavior, compose
+    routing, or task worker execution, then fix the owning module/compose/docs
+    with unit/e2e coverage and verify the exact command sequence.
+  - Fixed: `bus-dev` now retries transient read-only Events replay/listen
+    startup failures before publishing task events, local compose mounts the
+    Codex home writable for trusted live Codex sessions, local compose runs
+    Codex with full access inside the already isolated task container, and
+    post-commands are opt-in so a smoke task cannot stage or commit files.
+    `bus-integration-dev-task` now uses `sh -c` instead of login shell mode so
+    the container image `PATH` is preserved.
+  - Verified: rebuilt `bus-dev` created and watched `bus-dev#17.1`, which ran
+    in `/workspace/bus-dev` and reported `codex-cli 0.128.0`; `bus lint
+    README.md`; `make test` in `bus-dev`; `make test` in
+    `bus-integration-dev-task`; `bash
+    tests/superproject/test_local_ai_platform_compose_smoke.sh`; `bash
+    tests/superproject/test_dev_task_docker_compose_smoke.sh`; root `make
+    test`; root `make e2e`.
 
 - [x] Root local AI Platform compose bypasses the provider-neutral container router
   - Reported: 2026-05-03 while testing the local Docker Compose environment for Docker-backed containers and ChatGPT-powered LLM use.

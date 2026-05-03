@@ -174,6 +174,7 @@ wget -qO- --header="Authorization: Bearer $TOKEN" http://nginx:8080/v1/models
 Start the full local stack and create a Docker-backed Codex task from the host:
 
 ```bash
+bus configure BUS_DOCKER_CODEX_HOME_WRITABLE=true
 docker compose up --build -d
 bus configure BUS_API_TOKEN="$(cat tmp/local-ai-platform/bus-config/auth/api-token)"
 bus configure BUS_EVENTS_API_URL=http://127.0.0.1:8080
@@ -184,11 +185,13 @@ bus dev -C ./bus-dev task watch <task-ref-from-task-new-output> --timeout 5m
 `docker compose up --build -d` writes a non-secret local development token under
 `tmp/local-ai-platform/bus-config/auth/api-token`. Store that token and the
 local Events API URL with `bus configure` so they are managed in `.env` instead
-of shell exports. When no explicit `BUS_API_TOKEN`, `--token-file`, or
-`BUS_CONFIG_DIR` token is configured, `bus dev task` can still use that
+of shell exports. `BUS_DOCKER_CODEX_HOME_WRITABLE` is enabled for this trusted
+local Docker stack because live `codex exec` needs to create session state
+under the mounted Codex home. When no explicit `BUS_API_TOKEN`, `--token-file`,
+or `BUS_CONFIG_DIR` token is configured, `bus dev task` can still use that
 source-checkout token automatically before falling back to
-`~/.config/bus/auth/api-token`. The Events API default is
-`http://127.0.0.1:8080`, matching the local nginx route.
+`~/.config/bus/auth/api-token`. The Events API default is `http://127.0.0.1:8080`,
+matching the local nginx route.
 
 By default the task bridge runs Codex in the addressed module repository. A
 task created from `bus-dev`, or explicitly addressed as `@bus-dev`, runs in
@@ -198,18 +201,21 @@ as `@bus-integration-docker` runs in `/workspace/bus-integration-docker`.
 The default local task command is:
 
 ```json
-["codex","exec","--skip-git-repo-check","{prompt}"]
+["codex","exec","--skip-git-repo-check","--sandbox","danger-full-access","{prompt}"]
 ```
 
-After the Codex command succeeds, the default post-command runs:
+The Codex process already runs inside a Docker-created task container, so the
+local stack uses Codex's full-access sandbox mode inside that container. The
+default production-like post-command stages and commits with `bus dev`, then
+pushes the task branch so work survives disposable task containers:
 
-```json
-["go","run","../bus-dev/cmd/bus-dev","--agent","codex","stage","commit"]
+```bash
+bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","go run ../bus-dev/cmd/bus-dev --agent codex stage commit && git push -u origin {branch}"]'
 ```
 
-Remote Git push is intentionally not part of the default post-command because
-`bus-dev` does not perform remote Git operations. Use an explicit, trusted
-repository-local post-command only when a deployment is allowed to push.
+`bus-dev` itself still does not perform remote Git operations; the push is a
+trusted worker post-command. Smoke tests override this post-command to `[]` so
+they never contact a real upstream.
 
 The LLM route uses `bus-api-provider-llm --execution-backend events` and
 `bus-integration-codex`; it no longer uses a local echo/stub model service.
@@ -275,7 +281,7 @@ Create a task and watch the Docker-backed bridge process it:
 
 ```bash
 cd /workspace/bus-dev
-go run ./cmd/bus-dev task new @bus-dev "Reply hello from Docker."
+go run ./cmd/bus-dev task new --new-branch work/docker-smoke @bus-dev "Reply hello from Docker."
 go run ./cmd/bus-dev task watch <task-ref-from-task-new-output> --timeout 5m
 ```
 
@@ -283,13 +289,17 @@ Use the task reference printed by `task new`, for example `task_01example`
 when that exact value appears in the command output.
 
 The default task command for real local use runs `codex exec` in the addressed
-module repository and then runs `bus dev --agent codex stage commit`. The smoke
-scripts override the command to `codex --version` so they do not consume
-ChatGPT-backed Codex quota. To disable the post-command or customize hooks:
+module repository, prepares the requested branch, then runs the configured
+post-command. A task without branch flags defaults to the current branch of the
+repository where `bus dev task new` is run. Use `--branch NAME` to use an
+existing branch, or `--new-branch NAME --base-branch main` to create a
+disposable work branch from `main`. The smoke scripts override the command to
+`codex --version` and the post-command to `[]` so they do not consume
+ChatGPT-backed Codex quota or push to upstream. To customize hooks:
 
 ```bash
 bus configure BUS_DEV_TASK_PRE_COMMAND_JSON='["git","status","--short"]'
-bus configure BUS_DEV_TASK_POST_COMMAND_JSON=[]
+bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","go run ../bus-dev/cmd/bus-dev --agent codex stage commit && git push -u origin {branch}"]'
 docker compose -f compose.dev-task-docker.yaml up --build -d
 ```
 
