@@ -194,6 +194,8 @@ services:
     depends_on:
       bus-events:
         condition: service_started
+      bus-container-router:
+        condition: service_started
     command:
       - sh
       - -ec
@@ -210,6 +212,7 @@ services:
     environment:
       <<: *go-env
       DOCKER_HOST: ${DOCKER_HOST:-unix:///var/run/docker.sock}
+      BUS_DOCKER_EVENT_PREFIX: bus.docker
       DOCKER_CONTAINER_CODEX_IMAGE: ${DOCKER_CONTAINER_CODEX_IMAGE:-alpine:3.20}
     volumes:
       - .:/workspace
@@ -219,7 +222,27 @@ services:
       - -ec
       - |
         export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
-        exec go run ./cmd/bus-integration-docker --provider docker --events-url http://bus-events:8081
+        exec go run ./cmd/bus-integration-docker --provider docker --events-url http://bus-events:8081 --event-prefix bus.docker
+
+  bus-container-router:
+    <<: *go-service
+    working_dir: /workspace/bus-integration-containers
+    depends_on:
+      bus-events:
+        condition: service_started
+      bus-docker:
+        condition: service_started
+    environment:
+      <<: *go-env
+      BUS_CONTAINERS_PROVIDER: events
+      BUS_CONTAINERS_BACKEND_EVENT_PREFIX: bus.docker
+      BUS_CONTAINERS_REQUEST_TIMEOUT: 30m
+    command:
+      - sh
+      - -ec
+      - |
+        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        exec go run ./cmd/bus-integration-containers --provider events --events-url http://bus-events:8081 --backend-event-prefix bus.docker --request-timeout 30m
 
   bus-codex:
     <<: *go-service
@@ -275,6 +298,8 @@ services:
       bus-vm:
         condition: service_started
       bus-containers:
+        condition: service_started
+      bus-container-router:
         condition: service_started
       bus-llm:
         condition: service_started

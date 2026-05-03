@@ -7,7 +7,10 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-No active defects.
+- [ ] Root local AI Platform compose bypasses the provider-neutral container router
+  - Reported: 2026-05-03 while testing the local Docker Compose environment for Docker-backed containers and ChatGPT-powered LLM use.
+  - Symptom: `compose.yaml` starts `bus-integration-docker` directly on public `bus.containers.*` events instead of routing through `bus-integration-containers` to backend-prefixed `bus.docker.*` events, so the full local stack does not exercise the intended provider-neutral container abstraction. The smoke harness also forces `.env.example`, which can hide local Codex/App Server settings from `.env`.
+  - Required fix: wire `bus-integration-containers` into the root compose stack, run the Docker backend on `bus.docker.*`, default the smoke harness to `.env` when present, and add a container-run assertion to the compose smoke test.
 
 ## Fixed defects
 
