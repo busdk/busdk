@@ -290,6 +290,28 @@ services:
         export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
         exec go run ./cmd/bus-api-provider-llm --addr 0.0.0.0:8088 --execution-backend events --usage-backend events --runtime-backend none --billing-backend ${BUS_LLM_BILLING_BACKEND:-none} --events-url http://bus-events:8081
 
+  bus-portal:
+    <<: *go-service
+    working_dir: /workspace/bus-portal
+    depends_on:
+      bus-auth:
+        condition: service_started
+      bus-billing-api:
+        condition: service_started
+      bus-containers:
+        condition: service_started
+      bus-llm:
+        condition: service_started
+    environment:
+      <<: *go-env
+      BUS_PORTAL_API_CONNECT_SRC: http://127.0.0.1:${LOCAL_AI_PLATFORM_PORT:-8080}
+      BUS_PORTAL_TOKEN: ${BUS_PORTAL_TOKEN:-local-dev}
+    command:
+      - sh
+      - -ec
+      - |
+        exec go run ./cmd/bus-portal -C /workspace serve --listen 0.0.0.0 --port 8090 --token "$${BUS_PORTAL_TOKEN}" --print-url --enable-module auth --enable-module ai --enable-module accounting --experimental --api-connect-src "http://127.0.0.1:${LOCAL_AI_PLATFORM_PORT:-8080}"
+
   nginx:
     image: ${BUS_LOCAL_NGINX_IMAGE:-nginx:1.27-alpine}
     depends_on:
@@ -310,6 +332,8 @@ services:
       bus-container-router:
         condition: service_started
       bus-llm:
+        condition: service_started
+      bus-portal:
         condition: service_started
     ports:
       - "127.0.0.1:${LOCAL_AI_PLATFORM_PORT:-8080}:8080"

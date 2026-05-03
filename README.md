@@ -66,9 +66,10 @@ docker compose exec testing-agent sh
 
 The stack reads configuration from `.env` automatically and uses non-secret
 development defaults. It starts PostgreSQL, MailHog, nginx, Events, Auth, LLM,
-Usage, Billing, Stripe webhook ingress, VM, Containers, a local Docker container
-execution worker, and a Codex-backed LLM execution worker. It does not provision
-UpCloud resources, public DNS, TLS certificates, or systemd units.
+Usage, Billing, Stripe webhook ingress, VM, Containers, the Bus portal, a local
+Docker container execution worker, and a Codex-backed LLM execution worker. It
+does not provision UpCloud resources, public DNS, TLS certificates, or systemd
+units.
 
 The public local base URL is:
 
@@ -90,7 +91,19 @@ nginx exposes the same local route families used by the production tutorial:
 /api/internal/usage-events*
 /api/internal/containers/*
 /api/internal/stripe/webhook
+/portal/local-dev/*
 ```
+
+The local portal is available at:
+
+```bash
+http://127.0.0.1:${LOCAL_AI_PLATFORM_PORT:-8080}/portal/local-dev/
+```
+
+It runs `bus-portal` with `bus-portal-auth`, `bus-portal-ai`, and experimental
+`bus-portal-accounting` mounted. Portal modules remain frontend-only; auth,
+billing, LLM, container, and accounting business operations stay behind the
+same API-provider routes listed above.
 
 Inside `testing-agent`, generated local JWTs are available at:
 

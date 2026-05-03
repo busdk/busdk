@@ -45,6 +45,11 @@ docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
     wget -qO- --header="Authorization: Bearer $TOKEN" http://nginx:8080/v1/models | grep -q codex-chatgpt
     wget -qO- --header="Authorization: Bearer $TOKEN" http://nginx:8080/api/v1/vm/status | grep -q "\"provider\":\"static\""
     wget -qO- --header="Authorization: Bearer $TOKEN" http://nginx:8080/api/v1/containers/status | grep -q "\"items\""
+    wget -qO- http://nginx:8080/portal/local-dev/v1/healthz | grep -q "\"ok\":true"
+    MODULES="$(wget -qO- http://nginx:8080/portal/local-dev/v1/modules)"
+    printf "%s\n" "$MODULES" | grep -q "\"id\":\"auth\""
+    printf "%s\n" "$MODULES" | grep -q "\"id\":\"ai\""
+    printf "%s\n" "$MODULES" | grep -q "\"id\":\"accounting\""
     cd /workspace/bus-containers
     go run ./cmd/bus-containers run --profile codex -- sh -lc "printf OK" | grep -q "\"stdout\": \"OK\""
     wget -qO- --header="Content-Type: application/json" --post-data="{\"email\":\"local-smoke-'"$$"'@example.invalid\"}" http://nginx:8080/api/v1/auth/register | grep -q "\"status\":\"waitlisted\""
