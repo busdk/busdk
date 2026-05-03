@@ -15,6 +15,10 @@ if [ -z "$compose_env_file" ]; then
 fi
 compose_args=(--env-file "$compose_env_file" -f compose.yaml)
 
+export BUS_DEV_TASK_COMMAND_JSON="${BUS_DEV_TASK_COMMAND_JSON:-[\"codex\",\"--version\"]}"
+export BUS_DEV_TASK_PRE_COMMAND_JSON="${BUS_DEV_TASK_PRE_COMMAND_JSON:-[]}"
+export BUS_DEV_TASK_POST_COMMAND_JSON="${BUS_DEV_TASK_POST_COMMAND_JSON:-[]}"
+
 cleanup() {
     if [ "${BUS_LOCAL_AI_PLATFORM_KEEP:-0}" != "1" ]; then
         docker compose "${compose_args[@]}" down >/dev/null
@@ -52,8 +56,20 @@ docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
     printf "%s\n" "$MODULES" | grep -q "\"id\":\"accounting\""
     cd /workspace/bus-containers
     go run ./cmd/bus-containers run --profile codex -- sh -lc "printf OK" | grep -q "\"stdout\": \"OK\""
+    cd /workspace/bus-dev
+    TASK_REF="$(go run ./cmd/bus-dev task new @bus-dev "Show the Codex CLI version." | awk "/ -> / {print \$2; exit}")"
+    test -n "$TASK_REF"
+    TASK_OUTPUT="$(go run ./cmd/bus-dev task watch "$TASK_REF" --timeout 5m)"
+    printf "%s\n" "$TASK_OUTPUT" | grep -q "codex-cli"
+    test ! -e /workspace/bus-dev/.bus/dev/task.json
     wget -qO- --header="Content-Type: application/json" --post-data="{\"email\":\"local-smoke-'"$$"'@example.invalid\"}" http://nginx:8080/api/v1/auth/register | grep -q "\"status\":\"waitlisted\""
 '
+
+test -s tmp/local-ai-platform/bus-config/auth/api-token
+HOST_TASK_REF="$(cd bus-dev && go run ./cmd/bus-dev task --timeout 30s new @bus-dev "Show the Codex CLI version." | awk "/ -> / {print \$2; exit}")"
+test -n "$HOST_TASK_REF"
+HOST_TASK_OUTPUT="$(cd bus-dev && go run ./cmd/bus-dev task --timeout 5m watch "$HOST_TASK_REF")"
+printf "%s\n" "$HOST_TASK_OUTPUT" | grep -q "codex-cli"
 
 if [ "${BUS_LOCAL_AI_PLATFORM_LIVE_CODEX:-0}" = "1" ]; then
     docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '

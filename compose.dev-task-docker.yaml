@@ -94,9 +94,9 @@ services:
       BUS_DOCKER_EVENT_PREFIX: bus.docker
       DOCKER_HOST: unix:///var/run/docker.sock
       DOCKER_CONTAINER_CODEX_IMAGE: ${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}
-      BUS_DOCKER_CODEX_HOME_HOST: ${BUS_DOCKER_CODEX_HOME_HOST:-}
+      BUS_DOCKER_CODEX_HOME_HOST: ${BUS_DOCKER_CODEX_HOME_HOST:-${BUS_CODEX_HOME:-${HOME}/.codex}}
       BUS_DOCKER_CODEX_HOME_WRITABLE: ${BUS_DOCKER_CODEX_HOME_WRITABLE:-false}
-      BUS_DOCKER_CODEX_WORKSPACE_HOST: ${BUS_DOCKER_CODEX_WORKSPACE_HOST:-}
+      BUS_DOCKER_CODEX_WORKSPACE_HOST: ${BUS_DOCKER_CODEX_WORKSPACE_HOST:-${PWD}}
       BUS_DOCKER_CODEX_WORKSPACE_CONTAINER: ${BUS_DOCKER_CODEX_WORKSPACE_CONTAINER:-/workspace}
     command:
       - sh
@@ -166,9 +166,12 @@ services:
       PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
       BUS_EVENTS_API_URL: http://bus-events:8081
-      BUS_DEV_TASK_RECIPIENT: ${BUS_DEV_TASK_RECIPIENT:-bus-dev}
+      BUS_DEV_TASK_RECIPIENT: ${BUS_DEV_TASK_RECIPIENT:-}
       BUS_DEV_TASK_CONTAINER_PROFILE: codex
-      BUS_DEV_TASK_COMMAND_JSON: ${BUS_DEV_TASK_COMMAND_JSON:-["codex","--version"]}
+      BUS_DEV_TASK_WORKSPACE_ROOT: ${BUS_DEV_TASK_WORKSPACE_ROOT:-/workspace}
+      BUS_DEV_TASK_COMMAND_JSON: ${BUS_DEV_TASK_COMMAND_JSON:-["codex","exec","--skip-git-repo-check","{prompt}"]}
+      BUS_DEV_TASK_PRE_COMMAND_JSON: ${BUS_DEV_TASK_PRE_COMMAND_JSON:-[]}
+      BUS_DEV_TASK_POST_COMMAND_JSON: ${BUS_DEV_TASK_POST_COMMAND_JSON:-["go","run","../bus-dev/cmd/bus-dev","--agent","codex","stage","commit"]}
     command:
       - sh
       - -c
@@ -183,7 +186,10 @@ services:
         --events-url http://bus-events:8081
         --recipient "$${BUS_DEV_TASK_RECIPIENT}"
         --container-profile "$${BUS_DEV_TASK_CONTAINER_PROFILE}"
+        --workspace-root "$${BUS_DEV_TASK_WORKSPACE_ROOT}"
         --command-json "$${BUS_DEV_TASK_COMMAND_JSON}"
+        --pre-command-json "$${BUS_DEV_TASK_PRE_COMMAND_JSON}"
+        --post-command-json "$${BUS_DEV_TASK_POST_COMMAND_JSON}"
         --timeout 30m
     volumes:
       - .:/workspace
@@ -200,6 +206,7 @@ services:
       BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
       BUS_EVENTS_API_URL: http://bus-events:8081
       BUS_AI_API_URL: http://bus-api-provider-containers:8080
+      BUS_CONFIG_DIR: /root/.config/bus
     command:
       - sh
       - -c

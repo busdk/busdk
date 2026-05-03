@@ -85,8 +85,9 @@ does not exist and preserves existing comments and unknown values. Use
 
 The stack starts PostgreSQL, MailHog, nginx, Events, Auth, LLM, Usage, Billing,
 Stripe webhook ingress, VM, Containers, the Bus portal, a local Docker container
-execution worker, and a Codex-backed LLM execution worker. It does not provision
-UpCloud resources, public DNS, TLS certificates, or systemd units.
+execution worker, a development-task-to-container bridge, and a Codex-backed LLM
+execution worker. It does not provision UpCloud resources, public DNS, TLS
+certificates, or systemd units.
 
 Useful configuration commands:
 
@@ -170,12 +171,55 @@ TOKEN="$(cat ~/.config/bus/auth/api-token)"
 wget -qO- --header="Authorization: Bearer $TOKEN" http://nginx:8080/v1/models
 ```
 
+Start the full local stack and create a Docker-backed Codex task from the host:
+
+```bash
+docker compose up --build -d
+bus configure BUS_API_TOKEN="$(cat tmp/local-ai-platform/bus-config/auth/api-token)"
+bus configure BUS_EVENTS_API_URL=http://127.0.0.1:8080
+bus dev -C ./bus-dev task new "Show the Codex CLI version."
+bus dev -C ./bus-dev task watch <task-ref-from-task-new-output> --timeout 5m
+```
+
+`docker compose up --build -d` writes a non-secret local development token under
+`tmp/local-ai-platform/bus-config/auth/api-token`. Store that token and the
+local Events API URL with `bus configure` so they are managed in `.env` instead
+of shell exports. When no explicit `BUS_API_TOKEN`, `--token-file`, or
+`BUS_CONFIG_DIR` token is configured, `bus dev task` can still use that
+source-checkout token automatically before falling back to
+`~/.config/bus/auth/api-token`. The Events API default is
+`http://127.0.0.1:8080`, matching the local nginx route.
+
+By default the task bridge runs Codex in the addressed module repository. A
+task created from `bus-dev`, or explicitly addressed as `@bus-dev`, runs in
+`/workspace/bus-dev` inside the Docker-created Codex container. A task addressed
+as `@bus-integration-docker` runs in `/workspace/bus-integration-docker`.
+
+The default local task command is:
+
+```json
+["codex","exec","--skip-git-repo-check","{prompt}"]
+```
+
+After the Codex command succeeds, the default post-command runs:
+
+```json
+["go","run","../bus-dev/cmd/bus-dev","--agent","codex","stage","commit"]
+```
+
+Remote Git push is intentionally not part of the default post-command because
+`bus-dev` does not perform remote Git operations. Use an explicit, trusted
+repository-local post-command only when a deployment is allowed to push.
+
 The LLM route uses `bus-api-provider-llm --execution-backend events` and
 `bus-integration-codex`; it no longer uses a local echo/stub model service.
 The `bus-codex` service builds a local image with the Codex CLI and mounts
-`${BUS_CODEX_HOME:-$HOME/.codex}` at `/root/.codex`. The default smoke script
-checks the authenticated `/v1/models` path. Live chat execution is opt-in
-because it consumes real ChatGPT-backed Codex quota:
+`${BUS_CODEX_HOME:-$HOME/.codex}` at `/root/.codex`. Docker-created task
+containers also use `${BUS_DOCKER_CODEX_HOME_HOST:-$BUS_CODEX_HOME or
+$HOME/.codex}` and mount the current superproject as `/workspace` by default.
+The default smoke script overrides the task command to `codex --version` so it
+can prove the container path without consuming quota. Live chat execution is
+opt-in because it consumes real ChatGPT-backed Codex quota:
 
 ```bash
 BUS_LOCAL_AI_PLATFORM_LIVE_CODEX=1 \
@@ -208,6 +252,9 @@ Prerequisites:
 - Docker Desktop or Docker Engine with Compose support.
 - This superproject as the current working directory.
 - Submodules initialized so the `bus` and `bus-*` module directories exist.
+- `bus` on `PATH` for `bus configure`; from an uninstalled source checkout,
+  use `go run ./bus-configure/cmd/bus-configure` for the same configuration
+  updates.
 - A trusted local development machine. The stack mounts `/var/run/docker.sock`
   into `bus-integration-docker`, which grants host-level Docker control.
 
@@ -235,16 +282,14 @@ go run ./cmd/bus-dev task watch <task-ref-from-task-new-output> --timeout 5m
 Use the task reference printed by `task new`, for example `task_01example`
 when that exact value appears in the command output.
 
-The default task command runs `codex --version` in the Codex container image so
-the smoke does not consume ChatGPT-backed Codex quota. To run live Codex task
-execution, make Codex credentials and the host workspace available to
-Docker-created task containers, then override the task command:
+The default task command for real local use runs `codex exec` in the addressed
+module repository and then runs `bus dev --agent codex stage commit`. The smoke
+scripts override the command to `codex --version` so they do not consume
+ChatGPT-backed Codex quota. To disable the post-command or customize hooks:
 
 ```bash
-bus configure BUS_DOCKER_CODEX_HOME_HOST="${BUS_CODEX_HOME:-$HOME/.codex}"
-bus configure BUS_DOCKER_CODEX_HOME_WRITABLE=true
-bus configure BUS_DOCKER_CODEX_WORKSPACE_HOST="$(pwd)"
-bus configure BUS_DEV_TASK_COMMAND_JSON='["codex","exec","--skip-git-repo-check","{prompt}"]'
+bus configure BUS_DEV_TASK_PRE_COMMAND_JSON='["git","status","--short"]'
+bus configure BUS_DEV_TASK_POST_COMMAND_JSON=[]
 docker compose -f compose.dev-task-docker.yaml up --build -d
 ```
 

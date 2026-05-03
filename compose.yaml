@@ -21,6 +21,9 @@ x-go-service: &go-service
     BUS_USAGE_DATABASE_URL: postgres://${LOCAL_AI_PLATFORM_POSTGRES_USER:-bus}:${LOCAL_AI_PLATFORM_POSTGRES_PASSWORD:-bus}@postgres:5432/${LOCAL_AI_PLATFORM_POSTGRES_DB:-bus_local}?sslmode=disable
     BUS_BILLING_DATABASE_URL: postgres://${LOCAL_AI_PLATFORM_POSTGRES_USER:-bus}:${LOCAL_AI_PLATFORM_POSTGRES_PASSWORD:-bus}@postgres:5432/${LOCAL_AI_PLATFORM_POSTGRES_DB:-bus_local}?sslmode=disable
     BUS_EVENTS_API_URL: http://bus-events:8081
+    BUS_EVENTS_LISTENER_RETRY: "true"
+    BUS_EVENTS_LISTENER_RETRY_MIN: 250ms
+    BUS_EVENTS_LISTENER_RETRY_MAX: 5s
     BUS_AI_API_URL: http://nginx:8080
     BUS_API_BASE_URL: http://nginx:8080
     BUS_LOCAL_ACCOUNT_ID: ${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
@@ -52,6 +55,17 @@ services:
     ports:
       - "127.0.0.1:${LOCAL_AI_PLATFORM_SMTP_PORT:-1025}:1025"
       - "127.0.0.1:${LOCAL_AI_PLATFORM_MAILHOG_PORT:-8025}:8025"
+
+  bus-local-token:
+    <<: *go-service
+    working_dir: /workspace/bus-operator-token
+    command:
+      - sh
+      - -ec
+      - |
+        mkdir -p /workspace/tmp/local-ai-platform/bus-config/auth
+        go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h > /workspace/tmp/local-ai-platform/bus-config/auth/api-token
+        chmod 600 /workspace/tmp/local-ai-platform/bus-config/auth/api-token
 
   bus-events:
     <<: *go-service
@@ -209,11 +223,17 @@ services:
     depends_on:
       bus-events:
         condition: service_started
+      bus-codex:
+        condition: service_started
     environment:
       <<: *go-env
       DOCKER_HOST: ${DOCKER_HOST:-unix:///var/run/docker.sock}
       BUS_DOCKER_EVENT_PREFIX: bus.docker
-      DOCKER_CONTAINER_CODEX_IMAGE: ${DOCKER_CONTAINER_CODEX_IMAGE:-alpine:3.20}
+      DOCKER_CONTAINER_CODEX_IMAGE: ${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}
+      BUS_DOCKER_CODEX_HOME_HOST: ${BUS_DOCKER_CODEX_HOME_HOST:-${BUS_CODEX_HOME:-${HOME}/.codex}}
+      BUS_DOCKER_CODEX_HOME_WRITABLE: ${BUS_DOCKER_CODEX_HOME_WRITABLE:-false}
+      BUS_DOCKER_CODEX_WORKSPACE_HOST: ${BUS_DOCKER_CODEX_WORKSPACE_HOST:-${PWD}}
+      BUS_DOCKER_CODEX_WORKSPACE_CONTAINER: ${BUS_DOCKER_CODEX_WORKSPACE_CONTAINER:-/workspace}
     volumes:
       - .:/workspace
       - /var/run/docker.sock:/var/run/docker.sock
@@ -222,7 +242,11 @@ services:
       - -ec
       - |
         export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
-        exec go run ./cmd/bus-integration-docker --provider docker --events-url http://bus-events:8081 --event-prefix bus.docker
+        codex_home_writable_flag=
+        if [ "$${BUS_DOCKER_CODEX_HOME_WRITABLE}" = "true" ] || [ "$${BUS_DOCKER_CODEX_HOME_WRITABLE}" = "1" ]; then
+          codex_home_writable_flag="--codex-home-writable"
+        fi
+        exec go run ./cmd/bus-integration-docker --provider docker --events-url http://bus-events:8081 --event-prefix bus.docker --container-codex-image "$${DOCKER_CONTAINER_CODEX_IMAGE}" --codex-home-host-path "$${BUS_DOCKER_CODEX_HOME_HOST}" $$codex_home_writable_flag --codex-workspace-host-path "$${BUS_DOCKER_CODEX_WORKSPACE_HOST}" --codex-workspace-container-path "$${BUS_DOCKER_CODEX_WORKSPACE_CONTAINER}"
 
   bus-container-router:
     <<: *go-service
@@ -243,6 +267,34 @@ services:
       - |
         export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
         exec go run ./cmd/bus-integration-containers --provider events --events-url http://bus-events:8081 --backend-event-prefix bus.docker --request-timeout 30m
+
+  bus-integration-dev-task:
+    <<: *go-service
+    working_dir: /workspace/bus-integration-dev-task
+    depends_on:
+      bus-events:
+        condition: service_started
+      bus-containers:
+        condition: service_started
+      bus-container-router:
+        condition: service_started
+      bus-docker:
+        condition: service_started
+    environment:
+      <<: *go-env
+      BUS_DEV_TASK_RECIPIENT: ${BUS_DEV_TASK_RECIPIENT:-}
+      BUS_DEV_TASK_CONTAINER_PROFILE: ${BUS_DEV_TASK_CONTAINER_PROFILE:-codex}
+      BUS_DEV_TASK_WORKSPACE_ROOT: ${BUS_DEV_TASK_WORKSPACE_ROOT:-/workspace}
+      BUS_DEV_TASK_COMMAND_JSON: ${BUS_DEV_TASK_COMMAND_JSON:-["codex","exec","--skip-git-repo-check","{prompt}"]}
+      BUS_DEV_TASK_PRE_COMMAND_JSON: ${BUS_DEV_TASK_PRE_COMMAND_JSON:-[]}
+      BUS_DEV_TASK_POST_COMMAND_JSON: ${BUS_DEV_TASK_POST_COMMAND_JSON:-["go","run","../bus-dev/cmd/bus-dev","--agent","codex","stage","commit"]}
+      BUS_DEV_TASK_TIMEOUT: ${BUS_DEV_TASK_TIMEOUT:-30m}
+    command:
+      - sh
+      - -ec
+      - |
+        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        exec go run ./cmd/bus-integration-dev-task --events-url http://bus-events:8081 --recipient "$${BUS_DEV_TASK_RECIPIENT}" --container-profile "$${BUS_DEV_TASK_CONTAINER_PROFILE}" --workspace-root "$${BUS_DEV_TASK_WORKSPACE_ROOT}" --command-json "$${BUS_DEV_TASK_COMMAND_JSON}" --pre-command-json "$${BUS_DEV_TASK_PRE_COMMAND_JSON}" --post-command-json "$${BUS_DEV_TASK_POST_COMMAND_JSON}" --timeout "$${BUS_DEV_TASK_TIMEOUT}"
 
   bus-codex:
     image: ${BUS_LOCAL_CODEX_IMAGE:-bus-local-codex:dev}

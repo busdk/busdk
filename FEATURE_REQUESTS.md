@@ -30,8 +30,40 @@ Goal note:
 - finish the remaining Bus Events ecosystem route-discovery and delivery-policy work: wire declared event capabilities into `bus-api` REST-to-event route validation/discovery, then define terminal-failure, dead-letter, and operator-diagnostic semantics for work-queue delivery while keeping the current memory/Redis/PostgreSQL backend set until a concrete new backend is requested
 - align Bus-owned AI Platform API planning with the in-progress AI Platform docs: keep OpenAI-compatible model calls under `/v1/*` and support `bus-auth` AI Platform sessions as one `bus-agent` provider/auth option without removing existing providers; make domain modules own their API clients and Go libraries (`bus-vm` for `/api/v1/vm/status`, `bus-containers` for user-owned `/api/v1/containers/status` and `/api/v1/containers/runs*` lifecycle APIs); make `bus-status` an aggregate status UX that calls those domain libraries instead of owning the APIs; `bus-api-provider-auth` owns the auth service implementation; `bus-auth` owns the auth client CLI; leave `/api/internal/usage-events` as Bus-internal billing infrastructure with no Bus CLI module for now; and keep final auth/admin service paths pending final API docs
 
+### Support native statutory profit-and-loss lines for nonstandard tax-like adjustments without legacy mapping
+
+Problem:
+- This repo no longer wants to use legacy `report-account-mapping`.
+- Current Bus statutory profit-and-loss generation is expected to rely on native account groups (`accounts.group_id` plus `account-groups.csv`).
+- We have a real sole-proprietor source case on `9950 Aiempien tilikausien verot` where the ledger posting should remain as source parity, but the account should not be shown under `pl_income_taxes / Tuloverot`.
+
+What fails today:
+- If `9950 Aiempien tilikausien verot` stays on `pl_income_taxes / Tuloverot`, Bus generates a visible `TULOVEROT` subtotal in the statutory profit-and-loss even when the desired presentation is different.
+- If the account is moved to a custom native group such as `pl_prior_year_tax_adjustments`, statutory profit-and-loss generation fails with `FR-REP-007` because the custom group has no visible statutory line.
+- If the account is moved to some other existing visible line such as `pl_other_operating_income`, statutory profit-and-loss generation can fail `FR-REP-010` because the profit-and-loss presentation no longer reconciles cleanly to the balance-sheet equity change.
+
+Requested capability:
+- Allow native account-group based statutory profit-and-loss layouts to expose an explicit visible line for these nonstandard tax-like adjustments without requiring legacy `report-account-mapping`.
+- In practice Bus needs one of these native solutions:
+  - a supported standard statutory line id for cases like `Aiempien tilikausien verot ja palautukset`, or
+  - a way to mark a custom native account group as a visible statutory line in the profit-and-loss layout, or
+  - a first-class native classification layer that is not the removed legacy mapping model but still lets operators place exceptional accounts on a specific visible statutory line.
+
+Why this matters:
+- In this repo, the accounting source should stay unchanged, but the statutory presentation should still be controllable without legacy report-mapping debt.
+- The current gap forces an unacceptable choice between:
+  - wrong presentation under `Tuloverot`
+  - hidden/unmapped groups that fail `FR-REP-007`
+  - or repointing the account to an unrelated visible line and risking `FR-REP-010`.
+
 ## Implemented requests
 
+- delivered the main local Docker Compose Bus platform stack as a complete
+  development task test environment: the portal-enabled stack runs
+  `bus-integration-dev-task`, routes `bus dev task` events through the
+  PostgreSQL-backed Events API, executes the task through provider-neutral
+  containers and local Docker, and verifies the result through `bus dev task
+  watch` from the testing agent
 - verify and harden the local Docker Compose development-task stack so `bus dev task` can create a task, execute it through the Docker-backed Codex container profile, and replay/follow the result deterministically through `bus dev task watch`; the stack now builds a Codex CLI image, protects backend `bus.docker.*` Events API access with `container:*` scopes, supports optional Codex home/workspace host mounts for live `codex exec`, and includes a repeatable Docker Compose smoke test
 - refine Bus configure command shape so common dotenv access is top-level and concise: `bus configure KEY=VALUE [KEY2=VALUE2]` writes values, `bus configure KEY [KEY2]` reads values, and older `edit`/`--set` forms remain compatibility paths
 - clarify README module invocation guidance so standalone `bus-*` binaries are described as available for direct/debug use while the intended user-facing command form remains dispatcher-first, for example `bus journal ...`
@@ -62,29 +94,3 @@ Goal note:
 - add a development OTP sender for `bus-api-provider-auth` that writes dummy OTP codes to the console log, can be enabled without SMTP, and acts as the example/template for future OTP provider implementations
 - extend the Bus auth platform for AI Platform access registration: end users register by email, verify with OTP, remain waitlisted until admin approval/rejection, and only approved users receive `aud=ai.hg.fi/api` `scope=llm:proxy` JWTs; auth-service/admin tokens use `aud=ai.hg.fi/auth` with scope-only powers such as `waitlist:read`, `waitlist:approve`, and `admin:manage`, while Bus model/runtime providers validate signed JWTs and read `sub` as the stable AI Platform account UUID
 - add a reusable Bus auth platform split into `bus-api-provider-auth` and `bus-auth`: the provider exposes pluggable passwordless OTP authenticators, stable account UUID identities, short-lived JWT issuing for internal Bus AI Platform jobs, secret-backed signer abstraction for future key rotation/JWKS algorithms, rate limiting by email/IP, file-backed and in-memory stores, SMTP and in-memory senders, and fuzz/property test coverage for token and request parsing; the CLI is a thin script-friendly client for `bus auth login/logout/whoami/refresh`
-
-### Support native statutory profit-and-loss lines for nonstandard tax-like adjustments without legacy mapping
-
-Problem:
-- This repo no longer wants to use legacy `report-account-mapping`.
-- Current Bus statutory profit-and-loss generation is expected to rely on native account groups (`accounts.group_id` plus `account-groups.csv`).
-- We have a real sole-proprietor source case on `9950 Aiempien tilikausien verot` where the ledger posting should remain as source parity, but the account should not be shown under `pl_income_taxes / Tuloverot`.
-
-What fails today:
-- If `9950 Aiempien tilikausien verot` stays on `pl_income_taxes / Tuloverot`, Bus generates a visible `TULOVEROT` subtotal in the statutory profit-and-loss even when the desired presentation is different.
-- If the account is moved to a custom native group such as `pl_prior_year_tax_adjustments`, statutory profit-and-loss generation fails with `FR-REP-007` because the custom group has no visible statutory line.
-- If the account is moved to some other existing visible line such as `pl_other_operating_income`, statutory profit-and-loss generation can fail `FR-REP-010` because the profit-and-loss presentation no longer reconciles cleanly to the balance-sheet equity change.
-
-Requested capability:
-- Allow native account-group based statutory profit-and-loss layouts to expose an explicit visible line for these nonstandard tax-like adjustments without requiring legacy `report-account-mapping`.
-- In practice Bus needs one of these native solutions:
-  - a supported standard statutory line id for cases like `Aiempien tilikausien verot ja palautukset`, or
-  - a way to mark a custom native account group as a visible statutory line in the profit-and-loss layout, or
-  - a first-class native classification layer that is not the removed legacy mapping model but still lets operators place exceptional accounts on a specific visible statutory line.
-
-Why this matters:
-- In this repo, the accounting source should stay unchanged, but the statutory presentation should still be controllable without legacy report-mapping debt.
-- The current gap forces an unacceptable choice between:
-  - wrong presentation under `Tuloverot`
-  - hidden/unmapped groups that fail `FR-REP-007`
-  - or repointing the account to an unrelated visible line and risking `FR-REP-010`.
