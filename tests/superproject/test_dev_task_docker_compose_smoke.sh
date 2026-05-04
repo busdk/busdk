@@ -17,6 +17,7 @@ compose_args=(-f compose.dev-task-docker.yaml)
 export BUS_DEV_TASK_COMMAND_JSON="${BUS_DEV_TASK_COMMAND_JSON:-[\"codex\",\"--version\"]}"
 export BUS_DEV_TASK_PRE_COMMAND_JSON="${BUS_DEV_TASK_PRE_COMMAND_JSON:-[]}"
 export BUS_DEV_TASK_POST_COMMAND_JSON="${BUS_DEV_TASK_POST_COMMAND_JSON:-[]}"
+export BUS_DEV_TASK_RECIPIENT="${BUS_DEV_TASK_RECIPIENT:-bus-dev}"
 
 cleanup() {
   rm -f bus-dev/.bus/dev/task.json
@@ -26,6 +27,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
+docker compose "${compose_args[@]}" down --remove-orphans >/dev/null 2>&1 || true
 docker compose "${compose_args[@]}" up --build -d >/dev/null
 
 docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
@@ -44,6 +46,11 @@ docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
 docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
   cd /workspace/bus-containers
   go run ./cmd/bus-containers run --profile codex -- codex --version | grep -q "codex-cli"
+'
+
+docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
+  cd /workspace/bus-containers
+  go run ./cmd/bus-containers run --profile codex -- bus-dev --help | grep -q "Usage: bus dev"
 '
 
 task_ok=0
