@@ -198,6 +198,74 @@ task created from `bus-dev`, or explicitly addressed as `@bus-dev`, runs in
 `/workspace/bus-dev` inside the Docker-created Codex container. A task addressed
 as `@bus-integration-docker` runs in `/workspace/bus-integration-docker`.
 
+### Parallel development tasks
+
+Use one `bus-integration-dev-task` worker per module recipient. Do not run
+generic recipient-less workers: independent module work should be claimed by a
+worker addressed to exactly that module.
+
+Task containers use isolated Git worktrees by default in the local Docker
+stack. The mounted workspace is the read-only dependency view, and only the
+recipient's task worktree is mounted writable. For this BusDK superproject,
+Compose sets `BUS_DEV_TASK_WORKSPACE_RECIPIENT=busdk`; use recipient `busdk`
+only for work that intentionally edits the superproject root. Other projects
+can choose their own workspace-recipient name without changing worker code.
+
+The local task stack can be scaled while it is running. Start with four provider
+routers and four active module workers, then increase in steps of two only when
+Docker has CPU, memory, and Codex quota headroom:
+
+```bash
+docker compose -f compose.dev-task-docker.yaml up -d \
+  --scale bus-integration-docker=6 \
+  --scale bus-integration-containers=6 \
+  bus-integration-docker bus-integration-containers
+```
+
+Add a module worker dynamically with a unique container name and explicit
+recipient. The disposable worker exits after one matching task or after a
+bounded idle period:
+
+```bash
+docker compose -f compose.dev-task-docker.yaml run -d --no-deps \
+  --name busdk-dev-task-bus-journal-1 \
+  -e BUS_DEV_TASK_RECIPIENT=bus-journal \
+  -e BUS_DEV_TASK_ONCE=true \
+  -e BUS_DEV_TASK_IDLE_TIMEOUT=10m \
+  bus-integration-dev-task
+```
+
+Then create a targeted task:
+
+```bash
+bus dev -C ./bus-dev task new @bus-journal "Implement the next PLAN.md item."
+```
+
+Observed local operating settings:
+
+- 4 parallel module workers is the default safe setting for routine work.
+- 6 parallel module workers is the normal fast setting on a healthy local
+  Docker Desktop stack.
+- 8 parallel module workers launched successfully in this repository with a
+  15.6 GiB Docker memory limit, but should be treated as a monitored burst.
+
+Watch task state and container pressure while scaling:
+
+```bash
+bus dev -C ./bus-dev task list --all
+docker ps
+docker stats --no-stream
+```
+
+Disposable per-recipient workers should exit by themselves. If a stale worker
+was started without `BUS_DEV_TASK_ONCE=true` or an idle timeout, stop it or
+recreate the task stack when starting a clean batch:
+
+```bash
+docker stop busdk-dev-task-bus-journal-1
+docker compose -f compose.dev-task-docker.yaml down --remove-orphans
+```
+
 The default local task command is:
 
 ```json

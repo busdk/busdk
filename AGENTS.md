@@ -55,11 +55,15 @@ Merged guidance from `.cursor/rules/*.mdc`.
 9. Dev-task worker tokens need both Events transport scopes and domain task scopes. Include `events:send events:listen` together with `dev:task:send dev:task:read dev:task:reply dev:task:claim`; otherwise the Events API returns `403 insufficient_scope` and workers appear idle.
 10. For `compose.dev-task-docker.yaml`, scale provider-neutral container/Docker integration services before creating in-memory dev tasks. Scaling after task creation can recreate the in-memory `bus-events` service and lose queued tasks. If scaling an already-running stack, use explicit no-recreate behavior where practical and verify the Events API was not restarted. Start per-recipient worker containers sequentially with `docker compose run --no-deps ...`; do not launch parallel `docker compose run` commands, because Compose can race service recreation and collapse the scaled worker pool.
 11. Dev-task workers should keep repository searches bounded to the module they own and the explicitly named shared files they need. If `rg` is unavailable in a worker container, use `find`/`grep` over targeted directories or filenames; do not run broad `grep -R ..` from inside a submodule because the superproject contains many modules and this can stall otherwise small tasks.
-12. Review returned work as a full technical quality gate. Trust diffs, tests, logs, artifacts, and documented risks more than persuasive summaries. Do not accept work that lacks enough evidence to verify the acceptance criteria.
-13. Accept work when it improves code health, satisfies the requested outcome, fits module boundaries, includes appropriate tests and documentation, and leaves no hidden critical security, privacy, performance, or operations risk.
-14. Return work for correction when tests, e2e coverage, documentation, release fit, or evidence are missing. Record real follow-ups in the appropriate `PLAN.md`, `BUGS.md`, or `FEATURE_REQUESTS.md` instead of relying on verbal promises.
-15. Keep persistent memory lightweight and useful: use `AGENTS.md` for durable operational constraints and decisions, root `BUGS.md` for cross-module defects, root `FEATURE_REQUESTS.md` for platform/product capabilities, module `PLAN.md` for module execution work, and module `README.md` for stable usage and contracts.
-16. Report to the human in terms of goal, release scope, critical path, delegated work, completed or returned work, blockers, risks or cost notes, open human decisions, and the recommended next step.
+12. Dev-task execution must follow the recipient-owned writable workspace model: each worker gets write access only to the recipient module's isolated Git worktree, while dependency modules are read-only. Cross-module edits must be requested through separate module-recipient tasks or escalated back through the coordinating work stream; do not give a worker broad writable access to all submodules for convenience.
+12.1. Dev-task workspace isolation, branch preparation, promotion, cleanup, mount permissions, and concurrency controls must be deterministic dev-ops rules implemented in code or shell mechanics, not prompt instructions, whenever the behavior can be enforced mechanically.
+13. Review returned work as a full technical quality gate. Trust diffs, tests, logs, artifacts, and documented risks more than persuasive summaries. Do not accept work that lacks enough evidence to verify the acceptance criteria.
+14. Accept work when it improves code health, satisfies the requested outcome, fits module boundaries, includes appropriate tests and documentation, and leaves no hidden critical security, privacy, performance, or operations risk.
+15. Return work for correction when tests, e2e coverage, documentation, release fit, or evidence are missing. Record real follow-ups in the appropriate `PLAN.md`, `BUGS.md`, or `FEATURE_REQUESTS.md` instead of relying on verbal promises.
+16. Keep persistent memory lightweight and useful: use `AGENTS.md` for durable operational constraints and decisions, root `BUGS.md` for cross-module defects, root `FEATURE_REQUESTS.md` for platform/product capabilities, module `PLAN.md` for module execution work, and module `README.md` for stable usage and contracts.
+17. Whenever a new feature is implemented, update the BusDK blog/docs under `busdk.com/docs/`, public end-user documentation under `docs/docs/`, and SDD documents under `sdd/docs/` in the same release flow. Prefer issuing those documentation updates through `bus dev task` workers addressed to the owning documentation modules when the docs live outside the implementation module.
+18. CLI `--help` and OpenCLI/help metadata for a new CLI feature must be updated in the same implementation change. Periodically review CLI help for missing feature coverage because help drift is a recurring risk.
+19. Report to the human in terms of goal, release scope, critical path, delegated work, completed or returned work, blockers, risks or cost notes, open human decisions, and the recommended next step.
 
 ## Module Operational Conventions (All `bus` and `bus-*` Modules)
 
@@ -486,3 +490,14 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 - `TRACE` logs are exhaustive diagnostics for deep debugging, including details
   not appropriate at lower levels and possibly sensitive information. Do not
   enable `TRACE` in production or live environments.
+- Dev-task worker containers should receive the BusDK super-project as a
+  read-only dependency view by default. Write access belongs only to the task
+  recipient's isolated Git worktree; changes to the super-project itself must
+  go through an explicit super-project recipient task where the super-project is
+  the owned writable target.
+- Documentation work for `docs`, `sdd`, and `busdk.com` should normally be
+  recorded as PLAN items in the owning repository and executed through
+  recipient-scoped `bus dev task` / `bus work` interfaces so module workers do
+  not need direct write access across repository boundaries. Direct coordinator
+  edits are acceptable for small blocking infrastructure-aligned updates, but
+  the PLAN trace still belongs in the owning docs repository.
