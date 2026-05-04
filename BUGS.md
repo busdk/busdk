@@ -11,6 +11,18 @@ No active defects.
 
 ## Fixed defects
 
+- [x] Canceled `bus dev task` work could still launch a queued container run.
+  - Reported: 2026-05-04 while resetting stale module workers. A canceled
+    `bus-dev#3.1` task still started a later `bus-events` Codex container
+    because the container run request had already been queued behind another
+    long-running module task.
+  - Fixed: `bus-integration-dev-task` tags container run requests with the
+    source task ref and treats downstream canceled responses as cancellation;
+    `bus-integration-containers` rejects queued run requests before backend
+    dispatch when task replay shows the source task is canceled.
+  - Verified: `go test`, `make test`, `make e2e`, and `make lint` in
+    `bus-integration-dev-task` and `bus-integration-containers`.
+
 - [x] Cross-module `bus dev task new` inherited the sender branch and made
   workers fail before execution.
   - Reported: 2026-05-03 while dispatching module tasks from `bus-dev`; worker
