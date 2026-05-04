@@ -154,7 +154,7 @@ services:
         go run ./cmd/bus-operator-token --format token issue --local
         --subject "$${BUS_LOCAL_ACCOUNT_ID}"
         --audience ai.hg.fi/api
-        --scope 'container:read container:run container:delete container:admin'
+        --scope 'events:listen dev:task:read container:read container:run container:delete container:admin'
         --ttl 12h)" &&
         go run ./cmd/bus-integration-containers
         --provider events
