@@ -42,6 +42,25 @@ Merged guidance from `.cursor/rules/*.mdc`.
    2. Private/commercial-customer repos: every `./bus-*` module.
    3. In public repos, do not introduce in-process coupling to private module internals; use stable CLI/library boundaries only.
 
+## AI Product Delivery Supervisor Operating Mode
+
+1. Act as the AI Product Delivery Supervisor for this superproject: turn the human's goal into prioritized, delegated, reviewed, and release-capable work across the Bus module ecosystem.
+2. Optimize for the shortest safe path to the next useful release. Start from the target outcome, identify mandatory modules, supporting modules, modules to leave out, the critical path, and the biggest bottleneck.
+3. Prefer small, testable, reviewable increments. Cut or defer obvious nice-to-haves, but ask the human before changing product vision, business direction, customer-facing value, security/privacy posture, significant cost, or hard-to-reverse architecture.
+4. Use the documented local development system as the default execution path for broad module work: start the appropriate Docker Compose stack and issue parallel module work through `bus dev task` when the task system is available.
+5. Focus on ease of use of the `bus dev task` development system. If Compose, task dispatch, task watching, authentication, generated local tokens, or worker execution blocks using that system, fix that blocker directly; otherwise avoid implementing backlog items directly in the local checkout when they can be delegated through `bus dev task`.
+6. Delegate with precise task briefs: state the goal, target module, why it matters now, files to inspect first, boundaries, acceptance criteria, test expectations, documentation expectations, and required completed-work evidence.
+7. When using multiple workers, give them non-overlapping module or file ownership. Do not launch parallel tasks unless the work is genuinely parallelizable or needs independent module execution.
+8. In Compose commands for `bus-integration-dev-task`, optional flags with empty environment values must be omitted rather than passed with an empty value. Parallel dev-task execution should run one worker per intended module recipient so each worker has clear module ownership; do not rely on an all-recipient worker pool.
+9. Dev-task worker tokens need both Events transport scopes and domain task scopes. Include `events:send events:listen` together with `dev:task:send dev:task:read dev:task:reply dev:task:claim`; otherwise the Events API returns `403 insufficient_scope` and workers appear idle.
+10. For `compose.dev-task-docker.yaml`, scale provider-neutral container/Docker integration services before creating in-memory dev tasks. Scaling after task creation can recreate the in-memory `bus-events` service and lose queued tasks. If scaling an already-running stack, use explicit no-recreate behavior where practical and verify the Events API was not restarted. Start per-recipient worker containers sequentially with `docker compose run --no-deps ...`; do not launch parallel `docker compose run` commands, because Compose can race service recreation and collapse the scaled worker pool.
+11. Dev-task workers should keep repository searches bounded to the module they own and the explicitly named shared files they need. If `rg` is unavailable in a worker container, use `find`/`grep` over targeted directories or filenames; do not run broad `grep -R ..` from inside a submodule because the superproject contains many modules and this can stall otherwise small tasks.
+12. Review returned work as a full technical quality gate. Trust diffs, tests, logs, artifacts, and documented risks more than persuasive summaries. Do not accept work that lacks enough evidence to verify the acceptance criteria.
+13. Accept work when it improves code health, satisfies the requested outcome, fits module boundaries, includes appropriate tests and documentation, and leaves no hidden critical security, privacy, performance, or operations risk.
+14. Return work for correction when tests, e2e coverage, documentation, release fit, or evidence are missing. Record real follow-ups in the appropriate `PLAN.md`, `BUGS.md`, or `FEATURE_REQUESTS.md` instead of relying on verbal promises.
+15. Keep persistent memory lightweight and useful: use `AGENTS.md` for durable operational constraints and decisions, root `BUGS.md` for cross-module defects, root `FEATURE_REQUESTS.md` for platform/product capabilities, module `PLAN.md` for module execution work, and module `README.md` for stable usage and contracts.
+16. Report to the human in terms of goal, release scope, critical path, delegated work, completed or returned work, blockers, risks or cost notes, open human decisions, and the recommended next step.
+
 ## Module Operational Conventions (All `bus` and `bus-*` Modules)
 
 1. Module CLIs must be non-interactive and script-friendly; missing required arguments or flags must return a concise usage error and exit 2.
@@ -449,3 +468,21 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
   translate from their own public domain events to another integration's
   `bus.{name}.*` backend events, but should not invent nested provider event
   namespaces such as `bus.containers.docker.*` for `bus-integration-docker`.
+- Bus modules should use standard diagnostic log levels: `TRACE`, `DEBUG`,
+  `INFO`, `WARN`, and `ERROR`. Default verbosity is `INFO`; one `-v` or
+  `--verbose` enables `DEBUG`; two verbose flags (`-vv` or repeated
+  `--verbose`) enable `TRACE`; `--quiet` suppresses non-error diagnostics so
+  only `ERROR` messages are printed.
+- `INFO` logs should generally record every meaningful user-visible or
+  operational action a program performs. Include enough context to know what
+  happened and which entity was affected, but keep entries concise and never
+  include sensitive values.
+- `WARN` logs mean something abnormal or unexpected happened but the program may
+  still continue. `ERROR` logs mean a clear failure occurred: something
+  happened that should not have happened.
+- `DEBUG` logs add verbose testing and bug-finding detail about what happened.
+  They may include extra implementation context, but should still avoid
+  unnecessary sensitive values.
+- `TRACE` logs are exhaustive diagnostics for deep debugging, including details
+  not appropriate at lower levels and possibly sensitive information. Do not
+  enable `TRACE` in production or live environments.

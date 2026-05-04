@@ -11,6 +11,33 @@ No active defects.
 
 ## Fixed defects
 
+- [x] Cross-module `bus dev task new` inherited the sender branch and made
+  workers fail before execution.
+  - Reported: 2026-05-03 while dispatching module tasks from `bus-dev`; worker
+    histories showed `stderr: error: pathspec '1-bus-dev' did not match any
+    file(s) known to git` for target modules that did not have the sender's
+    current branch.
+  - Fixed: `bus dev task new` now defaults branch metadata only for tasks whose
+    recipient is the current project. Cross-module tasks omit branch metadata
+    unless `--branch` or `--new-branch` is explicit.
+  - Verified: `make test` and `make e2e` in `bus-dev`.
+
+- [x] Concurrent `bus dev task new` calls can allocate duplicate task refs.
+  - Reported: 2026-05-03 while dispatching parallel module tasks through the
+    local Docker-backed `bus dev task` stack. Two concurrent task creations
+    both printed `created bus-dev#10` / `created bus-dev#10.1`, targeting
+    different modules.
+  - Fixed: the shared Unix directory lock now keeps the lock file visible while
+    held so every process locks the same inode, and `bus dev task new` holds
+    that repository lock while it replays existing group refs and publishes the
+    group/member events. Local parallel creators for the same project now
+    serialize allocation without reintroducing repository-local sequence state.
+  - Verified: `go test ./run -run
+    'TestRunTaskNewConcurrentSubprocessesAllocateUniqueRefs|TestRunTaskNewAllocatesGroupIDFromEventReplay|TestRunTaskNewPublishesDevelopmentTaskEvents'`;
+    `go test ./internal/lock ./run -run
+    'TestAcquire_release|TestRunTaskNewConcurrentSubprocessesAllocateUniqueRefs'`;
+    `make test` and `make e2e` in `bus-dev`.
+
 - [x] `bus dev task watch 1.1` matches stale tasks from other modules instead
   of resolving shorthand refs relative to the current project.
   - Reported: 2026-05-03 from `bus dev -C ./bus-vat task new ...` printing

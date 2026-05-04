@@ -7,28 +7,20 @@ Privacy rule for request write-ups:
 - Prefer placeholders and aggregated outputs over raw customer-linked row dumps.
 - This public superproject must not contain real secrets. Local Docker Compose examples must use non-secret development defaults only and read any real SMTP, database, JWT, or AI Platform credentials from operator-provided environment/config outside git.
 
-Last reviewed: 2026-04-25.
+Last reviewed: 2026-05-03.
 
 Goal note:
 - Target workflow is Bus-only for bookkeeping/audit operations.
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 ## Active requests
-- add metadata-driven Bus help and configuration discovery: implement `bus-help` exposed as `bus help` for human help plus live OpenCLI-compatible machine-readable output with Bus namespaced metadata extensions, implement `bus-configure` exposed as `bus configure` as an independent consumer that discovers metadata through command stdout to create/list/validate/doctor `.env` files, add representative module-owned metadata starting with `bus-journal`, keep generated files export-only, and keep shared OpenCLI/Bus metadata structs in `bus-help` rather than making other modules depend on `bus-configure`
-- add `bus-work` as the generic Bus Events-backed durable work-stream module: users can create work for the current context or `@recipient` targets, fan out one request to multiple recipients with independent per-recipient streams, read/watch/wait/say while work is in progress, claim the next item with `next`, close/fail/block through events, use incremental human refs (`123`, `123.1`, `owner#123`), configure non-secret project/host/recipient aliases in `.bus/work/config.json`, protect `bus.work.*` with dedicated work JWT scopes, and keep the protocol independent of Codex, development tooling, or any specific worker backend; `bus dev task` can later wrap this generic protocol with repository-oriented defaults while preserving existing `bus dev work`
 - add a first-class `bus reports closing-review` report that assembles tilinpäätös preparation and review findings into one deterministic markdown/json review artifact without changing existing statutory statement commands
-- speed up `bus-reports` AI-annotated account report variants further beyond 4-way parallelism
-- expose an explicit fast-model / AI-runtime tuning surface for AI-annotated report generation
-- render AI-generated account summary rows in PDFs without bold emphasis
-- add opt-in normalized text matching for `bus files assert cell` so report assertions can trim/collapse presentation whitespace while preserving exact matching by default
-- extend `bus journal assert ...` with grouped receipt/source coverage controls for first-class receipt-split audit parity
-- expand `bus journal --help` and command-local help so assert/match date, account, source, description, and comparison syntax is discoverable from built-in help
+- improve AI-annotated `bus-reports` `*-accounts` report usability and throughput beyond the shipped 4-way parallelism: remove bold emphasis from PDF AI child rows, expose an operator-facing fast-model / AI-runtime tuning surface, and implement the highest-signal measured speedups while preserving deterministic visible row order and same-run PDF/CSV AI result reuse
 - extract a reusable shared AI host library in `bus-agent` and/or `bus-ui` for approval handling, terminal-session state, thread-isolation/lock reporting, streamed agent event propagation, and runtime auth/login handling, then migrate `bus-chat`, `bus-ledger`, `bus-factory`, and `bus-portal` to consume that shared implementation instead of keeping per-host copies
 - add a first-class configurable Codex local-model contract across BusDK AI hosts so modules such as `bus-ledger`, `bus-portal`, and other `bus-agent` consumers can target operator-selected local models like Gemma 4 without losing current hosted-model defaults
 - add `bus-chat` as a supported optional service in `bus-gateway`, including service-catalog setup, launcher visibility, and authenticated proxy launch flow
-- add Bus-native deployment automation for installing and operating Bus cloud platform components: implement `bus operator deploy` as the full orchestration controller; provider-neutral cloud/database/node/inference operator and API-provider surfaces; event-driven integration workers for cloud, database, node, and inference work; reusable direct Go-library bootstrap paths that call the same provider-neutral contracts as the running Bus Events/API paths; UpCloud, PostgreSQL, SSH-runner, Stripe, billing, and Ollama integration through those abstractions; composable env/credential-file based configuration; README/docs/SDD/help plus unit/e2e/root quality coverage across the new modules
 - finish the remaining Bus Events ecosystem route-discovery and delivery-policy work: wire declared event capabilities into `bus-api` REST-to-event route validation/discovery, then define terminal-failure, dead-letter, and operator-diagnostic semantics for work-queue delivery while keeping the current memory/Redis/PostgreSQL backend set until a concrete new backend is requested
-- align Bus-owned AI Platform API planning with the in-progress AI Platform docs: keep OpenAI-compatible model calls under `/v1/*` and support `bus-auth` AI Platform sessions as one `bus-agent` provider/auth option without removing existing providers; make domain modules own their API clients and Go libraries (`bus-vm` for `/api/v1/vm/status`, `bus-containers` for user-owned `/api/v1/containers/status` and `/api/v1/containers/runs*` lifecycle APIs); make `bus-status` an aggregate status UX that calls those domain libraries instead of owning the APIs; `bus-api-provider-auth` owns the auth service implementation; `bus-auth` owns the auth client CLI; leave `/api/internal/usage-events` as Bus-internal billing infrastructure with no Bus CLI module for now; and keep final auth/admin service paths pending final API docs
+- complete shared `bus-auth` AI Platform session support as a `bus-agent` provider/auth option for host modules that call OpenAI-compatible `/v1/*` endpoints, without removing existing providers or weakening the already implemented domain API ownership boundaries
 
 ### Support native statutory profit-and-loss lines for nonstandard tax-like adjustments without legacy mapping
 
@@ -58,6 +50,11 @@ Why this matters:
 
 ## Implemented requests
 
+- add metadata-driven Bus help and configuration discovery: `bus-help` owns shared OpenCLI-compatible metadata structs and live discovery, `bus-configure` consumes command stdout for metadata-driven `.env` workflows, and representative module-owned metadata including `bus-journal` is implemented with module/unit/e2e coverage
+- add `bus-work` as the generic Bus Events-backed durable work-stream module: the module owns `new/list/next/show/watch/wait/say/close/fail/block`, multi-recipient fan-out, human refs, replay/follow behavior, dedicated `bus.work.*` scopes, and generic protocol docs while keeping `bus dev task` separate
+- add opt-in/operator-friendly normalized text matching for `bus files assert cell` and related assertion surfaces: string matching now trims and normalizes whitespace by default, with strict flags for exact whitespace and case-sensitive behavior
+- extend `bus journal assert ...` with grouped receipt/source coverage controls and command-local help: grouped `source-id` assertions, assert/match syntax help, and docs are implemented in `bus-journal`
+- add Bus-native deployment automation for installing and operating Bus cloud platform components: `bus operator deploy`, provider-neutral cloud/database/node/inference operators and API providers, integration workers, direct bootstrap paths, UpCloud/PostgreSQL/SSH-runner/billing/Stripe/Ollama integrations, docs, and module coverage are tracked as completed in the owning module plans
 - delivered the main local Docker Compose Bus platform stack as a complete
   development task test environment: the portal-enabled stack runs
   `bus-integration-dev-task`, routes `bus dev task` events through the

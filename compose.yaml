@@ -297,7 +297,12 @@ services:
       - -ec
       - |
         export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
-        exec go run ./cmd/bus-integration-dev-task --events-url http://bus-events:8081 --recipient "$${BUS_DEV_TASK_RECIPIENT}" --container-profile "$${BUS_DEV_TASK_CONTAINER_PROFILE}" --workspace-root "$${BUS_DEV_TASK_WORKSPACE_ROOT}" --command-json "$${BUS_DEV_TASK_COMMAND_JSON}" --pre-command-json "$${BUS_DEV_TASK_PRE_COMMAND_JSON}" --post-command-json "$${BUS_DEV_TASK_POST_COMMAND_JSON}" --timeout "$${BUS_DEV_TASK_TIMEOUT}"
+        set -- go run ./cmd/bus-integration-dev-task --events-url http://bus-events:8081
+        if [ -n "$${BUS_DEV_TASK_RECIPIENT}" ]; then
+          set -- "$$@" --recipient "$${BUS_DEV_TASK_RECIPIENT}"
+        fi
+        set -- "$$@" --container-profile "$${BUS_DEV_TASK_CONTAINER_PROFILE}" --workspace-root "$${BUS_DEV_TASK_WORKSPACE_ROOT}" --command-json "$${BUS_DEV_TASK_COMMAND_JSON}" --pre-command-json "$${BUS_DEV_TASK_PRE_COMMAND_JSON}" --post-command-json "$${BUS_DEV_TASK_POST_COMMAND_JSON}" --timeout "$${BUS_DEV_TASK_TIMEOUT}"
+        exec "$$@"
 
   bus-codex:
     image: ${BUS_LOCAL_CODEX_IMAGE:-bus-local-codex:dev}
