@@ -186,9 +186,9 @@ services:
       BUS_DEV_TASK_WORKTREE_ROOT: ${BUS_DEV_TASK_WORKTREE_ROOT:-/workspace/tmp/bus-dev-task-worktrees}
       BUS_DEV_TASK_COMMAND_JSON: ${BUS_DEV_TASK_COMMAND_JSON:-["codex","exec","--skip-git-repo-check","--sandbox","danger-full-access","{prompt}"]}
       BUS_DEV_TASK_PRE_COMMAND_JSON: ${BUS_DEV_TASK_PRE_COMMAND_JSON:-[]}
-      BUS_DEV_TASK_POST_COMMAND_JSON: ${BUS_DEV_TASK_POST_COMMAND_JSON:-[]}
-      BUS_DEV_TASK_COMMIT: ${BUS_DEV_TASK_COMMIT:-true}
-      BUS_DEV_TASK_COMMIT_MESSAGE: "${BUS_DEV_TASK_COMMIT_MESSAGE:-chore: dev task {work_ref}}"
+      BUS_DEV_TASK_POST_COMMAND_JSON: "[]"
+      BUS_DEV_TASK_COMMIT: "true"
+      BUS_DEV_TASK_COMMIT_MESSAGE: "chore: dev task {work_ref}"
       BUS_DEV_TASK_ONCE: ${BUS_DEV_TASK_ONCE:-true}
       BUS_DEV_TASK_IDLE_TIMEOUT: ${BUS_DEV_TASK_IDLE_TIMEOUT:-10m}
       BUS_DEV_TASK_TRACE: ${BUS_DEV_TASK_TRACE:-false}
