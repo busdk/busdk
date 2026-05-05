@@ -271,6 +271,13 @@ PLAN item closures per hour, review pass rate, and rework. Treat 6 or 8 as
 monitored experiments, not defaults, because more workers also create more
 review, token, memory, and Git-worktree pressure.
 
+The local Codex App Server worker image currently lacks Codex's Linux
+workspace-sandbox helper, so `compose.dev-task-docker.yaml` defaults
+`BUS_DEV_TASK_CODEX_SANDBOX=danger-full-access` for that Docker-contained
+worker path. The bridge still verifies the addressed isolated worktree before
+promotion and reports blocked instead of done when a worker produces no diff or
+self-reports incomplete evidence.
+
 Watch task state and container pressure while scaling:
 
 ```bash

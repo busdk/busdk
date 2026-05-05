@@ -60,6 +60,8 @@ Merged guidance from `.cursor/rules/*.mdc`.
 12.2. Prefer dev-task work that can run without new host permissions. When work needs repeated host-level permissions, first offload it to recipient-scoped `bus dev task` containers where possible, or add a reusable script/Bus command with a narrow permission surface instead of relying on one-off ad hoc commands.
 12.3. When starting ad hoc local dev-task workers with Docker Compose, pass explicit `BUS_DEV_TASK_POST_COMMAND_JSON=[]`, `BUS_DEV_TASK_COMMIT=true`, and a bridge commit message so stale shell environment variables cannot re-enable obsolete in-container Git commit hooks.
 12.4. Read-only live QA smokes for `bus dev work` / Codex App Server should pass explicit `BUS_DEV_TASK_COMMIT=false` while still passing `BUS_DEV_TASK_POST_COMMAND_JSON=[]`, so tests that ask the agent not to edit files do not promote or churn task branches.
+12.5. Before starting commit-enabled live dev-task workers or benchmark batches, verify each recipient primary checkout is clean; infrastructure should enforce this before launching App Server so a dirty checkout cannot waste a live Codex turn and then fail at promotion.
+12.6. If a live Codex App Server exits before producing assistant text with `signal: bus error` / `Bus error: 10`, treat it as a transient backend crash: publish the exact failure evidence, retry once automatically when safe, and prefer three concurrent live App Server workers as the local default until four-worker stability is proven.
 13. Review returned work as a full technical quality gate. Trust diffs, tests, logs, artifacts, and documented risks more than persuasive summaries. Do not accept work that lacks enough evidence to verify the acceptance criteria.
 14. Accept work when it improves code health, satisfies the requested outcome, fits module boundaries, includes appropriate tests and documentation, and leaves no hidden critical security, privacy, performance, or operations risk.
 15. Return work for correction when tests, e2e coverage, documentation, release fit, or evidence are missing. Record real follow-ups in the appropriate `PLAN.md`, `BUGS.md`, or `FEATURE_REQUESTS.md` instead of relying on verbal promises.
@@ -107,6 +109,7 @@ Apply this section only when editing CLI module repositories or shared CLI parsi
 6. Tests must be deterministic, isolated, and CI-repeatable.
 7. Quality gates must pass: build, tests, formatting, linting/static checks, and security/secret checks.
 8. After any code change, always run automated tests before reporting completion; if a module `make` target is a no-op or stale, run the underlying test/build commands directly for that module.
+8.0. If an e2e run fails with `cannot execute binary file: Exec format error` for a module `bin/*` dependency, force a host rebuild with the owning module's `make clean build`; a stale cross-platform binary can satisfy Make timestamps while being unusable locally.
 8.1. During development, first run the affected module's unit/e2e tests for fast iteration and debugging.
 8.2. Because cross-module dependency effects are common in this superproject, the final verification step before reporting completion must still include root `make test` and `make e2e`; by default those targets may run changed-module scope, and `TEST_SCOPE=all` is required only when the user explicitly asks for a full cross-repository sweep.
 8.3. Module-local unit/e2e runs are required for fast feedback during debugging, but they do not replace the required final root-level `make test` and `make e2e`.
@@ -554,3 +557,11 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
   must set bounded per-request timeouts such as `--connect-timeout` and
   `--max-time`, so an unready service cannot hang the whole infrastructure
   test.
+- Synthetic dev-task smoke throughput only validates orchestration capacity.
+  Do not use smoke tasks/minute as a productivity metric. Evaluate worker count
+  with accepted PLAN closures, review pass rate, rework rate, and real
+  task-stream timing from `bus dev work stats --all`.
+- Dev-task worker completion must be evidence-based. A completed LLM turn is
+  not enough: if the worker produces no worktree diff, reports no tests run,
+  says the PLAN item was not closed, or otherwise self-reports blocked
+  evidence, the task stream must end as blocked/failed rather than done.

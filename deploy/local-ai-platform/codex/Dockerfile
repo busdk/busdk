@@ -10,6 +10,12 @@ RUN apt-get update \
 RUN npm install -g "${CODEX_NPM_PACKAGE}@${CODEX_NPM_VERSION}" \
     && codex --version
 
+RUN ln -sf /usr/local/go/bin/go /usr/local/bin/go \
+    && ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt \
+    && rg_bin="$(find /usr/local/lib/node_modules/@openai -path '*/vendor/*/path/rg' -type f | head -n 1)" \
+    && test -n "$rg_bin" \
+    && ln -sf "$rg_bin" /usr/local/bin/rg
+
 RUN printf '%s\n' \
     '#!/bin/sh' \
     'set -eu' \
