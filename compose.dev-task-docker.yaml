@@ -112,7 +112,7 @@ services:
         go run ./cmd/bus-operator-token --format token issue --local
         --subject "$${BUS_LOCAL_ACCOUNT_ID}"
         --audience ai.hg.fi/api
-        --scope 'container:read container:run container:delete container:admin'
+        --scope 'events:send events:listen container:read container:run container:delete container:admin'
         --ttl 12h)" &&
         go run ./cmd/bus-integration-docker
         --provider docker
@@ -165,19 +165,32 @@ services:
       - .:/workspace
 
   bus-integration-dev-task:
-    image: golang:1.24
+    image: ${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}
     working_dir: /workspace/bus-integration-dev-task
     depends_on:
-      - bus-events
-      - bus-api-provider-containers
-      - bus-integration-containers
-      - bus-integration-docker
+      codex-image:
+        condition: service_completed_successfully
+      bus-events:
+        condition: service_started
+      bus-api-provider-containers:
+        condition: service_started
+      bus-integration-containers:
+        condition: service_started
+      bus-integration-docker:
+        condition: service_started
     environment:
       PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       BUS_LOCAL_ACCOUNT_ID: ${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
       BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
       BUS_EVENTS_API_URL: http://bus-events:8081
       BUS_DEV_TASK_RECIPIENT: ${BUS_DEV_TASK_RECIPIENT:-}
+      BUS_DEV_TASK_AGENT_BACKEND: ${BUS_DEV_TASK_AGENT_BACKEND:-codex-appserver}
+      BUS_DEV_TASK_CODEX_COMMAND: ${BUS_DEV_TASK_CODEX_COMMAND:-codex}
+      BUS_DEV_TASK_CODEX_ARGS: ${BUS_DEV_TASK_CODEX_ARGS:-["app-server","-c","approval_policy=\"never\"","-c","shell_environment_policy.inherit=all"]}
+      BUS_DEV_TASK_CODEX_MODEL: ${BUS_DEV_TASK_CODEX_MODEL:-auto}
+      BUS_DEV_TASK_CODEX_APPROVAL_POLICY: ${BUS_DEV_TASK_CODEX_APPROVAL_POLICY:-never}
+      BUS_DEV_TASK_CODEX_SANDBOX: ${BUS_DEV_TASK_CODEX_SANDBOX:-workspace-write}
+      BUS_DEV_TASK_CODEX_INHERIT_ENV: ${BUS_DEV_TASK_CODEX_INHERIT_ENV:-true}
       BUS_DEV_TASK_CONTAINER_PROFILE: codex
       BUS_DEV_TASK_WORKSPACE_ROOT: ${BUS_DEV_TASK_WORKSPACE_ROOT:-/workspace}
       BUS_DEV_TASK_WORKSPACE_HOST_ROOT: ${BUS_DEV_TASK_WORKSPACE_HOST_ROOT:-${PWD}}
@@ -189,8 +202,8 @@ services:
       BUS_DEV_TASK_POST_COMMAND_JSON: "[]"
       BUS_DEV_TASK_COMMIT: "true"
       BUS_DEV_TASK_COMMIT_MESSAGE: "chore: dev task {work_ref}"
-      BUS_DEV_TASK_ONCE: ${BUS_DEV_TASK_ONCE:-true}
-      BUS_DEV_TASK_IDLE_TIMEOUT: ${BUS_DEV_TASK_IDLE_TIMEOUT:-10m}
+      BUS_DEV_TASK_ONCE: ${BUS_DEV_TASK_ONCE:-false}
+      BUS_DEV_TASK_IDLE_TIMEOUT: ${BUS_DEV_TASK_IDLE_TIMEOUT:-0}
       BUS_DEV_TASK_TRACE: ${BUS_DEV_TASK_TRACE:-false}
     command:
       - sh
@@ -208,6 +221,13 @@ services:
         set -- "$$@" --recipient "$${BUS_DEV_TASK_RECIPIENT}";
         fi;
         set -- "$$@"
+        --agent-backend "$${BUS_DEV_TASK_AGENT_BACKEND}"
+        --codex-command "$${BUS_DEV_TASK_CODEX_COMMAND}"
+        --codex-args-json "$${BUS_DEV_TASK_CODEX_ARGS}"
+        --codex-model "$${BUS_DEV_TASK_CODEX_MODEL}"
+        --codex-approval-policy "$${BUS_DEV_TASK_CODEX_APPROVAL_POLICY}"
+        --codex-sandbox "$${BUS_DEV_TASK_CODEX_SANDBOX}"
+        --codex-inherit-env="$${BUS_DEV_TASK_CODEX_INHERIT_ENV}"
         --container-profile "$${BUS_DEV_TASK_CONTAINER_PROFILE}"
         --workspace-root "$${BUS_DEV_TASK_WORKSPACE_ROOT}"
         --workspace-host-root "$${BUS_DEV_TASK_WORKSPACE_HOST_ROOT}"
@@ -225,6 +245,7 @@ services:
         exec "$$@"
     volumes:
       - .:/workspace
+      - ${BUS_CODEX_HOME:-${HOME}/.codex}:/root/.codex
 
   testing-agent:
     image: golang:1.24

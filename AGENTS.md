@@ -59,6 +59,7 @@ Merged guidance from `.cursor/rules/*.mdc`.
 12.1. Dev-task workspace isolation, branch preparation, promotion, cleanup, mount permissions, and concurrency controls must be deterministic dev-ops rules implemented in code or shell mechanics, not prompt instructions, whenever the behavior can be enforced mechanically.
 12.2. Prefer dev-task work that can run without new host permissions. When work needs repeated host-level permissions, first offload it to recipient-scoped `bus dev task` containers where possible, or add a reusable script/Bus command with a narrow permission surface instead of relying on one-off ad hoc commands.
 12.3. When starting ad hoc local dev-task workers with Docker Compose, pass explicit `BUS_DEV_TASK_POST_COMMAND_JSON=[]`, `BUS_DEV_TASK_COMMIT=true`, and a bridge commit message so stale shell environment variables cannot re-enable obsolete in-container Git commit hooks.
+12.4. Read-only live QA smokes for `bus dev work` / Codex App Server should pass explicit `BUS_DEV_TASK_COMMIT=false` while still passing `BUS_DEV_TASK_POST_COMMAND_JSON=[]`, so tests that ask the agent not to edit files do not promote or churn task branches.
 13. Review returned work as a full technical quality gate. Trust diffs, tests, logs, artifacts, and documented risks more than persuasive summaries. Do not accept work that lacks enough evidence to verify the acceptance criteria.
 14. Accept work when it improves code health, satisfies the requested outcome, fits module boundaries, includes appropriate tests and documentation, and leaves no hidden critical security, privacy, performance, or operations risk.
 15. Return work for correction when tests, e2e coverage, documentation, release fit, or evidence are missing. Record real follow-ups in the appropriate `PLAN.md`, `BUGS.md`, or `FEATURE_REQUESTS.md` instead of relying on verbal promises.
@@ -474,6 +475,31 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
   translate from their own public domain events to another integration's
   `bus.{name}.*` backend events, but should not invent nested provider event
   namespaces such as `bus.containers.docker.*` for `bus-integration-docker`.
+- Any service token used by an Events-backed integration listener must include
+  the Events transport scopes it needs, especially `events:listen` for
+  subscriptions and `events:send` when it replies or publishes status. Domain
+  scopes alone are not enough and cause `403 insufficient_scope` startup
+  failures that make downstream workers appear idle.
+- `bus dev work` acceptance must exercise persistent `codex-appserver` worker
+  containers, live task-stream control, and worker readiness after completing a
+  task. One-shot container commands only prove the lower-level container
+  provider path and are not sufficient evidence for interactive agent
+  infrastructure.
+- App Server worker paths should default to the real `codex app-server` command
+  so local runs test the production integration by default. Deterministic
+  smoke tests may provide an explicit flag or environment override to use a
+  protocol-compatible fake app-server command when avoiding live model/runtime
+  dependencies is the point of the test.
+- Live `bus dev work` acceptance for Codex App Server infrastructure must prove
+  that a real LLM-powered Codex session can answer runtime-generated questions
+  from the task stream. Do not count hardcoded marker replies, echoed user
+  messages, or predefined fake app-server responses as evidence for the live
+  interactive Codex path.
+- Synthetic smoke-task throughput only validates orchestration capacity. Do
+  not use fake App Server smoke tasks as the worker-count productivity metric;
+  evaluate real worker productivity from accepted `PLAN.md` item closures,
+  review pass rate, rework, and `bus dev work stats --all` wall-time data from
+  live task streams.
 - Bus modules should use standard diagnostic log levels: `TRACE`, `DEBUG`,
   `INFO`, `WARN`, and `ERROR`. Default verbosity is `INFO`; one `-v` or
   `--verbose` enables `DEBUG`; two verbose flags (`-vv` or repeated
@@ -503,3 +529,28 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
   not need direct write access across repository boundaries. Direct coordinator
   edits are acceptable for small blocking infrastructure-aligned updates, but
   the PLAN trace still belongs in the owning docs repository.
+- The local AI Platform Compose Postgres defaults use database `bus_local` and
+  role `bus`; inspect dev-task event rows with commands like
+  `docker exec bus-local-ai-platform-postgres-1 psql -U bus -d bus_local ...`
+  rather than assuming a `postgres` role exists.
+- Local stack dev-task workers must be autonomous by default: they should keep
+  claiming additional matching tasks without coordinator overwatch, while
+  explicit disposable/ad hoc workers may opt into `BUS_DEV_TASK_ONCE=true` plus
+  a bounded `BUS_DEV_TASK_IDLE_TIMEOUT`.
+- Dev-task worker containers must remain disposable and rebuildable from
+  scratch at any time. Do not store required worker state in container-local
+  files or volumes; durable coordination belongs in Bus Events and task changes
+  belong only in the recipient-owned Git worktree/commit path for the specific
+  task being executed.
+- Do not use `--quiet`, `-q`, or equivalent output-suppressing flags for
+  infrastructure/debugging commands that may print useful warnings or
+  diagnostics. Quiet modes are acceptable only when the task explicitly tests
+  quiet behavior or another command captures and reports the relevant detail.
+- When validating configuration that may interpolate local secrets, prefer a
+  diagnostic-preserving but redacted/uninterpolated command form instead of
+  dumping resolved secret values. Do not solve this by using quiet mode; keep
+  useful warnings visible while protecting secret material.
+- Docker/Compose smoke readiness probes that use `curl` against local services
+  must set bounded per-request timeouts such as `--connect-timeout` and
+  `--max-time`, so an unready service cannot hang the whole infrastructure
+  test.

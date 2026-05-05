@@ -178,8 +178,8 @@ bus configure BUS_DOCKER_CODEX_HOME_WRITABLE=true
 docker compose up --build -d
 bus configure BUS_API_TOKEN="$(cat tmp/local-ai-platform/bus-config/auth/api-token)"
 bus configure BUS_EVENTS_API_URL=http://127.0.0.1:8080
-bus dev -C ./bus-dev task new "Show the Codex CLI version."
-bus dev -C ./bus-dev task watch <task-ref-from-task-new-output> --timeout 5m
+bus dev -C ./bus-dev work start "Show the Codex CLI version."
+bus dev -C ./bus-dev work watch <task-ref-from-work-start-output> --timeout 5m
 ```
 
 `docker compose up --build -d` writes a non-secret local development token under
@@ -188,7 +188,7 @@ local Events API URL with `bus configure` so they are managed in `.env` instead
 of shell exports. `BUS_DOCKER_CODEX_HOME_WRITABLE` is enabled for this trusted
 local Docker stack because live `codex exec` needs to create session state
 under the mounted Codex home. When no explicit `BUS_API_TOKEN`, `--token-file`,
-or `BUS_CONFIG_DIR` token is configured, `bus dev task` can still use that
+or `BUS_CONFIG_DIR` token is configured, `bus dev work <controller-command>` and `bus dev task` can still use that
 source-checkout token automatically before falling back to
 `~/.config/bus/auth/api-token`. The Events API default is `http://127.0.0.1:8080`,
 matching the local nginx route.
@@ -222,9 +222,16 @@ docker compose -f compose.dev-task-docker.yaml up -d \
   bus-integration-docker bus-integration-containers
 ```
 
-Add a module worker dynamically with a unique container name and explicit
-recipient. The disposable worker exits after one matching task or after a
-bounded idle period:
+Stack-managed module workers are autonomous by default: after completing one
+task they keep listening for the next matching task for the same recipient.
+They are still disposable containers. You can remove and recreate them at any
+time because durable coordination is in Bus Events and task changes are in the
+recipient-owned Git worktree and promoted commit path, not in container-local
+state.
+
+Add a one-shot module worker dynamically with a unique container name and
+explicit recipient only when you want a disposable batch worker that exits after
+one matching task or after a bounded idle period:
 
 ```bash
 docker compose -f compose.dev-task-docker.yaml run -d --no-deps \
@@ -241,13 +248,28 @@ Then create a targeted task:
 bus dev -C ./bus-dev task new @bus-journal "Implement the next PLAN.md item."
 ```
 
-Observed local operating settings:
+Measured local plumbing settings from
+`tests/superproject/bench_dev_task_docker_compose_workers.sh` on the
+provider-neutral fake App Server path. These are synthetic smoke tasks that
+prove claim/start/steer/done throughput; they do not measure completed
+`PLAN.md` backlog work and should not be used as the productivity metric.
 
-- 4 parallel module workers is the default safe setting for routine work.
-- 6 parallel module workers is the normal fast setting on a healthy local
-  Docker Desktop stack.
-- 8 parallel module workers launched successfully in this repository with a
-  15.6 GiB Docker memory limit, but should be treated as a monitored burst.
+| Workers | Smoke tasks/min |
+|---------|-----------------|
+| 1       | 12.81           |
+| 2       | 18.73           |
+| 3       | 24.28           |
+| 4       | 27.90           |
+| 6       | 29.64           |
+| 8       | 31.31           |
+
+Use 4 parallel module workers as the default routine setting until real work
+data says otherwise. For real Codex-backed work, increase only when
+`bus dev work stats --all` shows workers spend most wall time waiting on
+external LLM turns and human review can keep up. Real productivity is accepted
+PLAN item closures per hour, review pass rate, and rework. Treat 6 or 8 as
+monitored experiments, not defaults, because more workers also create more
+review, token, memory, and Git-worktree pressure.
 
 Watch task state and container pressure while scaling:
 
@@ -257,9 +279,8 @@ docker ps
 docker stats --no-stream
 ```
 
-Disposable per-recipient workers should exit by themselves. If a stale worker
-was started without `BUS_DEV_TASK_ONCE=true` or an idle timeout, stop it or
-recreate the task stack when starting a clean batch:
+One-shot per-recipient workers should exit by themselves. Persistent stack
+workers should be removed and recreated freely when changing worker layout:
 
 ```bash
 docker stop busdk-dev-task-bus-journal-1
@@ -319,7 +340,7 @@ port.
 
 ## Local dev-task Docker stack
 
-For live testing of `bus dev task` with local Docker-backed container runs,
+For live testing of `bus dev work` / `bus dev task` with local Docker-backed container runs,
 start the root Compose stack. The stack builds a local Codex CLI image for the
 `codex` container profile. The API emits public `bus.containers.*` events,
 `bus-integration-containers` routes them to `bus.docker.*`, and
@@ -353,17 +374,17 @@ Create a task and watch the Docker-backed bridge process it:
 
 ```bash
 cd /workspace/bus-dev
-go run ./cmd/bus-dev task new --new-branch work/docker-smoke @bus-dev "Reply hello from Docker."
-go run ./cmd/bus-dev task watch <task-ref-from-task-new-output> --timeout 5m
+go run ./cmd/bus-dev work start --new-branch work/docker-smoke @bus-dev "Reply hello from Docker."
+go run ./cmd/bus-dev work watch <task-ref-from-work-start-output> --timeout 5m
 ```
 
-Use the task reference printed by `task new`, for example `task_01example`
+Use the task reference printed by `work start`, for example `task_01example`
 when that exact value appears in the command output.
 
 The default task command for real local use runs `codex exec` in the addressed
 module repository, prepares the requested branch, then runs the configured
 post-command. A task without branch flags defaults to the current branch of the
-repository where `bus dev task new` is run. Use `--branch NAME` to use an
+repository where `bus dev work start` or `bus dev task new` is run. Use `--branch NAME` to use an
 existing branch, or `--new-branch NAME --base-branch main` to create a
 disposable work branch from `main`. The smoke scripts override the command to
 `codex --version` and the post-command to `[]` so they do not consume
