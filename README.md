@@ -229,6 +229,12 @@ time because durable coordination is in Bus Events and task changes are in the
 recipient-owned Git worktree and promoted commit path, not in container-local
 state.
 
+If review finds that a terminal task stopped at investigation, missed tests, or
+otherwise needs correction, use `bus dev work reopen <ref> <message...>`.
+Reopen publishes `bus.dev.task.reopened` with status `open` and preserves any
+stored Codex App Server thread metadata so the next matching worker can resume
+the same conversation instead of starting from a blank session.
+
 Add a one-shot module worker dynamically with a unique container name and
 explicit recipient only when you want a disposable batch worker that exits after
 one matching task or after a bounded idle period:
