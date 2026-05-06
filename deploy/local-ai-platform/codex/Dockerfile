@@ -1,11 +1,15 @@
-FROM golang:1.24
+ARG GO_VERSION=1.26
+FROM golang:${GO_VERSION}
 
 ARG CODEX_NPM_PACKAGE=@openai/codex
 ARG CODEX_NPM_VERSION=0.128.0
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates nodejs npm \
+    && apt-get install -y --no-install-recommends ca-certificates chromium fonts-liberation nodejs npm xz-utils \
+    && (apt-get install -y --no-install-recommends docker-cli docker-compose || apt-get install -y --no-install-recommends docker.io docker-compose) \
     && rm -rf /var/lib/apt/lists/*
+
+ENV CHROME_BIN=/usr/bin/chromium
 
 RUN npm install -g "${CODEX_NPM_PACKAGE}@${CODEX_NPM_VERSION}" \
     && codex --version

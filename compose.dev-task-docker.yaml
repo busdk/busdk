@@ -186,10 +186,13 @@ services:
       BUS_DEV_TASK_RECIPIENT: ${BUS_DEV_TASK_RECIPIENT:-}
       BUS_DEV_TASK_AGENT_BACKEND: ${BUS_DEV_TASK_AGENT_BACKEND:-codex-appserver}
       BUS_DEV_TASK_CODEX_COMMAND: ${BUS_DEV_TASK_CODEX_COMMAND:-codex}
-      BUS_DEV_TASK_CODEX_ARGS: ${BUS_DEV_TASK_CODEX_ARGS:-["app-server","-c","approval_policy=\"never\"","-c","shell_environment_policy.inherit=all"]}
+      BUS_DEV_TASK_CODEX_ARGS: ${BUS_DEV_TASK_CODEX_ARGS:-["app-server","-c","approval_policy=\"never\"","-c","shell_environment_policy.inherit=all","-c","sandbox_mode=\"workspace-write\"","-c","sandbox_workspace_write.network_access=true"]}
       BUS_DEV_TASK_CODEX_MODEL: ${BUS_DEV_TASK_CODEX_MODEL:-auto}
       BUS_DEV_TASK_CODEX_APPROVAL_POLICY: ${BUS_DEV_TASK_CODEX_APPROVAL_POLICY:-never}
-      BUS_DEV_TASK_CODEX_SANDBOX: ${BUS_DEV_TASK_CODEX_SANDBOX:-danger-full-access}
+      BUS_DEV_TASK_CODEX_SANDBOX: ${BUS_DEV_TASK_CODEX_SANDBOX:-workspace-write}
+      BUS_DEV_TASK_CODEX_NETWORK_ACCESS: ${BUS_DEV_TASK_CODEX_NETWORK_ACCESS:-true}
+      BUS_DEV_TASK_CODEX_SOURCE_HOME: ${BUS_DEV_TASK_CODEX_SOURCE_HOME:-/root/.codex-shared}
+      BUS_DEV_TASK_CODEX_STATE_ROOT: ${BUS_DEV_TASK_CODEX_STATE_ROOT:-/workspace/tmp/bus-dev-task-codex-homes}
       BUS_DEV_TASK_CODEX_INHERIT_ENV: ${BUS_DEV_TASK_CODEX_INHERIT_ENV:-true}
       BUS_DEV_TASK_CONTAINER_PROFILE: codex
       BUS_DEV_TASK_WORKSPACE_ROOT: ${BUS_DEV_TASK_WORKSPACE_ROOT:-/workspace}
@@ -197,18 +200,39 @@ services:
       BUS_DEV_TASK_WORKSPACE_RECIPIENT: ${BUS_DEV_TASK_WORKSPACE_RECIPIENT:-busdk}
       BUS_DEV_TASK_WORKTREE: ${BUS_DEV_TASK_WORKTREE:-true}
       BUS_DEV_TASK_WORKTREE_ROOT: ${BUS_DEV_TASK_WORKTREE_ROOT:-/workspace/tmp/bus-dev-task-worktrees}
-      BUS_DEV_TASK_COMMAND_JSON: ${BUS_DEV_TASK_COMMAND_JSON:-["codex","exec","--skip-git-repo-check","--sandbox","danger-full-access","{prompt}"]}
+      BUS_DEV_TASK_COMMAND_JSON: "[]"
       BUS_DEV_TASK_PRE_COMMAND_JSON: ${BUS_DEV_TASK_PRE_COMMAND_JSON:-[]}
       BUS_DEV_TASK_POST_COMMAND_JSON: "[]"
       BUS_DEV_TASK_COMMIT: "true"
       BUS_DEV_TASK_COMMIT_MESSAGE: "chore: dev task {work_ref}"
+      BUS_DEV_TASK_TIMEOUT: ${BUS_DEV_TASK_TIMEOUT:-30m}
       BUS_DEV_TASK_ONCE: ${BUS_DEV_TASK_ONCE:-false}
       BUS_DEV_TASK_IDLE_TIMEOUT: ${BUS_DEV_TASK_IDLE_TIMEOUT:-0}
       BUS_DEV_TASK_TRACE: ${BUS_DEV_TASK_TRACE:-false}
+      DOCKER_HOST: unix:///var/run/docker.sock
+      BUS_E2E_DOCKER_HOST: ${BUS_E2E_DOCKER_HOST:-host.docker.internal}
+      GOCACHE: ${BUS_DEV_TASK_GOCACHE:-/tmp/bus-go-build-cache}
+      GOMODCACHE: ${BUS_DEV_TASK_GOMODCACHE:-/go/pkg/mod}
+      GOPATH: ${BUS_DEV_TASK_GOPATH:-/go}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command:
       - sh
       - -c
       - >-
+        if [ -z "$${CODEX_HOME:-}" ]; then
+        export CODEX_HOME="/tmp/codex-home-$${BUS_DEV_TASK_RECIPIENT:-worker}-$${HOSTNAME:-local}";
+        mkdir -p "$${CODEX_HOME}";
+        for codex_file in auth.json config.toml; do
+        if [ -f "$${BUS_DEV_TASK_CODEX_SOURCE_HOME}/$${codex_file}" ]; then
+        cp "$${BUS_DEV_TASK_CODEX_SOURCE_HOME}/$${codex_file}" "$${CODEX_HOME}/$${codex_file}";
+        chmod 600 "$${CODEX_HOME}/$${codex_file}" || true;
+        fi;
+        done;
+        fi;
+        if [ "$${BUS_DEV_TASK_AGENT_BACKEND}" = "codex-appserver" ]; then
+        export BUS_DEV_TASK_COMMAND_JSON="[]";
+        fi;
         export BUS_API_TOKEN="$(cd /workspace/bus-operator-token &&
         go run ./cmd/bus-operator-token --format token issue --local
         --subject "$${BUS_LOCAL_ACCOUNT_ID}"
@@ -227,6 +251,8 @@ services:
         --codex-model "$${BUS_DEV_TASK_CODEX_MODEL}"
         --codex-approval-policy "$${BUS_DEV_TASK_CODEX_APPROVAL_POLICY}"
         --codex-sandbox "$${BUS_DEV_TASK_CODEX_SANDBOX}"
+        --codex-network-access="$${BUS_DEV_TASK_CODEX_NETWORK_ACCESS}"
+        --codex-state-root "$${BUS_DEV_TASK_CODEX_STATE_ROOT}"
         --codex-inherit-env="$${BUS_DEV_TASK_CODEX_INHERIT_ENV}"
         --container-profile "$${BUS_DEV_TASK_CONTAINER_PROFILE}"
         --workspace-root "$${BUS_DEV_TASK_WORKSPACE_ROOT}"
@@ -239,13 +265,15 @@ services:
         --post-command-json "$${BUS_DEV_TASK_POST_COMMAND_JSON}"
         --commit="$${BUS_DEV_TASK_COMMIT}"
         --commit-message "$${BUS_DEV_TASK_COMMIT_MESSAGE}"
-        --timeout 30m
+        --timeout "$${BUS_DEV_TASK_TIMEOUT}"
         --once="$${BUS_DEV_TASK_ONCE}"
         --idle-timeout "$${BUS_DEV_TASK_IDLE_TIMEOUT}";
         exec "$$@"
     volumes:
       - .:/workspace
-      - ${BUS_CODEX_HOME:-${HOME}/.codex}:/root/.codex
+      - ${BUS_CODEX_HOME:-${HOME}/.codex}:/root/.codex-shared:ro
+      - ${BUS_GO_MOD_CACHE_HOST:-${HOME}/go/pkg/mod}:/go/pkg/mod:ro
+      - /var/run/docker.sock:/var/run/docker.sock
 
   testing-agent:
     image: golang:1.24

@@ -130,6 +130,7 @@ superproject-selftest:
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_changed_scope.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_quiet.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_complete.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_dev_task_run_worker_script.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= sh ./tests/superproject/test_pricing_costs.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_agent_container.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_local_ai_platform_compose.sh

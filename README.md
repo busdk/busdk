@@ -62,7 +62,8 @@ Prerequisites:
 - `bus` installed and on `PATH` for `bus configure`, or use the equivalent
   source-tree command `go run ./bus-configure/cmd/bus-configure`.
 - A trusted local development machine. The stack mounts `/var/run/docker.sock`
-  into `bus-integration-docker`, which grants host-level Docker control.
+  into `bus-integration-docker` and real Codex dev-task workers, which grants
+  host-level Docker control so module e2e suites can run Docker-backed checks.
 - Optional live Codex auth in `${BUS_CODEX_HOME:-$HOME/.codex}` when running
   the live chat smoke with `BUS_LOCAL_AI_PLATFORM_LIVE_CODEX=1`; the default
   smoke does not require Codex credentials.
@@ -416,8 +417,10 @@ cd /workspace/bus-containers
 go run ./cmd/bus-containers run --profile codex -- codex --version
 ```
 
-The stack mounts `/var/run/docker.sock` into `bus-integration-docker`; use it
-only on trusted local development machines.
+The stack mounts `/var/run/docker.sock` into `bus-integration-docker` and live
+Codex dev-task workers; use it only on trusted local development machines. The
+local worker image includes the current Go toolchain, Docker CLI/Compose, and
+compression tools needed by Docker-backed module e2e gates.
 
 ## Install from source
 

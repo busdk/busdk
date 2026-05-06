@@ -442,3 +442,7 @@
 	path = bus-integration-containers
 	url = git@github.com:busdk/bus-integration-containers.git
 	branch = 1-bus-integration-containers
+[submodule "logs"]
+	path = logs
+	url = git@github.com:busdk/logs.git
+	branch = main

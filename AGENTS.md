@@ -45,11 +45,13 @@ Merged guidance from `.cursor/rules/*.mdc`.
 ## AI Product Delivery Supervisor Operating Mode
 
 1. Act as the AI Product Delivery Supervisor for this superproject: turn the human's goal into prioritized, delegated, reviewed, and release-capable work across the Bus module ecosystem.
+1.1. Excellence is not believing you're the best. It's about always striving to get better. Treat every worker failure, weak diagnostic, false positive, or brittle workflow as evidence to improve the system rather than as a reason to lower expectations.
 2. Optimize for the shortest safe path to the next useful release. Start from the target outcome, identify mandatory modules, supporting modules, modules to leave out, the critical path, and the biggest bottleneck.
 3. Prefer small, testable, reviewable increments. Cut or defer obvious nice-to-haves, but ask the human before changing product vision, business direction, customer-facing value, security/privacy posture, significant cost, or hard-to-reverse architecture.
 4. Use the documented local development system as the default execution path for broad module work: start the appropriate Docker Compose stack and issue parallel module work through `bus dev task` when the task system is available.
 5. Focus on ease of use of the `bus dev task` development system. If Compose, task dispatch, task watching, authentication, generated local tokens, or worker execution blocks using that system, fix that blocker directly; otherwise avoid implementing backlog items directly in the local checkout when they can be delegated through `bus dev task`.
 6. Delegate with precise task briefs: state the goal, target module, why it matters now, files to inspect first, boundaries, acceptance criteria, test expectations, documentation expectations, and required completed-work evidence.
+6.1. Keep worker-facing task briefs free of supervisor-only context such as benchmark batch numbers, throughput experiments, or worker-count comparisons. Record that context in supervisor notes or task metadata instead; workers should receive only the information needed to complete their assigned module task correctly.
 7. When using multiple workers, give them non-overlapping module or file ownership. Do not launch parallel tasks unless the work is genuinely parallelizable or needs independent module execution.
 8. In Compose commands for `bus-integration-dev-task`, optional flags with empty environment values must be omitted rather than passed with an empty value. Parallel dev-task execution should run one worker per intended module recipient so each worker has clear module ownership; do not rely on an all-recipient worker pool.
 9. Dev-task worker tokens need both Events transport scopes and domain task scopes. Include `events:send events:listen` together with `dev:task:send dev:task:read dev:task:reply dev:task:claim`; otherwise the Events API returns `403 insufficient_scope` and workers appear idle.
@@ -59,12 +61,19 @@ Merged guidance from `.cursor/rules/*.mdc`.
 12.1. Dev-task workspace isolation, branch preparation, promotion, cleanup, mount permissions, and concurrency controls must be deterministic dev-ops rules implemented in code or shell mechanics, not prompt instructions, whenever the behavior can be enforced mechanically.
 12.2. Prefer dev-task work that can run without new host permissions. When work needs repeated host-level permissions, first offload it to recipient-scoped `bus dev task` containers where possible, or add a reusable script/Bus command with a narrow permission surface instead of relying on one-off ad hoc commands.
 12.3. When starting ad hoc local dev-task workers with Docker Compose, pass explicit `BUS_DEV_TASK_POST_COMMAND_JSON=[]`, `BUS_DEV_TASK_COMMIT=true`, and a bridge commit message so stale shell environment variables cannot re-enable obsolete in-container Git commit hooks.
-12.4. Read-only live QA smokes for `bus dev work` / Codex App Server should pass explicit `BUS_DEV_TASK_COMMIT=false` while still passing `BUS_DEV_TASK_POST_COMMAND_JSON=[]`, so tests that ask the agent not to edit files do not promote or churn task branches.
-12.5. Before starting commit-enabled live dev-task workers or benchmark batches, verify each recipient primary checkout is clean; infrastructure should enforce this before launching App Server so a dirty checkout cannot waste a live Codex turn and then fail at promotion.
-12.6. If a live Codex App Server exits before producing assistant text with `signal: bus error` / `Bus error: 10`, treat it as a transient backend crash: publish the exact failure evidence and retry once automatically when safe. Do not treat one or two worker-count runs as benchmark truth; collect repeated real-work data across three, four, five, or more workers and decide from task throughput, wall time, resource saturation, and accepted-work quality.
-12.7. For committing worker or coordinator changes, prefer Bus dev workflow operations where applicable: `bus dev stage commit` commits unstaged changes in the current module, and `bus dev each stage commit` applies the same operation across superproject submodules with the normal `each` selection flags.
-12.8. When review finds that a terminal dev-task worker stopped at investigation, produced partial work, or otherwise needs correction, use `bus dev work reopen <ref> <message...>` / `bus dev task reopen <ref> <message...>` instead of abandoning the task. Reopened App Server tasks must preserve stored thread metadata and resume the prior Codex conversation when possible.
-12.9. Local `.env` files are a supported Bus control-plane configuration source. Prefer refreshing `BUS_API_TOKEN`, `BUS_EVENTS_API_URL`, and related local dev-task values through `bus configure NAME=VALUE` in the workspace `.env` before falling back to ad hoc token files; remember that an already-exported process environment variable can still take precedence over `.env` loading.
+12.3.0. Prefer `scripts/dev-task-run-worker.sh <container-name> <recipient>` for ad hoc live worker starts. It pins the active `compose.dev-task-docker.yaml` stack, quotes unsafe env values, and passes the timeout/sandbox/commit settings explicitly.
+12.3.1. When passing Docker Compose `-e NAME=value` values that contain spaces, braces, or shell-significant characters, quote the whole `NAME=value` argument; otherwise Compose may parse part of the env value as the service name.
+12.3.2. Commit-enabled `codex-appserver` dev-task workers with isolated worktrees require `BUS_DEV_TASK_CODEX_SANDBOX=workspace-write`; keep Compose defaults aligned with this so workers fail before claiming rather than after spending a live Codex turn.
+12.3.2.1. In this superproject, ad hoc live dev-task worker containers for `bus dev work` must be launched against the same Compose project/file that owns the active Events API. For the current dev-task Docker stack, use `docker compose -f compose.dev-task-docker.yaml run --no-deps ...` and verify workers join `busdk_default`; plain `docker compose run ...` targets `compose.yaml` (`bus-local-ai-platform`) and can silently attach to a stale Events database.
+12.3.3. Dev-task worker containers that use the host Docker socket must not assume Docker-published ports are reachable at `127.0.0.1` inside the worker container. Provide a deterministic host-gateway name such as `host.docker.internal` through Compose and pass it to e2e suites with a non-secret environment variable (for example `BUS_E2E_DOCKER_HOST`).
+12.3.4. Module e2e scripts that need helper binaries from read-only dependency modules inside dev-task worktrees must build those helpers into recipient-owned temporary paths with explicit dependency binary names and without inheriting the recipient `BINARY` value. Do not write dependency helper binaries into `../bus-*/bin` from a recipient worker.
+12.4. Do not change or commit the superproject or non-recipient repositories while App Server dev-task workers are actively running unless the change is an urgent infrastructure fix and you are prepared to reopen affected tasks. Isolation snapshots intentionally block tasks when non-recipient workspaces change during a run.
+12.5. Read-only live QA smokes for `bus dev work` / Codex App Server should pass explicit `BUS_DEV_TASK_COMMIT=false` while still passing `BUS_DEV_TASK_POST_COMMAND_JSON=[]`, so tests that ask the agent not to edit files do not promote or churn task branches.
+12.6. Before starting commit-enabled live dev-task workers or benchmark batches, verify each recipient primary checkout is clean; infrastructure should enforce this before launching App Server so a dirty checkout cannot waste a live Codex turn and then fail at promotion.
+12.7. If a live Codex App Server exits before producing assistant text with `signal: bus error` / `Bus error: 10`, treat it as a transient backend crash: publish the exact failure evidence and retry once automatically when safe. Do not treat one or two worker-count runs as benchmark truth; collect repeated real-work data across three, four, five, or more workers and decide from task throughput, wall time, resource saturation, and accepted-work quality.
+12.8. For committing worker or coordinator changes, prefer Bus dev workflow operations where applicable: `bus dev stage commit` commits unstaged changes in the current module, and `bus dev each stage commit` applies the same operation across superproject submodules with the normal `each` selection flags.
+12.9. When review finds that a terminal dev-task worker stopped at investigation, produced partial work, or otherwise needs correction, use `bus dev work reopen <ref> <message...>` / `bus dev task reopen <ref> <message...>` instead of abandoning the task. Reopened App Server tasks must preserve stored thread metadata and resume the prior Codex conversation when possible.
+12.10. Local `.env` files are a supported Bus control-plane configuration source. Prefer refreshing `BUS_API_TOKEN`, `BUS_EVENTS_API_URL`, and related local dev-task values through `bus configure NAME=VALUE` in the workspace `.env` before falling back to ad hoc token files; remember that an already-exported process environment variable can still take precedence over `.env` loading.
 13. Review returned work as a full technical quality gate. Trust diffs, tests, logs, artifacts, and documented risks more than persuasive summaries. Do not accept work that lacks enough evidence to verify the acceptance criteria.
 14. Accept work when it improves code health, satisfies the requested outcome, fits module boundaries, includes appropriate tests and documentation, and leaves no hidden critical security, privacy, performance, or operations risk.
 15. Return work for correction when tests, e2e coverage, documentation, release fit, or evidence are missing. Record real follow-ups in the appropriate `PLAN.md`, `BUGS.md`, or `FEATURE_REQUESTS.md` instead of relying on verbal promises.
@@ -220,6 +229,29 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 15. When running shell commands that contain backticks in regex/pattern arguments (for example with `rg`), wrap the full command in single quotes or escape backticks to avoid command-substitution parse errors.
 16. `rg` does not support look-around by default; use `rg --pcre2` when patterns require look-ahead/look-behind.
 17. Use `python3` (not `python`) for Python scripting in this environment.
+
+## Live Working Memo
+
+1. Maintain a live working memo during every work session. The memo is hourly based.
+2. At the start of work, create or update `./logs/{YYYYMMDD}-{HH}-agent-memo.md`, where `YYYYMMDD` is the current date and `HH` is the zero-padded 24-hour hour when that memo period starts. Create `./logs` if it does not exist.
+3. Use the current local/project time when naming memo files. Continue writing to the same memo only while the current hour remains the same. When the hour changes, finish the current memo with a short handoff note explaining the current state of the work, what is complete, what is still in progress, what was verified, what remains uncertain, and what should happen next. Then create or continue the next hourly memo for the new hour. The new memo should briefly continue the story from the previous memo so the chain of hourly memos can be read as one continuous work narrative.
+4. Write each memo as an editorial engineering diary in story form. It should read like a clear narrative of the work session, not like a checklist, changelog, or raw activity dump.
+5. The memo should let a future maintainer, human reviewer, or AI agent understand the flow of work: what the agent was trying to accomplish, what it found, why it made certain choices, where it hesitated, what changed, what went wrong, what worked well, and what could be improved next time.
+6. Use Markdown, but prefer narrative paragraphs over lists. Headings may be used to make the memo readable, such as `## Session Context`, `## Work Narrative`, `## Observations`, `## Decisions`, `## Tests and Checks`, `## Problems and Friction`, `## Improvement Ideas`, `## Hourly Handoff`, and `## Final State`.
+7. Lists are allowed only when they genuinely improve readability, for example for compact test results or final next steps. The main body of the memo should tell the story of the work.
+8. Update the current hourly memo throughout the hour as the work develops. After each meaningful phase, add a short narrative note explaining what just happened and what it means.
+9. Do not merely write "ran tests" or "updated parser." Explain why tests were run, what the result suggested, why a parser needed changes, whether the change felt clean, and whether any concern remains.
+10. If work changes direction, describe the reason. If an assumption turns out to be wrong, record how that changed the approach. If a command fails, explain the failure, the likely cause, and what was done next.
+11. Before making a risky, broad, or hard-to-reverse change, write a short note explaining the intended change, why it seems necessary, and what risk it carries. After making the change, update the current hourly memo with what actually happened, whether the result matched expectations, and whether the decision should be revisited later.
+12. If the hour changes during the work, roll over to the next hourly memo before continuing substantial new work.
+13. If no code changes were made during an hour, still write the story of that hour: what was examined, what was learned, what remains uncertain, and what the next useful action would be.
+14. Keep the memo truthful, concise, and useful for later learning. Do not claim planned work as completed. Do not invent successful results. Clearly separate facts from interpretation. Mark uncertainty, failed attempts, skipped checks, and assumptions honestly.
+15. Avoid blame-oriented language; focus on what the project, tooling, architecture, process, tests, or prompts can learn from the session.
+16. Summarize long command outputs instead of pasting them in full, and mention how the result can be reproduced when useful.
+17. Treat committed logs and memos as public repository content. Never write secrets, API keys, passwords, tokens, private customer data, proprietary customer details, or other sensitive values into memos or committed logs; summarize or redact sensitive evidence instead.
+18. Do not edit historical hourly memos after the hour/session has passed except to remove sensitive information or undo an accidental inappropriate edit. Later lessons from old memos should be captured in the current memo, durable tooling changes, or the relevant `AGENTS.md`.
+19. Before finishing the session, review the current hourly memo as part of the story of the work. Make sure it explains not only what changed, but how the work unfolded and what can be learned from it. Remove stale speculation or mark it as historical context.
+20. End the final memo for the session with a concise final state that explains what is complete, what remains incomplete, what was verified, what was not verified, and what the next agent or maintainer should probably do next.
 12. Feature request implementation order is user-defined and must be followed unless explicitly revised: FR65, FR66, FR59, FR58, FR46, FR63.
 10. Prefer working inside the target module directory (`./bus` or `./bus-*`) for module implementation and tests; use superproject-root commands only for explicit superproject tasks.
 11. When the user provides `*.Update.md` tracker files (including `BUGS.Update.md` and `FEATURE_REQUESTS.Update.md`), merge their contents into the corresponding canonical tracker files in the same turn, then remove the update files.
@@ -255,6 +287,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 39. When searching for text that includes backticks using `rg`, pass the pattern with `-e` and single-quote the full command to avoid shell command-substitution errors.
 39.1. When an `rg` search has multiple alternative patterns and one alternative includes backticks, pass each alternative with its own single-quoted `-e` argument; do not place the alternation inside a double-quoted shell string.
 39.2. In `exec_command` JSON, backticks inside the `cmd` string are still interpreted by the shell; pass the affected `rg` pattern as a single-quoted `-e` argument rather than leaving backticks unquoted in any shell argument.
+39.3. When passing natural-language prompts or guidance through shell commands (for example `bus dev work reopen ...`), do not include unescaped Markdown backticks inside a double-quoted shell argument; use plain quotes without backticks or escape the backticks so the shell does not perform command substitution before the Bus command receives the prompt.
 40. When searching literal placeholder text with `rg` that contains `{` or `}` (for example `V-{inc}`), use `rg -F` or escape the braces; otherwise default regex parsing treats them as quantifiers and fails.
 41. `rg` does not accept a literal `\n` escape in normal regex mode; when a search needs newline-aware matching, use `-U`/`--multiline` (and `--multiline-dotall` if needed) or split the search into separate patterns instead of passing `\n` literally.
 42. When a refactor changes canonical data modeling or report semantics, and it is unclear whether a concept should be represented as user-configured data versus synthesized in code, stop and ask the user to define that boundary before implementing. Do not guess domain structure for accounting/reporting hierarchies.
@@ -271,6 +304,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 53. When running commands from inside a module directory, use module-relative paths by default (for example `gofmt -w internal/app/run.go`), not superproject-prefixed paths.
 53.1. When running commands from the superproject root, use explicit module-relative paths (for example `bus-integration-upcloud/cmd/...`) rather than paths that would only exist inside the module workdir.
 54. Module e2e scripts should be quiet by default: successful runs print only a short stable success line, and detailed shell tracing is enabled only with `BUS_E2E_VERBOSE=1`.
+55. When checking `.env` or other local secret-bearing files for configuration presence, never print raw values. Use redacted output such as `sed 's/=.*$/=<redacted>/'`, `cut -d= -f1`, or a purpose-built script that emits only variable names.
 55. Module `test-e2e` Makefile targets should capture script output and print it only on failure; do not stream verbose e2e logs during successful runs by default.
 56. For date-bounded Git history inspection, use `git log --since=... --until=...` (optionally with `--stat` or `--name-only`). Do not try to pass date strings as a revision range to `git show`; `git show` expects commit-ish arguments, not calendar boundaries.
 57. ACP-related `bus-agent` extraction/integration tasks are low priority by default; do not pick them up unless the user explicitly asks for low-priority work or they are required to unblock higher-priority work.
@@ -372,6 +406,11 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 2. Command-line flags may accept non-secret paths, URLs, names, IDs, and public
    key paths, but not literal secret material because argv leaks through shell
    history, process listings, crash reports, and service managers.
+3. Treat every committed `AGENTS.md`, memo, log, documentation file, and example
+   as public unless it is explicitly inside a private repository. Do not record
+   real tokens, credentials, private customer data, or sensitive local
+   configuration there; use placeholders and describe reproduction steps without
+   exposing secret values.
 
 ## Global unit documentation traceability rule
 
@@ -496,6 +535,12 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
   smoke tests may provide an explicit flag or environment override to use a
   protocol-compatible fake app-server command when avoiding live model/runtime
   dependencies is the point of the test.
+- Local App Server workers must keep filesystem isolation and loopback e2e
+  capability together: run real workers with `workspace-write` plus
+  turn-level `sandboxPolicy.networkAccess=true` (exposed by
+  `bus-integration-dev-task --codex-network-access=true`), not
+  `danger-full-access`, so browser/API tests can bind `127.0.0.1` while writes
+  stay constrained to the recipient task worktree.
 - Live `bus dev work` acceptance for Codex App Server infrastructure must prove
   that a real LLM-powered Codex session can answer runtime-generated questions
   from the task stream. Do not count hardcoded marker replies, echoed user
@@ -568,3 +613,8 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
   not enough: if the worker produces no worktree diff, reports no tests run,
   says the PLAN item was not closed, or otherwise self-reports blocked
   evidence, the task stream must end as blocked/failed rather than done.
+- Live Codex dev-task worker images must carry the current BusDK Go toolchain
+  required by module `go.mod` files, Docker CLI/Compose support, common
+  compression tools used by module e2e tests, and `/var/run/docker.sock` access
+  in trusted local Compose runs, so workers can run Docker-backed module e2e
+  gates instead of blocking with missing-tool or stale Go toolchain errors.
