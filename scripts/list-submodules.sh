@@ -2,7 +2,7 @@
 cd "$(dirname "$0")/.."
 #set -x
 
-FORMAT='%-17s %-9s %s\n'
+FORMAT='%-27s %-19s %s\n'
 
 ROOT_BRANCH="$(
     git branch \
