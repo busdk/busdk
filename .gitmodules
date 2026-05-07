@@ -446,3 +446,19 @@
 	path = logs
 	url = git@github.com:busdk/logs.git
 	branch = main
+[submodule "bus-notes"]
+	path = bus-notes
+	url = git@github.com:busdk/bus-notes.git
+	branch = 1-bus-notes
+[submodule "bus-api-provider-notes"]
+	path = bus-api-provider-notes
+	url = git@github.com:busdk/bus-api-provider-notes.git
+	branch = 1-bus-api-provider-notes
+[submodule "bus-integration-notes"]
+	path = bus-integration-notes
+	url = git@github.com:busdk/bus-integration-notes.git
+	branch = 1-bus-integration-notes
+[submodule "bus-portal-notes"]
+	path = bus-portal-notes
+	url = git@github.com:busdk/bus-portal-notes.git
+	branch = 1-bus-portal-notes

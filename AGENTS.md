@@ -41,6 +41,12 @@ Merged guidance from `.cursor/rules/*.mdc`.
    1. Public/open-source repos: `./` (superproject), `./bus`, `./docs`, `./busdk.com`.
    2. Private/commercial-customer repos: every `./bus-*` module.
    3. In public repos, do not introduce in-process coupling to private module internals; use stable CLI/library boundaries only.
+12. Bus Notes module layering decision:
+   1. `bus-notes` owns the `bus notes` CLI, shared note contracts, validation, rendering, and import/export UX.
+   2. `bus-integration-notes` depends on `bus-integration` and owns event-driven notes business logic, persistence workflows, indexing/projections, redaction, retention, and publication state.
+   3. `bus-api-provider-notes` depends on `bus-api`, uses `bus-integration-notes`, and owns authenticated Notes API endpoints, request/response contracts, access control, and API metadata.
+   4. `bus-portal-notes` depends on `bus-portal`, talks to the Notes API provider, and owns the browser UI.
+   5. Do not call this product `journal` or `log`; use **Bus Notes** / `notes` because accounting journals and operational logs are distinct concepts in this ecosystem.
 
 ## AI Product Delivery Supervisor Operating Mode
 
