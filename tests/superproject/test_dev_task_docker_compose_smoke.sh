@@ -17,7 +17,10 @@ compose_args=(-f compose.dev-task-docker.yaml)
 export BUS_DEV_TASK_COMMAND_JSON="${BUS_DEV_TASK_COMMAND_JSON:-[\"codex\",\"--version\"]}"
 export BUS_DEV_TASK_PRE_COMMAND_JSON="${BUS_DEV_TASK_PRE_COMMAND_JSON:-[]}"
 export BUS_DEV_TASK_POST_COMMAND_JSON="${BUS_DEV_TASK_POST_COMMAND_JSON:-[]}"
-export BUS_DEV_TASK_RECIPIENT="${BUS_DEV_TASK_RECIPIENT:-bus-dev}"
+export BUS_DEV_TASK_AGENT_BACKEND="${BUS_DEV_TASK_AGENT_BACKEND:-container}"
+export BUS_DEV_TASK_RECIPIENT="${BUS_DEV_TASK_RECIPIENT:-bus-containers}"
+export BUS_DEV_TASK_COMMIT="${BUS_DEV_TASK_COMMIT:-false}"
+task_recipient="@${BUS_DEV_TASK_RECIPIENT}"
 
 cleanup() {
   rm -f bus-dev/.bus/dev/task.json
@@ -53,14 +56,25 @@ docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
   go run ./cmd/bus-containers run --profile codex -- bus-dev --help | grep -q "Usage: bus dev"
 '
 
+docker run --rm \
+  -v "${PWD}:/workspace" \
+  -w /workspace/bus-containers \
+  "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
+  bus-dev context | grep -q 'MODULE_NAME=bus-containers'
+
+docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
+  cd /workspace/bus-containers
+  go run ./cmd/bus-containers run --profile codex -- sh -ec "bus-dev -C /workspace/bus-containers context | grep -q MODULE_NAME=bus-containers"
+' | grep -q '"exit_code": 0'
+
 task_ok=0
 task_output=""
 for _ in $(seq 1 6); do
   task_ref="$(
-    docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
+    docker compose "${compose_args[@]}" exec -T testing-agent sh -ec "
       cd /workspace/bus-dev
-      go run ./cmd/bus-dev task new @bus-dev "Reply from the Docker Codex smoke."
-    ' | awk '/ -> / {print $2; exit}'
+      go run ./cmd/bus-dev task new '$task_recipient' 'Reply from the Docker Codex smoke.'
+    " | awk '/ -> / {print $2; exit}'
   )"
   if [ -z "$task_ref" ]; then
     task_output="task reference missing"
@@ -72,7 +86,7 @@ for _ in $(seq 1 6); do
       cd /workspace/bus-dev
       go run ./cmd/bus-dev task watch '$task_ref' --timeout 30s
     "
-  )" && printf '%s\n' "$task_output" | grep -q 'codex-cli'; then
+  )" && printf '%s\n' "$task_output" | grep -q 'status=done'; then
     task_ok=1
     break
   fi

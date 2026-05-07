@@ -27,7 +27,8 @@ RUN printf '%s\n' \
     '  printf "%s\n" "bus-dev wrapper requires /workspace/bus-dev" >&2' \
     '  exit 127' \
     'fi' \
+    'caller_dir=$(pwd)' \
     'cd /workspace/bus-dev' \
-    'exec go run ./cmd/bus-dev "$@"' \
+    'exec go run ./cmd/bus-dev -C "$caller_dir" "$@"' \
     > /usr/local/bin/bus-dev \
     && chmod +x /usr/local/bin/bus-dev
