@@ -8,6 +8,16 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 cd "$root_dir"
 
+if ! command -v docker >/dev/null 2>&1; then
+    printf 'SKIP local ai platform compose: docker not installed\n'
+    exit 0
+fi
+
+if ! docker compose version >/dev/null 2>&1; then
+    printf 'SKIP local ai platform compose: docker compose unavailable\n'
+    exit 0
+fi
+
 docker compose --env-file .env.example -f compose.yaml config > "$tmp_dir/compose.config"
 
 for service in postgres mailhog bus-events bus-auth bus-usage-api bus-usage-worker bus-billing-api bus-billing-worker bus-stripe bus-vm bus-containers bus-docker bus-codex bus-llm nginx testing-agent; do
