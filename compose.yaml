@@ -1,4 +1,4 @@
-name: bus-local-ai-platform
+name: ${BUS_LOCAL_AI_PLATFORM_PROJECT_NAME:-bus-local-ai-platform}
 
 x-go-service: &go-service
   image: ${BUS_LOCAL_GO_IMAGE:-golang:1.24}
@@ -20,14 +20,16 @@ x-go-service: &go-service
     BUS_EVENTS_POSTGRES_DSN: postgres://${LOCAL_AI_PLATFORM_POSTGRES_USER:-bus}:${LOCAL_AI_PLATFORM_POSTGRES_PASSWORD:-bus}@postgres:5432/${LOCAL_AI_PLATFORM_POSTGRES_DB:-bus_local}?sslmode=disable
     BUS_USAGE_DATABASE_URL: postgres://${LOCAL_AI_PLATFORM_POSTGRES_USER:-bus}:${LOCAL_AI_PLATFORM_POSTGRES_PASSWORD:-bus}@postgres:5432/${LOCAL_AI_PLATFORM_POSTGRES_DB:-bus_local}?sslmode=disable
     BUS_BILLING_DATABASE_URL: postgres://${LOCAL_AI_PLATFORM_POSTGRES_USER:-bus}:${LOCAL_AI_PLATFORM_POSTGRES_PASSWORD:-bus}@postgres:5432/${LOCAL_AI_PLATFORM_POSTGRES_DB:-bus_local}?sslmode=disable
+    BUS_DATA_POSTGRES_DSN: postgres://${LOCAL_AI_PLATFORM_POSTGRES_USER:-bus}:${LOCAL_AI_PLATFORM_POSTGRES_PASSWORD:-bus}@postgres:5432/${LOCAL_AI_PLATFORM_POSTGRES_DB:-bus_local}?sslmode=disable
     BUS_EVENTS_API_URL: http://bus-events:8081
     BUS_EVENTS_LISTENER_RETRY: "true"
     BUS_EVENTS_LISTENER_RETRY_MIN: 250ms
     BUS_EVENTS_LISTENER_RETRY_MAX: 5s
     BUS_AI_API_URL: http://nginx:8080
     BUS_API_BASE_URL: http://nginx:8080
+    BUS_NOTES_API_URL: http://nginx:8080/api
     BUS_LOCAL_ACCOUNT_ID: ${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
-    BUS_LOCAL_TOKEN_SCOPES: ${BUS_LOCAL_TOKEN_SCOPES:-events:send events:listen llm:proxy usage:write usage:read usage:delete billing:read billing:setup billing:entitlement:check billing:subscription:write billing:usage:export billing:provider vm:read vm:write container:read container:run container:delete container:admin ssh:run cloud:read cloud:write cloud:destroy database:read database:admin node:read node:admin inference:read inference:admin work:send work:reply work:claim work:read dev:task:send dev:task:reply dev:task:claim dev:task:read}
+    BUS_LOCAL_TOKEN_SCOPES: ${BUS_LOCAL_TOKEN_SCOPES:-events:send events:listen llm:proxy usage:write usage:read usage:delete billing:read billing:setup billing:entitlement:check billing:subscription:write billing:usage:export billing:provider vm:read vm:write container:read container:run container:delete container:admin ssh:run cloud:read cloud:write cloud:destroy database:read database:admin node:read node:admin inference:read inference:admin notes.read notes.read.private notes.write notes.write.draft notes.delete notes.search notes.import.memo_file notes.import.task_summary notes.import.session_summary notes.publish notes.retention.admin work:send work:reply work:claim work:read dev:task:send dev:task:reply dev:task:claim dev:task:read}
 
 services:
   postgres:
@@ -171,6 +173,21 @@ services:
         export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
         exec go run ./cmd/bus-integration-billing --events-url http://bus-events:8081 --store-backend postgres --provider-backend ${BUS_LOCAL_BILLING_PROVIDER_BACKEND:-local}
 
+  bus-notes-api:
+    <<: *go-service
+    working_dir: /workspace/bus-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *go-env
+      BUS_NOTES_WORKSPACE_ROOT: ${BUS_NOTES_WORKSPACE_ROOT:-/workspace/tmp/local-ai-platform/notes-workspace}
+    command:
+      - sh
+      - -ec
+      - |
+        exec go run -tags 'busdk_notes,busdk_concrete,busdk_busdata' ./cmd/bus-api serve --listen 0.0.0.0 --port 8092 --token local-dev --provider notes --enable-module notes
+
   bus-stripe:
     <<: *go-service
     working_dir: /workspace/bus-integration-stripe
@@ -291,7 +308,7 @@ services:
         condition: service_started
     environment:
       <<: *go-env
-      BUS_DEV_TASK_RECIPIENT: ${BUS_DEV_TASK_RECIPIENT:-}
+      BUS_DEV_TASK_RECIPIENT: ${BUS_DEV_TASK_RECIPIENT:-bus-dev}
       BUS_DEV_TASK_AGENT_BACKEND: ${BUS_DEV_TASK_AGENT_BACKEND:-codex-appserver}
       BUS_DEV_TASK_CODEX_COMMAND: ${BUS_DEV_TASK_CODEX_COMMAND:-codex}
       BUS_DEV_TASK_CODEX_ARGS: ${BUS_DEV_TASK_CODEX_ARGS:-["app-server","-c","approval_policy=\"never\"","-c","shell_environment_policy.inherit=all"]}
@@ -412,6 +429,8 @@ services:
       bus-vm:
         condition: service_started
       bus-containers:
+        condition: service_started
+      bus-notes-api:
         condition: service_started
       bus-container-router:
         condition: service_started
