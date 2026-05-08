@@ -85,10 +85,12 @@ does not exist and preserves existing comments and unknown values. Use
 `.env.example` only as a checked-in reference for the local defaults.
 
 The stack starts PostgreSQL, MailHog, nginx, Events, Auth, LLM, Usage, Billing,
-Stripe webhook ingress, VM, Containers, the Bus portal, a local Docker container
-execution worker, a development-task-to-container bridge, and a Codex-backed LLM
-execution worker. It does not provision UpCloud resources, public DNS, TLS
-certificates, or systemd units.
+Stripe webhook ingress, VM, Containers, Bus Notes, the Bus portal, a local
+Docker container execution worker, a development-task-to-container bridge, and
+a Codex-backed LLM execution worker. Bus Notes is mounted through `bus-api` and
+`bus-api-provider-notes`, backed by `bus-integration-notes` and Bus data tables
+stored in the stack PostgreSQL database. It does not provision UpCloud
+resources, public DNS, TLS certificates, or systemd units.
 
 Useful configuration commands:
 
@@ -136,6 +138,7 @@ nginx exposes the same local route families used by the production tutorial:
 /api/v1/billing/*
 /api/v1/vm/*
 /api/v1/containers/*
+/api/v1/notes*
 /api/internal/auth/*
 /api/internal/billing/*
 /api/internal/usage-events*
@@ -172,6 +175,17 @@ TOKEN="$(cat ~/.config/bus/auth/api-token)"
 wget -qO- --header="Authorization: Bearer $TOKEN" http://nginx:8080/v1/models
 ```
 
+Smoke-check the local Notes API from inside the stack:
+
+```bash
+TOKEN="$(cat ~/.config/bus/auth/api-token)"
+cd /workspace/bus-notes
+BUS_NOTES_API_URL=http://nginx:8080/api BUS_API_TOKEN="$TOKEN" \
+  go run ./cmd/bus-notes add --title "Local stack note" --body "Notes API is reachable." --author-id local-agent --module bus-dev --task local-smoke --tags agent-work-log
+BUS_NOTES_API_URL=http://nginx:8080/api BUS_API_TOKEN="$TOKEN" \
+  go run ./cmd/bus-notes search local-smoke
+```
+
 Start the full local stack and create a Docker-backed Codex task from the host:
 
 ```bash
@@ -204,6 +218,11 @@ as `@bus-integration-docker` runs in `/workspace/bus-integration-docker`.
 Use one `bus-integration-dev-task` worker per module recipient. Do not run
 generic recipient-less workers: independent module work should be claimed by a
 worker addressed to exactly that module.
+
+The standard local stack starts one `bus-dev` task worker by default so local
+smokes and control-plane tasks have an autonomous worker without manual startup.
+Set `BUS_DEV_TASK_RECIPIENT` when you want that managed worker to listen for a
+different single module recipient.
 
 Task containers use isolated Git worktrees by default in the local Docker
 stack. The mounted workspace is the read-only dependency view, and only the

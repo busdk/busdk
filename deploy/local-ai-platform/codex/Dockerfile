@@ -32,3 +32,26 @@ RUN printf '%s\n' \
     'exec go run ./cmd/bus-dev -C "$caller_dir" "$@"' \
     > /usr/local/bin/bus-dev \
     && chmod +x /usr/local/bin/bus-dev
+
+RUN printf '%s\n' \
+    '#!/bin/sh' \
+    'set -eu' \
+    'if [ ! -d /workspace/bus ]; then' \
+    '  printf "%s\n" "bus wrapper requires /workspace/bus" >&2' \
+    '  exit 127' \
+    'fi' \
+    'cd /workspace/bus' \
+    'exec go run ./cmd/bus "$@"' \
+    > /usr/local/bin/bus \
+    && chmod +x /usr/local/bin/bus \
+    && printf '%s\n' \
+    '#!/bin/sh' \
+    'set -eu' \
+    'if [ ! -d /workspace/bus-notes ]; then' \
+    '  printf "%s\n" "bus-notes wrapper requires /workspace/bus-notes" >&2' \
+    '  exit 127' \
+    'fi' \
+    'cd /workspace/bus-notes' \
+    'exec go run ./cmd/bus-notes "$@"' \
+    > /usr/local/bin/bus-notes \
+    && chmod +x /usr/local/bin/bus-notes

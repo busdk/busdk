@@ -1,0 +1,21 @@
+{
+  "max_parallel_workers": 4,
+  "one_worker_per_recipient": true,
+  "worker_mode": "persistent",
+  "safe_crash_retry_count": 1,
+  "agent_backend": "codex-appserver",
+  "dummy_backends_allowed": false,
+  "isolated_worktree": true,
+  "read_only_dependency_worktrees": true,
+  "app_server_state": "task-scoped",
+  "evidence": {
+    "require_structured_closeout": true,
+    "require_bus_notes": true
+  },
+  "cleanup": {
+    "terminal_worktrees": "remove-promoted",
+    "blocked_worktrees": "retain",
+    "retention": "operator-managed"
+  },
+  "progress_log_level": "info"
+}

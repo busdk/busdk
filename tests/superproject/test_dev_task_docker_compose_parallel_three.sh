@@ -41,6 +41,8 @@ mkdir -p "$workspace"
 docker compose "${compose_args[@]}" down --remove-orphans
 docker compose "${compose_args[@]}" up --build -d \
   codex-image \
+  postgres \
+  bus-notes-api \
   bus-events \
   bus-api-provider-containers \
   bus-integration-docker \
@@ -52,7 +54,7 @@ export BUS_API_TOKEN="$(
   go run ./cmd/bus-operator-token --format token issue --local \
     --subject "${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}" \
     --audience ai.hg.fi/api \
-    --scope 'events:send events:listen dev:task:send dev:task:read dev:task:reply dev:task:claim container:read container:run container:delete' \
+    --scope 'events:send events:listen dev:task:send dev:task:read dev:task:reply dev:task:claim container:read container:run container:delete notes.write notes.read notes.search notes.import.memo_file notes.import.task_summary notes.import.session_summary' \
     --ttl 2h
 )"
 printf '%s' "$BUS_API_TOKEN" > "$token_file"
@@ -180,8 +182,13 @@ for ref in "${refs[@]}"; do
   if ! grep 'starting Codex app-server task backend' "$watch_out" ||
     ! grep 'live guidance delivered to Codex app-server session' "$watch_out" ||
     ! grep "APP_SERVER_SMOKE_DONE $ref" "$watch_out" ||
-    ! grep 'bus.dev.task.done' "$watch_out"; then
-    printf 'FAIL dev-task Docker compose parallel smoke: task %s was not completed by App Server worker\n' "$ref" >&2
+    ! grep -E 'bus\.dev\.task\.(done|blocked)' "$watch_out"; then
+    printf 'FAIL dev-task Docker compose parallel smoke: task %s did not reach a terminal App Server worker state\n' "$ref" >&2
+    cat "$watch_out" >&2
+    exit 1
+  fi
+  if grep 'bus.dev.task.blocked' "$watch_out" && ! grep 'produced no worktree changes' "$watch_out"; then
+    printf 'FAIL dev-task Docker compose parallel smoke: task %s blocked for an unexpected reason\n' "$ref" >&2
     cat "$watch_out" >&2
     exit 1
   fi

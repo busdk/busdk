@@ -62,10 +62,24 @@ docker run --rm \
   "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
   bus-dev context | grep -q 'MODULE_NAME=bus-containers'
 
+docker run --rm \
+  -v "${PWD}:/workspace" \
+  -w /workspace/bus \
+  "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
+  bus --help | grep -q 'Available commands:'
+
 docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
   cd /workspace/bus-containers
   go run ./cmd/bus-containers run --profile codex -- sh -ec "bus-dev -C /workspace/bus-containers context | grep -q MODULE_NAME=bus-containers"
 ' | grep -q '"exit_code": 0'
+
+docker compose "${compose_args[@]}" exec -T bus-integration-dev-task sh -ec '
+  export BUS_API_TOKEN="$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$BUS_LOCAL_ACCOUNT_ID" --audience ai.hg.fi/api --scope "notes.write notes.read notes.search" --ttl 2h)"
+  bus notes --api-url "$BUS_NOTES_API_URL" --format json add \
+    --title "dev-task smoke note" \
+    --body "worker note path available" \
+    --author-id "dev-task-smoke" | grep -q "\"id\""
+'
 
 task_ok=0
 task_output=""
