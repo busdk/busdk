@@ -462,3 +462,7 @@
 	path = bus-portal-notes
 	url = git@github.com:busdk/bus-portal-notes.git
 	branch = 1-bus-portal-notes
+[submodule "bus-gx"]
+	path = bus-gx
+	url = git@github.com:busdk/bus-gx.git
+	branch = 1-bus-gx

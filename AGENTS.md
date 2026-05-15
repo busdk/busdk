@@ -240,6 +240,9 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 15. When running shell commands that contain backticks in regex/pattern arguments (for example with `rg`), wrap the full command in single quotes or escape backticks to avoid command-substitution parse errors.
 16. `rg` does not support look-around by default; use `rg --pcre2` when patterns require look-ahead/look-behind.
 17. Use `python3` (not `python`) for Python scripting in this environment.
+18. In POSIX shell, use `$(...)` for command substitution. Do not accidentally
+    write `$((...))`, which starts arithmetic expansion and can reinterpret
+    command text as variable names.
 
 ## Live Working Memo
 
@@ -630,3 +633,12 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
   compression tools used by module e2e tests, and `/var/run/docker.sock` access
   in trusted local Compose runs, so workers can run Docker-backed module e2e
   gates instead of blocking with missing-tool or stale Go toolchain errors.
+- When investigating agent memos or logs, search the narrow `logs/` tree first
+  with specific date/file patterns. Do not include guessed optional paths or
+  broad repository-wide Markdown searches until the memo evidence shows they
+  are needed.
+- When a broad linter over many generated/reference pages reports one
+  actionable documentation issue at a time, avoid an unbounded full-tree
+  rerun/edit loop. Triage the pattern, inspect similar pages proactively, batch
+  fixes across the affected family, then run the broad linter only as a bounded
+  verification step.
