@@ -68,6 +68,18 @@ docker run --rm \
   "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
   bus --help | grep -q 'Available commands:'
 
+docker run --rm \
+  -v "${PWD}:/workspace" \
+  -w /workspace/docs \
+  "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
+  bus lint --help | grep -q 'Usage: bus-lint'
+
+docker run --rm \
+  -v "${PWD}:/workspace" \
+  -w /workspace/bus-gx \
+  "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
+  bus gx help | grep -q 'Usage:'
+
 docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
   cd /workspace/bus-containers
   go run ./cmd/bus-containers run --profile codex -- sh -ec "bus-dev -C /workspace/bus-containers context | grep -q MODULE_NAME=bus-containers"

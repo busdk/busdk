@@ -23,35 +23,24 @@ RUN ln -sf /usr/local/go/bin/go /usr/local/bin/go \
 RUN printf '%s\n' \
     '#!/bin/sh' \
     'set -eu' \
-    'if [ ! -d /workspace/bus-dev ]; then' \
-    '  printf "%s\n" "bus-dev wrapper requires /workspace/bus-dev" >&2' \
+    'tool="$(basename "$0")"' \
+    'module="/workspace/$tool"' \
+    'cmd="./cmd/$tool"' \
+    'if [ ! -d "$module" ]; then' \
+    '  printf "%s\n" "$tool wrapper requires $module" >&2' \
     '  exit 127' \
     'fi' \
-    'caller_dir=$(pwd)' \
-    'cd /workspace/bus-dev' \
-    'exec go run ./cmd/bus-dev -C "$caller_dir" "$@"' \
-    > /usr/local/bin/bus-dev \
-    && chmod +x /usr/local/bin/bus-dev
-
-RUN printf '%s\n' \
-    '#!/bin/sh' \
-    'set -eu' \
-    'if [ ! -d /workspace/bus ]; then' \
-    '  printf "%s\n" "bus wrapper requires /workspace/bus" >&2' \
-    '  exit 127' \
+    'bin_dir="${BUSDK_TOOL_BIN_DIR:-/tmp/busdk-tools}"' \
+    'bin="$bin_dir/$tool"' \
+    'mkdir -p "$bin_dir"' \
+    'if [ ! -x "$bin" ] || [ "${BUSDK_TOOL_REBUILD:-0}" = "1" ]; then' \
+    '  (cd "$module" && go build -o "$bin" "$cmd")' \
     'fi' \
-    'cd /workspace/bus' \
-    'exec go run ./cmd/bus "$@"' \
-    > /usr/local/bin/bus \
-    && chmod +x /usr/local/bin/bus \
-    && printf '%s\n' \
-    '#!/bin/sh' \
-    'set -eu' \
-    'if [ ! -d /workspace/bus-notes ]; then' \
-    '  printf "%s\n" "bus-notes wrapper requires /workspace/bus-notes" >&2' \
-    '  exit 127' \
-    'fi' \
-    'cd /workspace/bus-notes' \
-    'exec go run ./cmd/bus-notes "$@"' \
-    > /usr/local/bin/bus-notes \
-    && chmod +x /usr/local/bin/bus-notes
+    'exec "$bin" "$@"' \
+    > /usr/local/bin/busdk-go-tool \
+    && chmod +x /usr/local/bin/busdk-go-tool \
+    && cp /usr/local/bin/busdk-go-tool /usr/local/bin/bus \
+    && cp /usr/local/bin/busdk-go-tool /usr/local/bin/bus-dev \
+    && cp /usr/local/bin/busdk-go-tool /usr/local/bin/bus-gx \
+    && cp /usr/local/bin/busdk-go-tool /usr/local/bin/bus-lint \
+    && cp /usr/local/bin/busdk-go-tool /usr/local/bin/bus-notes
