@@ -7,7 +7,24 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
 
 ## Active defects
 
-No active defects.
+- [ ] Host-side verification can dirty tracked WASM artifacts in primary
+  module checkouts.
+  - Reported: 2026-05-17 while supervising parallel GX/UI migration workers.
+    After worker review/build activity, `bus-inspection`, `bus-ledger`, and
+    `bus-portal` each had only `internal/ui/static/assets/app.wasm` dirty in
+    the primary checkout. `bus dev work reopen` correctly refused to launch new
+    disposable workers, but the repeated manual cleanup decision slows the
+    worker pipeline.
+  - Required fix: identify which host review targets rebuild tracked browser
+    artifacts in primary checkouts; make review/e2e runs use isolated worktrees,
+    deterministic no-op rebuild checks, or module-owned cleanup targets so
+    accepted source changes and generated artifact updates are explicit. Keep
+    the existing dirty-primary preflight, but reduce cases where normal review
+    leaves primary generated artifacts dirty.
+  - Verification target: reproduce with at least one portal-style module that
+    tracks `internal/ui/static/assets/app.wasm`, run the normal review command,
+    and prove the primary checkout remains clean unless the source change
+    intentionally updates the artifact.
 
 ## Fixed defects
 
