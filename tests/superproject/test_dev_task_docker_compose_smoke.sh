@@ -70,6 +70,18 @@ docker run --rm \
 
 docker run --rm \
   -v "${PWD}:/workspace" \
+  -w /workspace/bus \
+  "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
+  bus --help | grep -q '  gx'
+
+docker run --rm \
+  -v "${PWD}:/workspace" \
+  -w /workspace/bus \
+  "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
+  bus --help | grep -q '  lint'
+
+docker run --rm \
+  -v "${PWD}:/workspace" \
   -w /workspace/docs \
   "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
   bus lint --help | grep -q 'Usage: bus-lint'

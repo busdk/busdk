@@ -26,6 +26,157 @@ Pre-release and actively maintained. Interfaces, schemas, and file conventions m
 - Git-friendly, schema-validated CSV datasets with deterministic outputs
 - Reproducible builds with consistent output and install paths
 
+## Submodule index
+
+Use this index to find the module that owns a feature area. The superproject
+pins and orchestrates these repositories; implementation work belongs in the
+owning module.
+
+Core entrypoints and documentation:
+
+- `bus`: command dispatcher for `bus <module> ...`.
+- `bus-help`: shared command help and metadata support.
+- `bus-init`: project and dataset initialization flows.
+- `bus-update`: update helper for installed BusDK tools.
+- `docs`: public user documentation.
+- `sdd`: system design documentation.
+- `busdk.com`: project website.
+
+Data, validation, files, and shared primitives:
+
+- `bus-data`: CSV/table-schema data primitives and dataset operations.
+- `bus-validate`: validation rules and schema checks.
+- `bus-config`: configuration contracts and helpers.
+- `bus-configure`: CLI for managing local Bus configuration.
+- `bus-files`: file and workspace helpers.
+- `bus-assets`: static asset handling.
+- `bus-attachments`: attachment metadata and storage flows.
+- `bus-period`: accounting period/date helpers.
+- `bus-bfl`: Bus formula/language utilities.
+- `bus-pdf`: PDF rendering/export support.
+
+Accounting and business records:
+
+- `bus-accounts`: chart of accounts.
+- `bus-journal`: journal entries.
+- `bus-ledger`: ledger projections and balances from journals.
+- `bus-balances`: balance reports and checks.
+- `bus-bank`: bank account/import support.
+- `bus-reconcile`: reconciliation workflows.
+- `bus-vat`: VAT calculations and reports.
+- `bus-books`: bookkeeping package and book-level workflows.
+- `bus-reports`: financial and operational reports.
+- `bus-sheets`: spreadsheet-style exports/imports.
+- `bus-replay`: deterministic replay of recorded business events.
+
+Commercial operations and filings:
+
+- `bus-entities`: legal/business entity records.
+- `bus-customers`: customer records.
+- `bus-vendors`: vendor records.
+- `bus-inventory`: inventory records.
+- `bus-invoices`: invoice workflows.
+- `bus-payroll`: payroll records and calculations.
+- `bus-loans`: loan schedules and records.
+- `bus-debts`: debt tracking.
+- `bus-budget`: budgets and planning records.
+- `bus-billing`: Bus platform billing domain.
+- `bus-filing`: filing workflow contracts.
+- `bus-filing-prh`: Finnish PRH filing integration.
+- `bus-filing-vero`: Finnish Vero filing integration.
+
+API, auth, events, and platform services:
+
+- `bus-api`: HTTP API gateway and shared API runtime.
+- `bus-auth`: authentication, tokens, and authorization helpers.
+- `bus-events`: event transport and event API.
+- `bus-gateway`: edge/gateway routing support.
+- `bus-mcp`: Model Context Protocol support.
+- `bus-secrets`: secret handling contracts.
+- `bus-preferences`: user and workspace preferences.
+- `bus-status`: status and health reporting.
+- `bus-vm`: virtual-machine platform CLI/domain.
+- `bus-containers`: container execution platform CLI/domain.
+
+API providers:
+
+- `bus-api-provider-auth`: Auth API provider.
+- `bus-api-provider-billing`: Billing API provider.
+- `bus-api-provider-books`: Books API provider.
+- `bus-api-provider-cloud`: Cloud API provider.
+- `bus-api-provider-containers`: Containers API provider.
+- `bus-api-provider-data`: Data API provider.
+- `bus-api-provider-database`: Database API provider.
+- `bus-api-provider-events`: Events API provider.
+- `bus-api-provider-inference`: Inference API provider.
+- `bus-api-provider-llm`: LLM-compatible API provider.
+- `bus-api-provider-mcp`: MCP API provider.
+- `bus-api-provider-node`: Node API provider.
+- `bus-api-provider-notes`: Notes API provider.
+- `bus-api-provider-session`: Session API provider.
+- `bus-api-provider-terminal`: Terminal API provider.
+- `bus-api-provider-usage`: Usage API provider.
+- `bus-api-provider-vm`: VM API provider.
+
+Integration adapters:
+
+- `bus-integration`: shared integration framework.
+- `bus-integration-billing`: billing integration workflows.
+- `bus-integration-cloud`: cloud integration contracts.
+- `bus-integration-codex`: Codex-backed execution integration.
+- `bus-integration-containers`: container execution integration.
+- `bus-integration-database`: database integration contracts.
+- `bus-integration-dev-task`: development-task worker integration.
+- `bus-integration-docker`: Docker integration.
+- `bus-integration-inference`: inference integration contracts.
+- `bus-integration-node`: node integration.
+- `bus-integration-notes`: Notes business workflow integration.
+- `bus-integration-ollama`: Ollama integration.
+- `bus-integration-podman`: Podman integration.
+- `bus-integration-postgres`: PostgreSQL integration.
+- `bus-integration-ssh-runner`: SSH command runner integration.
+- `bus-integration-stripe`: Stripe integration.
+- `bus-integration-upcloud`: UpCloud integration.
+- `bus-integration-usage`: usage metering integration.
+
+Operators:
+
+- `bus-operator`: shared operator framework.
+- `bus-operator-auth`: Auth operator.
+- `bus-operator-billing`: Billing operator.
+- `bus-operator-cloud`: Cloud operator.
+- `bus-operator-database`: Database operator.
+- `bus-operator-deploy`: deployment operator.
+- `bus-operator-inference`: inference operator.
+- `bus-operator-node`: node operator.
+- `bus-operator-stripe`: Stripe operator.
+- `bus-operator-token`: token operator.
+
+UI and browser-facing modules:
+
+- `bus-gx`: GX Go/HTML-like UI template language and compiler.
+- `bus-ui`: reusable UI libraries and components.
+- `bus-portal`: browser portal host.
+- `bus-portal-accounting`: accounting portal module.
+- `bus-portal-ai`: AI portal module.
+- `bus-portal-auth`: auth portal module.
+- `bus-portal-notes`: Notes portal module.
+- `bus-chat`: chat UI/application module.
+- `bus-factory`: assistant/factory UI module.
+
+Developer, AI, and automation tools:
+
+- `bus-agent`: agent-facing workflows.
+- `bus-dev`: development task and worker tooling.
+- `bus-work`: work coordination helpers.
+- `bus-run`: command execution helpers.
+- `bus-shell`: shell/workspace helpers.
+- `bus-lint`: AI-assisted documentation and source review.
+- `bus-inspection`: inspection and diagnostics.
+- `bus-memo`: durable work memo support.
+- `bus-notes`: Bus Notes CLI and shared note contracts.
+- `bus-faq`: FAQ content and retrieval support.
+
 ## Usage
 
 After installation, ensure `$(PREFIX)/bin` is on your `PATH`, then run:

@@ -56,6 +56,11 @@ Merged guidance from `.cursor/rules/*.mdc`.
 3. Prefer small, testable, reviewable increments. Cut or defer obvious nice-to-haves, but ask the human before changing product vision, business direction, customer-facing value, security/privacy posture, significant cost, or hard-to-reverse architecture.
 4. Use the documented local development system as the default execution path for broad module work: issue parallel module work through `bus dev work` / `bus dev task` when the task system is available, and prefer automation-owned worker provisioning over manual container/script starts.
 4.1. Treat `bus dev task` as the durable two-way task communication channel between humans, supervisor agents, module workers, and App Server-backed AI agents. `bus dev work` may evolve from its current hard-coded local "do the work in this repo" prompt into a configurable development workflow composition surface, but it must remain a user-defined workflow entrypoint rather than the task channel or worker bridge. Sub-agent lifecycle automation may start workers, reopen sessions, observe progress, collect evidence, clean up, and recover from safe crashes; implement those mechanics as small composable task/worker infrastructure around `bus dev task` and `bus-integration-dev-task`, then let configurable `bus dev work` workflows and supervising agents compose them. Broad supervision and work-selection judgment should remain agent-driven.
+4.2. Continuously work down open `PLAN.md` items when safe: after the current user-facing task is stable, inspect active workers and module PLAN queues, then start or reopen `bus dev task` workers for independent open items with clean recipient worktrees. Prefer reducing open PLAN inventory over leaving idle worker capacity, but do not start workers that would conflict with dirty local edits, active workers, unclear product direction, or unreviewed cross-module dependencies.
+4.3. Periodically review the live memos and recent worker/task logs during long sessions. If the review shows missed instructions, forgotten follow-up, weak worker guidance, or repeated supervisor mistakes, update the most specific `AGENTS.md` guidance immediately so the next loop avoids the same failure.
+4.4. Keep the supervisor's main flow simple and monitoring-focused: maintain context, choose the next safe slice, dispatch or reopen independent workers, watch their evidence, guide them when they drift, and review promoted changes. Do not absorb module implementation locally when a clean recipient-scoped worker can do it with clear acceptance criteria.
+4.5. When the same operational failure repeats in a session, stop treating it as a one-off. Identify the root cause, record durable guidance or a module `PLAN.md` item, and prefer fixing the workflow or infrastructure before issuing another reopen or manual retry.
+4.6. For the GX UI migration, prioritize shared `bus-gx`, `bus-ui`, and portal host/runtime prerequisites before leaf application rewrites. Choose worker tasks that unblock the most downstream UI modules first, then dispatch leaf-module migrations only after the required framework, component, event, state, resource, and host contracts are implemented and documented.
 5. Focus on ease of use of the `bus dev task` development system. If Compose, task dispatch, task watching, authentication, generated local tokens, automatic worker provisioning, or worker execution blocks using that system, fix that blocker directly; otherwise avoid implementing backlog items directly in the local checkout when they can be delegated through `bus dev task`.
 6. Delegate with precise task briefs: state the goal, target module, why it matters now, files to inspect first, boundaries, acceptance criteria, test expectations, documentation expectations, and required completed-work evidence.
 6.1. Keep worker-facing task briefs free of supervisor-only context such as benchmark batch numbers, throughput experiments, or worker-count comparisons. Record that context in supervisor notes or task metadata instead; workers should receive only the information needed to complete their assigned module task correctly.
@@ -79,6 +84,7 @@ Merged guidance from `.cursor/rules/*.mdc`.
 12.4. Do not change or commit the superproject or non-recipient repositories while App Server dev-task workers are actively running unless the change is an urgent infrastructure fix and you are prepared to reopen affected tasks. Isolation snapshots intentionally block tasks when non-recipient workspaces change during a run.
 12.5. Read-only live QA smokes for `bus dev work` / Codex App Server should pass explicit `BUS_DEV_TASK_COMMIT=false` while still passing `BUS_DEV_TASK_POST_COMMAND_JSON=[]`, so tests that ask the agent not to edit files do not promote or churn task branches.
 12.6. Before starting commit-enabled live dev-task workers or benchmark batches, verify each recipient primary checkout is clean; infrastructure should enforce this before launching App Server so a dirty checkout cannot waste a live Codex turn and then fail at promotion.
+12.6.1. Tracked generated artifacts, especially browser/WASM assets, are a recurring dev-task promotion hazard. If a module verification step dirties generated artifacts in the primary checkout, restore or commit that state deliberately before reopening tasks; do not keep reopening against a dirty primary checkout. The development-task infrastructure should report dirty primary paths clearly and handle generated-artifact cleanup or guidance deterministically before promotion.
 12.7. If a live Codex App Server exits before producing assistant text with `signal: bus error` / `Bus error: 10`, treat it as a transient backend crash: publish the exact failure evidence and retry once automatically when safe. Do not treat one or two worker-count runs as benchmark truth; collect repeated real-work data across three, four, five, or more workers and decide from task throughput, wall time, resource saturation, and accepted-work quality.
 12.8. For committing worker or coordinator changes, prefer Bus dev workflow operations where applicable: `bus dev stage commit` commits unstaged changes in the current module, and `bus dev each stage commit` applies the same operation across superproject submodules with the normal `each` selection flags.
 12.9. When review finds that a terminal dev-task worker stopped at investigation, produced partial work, or otherwise needs correction, use `bus dev work reopen <ref> <message...>` / `bus dev task reopen <ref> <message...>` instead of abandoning the task. Reopened App Server tasks must preserve stored thread metadata and resume the prior Codex conversation when possible.
@@ -167,12 +173,20 @@ Apply this section when touching Go files.
    2. Prefer table-driven tests/subtests where useful.
    3. Use fuzz tests/benchmarks for relevant risk or performance areas.
    4. Run with race detection where appropriate.
-10. Layout guidance:
+10. Go source quality flow:
+   1. Use deterministic and fast source quality tools first: `gofmt`,
+      `go test`, module `make` targets, `bus dev quality lint`, `go vet`, and
+      configured static/security checks.
+   2. Once `bus lint` supports `.go` inputs, use `bus lint path/to/file.go` as
+      a slower final QA pass for newly written or substantially changed Go
+      files, especially when architecture, API shape, resource ownership,
+      diagnostics, or performance-review judgment matters.
+11. Layout guidance:
    1. Entrypoints: `cmd/<binary>/main.go`
    2. Internal reusable code: `internal/...`
    3. Public importable packages only in `pkg/` when intentionally external.
    4. Tests alongside code; fixtures in `testdata/`.
-11. Currency and money calculations must use decimal-safe arithmetic only (for example scaled integer cents or exact decimal/rational types). Do not use binary floating-point (`float32`/`float64`) for business money logic.
+12. Currency and money calculations must use decimal-safe arithmetic only (for example scaled integer cents or exact decimal/rational types). Do not use binary floating-point (`float32`/`float64`) for business money logic.
 
 ## Diverse Test Strategy (Risk-Based, Optional Amplification)
 
@@ -405,6 +419,14 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 8. End-user docs readability DoD: prefer short paragraphs, avoid repeated wording, and keep pages task-oriented.
 9. End-user docs style rule: avoid bullet lists by default; use paragraphs unless a list/table is the only clear way to present structured data.
 10. When editing Markdown tables, align columns with padding so raw plain-text Markdown remains readable, not only the rendered view.
+
+## Assistant Response Formatting
+
+1. The user commonly reads answers in a CLI client that does not render
+   Markdown tables well. In assistant replies, use Markdown tables only when
+   the data is genuinely tabular. Keep table rows short and space-align columns
+   so the raw Markdown remains readable in a terminal. Prefer bullets,
+   numbered lists, or compact labeled lines for non-tabular comparisons.
 
 ## Gitignore Rule
 
@@ -640,6 +662,10 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
   with specific date/file patterns. Do not include guessed optional paths or
   broad repository-wide Markdown searches until the memo evidence shows they
   are needed.
+- When passing task or worker messages through `bash -lc`, avoid unescaped
+  backticks in the command string. Shells evaluate backticks as command
+  substitution before the Bus command runs; wrap the whole message in single
+  quotes or omit Markdown backticks in CLI arguments.
 - When a broad linter over many generated/reference pages reports one
   actionable documentation issue at a time, avoid an unbounded full-tree
   rerun/edit loop. Triage the pattern, inspect similar pages proactively, batch

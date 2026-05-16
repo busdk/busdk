@@ -44,3 +44,25 @@ RUN printf '%s\n' \
     && cp /usr/local/bin/busdk-go-tool /usr/local/bin/bus-gx \
     && cp /usr/local/bin/busdk-go-tool /usr/local/bin/bus-lint \
     && cp /usr/local/bin/busdk-go-tool /usr/local/bin/bus-notes
+
+RUN printf '%s\n' \
+    '#!/bin/sh' \
+    'set -eu' \
+    'wrapper=/usr/local/bin/busdk-go-tool' \
+    'if [ -d /workspace ] && [ -x "$wrapper" ]; then' \
+    '  for module in /workspace/bus /workspace/bus-*; do' \
+    '    [ -d "$module" ] || continue' \
+    '    tool="$(basename "$module")"' \
+    '    [ -f "$module/cmd/$tool/main.go" ] || continue' \
+    '    cp "$wrapper" "/usr/local/bin/$tool"' \
+    '    chmod +x "/usr/local/bin/$tool"' \
+    '  done' \
+    'fi' \
+    'if [ "$#" -eq 0 ]; then' \
+    '  exec /bin/sh' \
+    'fi' \
+    'exec "$@"' \
+    > /usr/local/bin/busdk-refresh-tools \
+    && chmod +x /usr/local/bin/busdk-refresh-tools
+
+ENTRYPOINT ["busdk-refresh-tools"]
