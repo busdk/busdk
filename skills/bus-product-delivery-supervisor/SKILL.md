@@ -72,6 +72,11 @@ Use narrower skills alongside this one when the work has a focused shape:
 5. Monitor continuously:
    - While workers run, do not idle. Review returned patches, prepare next
      briefs, groom plans, inspect blockers, or start additional safe workers.
+   - Prefer short service-backed status/snapshot calls over long-lived local
+     `wait`/`watch` exec streams when a snapshot gives enough evidence. If
+     missing non-streaming observability forces active supervisor tool streams,
+     record a `bus-dev` or `bus-integration-dev-task` PLAN item; worker
+     throughput should not be capped by the supervisor process/session limit.
    - After each worker terminal event, immediately accept/promote, reopen with
      precise guidance, record a blocker, or dispatch the next unblocked item.
    - Count throughput only as verified and promoted work, not claimed work.
@@ -216,7 +221,8 @@ done or a real operator decision is needed:
    - Prefer framework/runtime blockers that unlock many portal or docs tasks.
 
 5. Monitor while work runs.
-   - Poll task status and inspect active worker logs.
+   - Poll task status and inspect active worker logs with bounded commands
+     where possible; reserve streaming waits for cases that need live output.
    - Send short corrective guidance when a worker drifts, searches too broadly,
      misses acceptance criteria, or discovers a blocker.
    - While waiting, prepare the next safe brief, review completed diffs, or

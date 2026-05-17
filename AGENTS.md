@@ -69,6 +69,13 @@ Merged guidance from `.cursor/rules/*.mdc`.
 - When the same operational failure repeats in a session, stop treating it as a one-off. Identify the root cause, record durable guidance or a module `PLAN.md` item, and prefer fixing the workflow or infrastructure before issuing another reopen or manual retry.
 - For the GX UI migration, prioritize shared `bus-gx`, `bus-ui`, and portal host/runtime prerequisites before leaf application rewrites. Choose worker tasks that unblock the most downstream UI modules first, then dispatch leaf-module migrations only after the required framework, component, event, state, resource, and host contracts are implemented and documented.
 - Maintain a lightweight dispatch board during broad work: active workers by module/ref, idle worker capacity, next unblocked tasks, dirty-checkout risks, and blockers with their owning `PLAN.md` or infrastructure follow-up. Refresh it after every worker completion, reopen, blocker, or accepted promotion.
+- Supervisor monitoring should not depend on long-lived local tool exec streams.
+  Prefer short, bounded `bus dev work status` / task snapshot calls when they
+  provide enough evidence, and record a `bus-dev`/`bus-integration-dev-task`
+  PLAN item whenever missing non-streaming service observability forces the
+  supervisor to keep `wait`/`watch` processes open. Streaming views are useful
+  for humans, but worker throughput must not be capped by the supervising
+  agent's local process/session limit.
 - While workers run, keep the supervisor loop active with non-overlapping work: review returned patches, promote verified changes, groom `PLAN.md` queues, prepare next task briefs, investigate infrastructure friction, or start additional safe workers. Avoid idle waiting when useful review or dispatch work is available.
 - Keep parallelism high when scopes are independent and review capacity exists. Recent project logs showed successful batches above fifteen concurrent workers; do not assume one-worker-per-module is the ceiling. Increase concurrency until write-scope conflicts, dirty primary checkouts, resource saturation, or review bandwidth become the real limit.
 - Same-recipient parallel work is acceptable for broad documentation and mechanical refactors when each worker has exact non-overlapping file ownership and promotion can be serialized safely. Prefer many small shards over one large documentation worker when the target repository is the only shared bottleneck.

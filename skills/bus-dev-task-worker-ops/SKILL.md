@@ -40,8 +40,12 @@ unit, e2e, format, static, or module Makefile gates.
 
 ## Monitor
 
-Poll active workers while doing non-overlapping supervisor work. Route every
-terminal event immediately:
+Poll active workers with short bounded status/snapshot commands while doing
+non-overlapping supervisor work. Use long-lived `wait`/`watch` streams only when
+live output is needed; if service-backed snapshots are insufficient and force
+the supervisor to keep active tool exec streams open, add an owning
+`bus-dev`/`bus-integration-dev-task` PLAN item. Route every terminal event
+immediately:
 
 - accept and pin when the diff and evidence match the task
 - reopen with precise correction when tests, docs, product fit, or evidence are
