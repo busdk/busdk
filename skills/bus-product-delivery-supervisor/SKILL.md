@@ -56,6 +56,10 @@ the work can be made clear and isolated.
      defect because of that same failure, stop the batch, fix the launcher or
      bridge locally through the narrowest path, verify it, pin it, and reopen
      affected work.
+   - When worker closeout classification repeats, copy the exact terminal
+     closeout wording into a regression test. Check both the structured JSON
+     path and any plain-text evidence scanner; many failures come from one path
+     accepting evidence while the other still blocks promotion.
    - When a just-pinned worker/bridge fix appears ineffective in newly
      launched workers, first verify whether the workers are using stale
      container images, installed binaries, or dependency checkouts before
