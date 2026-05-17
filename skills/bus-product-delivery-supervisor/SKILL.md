@@ -50,6 +50,10 @@ the work can be made clear and isolated.
 6. Fix repeated blockers:
    - If a failure repeats, stop retrying blindly.
    - Record or implement the root-cause fix in the owning module.
+   - When a just-pinned worker/bridge fix appears ineffective in newly
+     launched workers, first verify whether the workers are using stale
+     container images, installed binaries, or dependency checkouts before
+     reopening more content tasks.
    - Common blockers include stale BusDK tools in containers, auth/token drift,
      dirty primary checkouts, generated artifact churn, stale submodule pins,
      missing write scopes, and incomplete worker evidence.
