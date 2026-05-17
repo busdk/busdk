@@ -339,7 +339,15 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 18. Do not edit historical hourly memos after the hour/session has passed except to remove sensitive information or undo an accidental inappropriate edit. Later lessons from old memos should be captured in the current memo, durable tooling changes, or the relevant `AGENTS.md`.
 19. Before finishing the session, review the current hourly memo as part of the story of the work. Make sure it explains not only what changed, but how the work unfolded and what can be learned from it. Remove stale speculation or mark it as historical context.
 20. End the final memo for the session with a concise final state that explains what is complete, what remains incomplete, what was verified, what was not verified, and what the next agent or maintainer should probably do next.
-21. For delegated `bus dev work` / `bus dev task` workers, the logical `agent_id` is the recipient module/AGENTS.md instruction identity. The concrete run is distinguished by task `work_ref`, worker/container metadata, and App Server thread/turn ids. Worker notes should be written through `bus notes` so they become Bus ecosystem data, not hidden local log files. Worker closeout should report `agent_id`, `agent_instruction_path`, and Bus Notes IDs or query metadata so notes can be grouped by agent and inspected per run; local memo files are only an explicit fallback/draft when the Notes API is unavailable.
+21. Every hourly memo should contain enough handoff detail that another
+    supervisor can resume without re-reading the whole conversation. When the
+    work is broad or delegated, include compact sections or paragraphs covering:
+    current goal, key decisions, modified files or submodule pins, commands and
+    tests run with outcomes, pending tasks/work refs, blockers, active workers,
+    and important session context. Keep this high-signal rather than exhaustive;
+    summarize long command output and link the exact task refs or files needed
+    to reproduce details.
+22. For delegated `bus dev work` / `bus dev task` workers, the logical `agent_id` is the recipient module/AGENTS.md instruction identity. The concrete run is distinguished by task `work_ref`, worker/container metadata, and App Server thread/turn ids. Worker notes should be written through `bus notes` so they become Bus ecosystem data, not hidden local log files. Worker closeout should report `agent_id`, `agent_instruction_path`, and Bus Notes IDs or query metadata so notes can be grouped by agent and inspected per run; local memo files are only an explicit fallback/draft when the Notes API is unavailable.
 
 ## Planning, Trackers, And Data Modeling
 
