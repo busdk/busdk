@@ -96,6 +96,14 @@ Merged guidance from `.cursor/rules/*.mdc`.
 - Delegate with precise task briefs: state the goal, target module, why it matters now, files to inspect first, boundaries, acceptance criteria, test expectations, documentation expectations, and required completed-work evidence.
 - Keep worker-facing task briefs free of supervisor-only context such as benchmark batch numbers, throughput experiments, or worker-count comparisons. Record that context in supervisor notes or task metadata instead; workers should receive only the information needed to complete their assigned module task correctly.
 - When using multiple workers, give them non-overlapping module or file ownership. Do not launch parallel tasks unless the work is genuinely parallelizable or needs independent module execution.
+- Subagent hygiene:
+  - Codex `spawn_agent` subagents are separate from Bus dev-task workers.
+  - Use Codex subagents only when explicit parallelism is useful.
+  - Run Codex subagents in bounded batches, normally no more than 8 at a time.
+  - After `wait_agent` returns and results are summarized, close every completed subagent with `close_agent`.
+  - Never leave completed Codex subagents open across turns.
+  - If an agent thread limit is reached, do not raise the limit blindly. First close completed subagents and continue with the current session when possible.
+  - Treat `agents.max_threads` as unreliable in long-lived sessions because completed subagents may continue counting against the quota unless closed.
 - In Compose commands for `bus-integration-dev-task`, optional flags with empty environment values must be omitted rather than passed with an empty value. Parallel dev-task execution should run one worker per intended module recipient so each worker has clear module ownership; do not rely on an all-recipient worker pool.
 - Dev-task worker tokens need both Events transport scopes and domain task scopes. Include `events:send events:listen` together with `dev:task:send dev:task:read dev:task:reply dev:task:claim`; otherwise the Events API returns `403 insufficient_scope` and workers appear idle.
 - For `compose.dev-task-docker.yaml`, scale provider-neutral container/Docker integration services before creating in-memory dev tasks. Scaling after task creation can recreate the in-memory `bus-events` service and lose queued tasks. If scaling an already-running stack, use explicit no-recreate behavior where practical and verify the Events API was not restarted. Manual per-recipient worker container starts are a temporary break-glass/debug path only; the product direction is that `bus dev work` deterministically starts or requests the needed disposable workers itself. Until that automation exists, manual starts must be sequential with `docker compose run --no-deps ...`; do not launch parallel `docker compose run` commands, because Compose can race service recreation and collapse the scaled worker pool.

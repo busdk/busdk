@@ -60,6 +60,17 @@ Use narrower skills alongside this one when the work has a focused shape:
 4. Dispatch workers:
    - Use `bus dev work start` or `bus dev task new` with explicit recipients.
    - Give each worker non-overlapping module or file ownership.
+   - Keep Codex `spawn_agent` subagents separate from Bus dev-task workers. Use
+     Codex subagents only when explicit parallelism is useful, and run them in
+     bounded batches, normally no more than 8 at a time.
+   - After `wait_agent` returns and results are summarized, close every
+     completed Codex subagent with `close_agent`. Never leave completed Codex
+     subagents open across turns.
+   - If an agent thread limit is reached, do not raise the limit blindly. First
+     close completed subagents and continue with the current session when
+     possible. Treat `agents.max_threads` as unreliable in long-lived sessions
+     because completed subagents may continue counting against the quota unless
+     closed.
    - When a worker writes or substantially edits Go files, include
      `bus lint path/to/file.go` on the changed Go files as a final slow
      AI-backed peer-review step after deterministic unit, e2e, formatting, and
