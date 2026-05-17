@@ -43,6 +43,10 @@ the work can be made clear and isolated.
 4. Dispatch workers:
    - Use `bus dev work start` or `bus dev task new` with explicit recipients.
    - Give each worker non-overlapping module or file ownership.
+   - When a worker writes or substantially edits Go files, include
+     `bus lint path/to/file.go` on the changed Go files as a final slow
+     AI-backed peer-review step after deterministic unit, e2e, formatting, and
+     static checks pass.
    - For same-recipient docs/refactor shards, pass exact `--write-scope`
      paths; globs are not supported.
    - State goal, files to inspect first, boundaries, acceptance criteria,
