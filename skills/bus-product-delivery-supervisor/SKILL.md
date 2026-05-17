@@ -69,6 +69,11 @@ the work can be made clear and isolated.
      on the documented contract such as `passed`, `failed`, `blocked`, or
      `skipped`. Put qualifiers like "no matches" in `test_evidence`, not in
      invented statuses such as `passed_no_matches`.
+   - For no-change compatibility checks, describe the task as
+     `verification-only` and say `no repository changes are required if all
+     gates pass` in the initial worker brief. Otherwise the bridge may
+     correctly reject a clean worktree as "no files changed" even though the
+     verification result is useful.
    - When a just-pinned worker/bridge fix appears ineffective in newly
      launched workers, first verify whether the workers are using stale
      container images, installed binaries, or dependency checkouts before
