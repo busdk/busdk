@@ -29,8 +29,14 @@ the work can be made clear and isolated.
 
 3. Choose the critical path:
    - Prefer framework and infrastructure tasks that unblock many modules.
-   - For the GX/UI roadmap, finish `bus-gx`, then common `bus-ui` primitives,
-     then portal host contracts, then leaf portal module migrations.
+   - For the GX/UI roadmap, respect real prerequisites but do not treat
+     feature-candidate numbers as a linear queue. FC identifiers are stable
+     candidate IDs, not required implementation order. Run multiple FC workers
+     in parallel when their code ownership and dependency prerequisites do not
+     overlap.
+   - Finish prerequisite `bus-gx` capabilities before the `bus-ui` primitives
+     that consume them, then portal host contracts, then leaf portal module
+     migrations.
    - Promote completed UI feature candidates to semver only after code,
      tests, docs, SDD, and module docs match the implemented behavior.
 
@@ -167,12 +173,16 @@ done or a real human decision is needed:
    - Active workers: ref, recipient, goal, last evidence.
    - Ready work: open `PLAN.md` items and `docs/docs/ui/fc-*` candidates.
    - Blocked work: blocker owner and next unblock task.
-   - Parallel slots: independent modules or exact non-overlapping file scopes.
+   - Parallel slots: independent modules, exact non-overlapping file scopes,
+     and independent FCs whose prerequisites are already satisfied.
 
 4. Dispatch for throughput.
    - Start workers for independent ready items instead of doing module work in
      the supervisor checkout.
    - Use exact recipients and write scopes.
+   - Start later-numbered FCs before earlier-numbered FCs when the later
+     candidate is independent or already unblocked; record actual blockers in
+     PLAN rather than preserving artificial numeric order.
    - Keep briefs narrow enough that the worker can finish, test, document, and
      close out without a second planning pass.
    - Prefer framework/runtime blockers that unlock many portal or docs tasks.
