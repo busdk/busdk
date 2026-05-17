@@ -100,3 +100,59 @@ implementation:
 - The owning `PLAN.md` item is removed or checked only after verification.
 - Completed candidates are promoted to the next semver patch when no ordering
   blocker remains; otherwise the blocker is recorded.
+
+## Step-By-Step Delivery Cycle
+
+Use this cycle repeatedly until the requested PLAN and feature-candidate work is
+done or a real human decision is needed:
+
+1. Snapshot the system.
+   - Check `bus dev work status`.
+   - Inspect active task refs before reading broad files.
+   - Check root and recipient `git status --short`.
+   - Read the current hourly memo and the latest worker closeouts.
+
+2. Protect the launch surface.
+   - Do not start workers from dirty primary checkouts unless the dirt is the
+     intentional work to be committed first.
+   - Pin accepted submodule commits in the superproject before dispatching
+     follow-up work that depends on them.
+   - If worker images, installed tools, auth, or Codex startup look stale, fix
+     that infrastructure path before scaling content work.
+
+3. Build a small live board.
+   - Active workers: ref, recipient, goal, last evidence.
+   - Ready work: open `PLAN.md` items and `docs/docs/ui/fc-*` candidates.
+   - Blocked work: blocker owner and next unblock task.
+   - Parallel slots: independent modules or exact non-overlapping file scopes.
+
+4. Dispatch for throughput.
+   - Start workers for independent ready items instead of doing module work in
+     the supervisor checkout.
+   - Use exact recipients and write scopes.
+   - Keep briefs narrow enough that the worker can finish, test, document, and
+     close out without a second planning pass.
+   - Prefer framework/runtime blockers that unlock many portal or docs tasks.
+
+5. Monitor while work runs.
+   - Poll task status and inspect active worker logs.
+   - Send short corrective guidance when a worker drifts, searches too broadly,
+     misses acceptance criteria, or discovers a blocker.
+   - While waiting, prepare the next safe brief, review completed diffs, or
+     groom PLAN items. Avoid idle waiting when there is non-overlapping work.
+
+6. Route every terminal worker.
+   - Accept/promote only after inspecting the diff and evidence.
+   - Reopen with precise correction when evidence is incomplete or the product
+     shape is wrong.
+   - Convert real blockers into the owning module `PLAN.md` or a new
+     infrastructure task.
+   - After accepting a feature candidate, promote it to semver when it is
+     complete and ordering allows it.
+
+7. Improve the process.
+   - Treat repeated failures as product defects in the development system.
+   - Update `AGENTS.md`, this skill, or module plans with the lesson before
+     launching the same pattern again.
+   - Record the narrative in the hourly memo so the next supervisor can resume
+     without rediscovering context.
