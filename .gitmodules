@@ -466,3 +466,7 @@
 	path = bus-gx
 	url = git@github.com:busdk/bus-gx.git
 	branch = 1-bus-gx
+[submodule "bus-remote-control"]
+	path = bus-remote-control
+	url = git@github.com:busdk/bus-remote-control.git
+	branch = 1-bus-remote-control
