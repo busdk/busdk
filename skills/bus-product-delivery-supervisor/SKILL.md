@@ -74,6 +74,21 @@ the work can be made clear and isolated.
      gates pass` in the initial worker brief. Otherwise the bridge may
      correctly reject a clean worktree as "no files changed" even though the
      verification result is useful.
+   - If a worker completes a valuable implementation slice but discovers
+     broader future prerequisites, split the broad PLAN item before closeout:
+     check the completed slice, leave a new unchecked follow-up for the future
+     work, and keep `remaining_blockers=[]` for the accepted slice. Put future
+     prerequisites in `cross_module_requests`, follow-up PLAN items, or
+     `test_evidence`, not in `remaining_blockers`.
+   - For verification/fix tasks that have no matching PLAN checkbox in the
+     declared write scope, use the accepted no-plan closeout form:
+     `task_complete=true`, `plan_closed=true`, explicit evidence that no
+     matching checkbox exists, and `remaining_blockers=[]`. Do not let a valid
+     small compatibility fix strand itself behind "PLAN item was not closed".
+   - When a worker promotes a submodule change while other workers are still
+     active, pin that submodule in the superproject immediately after a quick
+     evidence review. Leaving the root dirty can block unrelated worker
+     promotions or reopen paths.
    - When a just-pinned worker/bridge fix appears ineffective in newly
      launched workers, first verify whether the workers are using stale
      container images, installed binaries, or dependency checkouts before
