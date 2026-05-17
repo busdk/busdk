@@ -76,6 +76,11 @@ Merged guidance from `.cursor/rules/*.mdc`.
   supervisor to keep `wait`/`watch` processes open. Streaming views are useful
   for humans, but worker throughput must not be capped by the supervising
   agent's local process/session limit.
+- The intended durable supervisor loop is a containerized Bus service, not an
+  ad hoc habit of the current Codex session. Its 5-15 minute heartbeat should
+  run behind that service: check that the supervisor container is alive, confirm
+  recent task progress or explicit idle state, restart or report failures
+  through normal task/event surfaces, and keep worker refill bounded by policy.
 - While workers run, keep the supervisor loop active with non-overlapping work: review returned patches, promote verified changes, groom `PLAN.md` queues, prepare next task briefs, investigate infrastructure friction, or start additional safe workers. Avoid idle waiting when useful review or dispatch work is available.
 - Keep parallelism high when scopes are independent and review capacity exists. Recent project logs showed successful batches above fifteen concurrent workers; do not assume one-worker-per-module is the ceiling. Increase concurrency until write-scope conflicts, dirty primary checkouts, resource saturation, or review bandwidth become the real limit.
 - Same-recipient parallel work is acceptable for broad documentation and mechanical refactors when each worker has exact non-overlapping file ownership and promotion can be serialized safely. Prefer many small shards over one large documentation worker when the target repository is the only shared bottleneck.
