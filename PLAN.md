@@ -1,6 +1,15 @@
 # PLAN.md
 
-- [ ] Run AI Product Delivery Supervisor as an automated service end to end:
+- [x] Make AI Product Delivery Supervisor heartbeat/service operation
+  deterministic end to end: add a root Compose `bus-dev-supervisor` service
+  that refreshes BusDK wrappers, issues a scoped local token, runs
+  `bus dev work monitor --format json` as a short non-streaming heartbeat,
+  writes health/status evidence under `tmp/dev-task-supervisor`, documents the
+  local start/check workflow, and verifies the wiring with focused root smoke
+  coverage.
+
+- [ ] Complete AI Product Delivery Supervisor action-loop automation end to
+  end:
   compose the `bus-dev` bounded monitor, `bus-integration-dev-task` worker
   lifecycle, and superproject Git pinning rules into a containerized supervisor
   lane that keeps the worker board from going idle. It should poll current task

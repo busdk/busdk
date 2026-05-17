@@ -546,6 +546,29 @@ docker compose -f compose.dev-task-docker.yaml up -d
 docker compose -f compose.dev-task-docker.yaml exec testing-agent sh
 ```
 
+The same stack starts `bus-dev-supervisor`, a lightweight heartbeat service for
+the AI Product Delivery Supervisor lane. It does not launch, reopen, approve,
+or pin work by itself yet. On each heartbeat it runs the non-streaming
+`bus dev work monitor --format json --quiet-after 15m --stale-after 1h`
+snapshot, writes the raw monitor output to
+`tmp/dev-task-supervisor/work-monitor.json`, and writes health evidence to
+`tmp/dev-task-supervisor/heartbeat-status.json`.
+
+Check the supervisor heartbeat without opening a streaming task watch:
+
+```bash
+docker compose -f compose.dev-task-docker.yaml ps bus-dev-supervisor
+docker compose -f compose.dev-task-docker.yaml exec bus-dev-supervisor \
+  /workspace/scripts/dev-task-supervisor-heartbeat.sh check
+cat tmp/dev-task-supervisor/heartbeat-status.json
+```
+
+Tune the local heartbeat with `BUS_DEV_SUPERVISOR_INTERVAL_SECONDS`,
+`BUS_DEV_SUPERVISOR_MAX_AGE_SECONDS`, `BUS_DEV_SUPERVISOR_QUIET_AFTER`, and
+`BUS_DEV_SUPERVISOR_STALE_AFTER` before starting Compose. Use
+`BUS_DEV_SUPERVISOR_ONCE=true` only for smoke tests; the normal service loops
+and keeps replacing the status evidence in place.
+
 The dev-task Compose file marks the local Codex image with `pull_policy:
 build`, so `docker compose -f compose.dev-task-docker.yaml up -d` rebuilds the
 checked-in Dockerfile-backed `bus-local-codex:dev` image instead of silently

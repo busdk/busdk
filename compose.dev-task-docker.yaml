@@ -13,6 +13,10 @@
 #   go run ./cmd/bus-dev task new @bus-dev "Reply hello from a Docker-backed task container."
 #   go run ./cmd/bus-dev task watch <printed-task-ref> --timeout 5m
 #
+# Check the supervisor heartbeat service:
+#   docker compose -f compose.dev-task-docker.yaml exec bus-dev-supervisor \
+#     /workspace/scripts/dev-task-supervisor-heartbeat.sh check
+#
 # Run the container API directly:
 #   cd /workspace/bus-containers
 #   go run ./cmd/bus-containers run --profile codex -- codex --version
@@ -333,6 +337,48 @@ services:
       - ${BUS_GO_MOD_CACHE_HOST:-${HOME}/go/pkg/mod}:/go/pkg/mod:ro
       - /var/run/docker.sock:/var/run/docker.sock
 
+  bus-dev-supervisor:
+    image: golang:1.24
+    working_dir: /workspace
+    depends_on:
+      bus-events:
+        condition: service_started
+      bus-integration-dev-task:
+        condition: service_started
+    environment:
+      PATH: /workspace/.busdk-tools/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      BUS_LOCAL_ACCOUNT_ID: ${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
+      BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
+      BUS_EVENTS_API_URL: http://bus-events:8081
+      BUS_DEV_SUPERVISOR_STATE_DIR: ${BUS_DEV_SUPERVISOR_STATE_DIR:-/workspace/tmp/dev-task-supervisor}
+      BUS_DEV_SUPERVISOR_INTERVAL_SECONDS: ${BUS_DEV_SUPERVISOR_INTERVAL_SECONDS:-300}
+      BUS_DEV_SUPERVISOR_MAX_AGE_SECONDS: ${BUS_DEV_SUPERVISOR_MAX_AGE_SECONDS:-900}
+      BUS_DEV_SUPERVISOR_QUIET_AFTER: ${BUS_DEV_SUPERVISOR_QUIET_AFTER:-15m}
+      BUS_DEV_SUPERVISOR_STALE_AFTER: ${BUS_DEV_SUPERVISOR_STALE_AFTER:-1h}
+      BUS_DEV_SUPERVISOR_ONCE: ${BUS_DEV_SUPERVISOR_ONCE:-false}
+    command:
+      - sh
+      - -c
+      - >-
+        /workspace/scripts/busdk-refresh-tools.sh --refresh-only &&
+        mkdir -p /root/.config/bus/auth &&
+        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token &&
+        go run ./cmd/bus-operator-token --format token issue --local
+        --subject "$${BUS_LOCAL_ACCOUNT_ID}"
+        --audience ai.hg.fi/api
+        --scope 'events:send events:listen dev:task:send dev:task:read dev:task:reply dev:task:claim'
+        --ttl 12h)" &&
+        printf '%s\n' "$${BUS_API_TOKEN}" > /root/.config/bus/auth/api-token &&
+        exec /workspace/scripts/dev-task-supervisor-heartbeat.sh run
+    healthcheck:
+      test: ["CMD-SHELL", "/workspace/scripts/dev-task-supervisor-heartbeat.sh check"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    volumes:
+      - .:/workspace
+
   testing-agent:
     image: golang:1.24
     working_dir: /workspace
@@ -340,6 +386,7 @@ services:
       - bus-events
       - bus-api-provider-containers
       - bus-integration-dev-task
+      - bus-dev-supervisor
     environment:
       PATH: /workspace/.busdk-tools/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       BUS_LOCAL_ACCOUNT_ID: ${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
