@@ -12,7 +12,7 @@
   actions, or hard-to-reverse architecture. Add deterministic smoke coverage
   and document how to run it locally.
 
-- [ ] Make BusDK dev-task container and host toolchain freshness automatic end
+- [x] Make BusDK dev-task container and host toolchain freshness automatic end
   to end: reproduce the recurring stale-tool problem where worker containers or
   the host dispatcher lack the latest BusDK commands such as `bus lint` or `bus
   dev work monitor`, then update the superproject bootstrap/container workflow

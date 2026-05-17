@@ -542,9 +542,14 @@ Prerequisites:
   into `bus-integration-docker`, which grants host-level Docker control.
 
 ```bash
-docker compose -f compose.dev-task-docker.yaml up --build -d
+docker compose -f compose.dev-task-docker.yaml up -d
 docker compose -f compose.dev-task-docker.yaml exec testing-agent sh
 ```
+
+The dev-task Compose file marks the local Codex image with `pull_policy:
+build`, so `docker compose -f compose.dev-task-docker.yaml up -d` rebuilds the
+checked-in Dockerfile-backed `bus-local-codex:dev` image instead of silently
+reusing a stale local tag after Docker cache cleanup or submodule promotion.
 
 Inside the testing shell, the stack has generated a local development JWT at
 `~/.config/bus/auth/api-token` and exposes:
@@ -585,6 +590,19 @@ The same stack can test the container API directly:
 ```bash
 cd /workspace/bus-containers
 go run ./cmd/bus-containers run --profile codex -- codex --version
+```
+
+Worker and Codex containers refresh source-backed BusDK command wrappers on
+startup through `scripts/busdk-refresh-tools.sh`. The refresh scans mounted
+`/workspace/bus` and `/workspace/bus-*` modules that provide
+`cmd/<module>/main.go`, writes wrappers such as `bus`, `bus-dev`, `bus-lint`,
+`bus-notes`, and `bus-gx` onto `PATH`, and builds runtime-local binaries from
+the mounted source when a wrapper is invoked. It never symlinks or executes
+host-built `./bin` artifacts, so Linux containers do not inherit host-architecture
+binaries after submodule promotions. To refresh wrappers manually in a shell:
+
+```bash
+make refresh-tools
 ```
 
 The stack mounts `/var/run/docker.sock` into `bus-integration-docker` and live

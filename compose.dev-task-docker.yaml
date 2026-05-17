@@ -17,14 +17,17 @@
 #   cd /workspace/bus-containers
 #   go run ./cmd/bus-containers run --profile codex -- codex --version
 
+x-codex-image-build: &codex-image-build
+  context: ./deploy/local-ai-platform/codex
+  args:
+    CODEX_NPM_PACKAGE: ${BUS_LOCAL_CODEX_NPM_PACKAGE:-@openai/codex}
+    CODEX_NPM_VERSION: ${BUS_LOCAL_CODEX_NPM_VERSION:-0.128.0}
+
 services:
   codex-image:
     image: ${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}
-    build:
-      context: ./deploy/local-ai-platform/codex
-      args:
-        CODEX_NPM_PACKAGE: ${BUS_LOCAL_CODEX_NPM_PACKAGE:-@openai/codex}
-        CODEX_NPM_VERSION: ${BUS_LOCAL_CODEX_NPM_VERSION:-0.128.0}
+    pull_policy: build
+    build: *codex-image-build
     command:
       - codex
       - --version
@@ -33,7 +36,7 @@ services:
     image: golang:1.24
     working_dir: /workspace/bus-api-provider-events
     environment:
-      PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /workspace/.busdk-tools/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       BUS_EVENTS_JWT_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
       BUS_EVENTS_TRACE: ${BUS_EVENTS_TRACE:-false}
     command:
@@ -69,7 +72,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /workspace/.busdk-tools/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
       BUS_API_JWT_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
       BUS_DATA_POSTGRES_DSN: postgres://${LOCAL_AI_PLATFORM_POSTGRES_USER:-bus}:${LOCAL_AI_PLATFORM_POSTGRES_PASSWORD:-bus}@postgres:5432/${LOCAL_AI_PLATFORM_POSTGRES_DB:-bus_local}?sslmode=disable
@@ -96,7 +99,7 @@ services:
     depends_on:
       - bus-events
     environment:
-      PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /workspace/.busdk-tools/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       BUS_LOCAL_ACCOUNT_ID: ${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
       BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
       BUS_CONTAINERS_JWT_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
@@ -133,7 +136,7 @@ services:
       bus-notes-api:
         condition: service_started
     environment:
-      PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /workspace/.busdk-tools/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       BUS_LOCAL_ACCOUNT_ID: ${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
       BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
       BUS_EVENTS_API_URL: http://bus-events:8081
@@ -183,7 +186,7 @@ services:
       - bus-events
       - bus-integration-docker
     environment:
-      PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /workspace/.busdk-tools/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       BUS_LOCAL_ACCOUNT_ID: ${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
       BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
       BUS_EVENTS_API_URL: http://bus-events:8081
@@ -210,6 +213,8 @@ services:
 
   bus-integration-dev-task:
     image: ${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}
+    pull_policy: build
+    build: *codex-image-build
     working_dir: /workspace/bus-integration-dev-task
     depends_on:
       codex-image:
@@ -223,7 +228,7 @@ services:
       bus-integration-docker:
         condition: service_started
     environment:
-      PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /workspace/.busdk-tools/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       BUS_LOCAL_ACCOUNT_ID: ${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
       BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
       BUS_EVENTS_API_URL: http://bus-events:8081
@@ -268,6 +273,7 @@ services:
       - sh
       - -c
       - >-
+        /workspace/scripts/busdk-refresh-tools.sh --refresh-only;
         if [ -z "$${CODEX_HOME:-}" ]; then
         export CODEX_HOME="/tmp/codex-home-$${BUS_DEV_TASK_RECIPIENT:-worker}-$${HOSTNAME:-local}";
         mkdir -p "$${CODEX_HOME}";
@@ -335,7 +341,7 @@ services:
       - bus-api-provider-containers
       - bus-integration-dev-task
     environment:
-      PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /workspace/.busdk-tools/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       BUS_LOCAL_ACCOUNT_ID: ${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
       BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
       BUS_EVENTS_API_URL: http://bus-events:8081
@@ -347,6 +353,7 @@ services:
       - sh
       - -c
       - >-
+        /workspace/scripts/busdk-refresh-tools.sh --refresh-only &&
         mkdir -p /root/.config/bus/auth &&
         cd /workspace/bus-operator-token &&
         go run ./cmd/bus-operator-token --format token issue --local

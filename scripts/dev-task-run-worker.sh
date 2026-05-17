@@ -50,6 +50,8 @@ if ! docker compose -f "$compose_file" ps bus-events >/dev/null 2>&1; then
   exit 2
 fi
 
+docker compose -f "$compose_file" build bus-integration-dev-task >/dev/null
+
 docker compose -f "$compose_file" run --rm --no-deps -d \
   --name "$container_name" \
   -e "BUS_DEV_TASK_RECIPIENT=$recipient" \

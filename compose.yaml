@@ -6,7 +6,7 @@ x-go-service: &go-service
   volumes:
     - .:/workspace
   environment: &go-env
-    PATH: /usr/local/go/bin:/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    PATH: /workspace/.busdk-tools/bin:/usr/local/go/bin:/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     CGO_ENABLED: "0"
     BUS_AUTH_HS256_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
     BUS_API_JWT_SECRET: ${BUS_LOCAL_JWT_SECRET:-not-a-secret-local-development-hs256-key}
@@ -336,6 +336,7 @@ services:
       - sh
       - -ec
       - |
+        /workspace/scripts/busdk-refresh-tools.sh --refresh-only
         if [ -z "$${CODEX_HOME:-}" ]; then
           export CODEX_HOME="$${BUS_DEV_TASK_CODEX_STATE_ROOT}/launcher-$${BUS_DEV_TASK_RECIPIENT:-worker}-$${HOSTNAME:-local}"
           mkdir -p "$${CODEX_HOME}"
@@ -383,6 +384,7 @@ services:
       - sh
       - -ec
       - |
+        /workspace/scripts/busdk-refresh-tools.sh --refresh-only
         mkdir -p "$${CODEX_HOME}"
         for codex_file in auth.json config.toml; do
           if [ -f "$${BUS_CODEX_SOURCE_HOME}/$${codex_file}" ]; then

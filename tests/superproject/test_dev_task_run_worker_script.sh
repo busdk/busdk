@@ -16,6 +16,7 @@ printf '%s\n' "$*" >>"$DOCKER_STUB_LOG"
 case "$*" in
   "ps --format {{.Names}}"*) exit 0 ;;
   "compose -f compose.dev-task-docker.yaml ps bus-events"*) exit 0 ;;
+  "compose -f compose.dev-task-docker.yaml build bus-integration-dev-task"*) exit 0 ;;
   "compose -f compose.dev-task-docker.yaml run "* ) exit 0 ;;
   * )
     printf 'unexpected docker invocation: %s\n' "$*" >&2
@@ -27,11 +28,17 @@ chmod +x "$tmp_dir/bin/docker"
 
 (
   cd "$tmp_dir"
-  PATH="$tmp_dir/bin:$PATH" DOCKER_STUB_LOG="$tmp_dir/docker.log" \
+  env -u BUS_DEV_TASK_ONCE \
+    -u BUS_DEV_TASK_TIMEOUT \
+    -u BUS_DEV_TASK_COMMIT \
+    -u BUS_DEV_TASK_COMMIT_MESSAGE \
+    -u BUS_DEV_TASK_CODEX_SANDBOX \
+    PATH="$tmp_dir/bin:$PATH" DOCKER_STUB_LOG="$tmp_dir/docker.log" \
     "$root_dir/scripts/dev-task-run-worker.sh" busdk-test-worker bus-data >/dev/null
 )
 
 run_line="$(grep 'compose -f compose.dev-task-docker.yaml run ' "$tmp_dir/docker.log")"
+grep -q 'compose -f compose.dev-task-docker.yaml build bus-integration-dev-task' "$tmp_dir/docker.log"
 case "$run_line" in
   *" run --rm --no-deps -d "* ) ;;
   * )

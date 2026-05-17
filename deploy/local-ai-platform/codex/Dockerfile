@@ -23,40 +23,10 @@ RUN ln -sf /usr/local/go/bin/go /usr/local/bin/go \
 RUN printf '%s\n' \
     '#!/bin/sh' \
     'set -eu' \
-    'tool="$(basename "$0")"' \
-    'module="/workspace/$tool"' \
-    'cmd="./cmd/$tool"' \
-    'if [ ! -d "$module" ]; then' \
-    '  printf "%s\n" "$tool wrapper requires $module" >&2' \
-    '  exit 127' \
-    'fi' \
-    'bin_dir="${BUSDK_TOOL_BIN_DIR:-/tmp/busdk-tools}"' \
-    'bin="$bin_dir/$tool"' \
-    'mkdir -p "$bin_dir"' \
-    'if [ ! -x "$bin" ] || [ "${BUSDK_TOOL_REBUILD:-0}" = "1" ]; then' \
-    '  (cd "$module" && go build -o "$bin" "$cmd")' \
-    'fi' \
-    'exec "$bin" "$@"' \
-    > /usr/local/bin/busdk-go-tool \
-    && chmod +x /usr/local/bin/busdk-go-tool \
-    && cp /usr/local/bin/busdk-go-tool /usr/local/bin/bus \
-    && cp /usr/local/bin/busdk-go-tool /usr/local/bin/bus-dev \
-    && cp /usr/local/bin/busdk-go-tool /usr/local/bin/bus-gx \
-    && cp /usr/local/bin/busdk-go-tool /usr/local/bin/bus-lint \
-    && cp /usr/local/bin/busdk-go-tool /usr/local/bin/bus-notes
-
-RUN printf '%s\n' \
-    '#!/bin/sh' \
-    'set -eu' \
-    'wrapper=/usr/local/bin/busdk-go-tool' \
-    'if [ -d /workspace ] && [ -x "$wrapper" ]; then' \
-    '  for module in /workspace/bus /workspace/bus-*; do' \
-    '    [ -d "$module" ] || continue' \
-    '    tool="$(basename "$module")"' \
-    '    [ -f "$module/cmd/$tool/main.go" ] || continue' \
-    '    cp "$wrapper" "/usr/local/bin/$tool"' \
-    '    chmod +x "/usr/local/bin/$tool"' \
-    '  done' \
+    'workspace_root=${BUSDK_WORKSPACE_ROOT:-/workspace}' \
+    'refresh_script=$workspace_root/scripts/busdk-refresh-tools.sh' \
+    'if [ -x "$refresh_script" ]; then' \
+    '  "$refresh_script" --refresh-only' \
     'fi' \
     'if [ "$#" -eq 0 ]; then' \
     '  exec /bin/sh' \

@@ -82,6 +82,20 @@ docker run --rm \
 
 docker run --rm \
   -v "${PWD}:/workspace" \
+  -w /workspace \
+  "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
+  sh -ec '
+    test "$(command -v bus)" = /usr/local/bin/bus
+    test "$(command -v bus-dev)" = /usr/local/bin/bus-dev
+    test "$(command -v bus-lint)" = /usr/local/bin/bus-lint
+    test "$(command -v bus-notes)" = /usr/local/bin/bus-notes
+    bus dev work monitor --help >/dev/null
+    bus lint --help >/dev/null
+    bus notes --help >/dev/null
+  '
+
+docker run --rm \
+  -v "${PWD}:/workspace" \
   -w /workspace/docs \
   "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
   bus lint --help | grep -q 'Usage: bus-lint'

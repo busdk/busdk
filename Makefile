@@ -49,7 +49,7 @@ COMMA := ,
 SKIP_PATTERNS := $(strip $(subst $(COMMA), ,$(SKIP_MODULES)))
 MODULE_MAKE_VARS := BIN_DIR="$(abspath $(BIN_DIR))" PREFIX="$(PREFIX)" BINDIR="$(BINDIR)" GO="$(GO)" GOFLAGS="$(GOFLAGS)" GOCACHE="$(GOCACHE)" CGO_ENABLED="$(CGO_ENABLED)" BUILD_STATIC="$(BUILD_STATIC)"
 
-.PHONY: help init update upgrade status bootstrap test e2e quality quality-complete build install clean distclean audit-cli-reachability audit-cli-reachability-full tidy tidy-mods superproject-selftest print-test-modules print-e2e-modules print-quality-modules
+.PHONY: help init update upgrade status bootstrap refresh-tools test e2e quality quality-complete build install clean distclean audit-cli-reachability audit-cli-reachability-full tidy tidy-mods superproject-selftest print-test-modules print-e2e-modules print-quality-modules
 
 help:
 	@printf "BusDK superproject\n\n"
@@ -58,6 +58,7 @@ help:
 	@printf "  update      Sync submodules to pinned commits\n"
 	@printf "  upgrade     (maintainers) Advance pins to latest remotes\n"
 	@printf "  status      Show pinned submodule SHAs\n"
+	@printf "  refresh-tools  Refresh source-backed BusDK wrappers\n"
 	@printf "  test        Run module test suites\n"
 	@printf "  e2e         Run module end-to-end suites (when target exists)\n"
 	@printf "  quality     Run reusable Go source/static quality checks\n"
@@ -101,6 +102,7 @@ help:
 	@printf "  QUALITY_DOCS_MODULE_DIR=%s\n\n" "$(QUALITY_DOCS_MODULE_DIR)"
 	@printf "Example:\n"
 	@printf "  make bootstrap\n"
+	@printf "  make refresh-tools\n"
 	@printf "  make bootstrap PREFIX=/opt/busdk\n"
 	@printf "  make bootstrap PREFIX=/c/busdk BINDIR=/c/busdk/bin\n"
 	@printf "  make test TEST_SCOPE=all\n"
@@ -126,7 +128,12 @@ status:
 
 bootstrap: init build install
 
+refresh-tools:
+	@sh ./scripts/busdk-refresh-tools.sh --refresh-only
+
 superproject-selftest:
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_busdk_refresh_tools.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_dev_task_docker_compose_config.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_changed_scope.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_quiet.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_complete.sh
@@ -267,6 +274,7 @@ e2e:
 	@set -eu; \
 	if [ "$(ROOT_E2E_SELFTEST)" = "1" ]; then \
 		bash ./tests/superproject/e2e_agent_container.sh; \
+		bash ./tests/superproject/test_codex_image_refresh_smoke.sh; \
 		bash ./tests/superproject/test_dev_task_docker_compose_smoke.sh; \
 		bash ./tests/superproject/test_local_ai_platform_compose_smoke.sh; \
 	fi; \
