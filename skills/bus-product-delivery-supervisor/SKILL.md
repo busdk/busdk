@@ -54,6 +54,13 @@ the work can be made clear and isolated.
      launched workers, first verify whether the workers are using stale
      container images, installed binaries, or dependency checkouts before
      reopening more content tasks.
+   - If several workers can run one or two commands and then all later
+     `exec_command` or `apply_patch` calls fail with process-spawn or missing
+     worktree errors, stop content retries. Dispatch an infrastructure worker
+     with the concrete task refs, first failed commands, recovery diagnostics,
+     and any dirty worktree evidence.
+   - Keep the primary checkout clean enough for worker launches. Commit or
+     otherwise settle supervisor-only memo changes before starting a new batch.
    - Common blockers include stale BusDK tools in containers, auth/token drift,
      dirty primary checkouts, generated artifact churn, stale submodule pins,
      missing write scopes, and incomplete worker evidence.
