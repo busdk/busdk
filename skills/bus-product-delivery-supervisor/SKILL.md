@@ -60,6 +60,15 @@ the work can be made clear and isolated.
      closeout wording into a regression test. Check both the structured JSON
      path and any plain-text evidence scanner; many failures come from one path
      accepting evidence while the other still blocks promotion.
+   - For file-scoped docs or SDD tasks, tell workers up front that a `PLAN.md`
+     outside the declared single-file write scope is not a remaining blocker
+     when the requested file is updated and checks pass. They should close with
+     `task_complete=true`, `remaining_blockers=[]`, and explicit evidence that
+     no matching PLAN file/item exists inside the declared write scope.
+   - In structured closeout JSON, required check `status` values should stay
+     on the documented contract such as `passed`, `failed`, `blocked`, or
+     `skipped`. Put qualifiers like "no matches" in `test_evidence`, not in
+     invented statuses such as `passed_no_matches`.
    - When a just-pinned worker/bridge fix appears ineffective in newly
      launched workers, first verify whether the workers are using stale
      container images, installed binaries, or dependency checkouts before
