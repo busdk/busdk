@@ -1,5 +1,15 @@
 # PLAN.md
 
+- [ ] Make BusDK dev-task container and host toolchain freshness automatic end
+  to end: reproduce the recurring stale-tool problem where worker containers or
+  the host dispatcher lack the latest BusDK commands such as `bus lint` or `bus
+  dev work monitor`, then update the superproject bootstrap/container workflow
+  so local workers start with the current checked-out Bus tools on `PATH`.
+  Include a fast smoke that proves a task container can run `bus lint`, `bus dev
+  work monitor --help`, and the dispatcher form `bus gx`/other installed module
+  commands after recent submodule promotions. Document the refresh path and
+  verify focused root gates.
+
 - [ ] Operationalize AI Product Delivery Supervisor task dispatch end to end: persist the supervisor/delegation rules in `AGENTS.md`, inspect root `BUGS.md`, `FEATURE_REQUESTS.md`, and module `PLAN.md` backlogs, start the documented Docker Compose development-task stack, issue non-overlapping `bus dev task` work for active module issues, fix any blockers in the task system itself, and review returned task artifacts before accepting or closing items.
 
 - [x] Refactor root `AGENTS.md` guidance structure end to end: move non-memo operational rules out from the `Live Working Memo` section into topical sections or scoped module `AGENTS.md` files, clarify the difference between cross-module family policy and module-specific guidance, remove ambiguous repeated ordered-list numbers, rerun `bus lint AGENTS.md`, and keep the supervisor/development-speed rules easy to find.
