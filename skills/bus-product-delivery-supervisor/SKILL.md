@@ -17,6 +17,8 @@ the work can be made clear and isolated.
    - Check the most specific `AGENTS.md` files for root, recipient modules,
      `docs`, and `sdd` before dispatching work.
    - Run `bus dev work status` and inspect relevant `PLAN.md` files.
+   - Use `rg --files -g 'PLAN.md'` for broad plan discovery. Avoid broad
+     repository walks from the superproject unless there is no narrower path.
 
 2. Build a dispatch board:
    - Active workers by ref and recipient.
@@ -50,6 +52,10 @@ the work can be made clear and isolated.
 6. Fix repeated blockers:
    - If a failure repeats, stop retrying blindly.
    - Record or implement the root-cause fix in the owning module.
+   - If the delegation substrate itself is broken and a worker cannot patch the
+     defect because of that same failure, stop the batch, fix the launcher or
+     bridge locally through the narrowest path, verify it, pin it, and reopen
+     affected work.
    - When a just-pinned worker/bridge fix appears ineffective in newly
      launched workers, first verify whether the workers are using stale
      container images, installed binaries, or dependency checkouts before
@@ -59,6 +65,10 @@ the work can be made clear and isolated.
      worktree errors, stop content retries. Dispatch an infrastructure worker
      with the concrete task refs, first failed commands, recovery diagnostics,
      and any dirty worktree evidence.
+   - If Codex App Server workers report `Failed to create unified exec process`
+     while `CODEX_HOME/tmp/arg0` still exists, inspect the Codex app-server
+     arguments and the unified-exec setting before assuming the worker task or
+     content patch is at fault.
    - Keep the primary checkout clean enough for worker launches. Commit or
      otherwise settle supervisor-only memo changes before starting a new batch.
    - Common blockers include stale BusDK tools in containers, auth/token drift,
