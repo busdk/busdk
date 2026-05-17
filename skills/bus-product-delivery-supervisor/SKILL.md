@@ -75,6 +75,13 @@ Use narrower skills alongside this one when the work has a focused shape:
    - After each worker terminal event, immediately accept/promote, reopen with
      precise guidance, record a blocker, or dispatch the next unblocked item.
    - Count throughput only as verified and promoted work, not claimed work.
+   - Continuously ask progress-improvement and bottleneck questions, then
+     answer them from evidence: what would increase accepted work per hour, is
+     final AI review the limit, does five versus fifteen parallel workers
+     change accepted commits per hour, is promotion or reopen latency
+     dominating wall time, are dirty checkouts causing most stalls, would an
+     infrastructure fix unblock more work than another content worker, or is a
+     shared module write scope the real constraint?
 
 6. Fix repeated blockers:
    - If a failure repeats, stop retrying blindly.
