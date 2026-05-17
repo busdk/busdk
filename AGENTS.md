@@ -336,6 +336,10 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 15. Avoid blame-oriented language; focus on what the project, tooling, architecture, process, tests, or prompts can learn from the session.
 16. Summarize long command outputs instead of pasting them in full, and mention how the result can be reproduced when useful.
 17. Treat committed logs and memos as public repository content. Never write secrets, API keys, passwords, tokens, private customer data, proprietary customer details, or other sensitive values into memos or committed logs; summarize or redact sensitive evidence instead.
+17.1. Never print broad `.env` contents to the transcript or logs. When
+    investigating `.env`, query only the exact non-secret key needed with a
+    targeted command, or report whether a key exists without displaying
+    unrelated values.
 18. Do not edit historical hourly memos after the hour/session has passed except to remove sensitive information or undo an accidental inappropriate edit. Later lessons from old memos should be captured in the current memo, durable tooling changes, or the relevant `AGENTS.md`.
 19. Before finishing the session, review the current hourly memo as part of the story of the work. Make sure it explains not only what changed, but how the work unfolded and what can be learned from it. Remove stale speculation or mark it as historical context.
 20. End the final memo for the session with a concise final state that explains what is complete, what remains incomplete, what was verified, what was not verified, and what the next agent or maintainer should probably do next.
