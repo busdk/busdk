@@ -81,8 +81,11 @@ if [ "$ORIGINAL_ARGC" -eq 0 ] && [ -t 0 ] && [ -t 1 ]; then
 fi
 
 if [ -n "$HOST_HOME" ] && [ -d "$HOST_HOME/.codex" ]; then
-  mkdir -p "$WORK_HOME/.codex"
-  DOCKER_RUN_ARGS+=(-v "$HOST_HOME/.codex:$WORK_HOME/.codex:rw")
+  mkdir -p "$WORK_HOME/.codex" "$WORK_HOME/.codex-shared"
+  cp "$HOST_HOME/.codex/auth.json" "$WORK_HOME/.codex/auth.json" 2>/dev/null || true
+  cp "$HOST_HOME/.codex/config.toml" "$WORK_HOME/.codex/config.toml" 2>/dev/null || true
+  chmod 600 "$WORK_HOME/.codex/auth.json" "$WORK_HOME/.codex/config.toml" 2>/dev/null || true
+  DOCKER_RUN_ARGS+=(-v "$HOST_HOME/.codex:$WORK_HOME/.codex-shared:ro")
 fi
 
 if [ -n "$HOST_HOME" ] && [ -f "$HOST_HOME/.gitconfig" ]; then

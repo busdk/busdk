@@ -248,7 +248,7 @@ services:
       BUS_DOCKER_EVENT_PREFIX: bus.docker
       DOCKER_CONTAINER_CODEX_IMAGE: ${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}
       BUS_DOCKER_CODEX_HOME_HOST: ${BUS_DOCKER_CODEX_HOME_HOST:-${BUS_CODEX_HOME:-${HOME}/.codex}}
-      BUS_DOCKER_CODEX_HOME_WRITABLE: ${BUS_DOCKER_CODEX_HOME_WRITABLE:-true}
+      BUS_DOCKER_CODEX_HOME_WRITABLE: ${BUS_DOCKER_CODEX_HOME_WRITABLE:-false}
       BUS_DOCKER_CODEX_SSH_HOST: ${BUS_DOCKER_CODEX_SSH_HOST:-${HOME}/.ssh}
       BUS_DOCKER_CODEX_SSH_AGENT_HOST: ${BUS_DOCKER_CODEX_SSH_AGENT_HOST:-${SSH_AUTH_SOCK:-}}
       BUS_DOCKER_CODEX_GIT_SSH_COMMAND: ${BUS_DOCKER_CODEX_GIT_SSH_COMMAND:-ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/tmp/bus-known-hosts}
@@ -330,10 +330,22 @@ services:
       BUS_DEV_TASK_TIMEOUT: ${BUS_DEV_TASK_TIMEOUT:-30m}
       BUS_DEV_TASK_ONCE: ${BUS_DEV_TASK_ONCE:-false}
       BUS_DEV_TASK_IDLE_TIMEOUT: ${BUS_DEV_TASK_IDLE_TIMEOUT:-0}
+      BUS_DEV_TASK_CODEX_SOURCE_HOME: ${BUS_DEV_TASK_CODEX_SOURCE_HOME:-/root/.codex-shared}
+      BUS_DEV_TASK_CODEX_STATE_ROOT: ${BUS_DEV_TASK_CODEX_STATE_ROOT:-/workspace/tmp/bus-dev-task-codex-homes}
     command:
       - sh
       - -ec
       - |
+        if [ -z "$${CODEX_HOME:-}" ]; then
+          export CODEX_HOME="$${BUS_DEV_TASK_CODEX_STATE_ROOT}/launcher-$${BUS_DEV_TASK_RECIPIENT:-worker}-$${HOSTNAME:-local}"
+          mkdir -p "$${CODEX_HOME}"
+          for codex_file in auth.json config.toml; do
+            if [ -f "$${BUS_DEV_TASK_CODEX_SOURCE_HOME}/$${codex_file}" ]; then
+              cp "$${BUS_DEV_TASK_CODEX_SOURCE_HOME}/$${codex_file}" "$${CODEX_HOME}/$${codex_file}"
+              chmod 600 "$${CODEX_HOME}/$${codex_file}" || true
+            fi
+          done
+        fi
         export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
         set -- go run ./cmd/bus-integration-dev-task --events-url http://bus-events:8081
         if [ -n "$${BUS_DEV_TASK_RECIPIENT}" ]; then
@@ -343,7 +355,7 @@ services:
         exec "$$@"
     volumes:
       - .:/workspace
-      - ${BUS_CODEX_HOME:-${HOME}/.codex}:/root/.codex
+      - ${BUS_CODEX_HOME:-${HOME}/.codex}:/root/.codex-shared:ro
 
   bus-codex:
     image: ${BUS_LOCAL_CODEX_IMAGE:-bus-local-codex:dev}
@@ -355,7 +367,7 @@ services:
     working_dir: /workspace/bus-integration-codex
     volumes:
       - .:/workspace
-      - ${BUS_CODEX_HOME:-${HOME}/.codex}:/root/.codex
+      - ${BUS_CODEX_HOME:-${HOME}/.codex}:/root/.codex-shared:ro
     depends_on:
       bus-events:
         condition: service_started
@@ -365,10 +377,19 @@ services:
       BUS_CODEX_WORKDIR: ${BUS_CODEX_WORKDIR:-/workspace}
       BUS_CODEX_MODEL: ${BUS_CODEX_MODEL:-auto}
       BUS_CODEX_COMMAND: ${BUS_CODEX_COMMAND:-codex}
+      BUS_CODEX_SOURCE_HOME: ${BUS_CODEX_SOURCE_HOME:-/root/.codex-shared}
+      CODEX_HOME: ${BUS_CODEX_RUNTIME_HOME:-/tmp/bus-codex-home}
     command:
       - sh
       - -ec
       - |
+        mkdir -p "$${CODEX_HOME}"
+        for codex_file in auth.json config.toml; do
+          if [ -f "$${BUS_CODEX_SOURCE_HOME}/$${codex_file}" ]; then
+            cp "$${BUS_CODEX_SOURCE_HOME}/$${codex_file}" "$${CODEX_HOME}/$${codex_file}"
+            chmod 600 "$${CODEX_HOME}/$${codex_file}" || true
+          fi
+        done
         export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
         exec go run ./cmd/bus-integration-codex --provider "$${BUS_CODEX_PROVIDER}" --events-url http://bus-events:8081 --workdir "$${BUS_CODEX_WORKDIR}" --model "$${BUS_CODEX_MODEL}" --codex-command "$${BUS_CODEX_COMMAND}"
 
