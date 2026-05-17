@@ -144,6 +144,14 @@ Merged guidance from `.cursor/rules/*.mdc`.
 - Whenever a new feature is implemented, update the BusDK blog/docs under `busdk.com/docs/`, public end-user documentation under `docs/docs/`, and SDD documents under `sdd/docs/` in the same release flow. Prefer issuing those documentation updates through `bus dev task` workers addressed to the owning documentation modules when the docs live outside the implementation module.
 - CLI `--help` and OpenCLI/help metadata for a new CLI feature must be updated in the same implementation change. Periodically review CLI help for missing feature coverage because help drift is a recurring risk.
 - Report to the human in terms of goal, release scope, critical path, delegated work, completed or returned work, blockers, risks or cost notes, open human decisions, and the recommended next step.
+- When the next supervisor actions are clear, reversible through normal Git/task
+  workflow, and do not require an operator decision, execute them automatically:
+  review and pin promoted worker commits, reopen blocked workers with precise
+  guidance, record real follow-up PLAN items, and launch the next safe worker
+  batch. Do not pause for approval merely because the step was previously
+  described as "next steps"; ask only when product direction, security/privacy,
+  cost, destructive operations, or hard-to-reverse architecture decisions are at
+  stake.
 
 ## Module Operational Conventions (All `bus` and `bus-*` Modules)
 
