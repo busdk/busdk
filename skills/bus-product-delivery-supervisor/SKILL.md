@@ -10,6 +10,23 @@ dispatch, review, and process improvement. Keep the supervisor focused on
 progress management; delegate implementation to recipient-scoped workers when
 the work can be made clear and isolated.
 
+## Related Repo Skills
+
+Use narrower skills alongside this one when the work has a focused shape:
+
+- `bus-dev-task-worker-ops` for concrete worker dispatch, monitoring, reopen,
+  closeout, promotion, and infrastructure blocker handling.
+- `bus-ui-gx-roadmap` for GX, Bus UI, feature-candidate, semver promotion, and
+  portal migration planning.
+- `bus-docs-quality` for public docs, SDD docs, Markdown linting, examples,
+  navigation, and duplicate-content cleanup.
+- `bus-go-quality-review` for Go code gates, tests, e2e coverage, and final
+  `bus lint path/to/file.go` peer review.
+- `bus-generated-artifact-hygiene` for generated WASM/static asset tracking,
+  ignore, clean, regenerate, and dirty-checkout prevention.
+- `bus-plan-memory-maintainer` for `PLAN.md`, `AGENTS.md`, hourly memo, worker
+  log lessons, and durable process memory.
+
 ## Operating Loop
 
 1. Refresh memory:
@@ -157,7 +174,7 @@ implementation:
 ## Step-By-Step Delivery Cycle
 
 Use this cycle repeatedly until the requested PLAN and feature-candidate work is
-done or a real human decision is needed:
+done or a real operator decision is needed:
 
 1. Snapshot the system.
    - Check `bus dev work status`.

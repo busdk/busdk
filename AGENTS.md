@@ -27,7 +27,7 @@ Merged guidance from `.cursor/rules/*.mdc`.
 7. Delegate build/install/clean to module Makefiles via `make -C`; do not reimplement module internals.
 8. Root Makefile contract:
    1. Default target prints concise help and key variables with example usage.
-   2. Required targets: `init`, `update`, `upgrade`, `status`, `build`, `install`, `clean`, `distclean`, `bootstrap`.
+   2. Required targets: `init`, `update`, `upgrade`, `status`, `build`, `test`, `e2e`, `install`, `clean`, `distclean`, `bootstrap`.
    3. `bootstrap` runs `init`, `build`, `install` only.
 9. Paths and variables:
    1. Module-local build outputs use literal `./bin` paths (no `BIN_DIR` variable).
@@ -69,6 +69,14 @@ Merged guidance from `.cursor/rules/*.mdc`.
 4.12. After each worker finishes, make an immediate routing decision: accept and promote with evidence, reopen with precise correction, record a dependency blocker in the owning `PLAN.md`, or dispatch the next unblocked item. Do not let completed or blocked tasks sit untriaged while capacity is available.
 4.13. When available, use the repo-local `skills/bus-product-delivery-supervisor/SKILL.md` process for broad multi-module delivery work. If the skill needs improvement, update it in the same change set as the process lesson.
 4.14. UI feature-candidate identifiers are stable labels for review, links, and file organization; they are not a required linear implementation queue. Process multiple FCs in parallel when their prerequisites, module ownership, and write scopes are independent, and record real dependency blockers explicitly instead of preserving artificial numeric order.
+4.15. Repo-local skills live under `./skills` and should be mounted into worker containers when practical. Use this compact index when choosing a skill:
+   1. `bus-product-delivery-supervisor`: broad multi-module supervision, worker dispatch, monitoring, review, and process improvement.
+   2. `bus-dev-task-worker-ops`: concrete `bus dev work` / `bus dev task` dispatch, monitoring, reopen, closeout, promotion, and worker-infrastructure troubleshooting.
+   3. `bus-ui-gx-roadmap`: GX and Bus UI feature-candidate planning, docs, implementation, semver promotion, and portal migration prerequisites.
+   4. `bus-docs-quality`: public docs and SDD structure, Markdown linting, UI docs page shape, examples, links, and duplicate-content cleanup.
+   5. `bus-go-quality-review`: Go implementation/review gates, unit/e2e expectations, module Makefile checks, and final `bus lint path/to/file.go` peer review.
+   6. `bus-generated-artifact-hygiene`: generated WASM/static artifact tracking, ignore/clean/regenerate rules, and dirty-checkout prevention.
+   7. `bus-plan-memory-maintainer`: `PLAN.md`, `AGENTS.md`, hourly memo, worker-log lesson extraction, and durable process memory.
 5. Focus on ease of use of the `bus dev task` development system. If Compose, task dispatch, task watching, authentication, generated local tokens, automatic worker provisioning, or worker execution blocks using that system, fix that blocker directly; otherwise avoid implementing backlog items directly in the local checkout when they can be delegated through `bus dev task`.
 6. Delegate with precise task briefs: state the goal, target module, why it matters now, files to inspect first, boundaries, acceptance criteria, test expectations, documentation expectations, and required completed-work evidence.
 6.1. Keep worker-facing task briefs free of supervisor-only context such as benchmark batch numbers, throughput experiments, or worker-count comparisons. Record that context in supervisor notes or task metadata instead; workers should receive only the information needed to complete their assigned module task correctly.
@@ -320,7 +328,7 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 - When processing `BUGS.Update.md` or `FEATURE_REQUESTS.Update.md`, do not assume every listed item is new. Re-verify whether each item is already handled, stale, duplicated, or superseded before copying it into canonical trackers, and keep only still-relevant active items.
 - For user-facing CLI naming, keep command-to-module mapping direct and simple (for example `bus plan` -> `bus-plan`); avoid alias-heavy indirection.
 - For private backend architectures, keep CLI modules as thin clients that call backend APIs/services; avoid embedding monolithic backend business logic into CLI binaries.
-- Any module-specific guidance must live in the module’s own `AGENTS.md` (for example `bus-foo/AGENTS.md`); do not add or keep module-specific rules in this superproject `AGENTS.md`.
+- Module-specific implementation rules must live in the module’s own `AGENTS.md` (for example `bus-foo/AGENTS.md`); this superproject `AGENTS.md` may still carry cross-module architecture, orchestration, and release guidance that coordinates multiple modules.
 - For any work in a module or subdirectory, always check and follow the most specific local `AGENTS.md` in that subtree in addition to this root file.
 - Apply mistake-learning rigor to memory updates: if a command, workflow, or reasoning pattern fails, add a concise preventive rule so future runs use a corrected approach by default.
 - Prefer learning from existing guidance and prior failures in this repository before trial-and-error; do not repeat an already documented failed approach.
