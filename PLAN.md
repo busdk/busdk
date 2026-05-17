@@ -2,7 +2,7 @@
 
 - [ ] Operationalize AI Product Delivery Supervisor task dispatch end to end: persist the supervisor/delegation rules in `AGENTS.md`, inspect root `BUGS.md`, `FEATURE_REQUESTS.md`, and module `PLAN.md` backlogs, start the documented Docker Compose development-task stack, issue non-overlapping `bus dev task` work for active module issues, fix any blockers in the task system itself, and review returned task artifacts before accepting or closing items.
 
-- [ ] Refactor root `AGENTS.md` guidance structure end to end: move non-memo operational rules out from the `Live Working Memo` section into topical sections or scoped module `AGENTS.md` files, clarify the difference between cross-module family policy and module-specific guidance, remove ambiguous repeated ordered-list numbers, rerun `bus lint AGENTS.md`, and keep the supervisor/development-speed rules easy to find.
+- [x] Refactor root `AGENTS.md` guidance structure end to end: move non-memo operational rules out from the `Live Working Memo` section into topical sections or scoped module `AGENTS.md` files, clarify the difference between cross-module family policy and module-specific guidance, remove ambiguous repeated ordered-list numbers, rerun `bus lint AGENTS.md`, and keep the supervisor/development-speed rules easy to find.
 
 - [x] Fix local Codex task-image Bus toolchain availability end to end: reproduce the worker-container failure where module `make lint` cannot find `bus-dev`, provide a deterministic `bus-dev` command on `PATH` inside the local Codex task image without host installs, document the behavior in the dev-task workflow, add a focused smoke check, and verify that module lint can run from a Codex task container.
 
