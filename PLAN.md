@@ -1,5 +1,17 @@
 # PLAN.md
 
+- [ ] Run AI Product Delivery Supervisor as an automated service end to end:
+  compose the `bus-dev` bounded monitor, `bus-integration-dev-task` worker
+  lifecycle, and superproject Git pinning rules into a containerized supervisor
+  lane that keeps the worker board from going idle. It should poll current task
+  state without long-lived exec streams, pin accepted promoted commits after
+  evidence review, reopen mechanically blocked work with guidance, launch the
+  next safe feature-candidate or infrastructure batch when capacity is
+  available, write progress to the normal task/event/memo surfaces, and stop for
+  operator input only on product direction, security/privacy, cost, destructive
+  actions, or hard-to-reverse architecture. Add deterministic smoke coverage
+  and document how to run it locally.
+
 - [ ] Make BusDK dev-task container and host toolchain freshness automatic end
   to end: reproduce the recurring stale-tool problem where worker containers or
   the host dispatcher lack the latest BusDK commands such as `bus lint` or `bus
