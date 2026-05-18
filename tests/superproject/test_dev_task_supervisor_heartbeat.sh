@@ -66,6 +66,17 @@ env PATH="$tmp_dir/bin:$PATH" \
   BUS_DEV_SUPERVISOR_MAX_AGE_SECONDS=86400 \
   "$root_dir/scripts/dev-task-supervisor-heartbeat.sh" check >/dev/null
 
+env PATH="$tmp_dir/bin:$PATH" \
+  BUS_DEV_SUPERVISOR_STATE_DIR="$tmp_dir/state" \
+  BUS_DEV_SUPERVISOR_MAX_AGE_SECONDS=86400 \
+  "$root_dir/scripts/dev-task-supervisor-heartbeat.sh" inspect >"$tmp_dir/inspect.out"
+grep -q '^supervisor heartbeat: status=ok ' "$tmp_dir/inspect.out"
+grep -q '^supervisor policy: decision=noop active=0 terminal=0 review=0 reopen=0 blocked=0$' "$tmp_dir/inspect.out"
+grep -q '^supervisor actions: queued=0 refill_eligible=true refill_reason=no_active_or_terminal_tasks ' "$tmp_dir/inspect.out"
+grep -q '^supervisor backlog: root_plan_open=' "$tmp_dir/inspect.out"
+grep -q ' module_plan_files=' "$tmp_dir/inspect.out"
+grep -q '^supervisor evidence: snapshot=' "$tmp_dir/inspect.out"
+
 printf '1\n' >"$tmp_dir/state/heartbeat.epoch"
 if env PATH="$tmp_dir/bin:$PATH" \
   BUS_DEV_SUPERVISOR_STATE_DIR="$tmp_dir/state" \

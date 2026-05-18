@@ -2,7 +2,7 @@
 set -eu
 
 usage() {
-  printf 'usage: %s [run|check|classify SNAPSHOT_FILE [EXIT_CODE]]\n' "$0" >&2
+  printf 'usage: %s [run|check|inspect|classify SNAPSHOT_FILE [EXIT_CODE]]\n' "$0" >&2
   printf 'Runs or checks the BusDK AI Product Delivery Supervisor heartbeat.\n' >&2
 }
 
@@ -110,6 +110,169 @@ json_array_object_count() {
       }
       print count
     }
+  '
+}
+
+json_first_scalar_for_key() {
+  awk -v key="$1" '
+    BEGIN { target = "\"" key "\""; found = 0; in_string = 0; escape = 0; after_colon = 0; value = "" }
+    { text = text $0 "\n" }
+    END {
+      for (i = 1; i <= length(text); i++) {
+        c = substr(text, i, 1)
+        if (!found && substr(text, i, length(target)) == target) {
+          found = 1
+          i += length(target) - 1
+          continue
+        }
+        if (!found) {
+          continue
+        }
+        if (!after_colon) {
+          if (c == ":") {
+            after_colon = 1
+          }
+          continue
+        }
+        if (value == "" && c ~ /[[:space:]]/) {
+          continue
+        }
+        if (value == "" && c == "\"") {
+          in_string = 1
+          continue
+        }
+        if (in_string) {
+          if (escape) {
+            value = value c
+            escape = 0
+          } else if (c == "\\") {
+            escape = 1
+          } else if (c == "\"") {
+            print value
+            exit
+          } else {
+            value = value c
+          }
+        } else if (c == "," || c == "}" || c == "]" || c ~ /[[:space:]]/) {
+          if (value != "") {
+            print value
+            exit
+          }
+        } else {
+          value = value c
+        }
+      }
+      if (value != "") {
+        print value
+      }
+    }
+  ' "$2"
+}
+
+json_object_scalar_for_key() {
+  awk -v object_key="$1" -v field_key="$2" '
+    function scalar_field(object_text, key,    target, pos, rest, i, c, value, escape, in_string) {
+      target = "\"" key "\""
+      pos = index(object_text, target)
+      if (pos == 0) {
+        return ""
+      }
+      rest = substr(object_text, pos + length(target))
+      pos = index(rest, ":")
+      if (pos == 0) {
+        return ""
+      }
+      rest = substr(rest, pos + 1)
+      sub(/^[[:space:]]*/, "", rest)
+      value = ""
+      if (substr(rest, 1, 1) == "\"") {
+        rest = substr(rest, 2)
+        escape = 0
+        for (i = 1; i <= length(rest); i++) {
+          c = substr(rest, i, 1)
+          if (escape) {
+            value = value c
+            escape = 0
+          } else if (c == "\\") {
+            escape = 1
+          } else if (c == "\"") {
+            return value
+          } else {
+            value = value c
+          }
+        }
+        return value
+      }
+      for (i = 1; i <= length(rest); i++) {
+        c = substr(rest, i, 1)
+        if (c == "," || c == "}" || c == "]" || c ~ /[[:space:]]/) {
+          return value
+        }
+        value = value c
+      }
+      return value
+    }
+    BEGIN { target = "\"" object_key "\""; found = 0; depth = 0; in_string = 0; escape = 0; object_text = "" }
+    { text = text $0 "\n" }
+    END {
+      for (i = 1; i <= length(text); i++) {
+        c = substr(text, i, 1)
+        if (!found && substr(text, i, length(target)) == target) {
+          found = 1
+          i += length(target) - 1
+          continue
+        }
+        if (found && depth == 0) {
+          if (c == "{") {
+            depth = 1
+            object_text = c
+          }
+          continue
+        }
+        if (depth > 0) {
+          object_text = object_text c
+          if (escape) {
+            escape = 0
+          } else if (c == "\\") {
+            escape = 1
+          } else if (c == "\"") {
+            in_string = !in_string
+          } else if (!in_string && c == "{") {
+            depth++
+          } else if (!in_string && c == "}") {
+            depth--
+            if (depth == 0) {
+              print scalar_field(object_text, field_key)
+              exit
+            }
+          }
+        }
+      }
+    }
+  ' "$3"
+}
+
+plan_open_count() {
+  if [ ! -f "$1" ]; then
+    printf '0\n'
+    return
+  fi
+  awk '/^[[:space:]]*- \[ \]/ { count++ } END { print count + 0 }' "$1"
+}
+
+module_plan_summary() {
+  find bus bus-* -maxdepth 1 -type f -name PLAN.md 2>/dev/null | sort | awk '
+    BEGIN { files = 0; open = 0 }
+    {
+      files++
+      while ((getline line < $0) > 0) {
+        if (line ~ /^[[:space:]]*- \[ \]/) {
+          open++
+        }
+      }
+      close($0)
+    }
+    END { printf "%s %s\n", files, open }
   '
 }
 
@@ -587,10 +750,41 @@ check_status() {
   printf 'supervisor heartbeat OK: age=%ss status=%s\n' "$age" "$status_file"
 }
 
+inspect_state() {
+  check_status >/dev/null
+
+  status=$(json_first_scalar_for_key status "$status_file")
+  decision=$(json_first_scalar_for_key decision "$policy_file")
+  active_total=$(json_object_scalar_for_key active total "$policy_file")
+  terminal_total=$(json_object_scalar_for_key terminal total "$policy_file")
+  ready_for_review=$(json_object_scalar_for_key terminal ready_for_review "$policy_file")
+  needs_reopen=$(json_object_scalar_for_key terminal needs_reopen "$policy_file")
+  blocked=$(json_object_scalar_for_key terminal blocked "$policy_file")
+  action_count=$(json_first_scalar_for_key action_count "$action_queue_file")
+  refill_eligible=$(json_object_scalar_for_key refill_decision eligible "$action_plan_file")
+  refill_reason=$(json_object_scalar_for_key refill_decision reason "$action_plan_file")
+  root_plan_open=$(plan_open_count PLAN.md)
+  root_bugs_open=$(plan_open_count BUGS.md)
+  set -- $(module_plan_summary)
+  module_plan_files=$1
+  module_plan_open=$2
+
+  printf 'supervisor heartbeat: status=%s status_file=%s\n' "$status" "$status_file"
+  printf 'supervisor policy: decision=%s active=%s terminal=%s review=%s reopen=%s blocked=%s\n' \
+    "$decision" "$active_total" "$terminal_total" "$ready_for_review" "$needs_reopen" "$blocked"
+  printf 'supervisor actions: queued=%s refill_eligible=%s refill_reason=%s action_queue=%s\n' \
+    "$action_count" "$refill_eligible" "$refill_reason" "$action_queue_file"
+  printf 'supervisor backlog: root_plan_open=%s root_bugs_open=%s module_plan_files=%s module_plan_open=%s\n' \
+    "$root_plan_open" "$root_bugs_open" "$module_plan_files" "$module_plan_open"
+  printf 'supervisor evidence: snapshot=%s policy=%s action_plan=%s\n' \
+    "$snapshot_file" "$policy_file" "$action_plan_file"
+}
+
 mode=${1:-run}
 case "$mode" in
   run) run_loop ;;
   check) check_status ;;
+  inspect) inspect_state ;;
   classify)
     if [ $# -lt 2 ]; then
       usage

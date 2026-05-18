@@ -62,6 +62,19 @@
   `bus dev task` work for active module issues, fix any blockers in the task
   system itself, and review returned task artifacts before accepting or closing
   items.
+  - [x] Add a root-stack supervisor `inspect` check that validates heartbeat
+    freshness, prints the current policy/action queue summary, and reports
+    root/module `PLAN.md` backlog counts without dispatching, reopening,
+    approving, pinning, or editing submodules.
+  - [ ] Cross-module request for `bus-dev`: add the executable supervisor
+    command surface that consumes the non-mutating heartbeat action queue and
+    performs review-worker dispatch, precise reopen/refill decisions, and root
+    pin handling with dry-run evidence and operator approval gates where
+    required.
+  - [ ] Cross-module request for `bus-integration-dev-task`: expose
+    controller-owned worker startup/refill mechanics so the supervisor service
+    can request recipient-scoped workers deterministically instead of relying
+    on manual Compose worker starts.
 
 - [x] Refactor root `AGENTS.md` guidance structure end to end: move non-memo operational rules out from the `Live Working Memo` section into topical sections or scoped module `AGENTS.md` files, clarify the difference between cross-module family policy and module-specific guidance, remove ambiguous repeated ordered-list numbers, rerun `bus lint AGENTS.md`, and keep the supervisor/development-speed rules easy to find.
 

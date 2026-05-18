@@ -580,11 +580,20 @@ Check the supervisor heartbeat without opening a streaming task watch:
 docker compose -f compose.dev-task-docker.yaml ps bus-dev-supervisor
 docker compose -f compose.dev-task-docker.yaml exec bus-dev-supervisor \
   /workspace/scripts/dev-task-supervisor-heartbeat.sh check
+docker compose -f compose.dev-task-docker.yaml exec bus-dev-supervisor \
+  /workspace/scripts/dev-task-supervisor-heartbeat.sh inspect
 cat tmp/dev-task-supervisor/heartbeat-status.json
 cat tmp/dev-task-supervisor/policy-cycle.json
 cat tmp/dev-task-supervisor/action-plan.json
 cat tmp/dev-task-supervisor/action-queue.json
 ```
+
+The `inspect` command is the concise root-stack dispatch check. It verifies the
+heartbeat freshness, prints the current policy counts, shows the evidence-only
+action queue and refill decision, and reports root/module `PLAN.md` backlog
+counts from the mounted superproject checkout. It is intentionally read-only;
+actual worker dispatch, reopen execution, and promotion pinning still belong to
+the `bus-dev` workflow surface and the dev-task worker infrastructure.
 
 Tune the local heartbeat with `BUS_DEV_SUPERVISOR_INTERVAL_SECONDS`,
 `BUS_DEV_SUPERVISOR_MAX_AGE_SECONDS`, `BUS_DEV_SUPERVISOR_QUIET_AFTER`, and

@@ -16,6 +16,8 @@
 # Check the supervisor heartbeat service:
 #   docker compose -f compose.dev-task-docker.yaml exec bus-dev-supervisor \
 #     /workspace/scripts/dev-task-supervisor-heartbeat.sh check
+#   docker compose -f compose.dev-task-docker.yaml exec bus-dev-supervisor \
+#     /workspace/scripts/dev-task-supervisor-heartbeat.sh inspect
 #
 # Run the container API directly:
 #   cd /workspace/bus-containers
