@@ -382,9 +382,10 @@ Compose sets `BUS_DEV_TASK_WORKSPACE_RECIPIENT=busdk`; use recipient `busdk`
 only for work that intentionally edits the superproject root. Other projects
 can choose their own workspace-recipient name without changing worker code.
 
-The local task stack can be scaled while it is running. Start with four provider
-routers and four active module workers, then increase in steps of two only when
-Docker has CPU, memory, and Codex quota headroom:
+The local task stack provider routers can be scaled while the stack is running.
+Start with the default single managed task worker plus four provider routers,
+then increase provider-router replicas in steps of two only when Docker has
+CPU, memory, and Codex quota headroom:
 
 ```bash
 docker compose -f compose.dev-task-docker.yaml up -d \
@@ -548,11 +549,18 @@ docker compose -f compose.dev-task-docker.yaml exec testing-agent sh
 
 The same stack starts `bus-dev-supervisor`, a lightweight heartbeat service for
 the AI Product Delivery Supervisor lane. It does not launch, reopen, approve,
-or pin work by itself yet. On each heartbeat it runs the non-streaming
+or pin work by itself yet. On each heartbeat it runs one bounded policy cycle:
+the non-streaming
 `bus dev work monitor --format json --quiet-after 15m --stale-after 1h`
 snapshot, writes the raw monitor output to
-`tmp/dev-task-supervisor/work-monitor.json`, and writes health evidence to
-`tmp/dev-task-supervisor/heartbeat-status.json`.
+`tmp/dev-task-supervisor/work-monitor.json`, classifies active and terminal
+tasks in `tmp/dev-task-supervisor/policy-cycle.json`, and writes health evidence
+to `tmp/dev-task-supervisor/heartbeat-status.json`. When the snapshot has no
+active or terminal tasks, the policy cycle records an explicit no-op event in
+`tmp/dev-task-supervisor/supervisor-events.jsonl` and no-op evidence in
+`tmp/dev-task-supervisor/noop-evidence.json`. The policy evidence is
+provider-neutral so later local Bus workers and cloud Bus workers can use the
+same supervisor decisions.
 
 Check the supervisor heartbeat without opening a streaming task watch:
 
@@ -561,6 +569,7 @@ docker compose -f compose.dev-task-docker.yaml ps bus-dev-supervisor
 docker compose -f compose.dev-task-docker.yaml exec bus-dev-supervisor \
   /workspace/scripts/dev-task-supervisor-heartbeat.sh check
 cat tmp/dev-task-supervisor/heartbeat-status.json
+cat tmp/dev-task-supervisor/policy-cycle.json
 ```
 
 Tune the local heartbeat with `BUS_DEV_SUPERVISOR_INTERVAL_SECONDS`,

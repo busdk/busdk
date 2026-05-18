@@ -8,22 +8,30 @@
   local start/check workflow, and verifies the wiring with focused root smoke
   coverage.
 
+- [x] Add the first bounded AI Product Delivery Supervisor policy cycle end to
+  end: teach the root Compose `bus-dev-supervisor` service heartbeat to call
+  `bus dev work monitor --format json`, classify active and terminal task
+  snapshots, and record explicit no-op status/event/evidence under
+  `tmp/dev-task-supervisor` when no safe work is available. Keep the
+  classification provider-neutral, document the local check workflow, and
+  verify it with focused shell smoke coverage.
+
 - [ ] Complete AI Product Delivery Supervisor action-loop automation end to
   end:
   owner/entrypoint is the root Compose `bus-dev-supervisor` service plus the
-  `bus-dev` workflow command surface. First action: teach the supervisor service
-  one bounded policy cycle that calls `bus dev work monitor --format json`,
-  classifies terminal tasks, and records a no-op status event when no safe work
-  is available. Next actions: add root Git pin handling for accepted promoted
-  commits, add Bus-worker review/progress-audit task dispatch through the same
-  local dev-task substrate used by implementation workers, keep the worker
-  abstraction provider-neutral for later cloud Bus workers, add mechanical
-  reopen/refill decisions for documented blocker classes, and leave product
-  direction, security/privacy, cost, destructive actions, and hard-to-reverse
-  architecture to operator input. Acceptance sequence: unit-test the policy
-  classifier, smoke-test one local supervisor cycle with an idle board, smoke
-  one review-worker dispatch and terminal closeout, document the local run/check
-  workflow, and verify the root supervisor smoke plus relevant module gates.
+  `bus-dev` workflow command surface. Remaining actions: add root Git pin
+  handling for accepted promoted commits, add Bus-worker review/progress-audit
+  task dispatch through the same local dev-task substrate used by implementation
+  workers, keep the worker abstraction provider-neutral for later cloud Bus
+  workers, add mechanical reopen/refill decisions for documented blocker
+  classes, and leave product direction, security/privacy, cost, destructive
+  actions, and hard-to-reverse architecture to operator input. Acceptance
+  sequence: smoke one review-worker dispatch and terminal closeout, document any
+  additional local run/check workflow, and verify with
+  `bash ./tests/superproject/test_dev_task_supervisor_heartbeat.sh`, `git diff
+  --check`, `bus lint README.md PLAN.md`, and the affected `bus-dev` or
+  `bus-integration-dev-task` module gates when that slice changes those
+  modules.
 
 - [x] Make BusDK dev-task container and host toolchain freshness automatic end
   to end: reproduce the recurring stale-tool problem where worker containers or
@@ -35,7 +43,14 @@
   commands after recent submodule promotions. Document the refresh path and
   verify focused root gates.
 
-- [ ] Operationalize AI Product Delivery Supervisor task dispatch end to end: persist the supervisor/delegation rules in `AGENTS.md`, inspect root `BUGS.md`, `FEATURE_REQUESTS.md`, and module `PLAN.md` backlogs, start the documented Docker Compose development-task stack, issue non-overlapping `bus dev task` work for active module issues, fix any blockers in the task system itself, and review returned task artifacts before accepting or closing items.
+- [ ] Operationalize AI Product Delivery Supervisor task dispatch end to end:
+  persist the supervisor/delegation rules in `AGENTS.md`, inspect root
+  `BUGS.md`, `FEATURE_REQUESTS.md`, and module `PLAN.md` backlogs, start the
+  documented Docker Compose development-task stack with
+  `docker compose -f compose.dev-task-docker.yaml up -d`, issue non-overlapping
+  `bus dev task` work for active module issues, fix any blockers in the task
+  system itself, and review returned task artifacts before accepting or closing
+  items.
 
 - [x] Refactor root `AGENTS.md` guidance structure end to end: move non-memo operational rules out from the `Live Working Memo` section into topical sections or scoped module `AGENTS.md` files, clarify the difference between cross-module family policy and module-specific guidance, remove ambiguous repeated ordered-list numbers, rerun `bus lint AGENTS.md`, and keep the supervisor/development-speed rules easy to find.
 

@@ -2,7 +2,7 @@
 set -eu
 
 usage() {
-  printf 'usage: %s [run|check]\n' "$0" >&2
+  printf 'usage: %s [run|check|classify SNAPSHOT_FILE [EXIT_CODE]]\n' "$0" >&2
   printf 'Runs or checks the BusDK AI Product Delivery Supervisor heartbeat.\n' >&2
 }
 
@@ -23,6 +23,9 @@ timestamp_utc() {
 
 state_dir=${BUS_DEV_SUPERVISOR_STATE_DIR:-/workspace/tmp/dev-task-supervisor}
 status_file=${BUS_DEV_SUPERVISOR_STATUS_FILE:-$state_dir/heartbeat-status.json}
+policy_file=${BUS_DEV_SUPERVISOR_POLICY_FILE:-$state_dir/policy-cycle.json}
+event_file=${BUS_DEV_SUPERVISOR_EVENT_FILE:-$state_dir/supervisor-events.jsonl}
+noop_evidence_file=${BUS_DEV_SUPERVISOR_NOOP_EVIDENCE_FILE:-$state_dir/noop-evidence.json}
 snapshot_file=${BUS_DEV_SUPERVISOR_SNAPSHOT_FILE:-$state_dir/work-monitor.json}
 stderr_file=${BUS_DEV_SUPERVISOR_STDERR_FILE:-$state_dir/work-monitor.stderr}
 epoch_file=${BUS_DEV_SUPERVISOR_EPOCH_FILE:-$state_dir/heartbeat.epoch}
@@ -31,6 +34,224 @@ max_age_seconds=${BUS_DEV_SUPERVISOR_MAX_AGE_SECONDS:-900}
 quiet_after=${BUS_DEV_SUPERVISOR_QUIET_AFTER:-15m}
 stale_after=${BUS_DEV_SUPERVISOR_STALE_AFTER:-1h}
 once=${BUS_DEV_SUPERVISOR_ONCE:-false}
+
+json_array_for_key() {
+  awk -v key="$1" '
+    BEGIN { target = "\"" key "\""; found = 0; depth = 0; in_string = 0; escape = 0; out = "" }
+    { text = text $0 "\n" }
+    END {
+      for (i = 1; i <= length(text); i++) {
+        c = substr(text, i, 1)
+        if (!found && substr(text, i, length(target)) == target) {
+          found = 1
+          i += length(target) - 1
+          continue
+        }
+        if (found && depth == 0) {
+          if (c == "[") {
+            depth = 1
+            out = c
+          }
+          continue
+        }
+        if (depth > 0) {
+          out = out c
+          if (escape) {
+            escape = 0
+          } else if (c == "\\") {
+            escape = 1
+          } else if (c == "\"") {
+            in_string = !in_string
+          } else if (!in_string && c == "[") {
+            depth++
+          } else if (!in_string && c == "]") {
+            depth--
+            if (depth == 0) {
+              print out
+              exit
+            }
+          }
+        }
+      }
+      print "[]"
+    }
+  ' "$2"
+}
+
+json_array_is_empty() {
+  [ "$(printf '%s' "$1" | tr -d '[:space:]')" = "[]" ]
+}
+
+json_array_object_count() {
+  awk '
+    BEGIN { count = 0; depth = 0; in_string = 0; escape = 0 }
+    {
+      text = text $0 "\n"
+    }
+    END {
+      for (i = 1; i <= length(text); i++) {
+        c = substr(text, i, 1)
+        if (escape) {
+          escape = 0
+        } else if (c == "\\") {
+          escape = 1
+        } else if (c == "\"") {
+          in_string = !in_string
+        } else if (!in_string && c == "{") {
+          depth++
+          if (depth == 1) {
+            count++
+          }
+        } else if (!in_string && c == "}") {
+          depth--
+        }
+      }
+      print count
+    }
+  '
+}
+
+json_terminal_classification_counts() {
+  awk '
+    function classify_object(object_text) {
+      if (object_text ~ /"task_complete"[[:space:]]*:[[:space:]]*true/) {
+        ready++
+      }
+      if (object_text ~ /"task_complete"[[:space:]]*:[[:space:]]*false/ ||
+          object_text ~ /"status"[[:space:]]*:[[:space:]]*"(failed|error)"/) {
+        reopen++
+      }
+      if (object_text ~ /"status"[[:space:]]*:[[:space:]]*"blocked"/ ||
+          object_text ~ /"remaining_blockers"[[:space:]]*:[[:space:]]*\[[[:space:]]*[{"]/) {
+        blocked++
+      }
+    }
+    BEGIN { depth = 0; in_string = 0; escape = 0; object_text = ""; ready = 0; reopen = 0; blocked = 0 }
+    { text = text $0 "\n" }
+    END {
+      for (i = 1; i <= length(text); i++) {
+        c = substr(text, i, 1)
+        if (escape) {
+          escape = 0
+        } else if (c == "\\") {
+          escape = 1
+        } else if (c == "\"") {
+          in_string = !in_string
+        }
+
+        if (!in_string && c == "{") {
+          depth++
+        }
+        if (depth > 0) {
+          object_text = object_text c
+        }
+        if (!in_string && c == "}") {
+          if (depth == 1) {
+            classify_object(object_text)
+            object_text = ""
+          }
+          depth--
+        }
+      }
+      print ready, reopen, blocked
+    }
+  '
+}
+
+write_noop_evidence() {
+  tmp_evidence="$noop_evidence_file.tmp.$$"
+  {
+    printf '{\n'
+    printf '  "schema_version": "busdk.supervisor.noop_evidence/v1",\n'
+    printf '  "status": "noop",\n'
+    printf '  "reason": "no_active_or_terminal_tasks",\n'
+    printf '  "recorded_at": "%s",\n' "$(json_value "$1")"
+    printf '  "snapshot_file": "%s"\n' "$(json_value "$snapshot_file")"
+    printf '}\n'
+  } >"$tmp_evidence"
+  mv "$tmp_evidence" "$noop_evidence_file"
+
+  {
+    printf '{"schema_version":"busdk.supervisor.event/v1",'
+    printf '"event_type":"supervisor.noop",'
+    printf '"recorded_at":"%s",' "$(json_value "$1")"
+    printf '"reason":"no_active_or_terminal_tasks",'
+    printf '"snapshot_file":"%s"}\n' "$(json_value "$snapshot_file")"
+  } >>"$event_file"
+}
+
+classify_policy_cycle() {
+  classify_snapshot_file=$1
+  classify_exit_code=${2:-0}
+  classify_recorded_at=${3:-$(timestamp_utc)}
+  tmp_policy="$policy_file.tmp.$$"
+
+  policy_status=ok
+  decision=monitor
+  no_op_reason=
+  safe_work_available=false
+  active_total=0
+  terminal_total=0
+  ready_for_review_total=0
+  needs_reopen_total=0
+  blocked_total=0
+
+  if [ "$classify_exit_code" -ne 0 ]; then
+    policy_status=monitor_failed
+    decision=none
+  else
+    active_array=$(json_array_for_key active "$classify_snapshot_file")
+    terminal_array=$(json_array_for_key terminal "$classify_snapshot_file")
+
+    if ! json_array_is_empty "$active_array"; then
+      active_total=$(printf '%s' "$active_array" | json_array_object_count)
+    fi
+    if ! json_array_is_empty "$terminal_array"; then
+      terminal_total=$(printf '%s' "$terminal_array" | json_array_object_count)
+      set -- $(printf '%s' "$terminal_array" | json_terminal_classification_counts)
+      ready_for_review_total=$1
+      needs_reopen_total=$2
+      blocked_total=$3
+    fi
+
+    if [ "$active_total" -eq 0 ] && [ "$terminal_total" -eq 0 ]; then
+      decision=noop
+      no_op_reason=no_active_or_terminal_tasks
+    elif [ "$terminal_total" -gt 0 ]; then
+      decision=classify_terminal
+      safe_work_available=true
+    else
+      decision=monitor_active
+    fi
+  fi
+
+  {
+    printf '{\n'
+    printf '  "schema_version": "busdk.supervisor.policy_cycle/v1",\n'
+    printf '  "status": "%s",\n' "$(json_value "$policy_status")"
+    printf '  "decision": "%s",\n' "$(json_value "$decision")"
+    printf '  "safe_work_available": %s,\n' "$safe_work_available"
+    if [ -n "$no_op_reason" ]; then
+      printf '  "no_op_reason": "%s",\n' "$(json_value "$no_op_reason")"
+    fi
+    printf '  "recorded_at": "%s",\n' "$(json_value "$classify_recorded_at")"
+    printf '  "snapshot_file": "%s",\n' "$(json_value "$classify_snapshot_file")"
+    printf '  "monitor_exit_code": %s,\n' "$classify_exit_code"
+    printf '  "active": {"total": %s},\n' "$active_total"
+    printf '  "terminal": {\n'
+    printf '    "total": %s,\n' "$terminal_total"
+    printf '    "ready_for_review": %s,\n' "$ready_for_review_total"
+    printf '    "needs_reopen": %s,\n' "$needs_reopen_total"
+    printf '    "blocked": %s\n' "$blocked_total"
+    printf '  }\n'
+    printf '}\n'
+  } >"$tmp_policy"
+  mv "$tmp_policy" "$policy_file"
+
+  if [ "$decision" = "noop" ]; then
+    write_noop_evidence "$classify_recorded_at"
+  fi
+}
 
 run_once() {
   mkdir -p "$state_dir"
@@ -55,6 +276,7 @@ run_once() {
   mv "$tmp_stderr" "$stderr_file"
   printf '%s\n' "$started_epoch" >"$tmp_epoch"
   mv "$tmp_epoch" "$epoch_file"
+  classify_policy_cycle "$snapshot_file" "$exit_code" "$finished_at"
 
   {
     printf '{\n'
@@ -64,6 +286,7 @@ run_once() {
     printf '  "started_at": "%s",\n' "$(json_value "$started_at")"
     printf '  "finished_at": "%s",\n' "$(json_value "$finished_at")"
     printf '  "monitor_command": "bus dev work monitor --format json --quiet-after %s --stale-after %s",\n' "$(json_value "$quiet_after")" "$(json_value "$stale_after")"
+    printf '  "policy_file": "%s",\n' "$(json_value "$policy_file")"
     printf '  "snapshot_file": "%s",\n' "$(json_value "$snapshot_file")"
     printf '  "stderr_file": "%s"\n' "$(json_value "$stderr_file")"
     printf '}\n'
@@ -122,6 +345,14 @@ mode=${1:-run}
 case "$mode" in
   run) run_loop ;;
   check) check_status ;;
+  classify)
+    if [ $# -lt 2 ]; then
+      usage
+      exit 2
+    fi
+    mkdir -p "$state_dir"
+    classify_policy_cycle "$2" "${3:-0}"
+    ;;
   -h|--help|help) usage; exit 0 ;;
   *) usage; exit 2 ;;
 esac
