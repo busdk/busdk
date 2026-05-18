@@ -82,6 +82,11 @@ Merged guidance from `.cursor/rules/*.mdc`.
   recent task progress or explicit idle state, restart or report failures
   through normal task/event surfaces, and keep worker refill bounded by policy.
 - While workers run, keep the supervisor loop active with non-overlapping work: review returned patches, promote verified changes, groom `PLAN.md` queues, prepare next task briefs, investigate infrastructure friction, or start additional safe workers. Avoid idle waiting when useful review or dispatch work is available.
+- Review/progress-audit outsourcing should exercise the Bus dev-task worker
+  system whenever practical. Codex subagents are useful for bounded local
+  assistance, but scalable supervisor work belongs in local Bus worker agents
+  now and provider-neutral/cloud Bus worker agents later so the same substrate
+  is tested and improved.
 - Keep parallelism high when scopes are independent and review capacity exists. Recent project logs showed successful batches above fifteen concurrent workers; do not assume one-worker-per-module is the ceiling. Increase concurrency until write-scope conflicts, dirty primary checkouts, resource saturation, or review bandwidth become the real limit.
 - Same-recipient parallel work is acceptable for broad documentation and mechanical refactors when each worker has exact non-overlapping file ownership and promotion can be serialized safely. Prefer many small shards over one large documentation worker when the target repository is the only shared bottleneck.
 - Treat worker throughput as accepted, verified, promoted work, not claimed work. A worker that cannot lint, cannot see current tools, runs from a stale submodule pin, dirties generated artifacts, or exits with incomplete evidence is a signal to improve infrastructure or task guidance before scaling that pattern.

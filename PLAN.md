@@ -10,16 +10,20 @@
 
 - [ ] Complete AI Product Delivery Supervisor action-loop automation end to
   end:
-  compose the `bus-dev` bounded monitor, `bus-integration-dev-task` worker
-  lifecycle, and superproject Git pinning rules into a containerized supervisor
-  lane that keeps the worker board from going idle. It should poll current task
-  state without long-lived exec streams, pin accepted promoted commits after
-  evidence review, reopen mechanically blocked work with guidance, launch the
-  next safe feature-candidate or infrastructure batch when capacity is
-  available, write progress to the normal task/event/memo surfaces, and stop for
-  operator input only on product direction, security/privacy, cost, destructive
-  actions, or hard-to-reverse architecture. Add deterministic smoke coverage
-  and document how to run it locally.
+  owner/entrypoint is the root Compose `bus-dev-supervisor` service plus the
+  `bus-dev` workflow command surface. First action: teach the supervisor service
+  one bounded policy cycle that calls `bus dev work monitor --format json`,
+  classifies terminal tasks, and records a no-op status event when no safe work
+  is available. Next actions: add root Git pin handling for accepted promoted
+  commits, add Bus-worker review/progress-audit task dispatch through the same
+  local dev-task substrate used by implementation workers, keep the worker
+  abstraction provider-neutral for later cloud Bus workers, add mechanical
+  reopen/refill decisions for documented blocker classes, and leave product
+  direction, security/privacy, cost, destructive actions, and hard-to-reverse
+  architecture to operator input. Acceptance sequence: unit-test the policy
+  classifier, smoke-test one local supervisor cycle with an idle board, smoke
+  one review-worker dispatch and terminal closeout, document the local run/check
+  workflow, and verify the root supervisor smoke plus relevant module gates.
 
 - [x] Make BusDK dev-task container and host toolchain freshness automatic end
   to end: reproduce the recurring stale-tool problem where worker containers or
