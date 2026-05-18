@@ -88,6 +88,12 @@ Merged guidance from `.cursor/rules/*.mdc`.
   now and provider-neutral/cloud Bus worker agents later so the same substrate
   is tested and improved.
 - Keep parallelism high when scopes are independent and review capacity exists. Recent project logs showed successful batches above fifteen concurrent workers; do not assume one-worker-per-module is the ceiling. Increase concurrency until write-scope conflicts, dirty primary checkouts, resource saturation, or review bandwidth become the real limit.
+- Treat throughput targets and prior best results as floors to exceed, not caps
+  or comfort targets. Compare each long-running supervisor pulse against the
+  best accepted/promoted work-per-hour evidence from recent memos and current
+  stats, then actively look for the next safe scaling improvement: more
+  independent workers, narrower shards, faster review/pin/reopen routing,
+  stronger automation, or removal of the current bottleneck.
 - Same-recipient parallel work is acceptable for broad documentation and mechanical refactors when each worker has exact non-overlapping file ownership and promotion can be serialized safely. Prefer many small shards over one large documentation worker when the target repository is the only shared bottleneck.
 - Treat worker throughput as accepted, verified, promoted work, not claimed work. A worker that cannot lint, cannot see current tools, runs from a stale submodule pin, dirties generated artifacts, or exits with incomplete evidence is a signal to improve infrastructure or task guidance before scaling that pattern.
 - After each worker finishes, make an immediate routing decision: accept and promote with evidence, reopen with precise correction, record a dependency blocker in the owning `PLAN.md`, or dispatch the next unblocked item. Do not let completed or blocked tasks sit untriaged while capacity is available.
