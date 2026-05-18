@@ -2,7 +2,7 @@
 set -eu
 
 usage() {
-  printf 'usage: %s [run|check|inspect|classify SNAPSHOT_FILE [EXIT_CODE]]\n' "$0" >&2
+  printf 'usage: %s [run|check|inspect|plan-execute|classify SNAPSHOT_FILE [EXIT_CODE]]\n' "$0" >&2
   printf 'Runs or checks the BusDK AI Product Delivery Supervisor heartbeat.\n' >&2
 }
 
@@ -26,6 +26,7 @@ status_file=${BUS_DEV_SUPERVISOR_STATUS_FILE:-$state_dir/heartbeat-status.json}
 policy_file=${BUS_DEV_SUPERVISOR_POLICY_FILE:-$state_dir/policy-cycle.json}
 action_plan_file=${BUS_DEV_SUPERVISOR_ACTION_PLAN_FILE:-$state_dir/action-plan.json}
 action_queue_file=${BUS_DEV_SUPERVISOR_ACTION_QUEUE_FILE:-$state_dir/action-queue.json}
+executor_plan_file=${BUS_DEV_SUPERVISOR_EXECUTOR_PLAN_FILE:-$state_dir/executor-plan.json}
 event_file=${BUS_DEV_SUPERVISOR_EVENT_FILE:-$state_dir/supervisor-events.jsonl}
 noop_evidence_file=${BUS_DEV_SUPERVISOR_NOOP_EVIDENCE_FILE:-$state_dir/noop-evidence.json}
 snapshot_file=${BUS_DEV_SUPERVISOR_SNAPSHOT_FILE:-$state_dir/work-monitor.json}
@@ -560,6 +561,232 @@ write_action_plan() {
   mv "$tmp_action_plan" "$action_plan_file"
 }
 
+write_executor_plan() {
+  executor_recorded_at=${1:-$(timestamp_utc)}
+  executor_status=ok
+  executor_refill_eligible=false
+  executor_refill_reason=unknown
+
+  if [ ! -f "$action_queue_file" ]; then
+    executor_status=missing_action_queue
+  fi
+  if [ ! -f "$action_plan_file" ]; then
+    if [ "$executor_status" = "ok" ]; then
+      executor_status=missing_action_plan
+    else
+      executor_status=missing_evidence
+    fi
+  fi
+  if [ "$executor_status" = "ok" ]; then
+    executor_status=$(json_first_scalar_for_key status "$action_queue_file")
+    executor_refill_eligible=$(json_object_scalar_for_key refill_decision eligible "$action_plan_file")
+    executor_refill_reason=$(json_object_scalar_for_key refill_decision reason "$action_plan_file")
+  fi
+  case "$executor_refill_eligible" in
+    true|false) ;;
+    *) executor_refill_eligible=false ;;
+  esac
+  if [ -z "$executor_refill_reason" ]; then
+    executor_refill_reason=unknown
+  fi
+
+  tmp_executor_plan="$executor_plan_file.tmp.$$"
+  tmp_executor_queue=
+  if [ -f "$action_queue_file" ]; then
+    tmp_executor_queue="$executor_plan_file.actions.$$"
+    json_array_for_key actions "$action_queue_file" >"$tmp_executor_queue"
+    executor_queue_input=$tmp_executor_queue
+  else
+    executor_queue_input=/dev/null
+  fi
+
+  awk \
+    -v recorded_at="$executor_recorded_at" \
+    -v status="$executor_status" \
+    -v action_queue_file="$action_queue_file" \
+    -v action_plan_file="$action_plan_file" \
+    -v refill_eligible="$executor_refill_eligible" \
+    -v refill_reason="$executor_refill_reason" '
+    function escape_json(value,    i, c, out) {
+      out = ""
+      for (i = 1; i <= length(value); i++) {
+        c = substr(value, i, 1)
+        if (c == "\\") {
+          out = out "\\\\"
+        } else if (c == "\"") {
+          out = out "\\\""
+        } else {
+          out = out c
+        }
+      }
+      return out
+    }
+    function string_field(object_text, key,    target, pos, rest, i, c, value, escape) {
+      target = "\"" key "\""
+      pos = index(object_text, target)
+      if (pos == 0) {
+        return ""
+      }
+      rest = substr(object_text, pos + length(target))
+      pos = index(rest, ":")
+      if (pos == 0) {
+        return ""
+      }
+      rest = substr(rest, pos + 1)
+      sub(/^[[:space:]]*/, "", rest)
+      if (substr(rest, 1, 1) != "\"") {
+        return ""
+      }
+      rest = substr(rest, 2)
+      value = ""
+      escape = 0
+      for (i = 1; i <= length(rest); i++) {
+        c = substr(rest, i, 1)
+        if (escape) {
+          value = value c
+          escape = 0
+        } else if (c == "\\") {
+          escape = 1
+        } else if (c == "\"") {
+          return value
+        } else {
+          value = value c
+        }
+      }
+      return value
+    }
+    function bool_field(object_text, key,    target, pos, rest) {
+      target = "\"" key "\""
+      pos = index(object_text, target)
+      if (pos == 0) {
+        return "false"
+      }
+      rest = substr(object_text, pos + length(target))
+      pos = index(rest, ":")
+      if (pos == 0) {
+        return "false"
+      }
+      rest = substr(rest, pos + 1)
+      sub(/^[[:space:]]*/, "", rest)
+      if (substr(rest, 1, 4) == "true") {
+        return "true"
+      }
+      return "false"
+    }
+    function emit_action(action, route, work_ref, recipient, reason, approval, gate, command_preview) {
+      if (planned_action_count > 0) {
+        printf ",\n"
+      }
+      printf "    {\n"
+      printf "      \"action\": \"%s\",\n", escape_json(action)
+      if (route != "") {
+        printf "      \"source_route\": \"%s\",\n", escape_json(route)
+      }
+      if (work_ref != "") {
+        printf "      \"work_ref\": \"%s\",\n", escape_json(work_ref)
+      }
+      if (recipient != "") {
+        printf "      \"recipient\": \"%s\",\n", escape_json(recipient)
+      }
+      printf "      \"reason\": \"%s\",\n", escape_json(reason)
+      printf "      \"execute_action\": false,\n"
+      printf "      \"requires_operator_approval\": %s,\n", approval
+      printf "      \"operator_gate\": \"%s\",\n", escape_json(gate)
+      printf "      \"command_preview\": \"%s\"\n", escape_json(command_preview)
+      printf "    }"
+      planned_action_count++
+      if (approval == "true") {
+        operator_approval_required = "true"
+      }
+    }
+    function plan_for_queue_action(object_text,    route, work_ref, recipient, approval) {
+      route = string_field(object_text, "route")
+      work_ref = string_field(object_text, "work_ref")
+      recipient = string_field(object_text, "recipient")
+      approval = bool_field(object_text, "requires_operator_approval")
+
+      if (route == "review_pin_candidate") {
+        emit_action("dispatch_review_worker", route, work_ref, "bus-dev", "terminal closeout needs independent review before promotion pin handling", "false", "dry_run_only_task_stream_mutation_disabled", "bus dev task new @bus-dev review-terminal-work:" work_ref)
+        emit_action("pin_promoted_commit_after_accepted_review", route, work_ref, recipient, "root submodule pin changes require accepted review evidence before Git mutation", "true", "accepted_review_and_operator_approval_required", "bus dev stage commit accepted-promotion-pin-for:" work_ref)
+      } else if (route == "reopen_candidate") {
+        emit_action("reopen_incomplete_task", route, work_ref, recipient, "terminal closeout is incomplete or failed and needs a precise correction brief", approval, "dry_run_only_task_stream_mutation_disabled", "bus dev work reopen " work_ref " <precise-correction-brief>")
+      } else if (route == "record_blocker") {
+        emit_action("record_terminal_blocker", route, work_ref, recipient, "terminal closeout reports a blocker that must be recorded before refill", approval, "dry_run_only_repository_mutation_disabled", "record owning PLAN.md blocker for " work_ref)
+      } else if (route == "inspect_terminal") {
+        emit_action("inspect_terminal_evidence", route, work_ref, recipient, "terminal closeout could not be mechanically classified", "true", "operator_classification_required", "inspect monitor evidence for " work_ref)
+      }
+    }
+    BEGIN {
+      depth = 0
+      in_string = 0
+      escape = 0
+      object_text = ""
+      planned_action_count = 0
+      operator_approval_required = "false"
+      printf "{\n"
+      printf "  \"schema_version\": \"busdk.supervisor.executor_plan/v1\",\n"
+      printf "  \"status\": \"%s\",\n", escape_json(status)
+      printf "  \"recorded_at\": \"%s\",\n", escape_json(recorded_at)
+      printf "  \"action_queue_file\": \"%s\",\n", escape_json(action_queue_file)
+      printf "  \"action_plan_file\": \"%s\",\n", escape_json(action_plan_file)
+      printf "  \"dry_run\": true,\n"
+      printf "  \"execute_actions\": false,\n"
+      printf "  \"approval_gates\": {\n"
+      printf "    \"git_mutation\": \"operator_required\",\n"
+      printf "    \"task_stream_mutation\": \"dry_run_only\",\n"
+      printf "    \"worker_dispatch\": \"dry_run_only\",\n"
+      printf "    \"product_security_cost_destructive_architecture\": \"operator_required\"\n"
+      printf "  },\n"
+      printf "  \"planned_actions\": [\n"
+    }
+    {
+      text = text $0 "\n"
+    }
+    END {
+      for (i = 1; i <= length(text); i++) {
+        c = substr(text, i, 1)
+        if (escape) {
+          escape = 0
+        } else if (c == "\\") {
+          escape = 1
+        } else if (c == "\"") {
+          in_string = !in_string
+        }
+
+        if (!in_string && c == "{") {
+          depth++
+        }
+        if (depth > 0) {
+          object_text = object_text c
+        }
+        if (!in_string && c == "}") {
+          if (depth == 1) {
+            plan_for_queue_action(object_text)
+            object_text = ""
+          }
+          depth--
+        }
+      }
+      if (refill_eligible == "true") {
+        emit_action("dispatch_refill_worker", "refill_decision", "", "", "no active or terminal tasks remain and refill is mechanically eligible", "false", "dry_run_only_worker_dispatch_disabled", "bus dev task new @<recipient> <next-non-overlapping-PLAN-item-brief>")
+      }
+      printf "\n"
+      printf "  ],\n"
+      printf "  \"planned_action_count\": %s,\n", planned_action_count
+      printf "  \"operator_approval_required\": %s,\n", operator_approval_required
+      printf "  \"refill_decision\": {\n"
+      printf "    \"eligible\": %s,\n", refill_eligible
+      printf "    \"reason\": \"%s\"\n", escape_json(refill_reason)
+      printf "  }\n"
+      printf "}\n"
+    }
+  ' "$executor_queue_input" >"$tmp_executor_plan"
+  mv "$tmp_executor_plan" "$executor_plan_file"
+  if [ -n "$tmp_executor_queue" ]; then
+    rm -f "$tmp_executor_queue"
+  fi
+}
+
 classify_policy_cycle() {
   classify_snapshot_file=$1
   classify_exit_code=${2:-0}
@@ -617,6 +844,8 @@ classify_policy_cycle() {
     "$ready_for_review_total" \
     "$needs_reopen_total" \
     "$blocked_total"
+
+  write_executor_plan "$classify_recorded_at"
 
   {
     printf '{\n'
@@ -684,6 +913,7 @@ run_once() {
     printf '  "policy_file": "%s",\n' "$(json_value "$policy_file")"
     printf '  "action_plan_file": "%s",\n' "$(json_value "$action_plan_file")"
     printf '  "action_queue_file": "%s",\n' "$(json_value "$action_queue_file")"
+    printf '  "executor_plan_file": "%s",\n' "$(json_value "$executor_plan_file")"
     printf '  "snapshot_file": "%s",\n' "$(json_value "$snapshot_file")"
     printf '  "stderr_file": "%s"\n' "$(json_value "$stderr_file")"
     printf '}\n'
@@ -734,6 +964,10 @@ check_status() {
     printf 'supervisor action queue missing: %s\n' "$action_queue_file" >&2
     return 1
   fi
+  if [ ! -f "$executor_plan_file" ]; then
+    printf 'supervisor executor plan missing: %s\n' "$executor_plan_file" >&2
+    return 1
+  fi
   last_epoch=$(cat "$epoch_file")
   case "$last_epoch" in
     ''|*[!0-9]*)
@@ -761,6 +995,8 @@ inspect_state() {
   needs_reopen=$(json_object_scalar_for_key terminal needs_reopen "$policy_file")
   blocked=$(json_object_scalar_for_key terminal blocked "$policy_file")
   action_count=$(json_first_scalar_for_key action_count "$action_queue_file")
+  planned_action_count=$(json_first_scalar_for_key planned_action_count "$executor_plan_file")
+  operator_approval_required=$(json_first_scalar_for_key operator_approval_required "$executor_plan_file")
   refill_eligible=$(json_object_scalar_for_key refill_decision eligible "$action_plan_file")
   refill_reason=$(json_object_scalar_for_key refill_decision reason "$action_plan_file")
   root_plan_open=$(plan_open_count PLAN.md)
@@ -774,6 +1010,8 @@ inspect_state() {
     "$decision" "$active_total" "$terminal_total" "$ready_for_review" "$needs_reopen" "$blocked"
   printf 'supervisor actions: queued=%s refill_eligible=%s refill_reason=%s action_queue=%s\n' \
     "$action_count" "$refill_eligible" "$refill_reason" "$action_queue_file"
+  printf 'supervisor executor: planned=%s operator_approval_required=%s executor_plan=%s\n' \
+    "$planned_action_count" "$operator_approval_required" "$executor_plan_file"
   printf 'supervisor backlog: root_plan_open=%s root_bugs_open=%s module_plan_files=%s module_plan_open=%s\n' \
     "$root_plan_open" "$root_bugs_open" "$module_plan_files" "$module_plan_open"
   printf 'supervisor evidence: snapshot=%s policy=%s action_plan=%s\n' \
@@ -785,6 +1023,14 @@ case "$mode" in
   run) run_loop ;;
   check) check_status ;;
   inspect) inspect_state ;;
+  plan-execute)
+    mkdir -p "$state_dir"
+    write_executor_plan "$(timestamp_utc)"
+    planned_action_count=$(json_first_scalar_for_key planned_action_count "$executor_plan_file")
+    operator_approval_required=$(json_first_scalar_for_key operator_approval_required "$executor_plan_file")
+    printf 'supervisor executor plan: planned=%s execute_actions=false operator_approval_required=%s executor_plan=%s\n' \
+      "$planned_action_count" "$operator_approval_required" "$executor_plan_file"
+    ;;
   classify)
     if [ $# -lt 2 ]; then
       usage

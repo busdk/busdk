@@ -449,12 +449,11 @@ PLAN item closures per hour, review pass rate, and rework. Treat 6 or 8 as
 monitored experiments, not defaults, because more workers also create more
 review, token, memory, and Git-worktree pressure.
 
-The local Codex App Server worker image currently lacks Codex's Linux
-workspace-sandbox helper, so `compose.dev-task-docker.yaml` defaults
-`BUS_DEV_TASK_CODEX_SANDBOX=danger-full-access` for that Docker-contained
-worker path. The bridge still verifies the addressed isolated worktree before
-promotion and reports blocked instead of done when a worker produces no diff or
-self-reports incomplete evidence.
+`compose.dev-task-docker.yaml` defaults Codex App Server workers to
+`BUS_DEV_TASK_CODEX_SANDBOX=workspace-write` so commit-enabled tasks fail before
+claiming work if the sandbox helper is unavailable. The bridge still verifies
+the addressed isolated worktree before promotion and reports blocked instead of
+done when a worker produces no diff or self-reports incomplete evidence.
 
 Watch task state and container pressure while scaling:
 
@@ -475,13 +474,15 @@ docker compose -f compose.dev-task-docker.yaml down --remove-orphans
 The default local task command is:
 
 ```json
-["codex","exec","--skip-git-repo-check","--sandbox","danger-full-access","{prompt}"]
+["codex","exec","--skip-git-repo-check","--sandbox","workspace-write","{prompt}"]
 ```
 
 The Codex process already runs inside a Docker-created task container, so the
-local stack uses Codex's full-access sandbox mode inside that container. The
-default production-like post-command deterministically stages, commits, and
-pushes the task branch so work survives disposable task containers:
+local stack still keeps writable access scoped to the addressed task worktree.
+Use a less restrictive sandbox only as an explicit trusted-machine break-glass
+override when diagnosing local sandbox-helper failures. The default
+production-like post-command deterministically stages, commits, and pushes the
+task branch so work survives disposable task containers:
 
 ```bash
 bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && (git diff --cached --quiet || git -c user.name=BusDevTask -c user.email=bus-dev-task@localhost commit -m chore:dev-task-{work_ref}) && git push -u origin {branch}"]'
@@ -558,7 +559,9 @@ tasks in `tmp/dev-task-supervisor/policy-cycle.json`, writes a non-mutating
 mechanical next-action plan to `tmp/dev-task-supervisor/action-plan.json`,
 writes per-terminal route evidence to
 `tmp/dev-task-supervisor/action-queue.json`, and writes health evidence to
-`tmp/dev-task-supervisor/heartbeat-status.json`. The action plan counts
+`tmp/dev-task-supervisor/heartbeat-status.json`. It also consumes the
+action-plan/action-queue evidence into a dry-run executor plan at
+`tmp/dev-task-supervisor/executor-plan.json`. The action plan counts
 terminal closeouts that are ready for review and root pin handling, terminal
 closeouts that should be reopened with a correction brief, terminal blockers
 that should be recorded before refill, and whether worker refill is
@@ -567,7 +570,13 @@ those counts and assigns each one an evidence-only route such as
 `review_pin_candidate`, `reopen_candidate`, or `record_blocker`. It is evidence
 only: the heartbeat still does not run Git, dispatch workers, reopen tasks,
 approve work, or change product, security, cost, destructive, or
-hard-to-reverse decisions by itself. When the
+hard-to-reverse decisions by itself. The executor plan turns those routes into
+the exact dry-run operations the next executor would attempt, including
+review-worker dispatch, accepted-review root pin handling, precise task reopen,
+blocker recording, and refill-worker dispatch. Every planned operation has
+`execute_action: false`, task-stream and worker-dispatch operations are marked
+dry-run only, and Git/product/security/cost/destructive/hard-to-reverse gates
+remain operator-required. When the
 snapshot has no active or terminal tasks, the policy cycle records an explicit
 no-op event in `tmp/dev-task-supervisor/supervisor-events.jsonl` and no-op
 evidence in `tmp/dev-task-supervisor/noop-evidence.json`. The policy evidence
@@ -586,14 +595,24 @@ cat tmp/dev-task-supervisor/heartbeat-status.json
 cat tmp/dev-task-supervisor/policy-cycle.json
 cat tmp/dev-task-supervisor/action-plan.json
 cat tmp/dev-task-supervisor/action-queue.json
+cat tmp/dev-task-supervisor/executor-plan.json
+```
+
+Regenerate only the dry-run executor plan from the latest action queue and
+action plan without contacting Events, Git, or task streams:
+
+```bash
+docker compose -f compose.dev-task-docker.yaml exec bus-dev-supervisor \
+  /workspace/scripts/dev-task-supervisor-heartbeat.sh plan-execute
 ```
 
 The `inspect` command is the concise root-stack dispatch check. It verifies the
 heartbeat freshness, prints the current policy counts, shows the evidence-only
-action queue and refill decision, and reports root/module `PLAN.md` backlog
-counts from the mounted superproject checkout. It is intentionally read-only;
-actual worker dispatch, reopen execution, and promotion pinning still belong to
-the `bus-dev` workflow surface and the dev-task worker infrastructure.
+action queue, dry-run executor plan, and refill decision, and reports
+root/module `PLAN.md` backlog counts from the mounted superproject checkout. It
+is intentionally read-only; actual worker dispatch, reopen execution, and
+promotion pinning still belong to the `bus-dev` workflow surface and the
+dev-task worker infrastructure.
 
 Tune the local heartbeat with `BUS_DEV_SUPERVISOR_INTERVAL_SECONDS`,
 `BUS_DEV_SUPERVISOR_MAX_AGE_SECONDS`, `BUS_DEV_SUPERVISOR_QUIET_AFTER`, and

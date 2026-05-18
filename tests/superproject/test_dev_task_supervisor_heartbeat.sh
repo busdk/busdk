@@ -42,6 +42,7 @@ grep -q '"status": "ok"' "$tmp_dir/state/heartbeat-status.json"
 grep -q '"policy_file": "' "$tmp_dir/state/heartbeat-status.json"
 grep -q '"action_plan_file": "' "$tmp_dir/state/heartbeat-status.json"
 grep -q '"action_queue_file": "' "$tmp_dir/state/heartbeat-status.json"
+grep -q '"executor_plan_file": "' "$tmp_dir/state/heartbeat-status.json"
 grep -q '"active":\[\]' "$tmp_dir/state/work-monitor.json"
 grep -q '"schema_version": "busdk.supervisor.policy_cycle/v1"' "$tmp_dir/state/policy-cycle.json"
 grep -q '"decision": "noop"' "$tmp_dir/state/policy-cycle.json"
@@ -58,6 +59,11 @@ grep -q '"reason": "no_active_or_terminal_tasks"' "$tmp_dir/state/action-plan.js
 grep -q '"schema_version": "busdk.supervisor.action_queue/v1"' "$tmp_dir/state/action-queue.json"
 grep -q '"execute_actions": false' "$tmp_dir/state/action-queue.json"
 grep -q '"action_count": 0' "$tmp_dir/state/action-queue.json"
+grep -q '"schema_version": "busdk.supervisor.executor_plan/v1"' "$tmp_dir/state/executor-plan.json"
+grep -q '"execute_actions": false' "$tmp_dir/state/executor-plan.json"
+grep -q '"action": "dispatch_refill_worker"' "$tmp_dir/state/executor-plan.json"
+grep -q '"planned_action_count": 1' "$tmp_dir/state/executor-plan.json"
+grep -q '"reason": "no_active_or_terminal_tasks"' "$tmp_dir/state/executor-plan.json"
 grep -q '"event_type":"supervisor.noop"' "$tmp_dir/state/supervisor-events.jsonl"
 grep -q '"schema_version": "busdk.supervisor.noop_evidence/v1"' "$tmp_dir/state/noop-evidence.json"
 
@@ -73,9 +79,15 @@ env PATH="$tmp_dir/bin:$PATH" \
 grep -q '^supervisor heartbeat: status=ok ' "$tmp_dir/inspect.out"
 grep -q '^supervisor policy: decision=noop active=0 terminal=0 review=0 reopen=0 blocked=0$' "$tmp_dir/inspect.out"
 grep -q '^supervisor actions: queued=0 refill_eligible=true refill_reason=no_active_or_terminal_tasks ' "$tmp_dir/inspect.out"
+grep -q '^supervisor executor: planned=1 operator_approval_required=false ' "$tmp_dir/inspect.out"
 grep -q '^supervisor backlog: root_plan_open=' "$tmp_dir/inspect.out"
 grep -q ' module_plan_files=' "$tmp_dir/inspect.out"
 grep -q '^supervisor evidence: snapshot=' "$tmp_dir/inspect.out"
+
+env PATH="$tmp_dir/bin:$PATH" \
+  BUS_DEV_SUPERVISOR_STATE_DIR="$tmp_dir/state" \
+  "$root_dir/scripts/dev-task-supervisor-heartbeat.sh" plan-execute >"$tmp_dir/plan-execute.out"
+grep -q '^supervisor executor plan: planned=1 execute_actions=false operator_approval_required=false ' "$tmp_dir/plan-execute.out"
 
 printf '1\n' >"$tmp_dir/state/heartbeat.epoch"
 if env PATH="$tmp_dir/bin:$PATH" \
@@ -101,6 +113,8 @@ grep -q '"status": "monitor_failed"' "$tmp_dir/state-fail/action-plan.json"
 grep -q '"reason": "monitor_failed"' "$tmp_dir/state-fail/action-plan.json"
 grep -q '"status": "monitor_failed"' "$tmp_dir/state-fail/action-queue.json"
 grep -q '"action_count": 0' "$tmp_dir/state-fail/action-queue.json"
+grep -q '"status": "monitor_failed"' "$tmp_dir/state-fail/executor-plan.json"
+grep -q '"planned_action_count": 0' "$tmp_dir/state-fail/executor-plan.json"
 
 cat >"$tmp_dir/terminal-monitor.json" <<'JSON'
 {
@@ -121,6 +135,15 @@ cat >"$tmp_dir/terminal-monitor.json" <<'JSON'
         "task_complete": false,
         "remaining_blockers": ["missing tests"]
       }
+    },
+    {
+      "work_ref": "busdk#3",
+      "recipient": "bus-dev",
+      "status": "failed",
+      "app_server_closeout": {
+        "task_complete": false,
+        "remaining_blockers": []
+      }
     }
   ],
   "quiet": false
@@ -132,9 +155,9 @@ env BUS_DEV_SUPERVISOR_STATE_DIR="$tmp_dir/state-classify" \
 
 grep -q '"decision": "classify_terminal"' "$tmp_dir/state-classify/policy-cycle.json"
 grep -q '"safe_work_available": true' "$tmp_dir/state-classify/policy-cycle.json"
-grep -q '"total": 2' "$tmp_dir/state-classify/policy-cycle.json"
+grep -q '"total": 3' "$tmp_dir/state-classify/policy-cycle.json"
 grep -q '"ready_for_review": 1' "$tmp_dir/state-classify/policy-cycle.json"
-grep -q '"needs_reopen": 1' "$tmp_dir/state-classify/policy-cycle.json"
+grep -q '"needs_reopen": 2' "$tmp_dir/state-classify/policy-cycle.json"
 grep -q '"blocked": 1' "$tmp_dir/state-classify/policy-cycle.json"
 grep -q '"review_promoted_commits"' "$tmp_dir/state-classify/action-plan.json"
 grep -q '"reopen_incomplete_tasks"' "$tmp_dir/state-classify/action-plan.json"
@@ -146,7 +169,16 @@ grep -q '"route": "review_pin_candidate"' "$tmp_dir/state-classify/action-queue.
 grep -q '"requires_operator_approval": true' "$tmp_dir/state-classify/action-queue.json"
 grep -q '"work_ref": "busdk#2"' "$tmp_dir/state-classify/action-queue.json"
 grep -q '"route": "record_blocker"' "$tmp_dir/state-classify/action-queue.json"
-grep -q '"action_count": 2' "$tmp_dir/state-classify/action-queue.json"
+grep -q '"work_ref": "busdk#3"' "$tmp_dir/state-classify/action-queue.json"
+grep -q '"route": "reopen_candidate"' "$tmp_dir/state-classify/action-queue.json"
+grep -q '"action_count": 3' "$tmp_dir/state-classify/action-queue.json"
+grep -q '"schema_version": "busdk.supervisor.executor_plan/v1"' "$tmp_dir/state-classify/executor-plan.json"
+grep -q '"action": "dispatch_review_worker"' "$tmp_dir/state-classify/executor-plan.json"
+grep -q '"action": "pin_promoted_commit_after_accepted_review"' "$tmp_dir/state-classify/executor-plan.json"
+grep -q '"action": "record_terminal_blocker"' "$tmp_dir/state-classify/executor-plan.json"
+grep -q '"action": "reopen_incomplete_task"' "$tmp_dir/state-classify/executor-plan.json"
+grep -q '"operator_approval_required": true' "$tmp_dir/state-classify/executor-plan.json"
+grep -q '"planned_action_count": 4' "$tmp_dir/state-classify/executor-plan.json"
 test ! -e "$tmp_dir/state-classify/supervisor-events.jsonl"
 
 printf 'dev-task supervisor heartbeat OK\n'

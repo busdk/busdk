@@ -40,9 +40,15 @@
     lists the terminal work refs behind review/pin, reopen, and blocker-record
     routes without running Git, reopening tasks, dispatching workers, or
     approving work.
-  - [ ] Implement the follow-on executable slices for root pin handling,
-    review/progress-audit Bus worker dispatch, and safe reopen/refill execution
-    after the evidence-only action plan and action queue are reviewed.
+  - [x] Add a root-only dry-run executor-plan slice that consumes the existing
+    heartbeat action-plan/action-queue evidence and reports the exact planned
+    review-worker dispatch, accepted-review root pin, reopen, blocker-record,
+    and refill-worker operations without mutating Git, task streams, worker
+    queues, product direction, security/privacy posture, cost, destructive
+    state, or hard-to-reverse architecture.
+  - [ ] Implement the follow-on mutating consumer slices in `bus-dev` for root
+    pin handling, review/progress-audit Bus worker dispatch, and safe
+    reopen/refill execution after the dry-run executor plan is reviewed.
 
 - [x] Make BusDK dev-task container and host toolchain freshness automatic end
   to end: reproduce the recurring stale-tool problem where worker containers or
