@@ -36,9 +36,13 @@
     that turns terminal monitor classification into explicit review/pin,
     reopen, blocker-record, and refill-eligibility decisions without running
     Git, reopening tasks, dispatching workers, or approving work.
+  - [x] Add provider-neutral per-terminal heartbeat action-queue evidence that
+    lists the terminal work refs behind review/pin, reopen, and blocker-record
+    routes without running Git, reopening tasks, dispatching workers, or
+    approving work.
   - [ ] Implement the follow-on executable slices for root pin handling,
     review/progress-audit Bus worker dispatch, and safe reopen/refill execution
-    after the evidence-only action plan is reviewed.
+    after the evidence-only action plan and action queue are reviewed.
 
 - [x] Make BusDK dev-task container and host toolchain freshness automatic end
   to end: reproduce the recurring stale-tool problem where worker containers or

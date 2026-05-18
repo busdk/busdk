@@ -25,6 +25,7 @@ state_dir=${BUS_DEV_SUPERVISOR_STATE_DIR:-/workspace/tmp/dev-task-supervisor}
 status_file=${BUS_DEV_SUPERVISOR_STATUS_FILE:-$state_dir/heartbeat-status.json}
 policy_file=${BUS_DEV_SUPERVISOR_POLICY_FILE:-$state_dir/policy-cycle.json}
 action_plan_file=${BUS_DEV_SUPERVISOR_ACTION_PLAN_FILE:-$state_dir/action-plan.json}
+action_queue_file=${BUS_DEV_SUPERVISOR_ACTION_QUEUE_FILE:-$state_dir/action-queue.json}
 event_file=${BUS_DEV_SUPERVISOR_EVENT_FILE:-$state_dir/supervisor-events.jsonl}
 noop_evidence_file=${BUS_DEV_SUPERVISOR_NOOP_EVIDENCE_FILE:-$state_dir/noop-evidence.json}
 snapshot_file=${BUS_DEV_SUPERVISOR_SNAPSHOT_FILE:-$state_dir/work-monitor.json}
@@ -159,6 +160,163 @@ json_terminal_classification_counts() {
   '
 }
 
+write_action_queue() {
+  action_queue_recorded_at=$1
+  action_queue_snapshot_file=$2
+  action_queue_status=$3
+  action_queue_terminal_array=$4
+  tmp_action_queue="$action_queue_file.tmp.$$"
+
+  printf '%s' "$action_queue_terminal_array" | awk \
+    -v recorded_at="$action_queue_recorded_at" \
+    -v snapshot_file="$action_queue_snapshot_file" \
+    -v status="$action_queue_status" '
+    function escape_json(value,    i, c, out) {
+      out = ""
+      for (i = 1; i <= length(value); i++) {
+        c = substr(value, i, 1)
+        if (c == "\\") {
+          out = out "\\\\"
+        } else if (c == "\"") {
+          out = out "\\\""
+        } else {
+          out = out c
+        }
+      }
+      return out
+    }
+    function string_field(object_text, key,    target, pos, rest, i, c, value, escape) {
+      target = "\"" key "\""
+      pos = index(object_text, target)
+      if (pos == 0) {
+        return ""
+      }
+      rest = substr(object_text, pos + length(target))
+      pos = index(rest, ":")
+      if (pos == 0) {
+        return ""
+      }
+      rest = substr(rest, pos + 1)
+      sub(/^[[:space:]]*/, "", rest)
+      if (substr(rest, 1, 1) != "\"") {
+        return ""
+      }
+      rest = substr(rest, 2)
+      value = ""
+      escape = 0
+      for (i = 1; i <= length(rest); i++) {
+        c = substr(rest, i, 1)
+        if (escape) {
+          value = value c
+          escape = 0
+        } else if (c == "\\") {
+          escape = 1
+        } else if (c == "\"") {
+          return value
+        } else {
+          value = value c
+        }
+      }
+      return value
+    }
+    function action_for_terminal(object_text,    work_ref, recipient, route, reason, next_step, requires_approval, blocked, complete, incomplete) {
+      work_ref = string_field(object_text, "work_ref")
+      recipient = string_field(object_text, "recipient")
+      blocked = object_text ~ /"status"[[:space:]]*:[[:space:]]*"blocked"/ ||
+        object_text ~ /"remaining_blockers"[[:space:]]*:[[:space:]]*\[[[:space:]]*[{"]/
+      complete = object_text ~ /"task_complete"[[:space:]]*:[[:space:]]*true/
+      incomplete = object_text ~ /"task_complete"[[:space:]]*:[[:space:]]*false/ ||
+        object_text ~ /"status"[[:space:]]*:[[:space:]]*"(failed|error)"/
+
+      if (blocked) {
+        route = "record_blocker"
+        reason = "terminal closeout is blocked or has remaining blockers"
+        next_step = "record the blocker in the owning PLAN or cross-module request before refill"
+        requires_approval = "false"
+      } else if (complete) {
+        route = "review_pin_candidate"
+        reason = "terminal closeout has task_complete true"
+        next_step = "verify evidence, then pin accepted promoted commits in the superproject"
+        requires_approval = "true"
+      } else if (incomplete) {
+        route = "reopen_candidate"
+        reason = "terminal closeout is incomplete or failed"
+        next_step = "reopen with a precise correction brief through bus dev work or bus dev task"
+        requires_approval = "false"
+      } else {
+        route = "inspect_terminal"
+        reason = "terminal closeout needs manual classification"
+        next_step = "inspect monitor evidence before choosing review, reopen, blocker, or refill"
+        requires_approval = "true"
+      }
+
+      if (action_count > 0) {
+        printf ",\n"
+      }
+      printf "    {\n"
+      printf "      \"work_ref\": \"%s\",\n", escape_json(work_ref)
+      if (recipient != "") {
+        printf "      \"recipient\": \"%s\",\n", escape_json(recipient)
+      }
+      printf "      \"route\": \"%s\",\n", route
+      printf "      \"reason\": \"%s\",\n", reason
+      printf "      \"requires_operator_approval\": %s,\n", requires_approval
+      printf "      \"execute_action\": false,\n"
+      printf "      \"mechanical_next_step\": \"%s\"\n", next_step
+      printf "    }"
+      action_count++
+    }
+    BEGIN {
+      depth = 0
+      in_string = 0
+      escape = 0
+      object_text = ""
+      action_count = 0
+      printf "{\n"
+      printf "  \"schema_version\": \"busdk.supervisor.action_queue/v1\",\n"
+      printf "  \"status\": \"%s\",\n", escape_json(status)
+      printf "  \"recorded_at\": \"%s\",\n", escape_json(recorded_at)
+      printf "  \"snapshot_file\": \"%s\",\n", escape_json(snapshot_file)
+      printf "  \"execute_actions\": false,\n"
+      printf "  \"actions\": [\n"
+    }
+    {
+      text = text $0 "\n"
+    }
+    END {
+      for (i = 1; i <= length(text); i++) {
+        c = substr(text, i, 1)
+        if (escape) {
+          escape = 0
+        } else if (c == "\\") {
+          escape = 1
+        } else if (c == "\"") {
+          in_string = !in_string
+        }
+
+        if (!in_string && c == "{") {
+          depth++
+        }
+        if (depth > 0) {
+          object_text = object_text c
+        }
+        if (!in_string && c == "}") {
+          if (depth == 1) {
+            action_for_terminal(object_text)
+            object_text = ""
+          }
+          depth--
+        }
+      }
+      printf "\n"
+      printf "  ],\n"
+      printf "  \"action_count\": %s\n", action_count
+      printf "}\n"
+    }
+  ' >"$tmp_action_queue"
+  mv "$tmp_action_queue" "$action_queue_file"
+}
+
 write_noop_evidence() {
   tmp_evidence="$noop_evidence_file.tmp.$$"
   {
@@ -209,6 +367,7 @@ write_action_plan() {
     printf '  "status": "%s",\n' "$(json_value "$action_status")"
     printf '  "recorded_at": "%s",\n' "$(json_value "$action_recorded_at")"
     printf '  "snapshot_file": "%s",\n' "$(json_value "$action_snapshot_file")"
+    printf '  "action_queue_file": "%s",\n' "$(json_value "$action_queue_file")"
     printf '  "dry_run": true,\n'
     printf '  "execute_actions": false,\n'
     printf '  "terminal_actions": {\n'
@@ -257,6 +416,7 @@ classify_policy_cycle() {
   if [ "$classify_exit_code" -ne 0 ]; then
     policy_status=monitor_failed
     decision=none
+    terminal_array='[]'
   else
     active_array=$(json_array_for_key active "$classify_snapshot_file")
     terminal_array=$(json_array_for_key terminal "$classify_snapshot_file")
@@ -283,6 +443,8 @@ classify_policy_cycle() {
     fi
   fi
 
+  write_action_queue "$classify_recorded_at" "$classify_snapshot_file" "$policy_status" "$terminal_array"
+
   write_action_plan \
     "$classify_recorded_at" \
     "$policy_status" \
@@ -305,6 +467,7 @@ classify_policy_cycle() {
     printf '  "recorded_at": "%s",\n' "$(json_value "$classify_recorded_at")"
     printf '  "snapshot_file": "%s",\n' "$(json_value "$classify_snapshot_file")"
     printf '  "action_plan_file": "%s",\n' "$(json_value "$action_plan_file")"
+    printf '  "action_queue_file": "%s",\n' "$(json_value "$action_queue_file")"
     printf '  "monitor_exit_code": %s,\n' "$classify_exit_code"
     printf '  "active": {"total": %s},\n' "$active_total"
     printf '  "terminal": {\n'
@@ -357,6 +520,7 @@ run_once() {
     printf '  "monitor_command": "bus dev work monitor --format json --quiet-after %s --stale-after %s",\n' "$(json_value "$quiet_after")" "$(json_value "$stale_after")"
     printf '  "policy_file": "%s",\n' "$(json_value "$policy_file")"
     printf '  "action_plan_file": "%s",\n' "$(json_value "$action_plan_file")"
+    printf '  "action_queue_file": "%s",\n' "$(json_value "$action_queue_file")"
     printf '  "snapshot_file": "%s",\n' "$(json_value "$snapshot_file")"
     printf '  "stderr_file": "%s"\n' "$(json_value "$stderr_file")"
     printf '}\n'
@@ -401,6 +565,10 @@ check_status() {
   fi
   if [ ! -f "$action_plan_file" ]; then
     printf 'supervisor action plan missing: %s\n' "$action_plan_file" >&2
+    return 1
+  fi
+  if [ ! -f "$action_queue_file" ]; then
+    printf 'supervisor action queue missing: %s\n' "$action_queue_file" >&2
     return 1
   fi
   last_epoch=$(cat "$epoch_file")
