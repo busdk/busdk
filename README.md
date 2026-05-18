@@ -481,11 +481,16 @@ The Codex process already runs inside a Docker-created task container, so the
 local stack still keeps writable access scoped to the addressed task worktree.
 Use a less restrictive sandbox only as an explicit trusted-machine break-glass
 override when diagnosing local sandbox-helper failures. The default
-production-like post-command deterministically stages, commits, and pushes the
-task branch so work survives disposable task containers:
+production-like bridge commits successful isolated-worktree changes outside the
+task container. Feature commits should normally go through `bus dev commit`, so
+the configured agent runtime and embedded commit prompt produce the message from
+the staged diff. Do not use ref-only messages such as
+`chore:dev-task-{work_ref}` for promoted worker commits. If an operator
+explicitly needs a trusted post-command push hook, use `bus dev commit` after
+staging and before pushing:
 
 ```bash
-bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && (git diff --cached --quiet || git -c user.name=BusDevTask -c user.email=bus-dev-task@localhost commit -m chore:dev-task-{work_ref}) && git push -u origin {branch}"]'
+bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && bus dev commit && git push -u origin {branch}"]'
 ```
 
 The push is a trusted worker post-command, not normal `bus-dev` behavior.
@@ -655,7 +660,7 @@ ChatGPT-backed Codex quota or push to upstream. To customize hooks:
 
 ```bash
 bus configure BUS_DEV_TASK_PRE_COMMAND_JSON='["git","status","--short"]'
-bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && (git diff --cached --quiet || git -c user.name=BusDevTask -c user.email=bus-dev-task@localhost commit -m chore:dev-task-{work_ref}) && git push -u origin {branch}"]'
+bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && bus dev commit && git push -u origin {branch}"]'
 docker compose -f compose.dev-task-docker.yaml up --build -d
 ```
 

@@ -31,7 +31,21 @@ esac
 compose_file=${BUS_DEV_TASK_COMPOSE_FILE:-compose.dev-task-docker.yaml}
 timeout=${BUS_DEV_TASK_TIMEOUT:-90m}
 commit=${BUS_DEV_TASK_COMMIT:-true}
-commit_message=${BUS_DEV_TASK_COMMIT_MESSAGE:-chore: dev task {work_ref}}
+default_commit_message='task: {summary}
+
+Task: {text}
+
+Work-ref: {work_ref}
+Recipient: {recipient}
+
+Verification: See task closeout evidence and supervisor review before promotion.
+
+Compatibility: Review required; bridge did not classify compatibility impact.
+
+Migration: Review required; bridge did not classify data, schema, or config migration impact.
+
+Security: Review required; bridge did not classify security or privacy impact.'
+commit_message=${BUS_DEV_TASK_COMMIT_MESSAGE:-$default_commit_message}
 sandbox=${BUS_DEV_TASK_CODEX_SANDBOX:-workspace-write}
 once=${BUS_DEV_TASK_ONCE:-true}
 

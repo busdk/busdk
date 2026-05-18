@@ -263,7 +263,21 @@ services:
       BUS_DEV_TASK_PRE_COMMAND_JSON: ${BUS_DEV_TASK_PRE_COMMAND_JSON:-[]}
       BUS_DEV_TASK_POST_COMMAND_JSON: "[]"
       BUS_DEV_TASK_COMMIT: "true"
-      BUS_DEV_TASK_COMMIT_MESSAGE: "chore: dev task {work_ref}"
+      BUS_DEV_TASK_COMMIT_MESSAGE: |-
+        task: {summary}
+
+        Task: {text}
+
+        Work-ref: {work_ref}
+        Recipient: {recipient}
+
+        Verification: See task closeout evidence and supervisor review before promotion.
+
+        Compatibility: Review required; bridge did not classify compatibility impact.
+
+        Migration: Review required; bridge did not classify data, schema, or config migration impact.
+
+        Security: Review required; bridge did not classify security or privacy impact.
       BUS_DEV_TASK_TIMEOUT: ${BUS_DEV_TASK_TIMEOUT:-30m}
       BUS_DEV_TASK_ONCE: ${BUS_DEV_TASK_ONCE:-false}
       BUS_DEV_TASK_IDLE_TIMEOUT: ${BUS_DEV_TASK_IDLE_TIMEOUT:-0}

@@ -53,5 +53,12 @@ case "$run_line" in
     exit 1
     ;;
 esac
+grep -q 'BUS_DEV_TASK_COMMIT_MESSAGE=task: {summary}' "$tmp_dir/docker.log"
+grep -q 'Task: {text}' "$tmp_dir/docker.log"
+grep -q 'Verification: See task closeout evidence and supervisor review before promotion.' "$tmp_dir/docker.log"
+if grep -q 'BUS_DEV_TASK_COMMIT_MESSAGE=chore: dev task {work_ref}' "$tmp_dir/docker.log"; then
+  printf 'FAIL dev-task run worker script: default commit message is ref-only\n' >&2
+  exit 1
+fi
 
 printf 'dev-task run worker script OK\n'
