@@ -71,7 +71,7 @@
     performs review-worker dispatch, precise reopen/refill decisions, and root
     pin handling with dry-run evidence and operator approval gates where
     required.
-  - [ ] Cross-module request for `bus-integration-dev-task`: expose
+  - [x] Cross-module request for `bus-integration-dev-task`: expose
     controller-owned worker startup/refill mechanics so the supervisor service
     can request recipient-scoped workers deterministically instead of relying
     on manual Compose worker starts.
