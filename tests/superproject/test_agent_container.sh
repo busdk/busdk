@@ -33,6 +33,9 @@ mkdir -p \
   "$HOST_HOME/.codex" \
   "$FAKE_BIN"
 
+printf '{"token":"test"}\n' >"$HOST_HOME/.codex/auth.json"
+printf 'model = "test"\n' >"$HOST_HOME/.codex/config.toml"
+
 TEST_REPO="$(cd "$TEST_REPO" && pwd -P)"
 HOST_HOME="$(cd "$HOST_HOME" && pwd -P)"
 FAKE_BIN="$(cd "$FAKE_BIN" && pwd -P)"
@@ -88,7 +91,13 @@ grep -F -- "-e GOCACHE=$TEST_REPO/work/$TOPIC/.home/.cache/go-build" "$FAKE_DOCK
 grep -F -- "-e GOMODCACHE=$TEST_REPO/work/$TOPIC/.home/go/pkg/mod" "$FAKE_DOCKER_LOG" >/dev/null
 grep -F "PS1='[busdk:\h \W]" "$TEST_REPO/work/$TOPIC/.home/.bashrc" >/dev/null
 grep -F '\$ ' "$TEST_REPO/work/$TOPIC/.home/.bashrc" >/dev/null
-grep -F -- "-v $HOST_HOME/.codex:$TEST_REPO/work/$TOPIC/.home/.codex:rw" "$FAKE_DOCKER_LOG" >/dev/null
+grep -F -- "-v $HOST_HOME/.codex:$TEST_REPO/work/$TOPIC/.home/.codex-shared:ro" "$FAKE_DOCKER_LOG" >/dev/null
+grep -F '{"token":"test"}' "$TEST_REPO/work/$TOPIC/.home/.codex/auth.json" >/dev/null
+grep -F 'model = "test"' "$TEST_REPO/work/$TOPIC/.home/.codex/config.toml" >/dev/null
+if grep -F -- "-v $HOST_HOME/.codex:$TEST_REPO/work/$TOPIC/.home/.codex:rw" "$FAKE_DOCKER_LOG" >/dev/null; then
+  echo "unexpected writable host .codex mount" >&2
+  exit 1
+fi
 if grep -F -- "-v $HOST_HOME/.gitconfig:$TEST_REPO/work/$TOPIC/.home/.gitconfig:ro" "$FAKE_DOCKER_LOG" >/dev/null; then
   echo "unexpected gitconfig mount without host file" >&2
   exit 1

@@ -49,7 +49,7 @@ COMMA := ,
 SKIP_PATTERNS := $(strip $(subst $(COMMA), ,$(SKIP_MODULES)))
 MODULE_MAKE_VARS := BIN_DIR="$(abspath $(BIN_DIR))" PREFIX="$(PREFIX)" BINDIR="$(BINDIR)" GO="$(GO)" GOFLAGS="$(GOFLAGS)" GOCACHE="$(GOCACHE)" CGO_ENABLED="$(CGO_ENABLED)" BUILD_STATIC="$(BUILD_STATIC)"
 
-.PHONY: help init update upgrade status bootstrap refresh-tools test e2e quality quality-complete build install clean distclean audit-cli-reachability audit-cli-reachability-full tidy tidy-mods superproject-selftest print-test-modules print-e2e-modules print-quality-modules
+.PHONY: help init update upgrade status bootstrap refresh-tools test e2e quality quality-complete build install clean distclean audit-cli-reachability audit-cli-reachability-full tidy tidy-mods superproject-selftest superproject-source-selftest publish-preflight print-test-modules print-e2e-modules print-quality-modules
 
 help:
 	@printf "BusDK superproject\n\n"
@@ -63,6 +63,7 @@ help:
 	@printf "  e2e         Run module end-to-end suites (when target exists)\n"
 	@printf "  quality     Run reusable Go source/static quality checks\n"
 	@printf "  quality-complete  Run source quality plus slow bus lint checks for help/docs\n"
+	@printf "  publish-preflight  Run release publish source-state checks without local runtime smokes\n"
 	@printf "  build       Build all tools into ./%s\n" "$(BIN_DIR)"
 	@printf "  install     Install tools into %s\n" "$(BINDIR)"
 	@printf "  clean       Remove local build artifacts\n"
@@ -142,6 +143,18 @@ superproject-selftest:
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= sh ./tests/superproject/test_pricing_costs.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_agent_container.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_local_ai_platform_compose.sh
+
+superproject-source-selftest:
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_busdk_refresh_tools.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_changed_scope.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_quiet.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_complete.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= sh ./tests/superproject/test_pricing_costs.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_agent_container.sh
+
+publish-preflight:
+	@"$(MAKE)" superproject-source-selftest
+	@"$(MAKE)" test ROOT_SELFTEST=0
 
 print-test-modules:
 	@set -eu; \

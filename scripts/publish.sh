@@ -1,15 +1,25 @@
 #!/usr/bin/env sh
 set -eu
 
-if ! git diff --quiet || ! git diff --cached --quiet; then
+if [ -n "$(git status --porcelain --untracked-files=normal)" ]; then
   echo "working tree has uncommitted changes; aborting" >&2
+  git status --short --untracked-files=normal >&2
   exit 1
 fi
 
-make test
+git submodule foreach --recursive '
+  if [ -n "$(git status --porcelain --untracked-files=normal)" ]; then
+    echo "$name has uncommitted changes; aborting" >&2
+    git status --short --untracked-files=normal >&2
+    exit 1
+  fi
+'
 
-if ! git diff --quiet || ! git diff --cached --quiet; then
+make publish-preflight
+
+if [ -n "$(git status --porcelain --untracked-files=normal)" ]; then
   echo "working tree changed after tests; aborting" >&2
+  git status --short --untracked-files=normal >&2
   exit 1
 fi
 
@@ -17,8 +27,9 @@ git submodule sync --recursive
 git submodule update --init --recursive
 
 git submodule foreach --recursive '
-  if ! git diff --quiet || ! git diff --cached --quiet; then
+  if [ -n "$(git status --porcelain --untracked-files=normal)" ]; then
     echo "$name has uncommitted changes; aborting" >&2
+    git status --short --untracked-files=normal >&2
     exit 1
   fi
 '
