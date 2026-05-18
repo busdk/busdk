@@ -82,6 +82,16 @@
     can request recipient-scoped workers deterministically instead of relying
     on manual Compose worker starts.
 
+- [ ] Shift development execution toward Bus-owned local and UpCloud AI worker
+  infrastructure under hosted Codex budget constraints end to end: review the
+  current local Docker Compose, container-provider, LLM-provider,
+  UpCloud-runner, SSH-runner, and dev-task worker paths; identify the shortest
+  safe path for `bus dev task` workers to run in operator-owned containers and
+  GPU/local-model runtimes instead of hosted Codex; dispatch recipient-scoped
+  implementation tasks for the owning modules; keep paid UpCloud provisioning
+  behind explicit operator approval; document the cost-control operating mode;
+  and verify with local/provider-neutral smokes before any live-cloud spend.
+
 - [x] Refactor root `AGENTS.md` guidance structure end to end: move non-memo operational rules out from the `Live Working Memo` section into topical sections or scoped module `AGENTS.md` files, clarify the difference between cross-module family policy and module-specific guidance, remove ambiguous repeated ordered-list numbers, rerun `bus lint AGENTS.md`, and keep the supervisor/development-speed rules easy to find.
 
 - [x] Fix local Codex task-image Bus toolchain availability end to end: reproduce the worker-container failure where module `make lint` cannot find `bus-dev`, provide a deterministic `bus-dev` command on `PATH` inside the local Codex task image without host installs, document the behavior in the dev-task workflow, add a focused smoke check, and verify that module lint can run from a Codex task container.
