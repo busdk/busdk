@@ -32,6 +32,13 @@
   --check`, `bus lint README.md PLAN.md`, and the affected `bus-dev` or
   `bus-integration-dev-task` module gates when that slice changes those
   modules.
+  - [x] Add a provider-neutral, non-mutating heartbeat action-plan artifact
+    that turns terminal monitor classification into explicit review/pin,
+    reopen, blocker-record, and refill-eligibility decisions without running
+    Git, reopening tasks, dispatching workers, or approving work.
+  - [ ] Implement the follow-on executable slices for root pin handling,
+    review/progress-audit Bus worker dispatch, and safe reopen/refill execution
+    after the evidence-only action plan is reviewed.
 
 - [x] Make BusDK dev-task container and host toolchain freshness automatic end
   to end: reproduce the recurring stale-tool problem where worker containers or

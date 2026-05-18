@@ -554,13 +554,20 @@ the non-streaming
 `bus dev work monitor --format json --quiet-after 15m --stale-after 1h`
 snapshot, writes the raw monitor output to
 `tmp/dev-task-supervisor/work-monitor.json`, classifies active and terminal
-tasks in `tmp/dev-task-supervisor/policy-cycle.json`, and writes health evidence
-to `tmp/dev-task-supervisor/heartbeat-status.json`. When the snapshot has no
-active or terminal tasks, the policy cycle records an explicit no-op event in
-`tmp/dev-task-supervisor/supervisor-events.jsonl` and no-op evidence in
-`tmp/dev-task-supervisor/noop-evidence.json`. The policy evidence is
-provider-neutral so later local Bus workers and cloud Bus workers can use the
-same supervisor decisions.
+tasks in `tmp/dev-task-supervisor/policy-cycle.json`, writes a non-mutating
+mechanical next-action plan to `tmp/dev-task-supervisor/action-plan.json`, and
+writes health evidence to `tmp/dev-task-supervisor/heartbeat-status.json`. The
+action plan counts terminal closeouts that are ready for review and root pin
+handling, terminal closeouts that should be reopened with a correction brief,
+terminal blockers that should be recorded before refill, and whether worker
+refill is mechanically eligible. It is evidence only: the heartbeat still does
+not run Git, dispatch workers, reopen tasks, approve work, or change product,
+security, cost, destructive, or hard-to-reverse decisions by itself. When the
+snapshot has no active or terminal tasks, the policy cycle records an explicit
+no-op event in `tmp/dev-task-supervisor/supervisor-events.jsonl` and no-op
+evidence in `tmp/dev-task-supervisor/noop-evidence.json`. The policy evidence
+is provider-neutral so later local Bus workers and cloud Bus workers can use
+the same supervisor decisions.
 
 Check the supervisor heartbeat without opening a streaming task watch:
 
@@ -570,6 +577,7 @@ docker compose -f compose.dev-task-docker.yaml exec bus-dev-supervisor \
   /workspace/scripts/dev-task-supervisor-heartbeat.sh check
 cat tmp/dev-task-supervisor/heartbeat-status.json
 cat tmp/dev-task-supervisor/policy-cycle.json
+cat tmp/dev-task-supervisor/action-plan.json
 ```
 
 Tune the local heartbeat with `BUS_DEV_SUPERVISOR_INTERVAL_SECONDS`,

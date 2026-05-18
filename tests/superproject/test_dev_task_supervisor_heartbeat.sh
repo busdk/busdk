@@ -40,11 +40,18 @@ grep -q '^dev work monitor --format json --quiet-after 20m --stale-after 2h$' "$
 grep -q '"schema_version": "busdk.supervisor.heartbeat/v1"' "$tmp_dir/state/heartbeat-status.json"
 grep -q '"status": "ok"' "$tmp_dir/state/heartbeat-status.json"
 grep -q '"policy_file": "' "$tmp_dir/state/heartbeat-status.json"
+grep -q '"action_plan_file": "' "$tmp_dir/state/heartbeat-status.json"
 grep -q '"active":\[\]' "$tmp_dir/state/work-monitor.json"
 grep -q '"schema_version": "busdk.supervisor.policy_cycle/v1"' "$tmp_dir/state/policy-cycle.json"
 grep -q '"decision": "noop"' "$tmp_dir/state/policy-cycle.json"
 grep -q '"safe_work_available": false' "$tmp_dir/state/policy-cycle.json"
 grep -q '"no_op_reason": "no_active_or_terminal_tasks"' "$tmp_dir/state/policy-cycle.json"
+grep -q '"action_plan_file": "' "$tmp_dir/state/policy-cycle.json"
+grep -q '"schema_version": "busdk.supervisor.action_plan/v1"' "$tmp_dir/state/action-plan.json"
+grep -q '"dry_run": true' "$tmp_dir/state/action-plan.json"
+grep -q '"execute_actions": false' "$tmp_dir/state/action-plan.json"
+grep -q '"eligible": true' "$tmp_dir/state/action-plan.json"
+grep -q '"reason": "no_active_or_terminal_tasks"' "$tmp_dir/state/action-plan.json"
 grep -q '"event_type":"supervisor.noop"' "$tmp_dir/state/supervisor-events.jsonl"
 grep -q '"schema_version": "busdk.supervisor.noop_evidence/v1"' "$tmp_dir/state/noop-evidence.json"
 
@@ -73,6 +80,8 @@ if env PATH="$tmp_dir/bin:$PATH" \
 fi
 grep -q '"status": "failed"' "$tmp_dir/state-fail/heartbeat-status.json"
 grep -q '"status": "monitor_failed"' "$tmp_dir/state-fail/policy-cycle.json"
+grep -q '"status": "monitor_failed"' "$tmp_dir/state-fail/action-plan.json"
+grep -q '"reason": "monitor_failed"' "$tmp_dir/state-fail/action-plan.json"
 
 cat >"$tmp_dir/terminal-monitor.json" <<'JSON'
 {
@@ -108,6 +117,10 @@ grep -q '"total": 2' "$tmp_dir/state-classify/policy-cycle.json"
 grep -q '"ready_for_review": 1' "$tmp_dir/state-classify/policy-cycle.json"
 grep -q '"needs_reopen": 1' "$tmp_dir/state-classify/policy-cycle.json"
 grep -q '"blocked": 1' "$tmp_dir/state-classify/policy-cycle.json"
+grep -q '"review_promoted_commits"' "$tmp_dir/state-classify/action-plan.json"
+grep -q '"reopen_incomplete_tasks"' "$tmp_dir/state-classify/action-plan.json"
+grep -q '"record_blockers"' "$tmp_dir/state-classify/action-plan.json"
+grep -q '"reason": "terminal_triage_required"' "$tmp_dir/state-classify/action-plan.json"
 test ! -e "$tmp_dir/state-classify/supervisor-events.jsonl"
 
 printf 'dev-task supervisor heartbeat OK\n'

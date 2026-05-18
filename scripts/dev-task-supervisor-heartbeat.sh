@@ -24,6 +24,7 @@ timestamp_utc() {
 state_dir=${BUS_DEV_SUPERVISOR_STATE_DIR:-/workspace/tmp/dev-task-supervisor}
 status_file=${BUS_DEV_SUPERVISOR_STATUS_FILE:-$state_dir/heartbeat-status.json}
 policy_file=${BUS_DEV_SUPERVISOR_POLICY_FILE:-$state_dir/policy-cycle.json}
+action_plan_file=${BUS_DEV_SUPERVISOR_ACTION_PLAN_FILE:-$state_dir/action-plan.json}
 event_file=${BUS_DEV_SUPERVISOR_EVENT_FILE:-$state_dir/supervisor-events.jsonl}
 noop_evidence_file=${BUS_DEV_SUPERVISOR_NOOP_EVIDENCE_FILE:-$state_dir/noop-evidence.json}
 snapshot_file=${BUS_DEV_SUPERVISOR_SNAPSHOT_FILE:-$state_dir/work-monitor.json}
@@ -180,6 +181,63 @@ write_noop_evidence() {
   } >>"$event_file"
 }
 
+write_action_plan() {
+  action_recorded_at=$1
+  action_status=$2
+  action_snapshot_file=$3
+  action_active_total=$4
+  action_terminal_total=$5
+  action_review_total=$6
+  action_reopen_total=$7
+  action_blocked_total=$8
+  tmp_action_plan="$action_plan_file.tmp.$$"
+
+  refill_eligible=false
+  refill_reason=terminal_triage_required
+  if [ "$action_status" = "monitor_failed" ]; then
+    refill_reason=monitor_failed
+  elif [ "$action_active_total" -gt 0 ]; then
+    refill_reason=active_workers_running
+  elif [ "$action_terminal_total" -eq 0 ]; then
+    refill_eligible=true
+    refill_reason=no_active_or_terminal_tasks
+  fi
+
+  {
+    printf '{\n'
+    printf '  "schema_version": "busdk.supervisor.action_plan/v1",\n'
+    printf '  "status": "%s",\n' "$(json_value "$action_status")"
+    printf '  "recorded_at": "%s",\n' "$(json_value "$action_recorded_at")"
+    printf '  "snapshot_file": "%s",\n' "$(json_value "$action_snapshot_file")"
+    printf '  "dry_run": true,\n'
+    printf '  "execute_actions": false,\n'
+    printf '  "terminal_actions": {\n'
+    printf '    "review_promoted_commits": {\n'
+    printf '      "count": %s,\n' "$action_review_total"
+    printf '      "trigger": "terminal closeout has task_complete true",\n'
+    printf '      "mechanical_next_step": "verify evidence, then pin accepted promoted commits in the superproject"\n'
+    printf '    },\n'
+    printf '    "reopen_incomplete_tasks": {\n'
+    printf '      "count": %s,\n' "$action_reopen_total"
+    printf '      "trigger": "terminal closeout has task_complete false or failed/error status",\n'
+    printf '      "mechanical_next_step": "reopen with a precise correction brief through bus dev work or bus dev task"\n'
+    printf '    },\n'
+    printf '    "record_blockers": {\n'
+    printf '      "count": %s,\n' "$action_blocked_total"
+    printf '      "trigger": "terminal status is blocked or remaining_blockers is non-empty",\n'
+    printf '      "mechanical_next_step": "record the blocker in the owning PLAN or cross-module request before refill"\n'
+    printf '    }\n'
+    printf '  },\n'
+    printf '  "refill_decision": {\n'
+    printf '    "eligible": %s,\n' "$refill_eligible"
+    printf '    "reason": "%s",\n' "$(json_value "$refill_reason")"
+    printf '    "mechanical_next_step": "dispatch the next documented non-overlapping Bus worker task only when eligible and local policy allows it"\n'
+    printf '  }\n'
+    printf '}\n'
+  } >"$tmp_action_plan"
+  mv "$tmp_action_plan" "$action_plan_file"
+}
+
 classify_policy_cycle() {
   classify_snapshot_file=$1
   classify_exit_code=${2:-0}
@@ -225,6 +283,16 @@ classify_policy_cycle() {
     fi
   fi
 
+  write_action_plan \
+    "$classify_recorded_at" \
+    "$policy_status" \
+    "$classify_snapshot_file" \
+    "$active_total" \
+    "$terminal_total" \
+    "$ready_for_review_total" \
+    "$needs_reopen_total" \
+    "$blocked_total"
+
   {
     printf '{\n'
     printf '  "schema_version": "busdk.supervisor.policy_cycle/v1",\n'
@@ -236,6 +304,7 @@ classify_policy_cycle() {
     fi
     printf '  "recorded_at": "%s",\n' "$(json_value "$classify_recorded_at")"
     printf '  "snapshot_file": "%s",\n' "$(json_value "$classify_snapshot_file")"
+    printf '  "action_plan_file": "%s",\n' "$(json_value "$action_plan_file")"
     printf '  "monitor_exit_code": %s,\n' "$classify_exit_code"
     printf '  "active": {"total": %s},\n' "$active_total"
     printf '  "terminal": {\n'
@@ -287,6 +356,7 @@ run_once() {
     printf '  "finished_at": "%s",\n' "$(json_value "$finished_at")"
     printf '  "monitor_command": "bus dev work monitor --format json --quiet-after %s --stale-after %s",\n' "$(json_value "$quiet_after")" "$(json_value "$stale_after")"
     printf '  "policy_file": "%s",\n' "$(json_value "$policy_file")"
+    printf '  "action_plan_file": "%s",\n' "$(json_value "$action_plan_file")"
     printf '  "snapshot_file": "%s",\n' "$(json_value "$snapshot_file")"
     printf '  "stderr_file": "%s"\n' "$(json_value "$stderr_file")"
     printf '}\n'
@@ -323,6 +393,14 @@ check_status() {
   fi
   if [ ! -f "$epoch_file" ]; then
     printf 'supervisor heartbeat epoch missing: %s\n' "$epoch_file" >&2
+    return 1
+  fi
+  if [ ! -f "$policy_file" ]; then
+    printf 'supervisor policy cycle missing: %s\n' "$policy_file" >&2
+    return 1
+  fi
+  if [ ! -f "$action_plan_file" ]; then
+    printf 'supervisor action plan missing: %s\n' "$action_plan_file" >&2
     return 1
   fi
   last_epoch=$(cat "$epoch_file")
