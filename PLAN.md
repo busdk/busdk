@@ -98,6 +98,12 @@
   that format/model switch, but broad GPU virtual-server creation/provisioning
   is not part of the immediate lane unless existing installation support already
   covers it safely.
+  Add Go-aware Codex worker context through `gopls` MCP in this lane: review
+  official `gopls` MCP support, use detached `gopls mcp` for saved-file worker
+  containers by default, generate the model instructions with
+  `gopls mcp -instructions` into task context, expose opt-in policy/config for
+  Go workers, and account for security/network/cache behavior before enabling
+  it on local or UpCloud worker images.
 
 - [x] Refactor root `AGENTS.md` guidance structure end to end: move non-memo operational rules out from the `Live Working Memo` section into topical sections or scoped module `AGENTS.md` files, clarify the difference between cross-module family policy and module-specific guidance, remove ambiguous repeated ordered-list numbers, rerun `bus lint AGENTS.md`, and keep the supervisor/development-speed rules easy to find.
 
