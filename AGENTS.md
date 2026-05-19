@@ -365,6 +365,12 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
     and important session context. Keep this high-signal rather than exhaustive;
     summarize long command output and link the exact task refs or files needed
     to reproduce details.
+21.1. Include Git references for meaningful repositories in each hourly memo.
+    Record the superproject commit hash and the commit hashes for submodules
+    that were modified, pinned, dispatched as workers, used for verification, or
+    otherwise important to the hour's decisions. If a repository is dirty, say
+    so next to its hash and summarize the meaningful dirty paths instead of
+    relying on an implicit current checkout.
 22. For delegated `bus dev work` / `bus dev task` workers, the logical `agent_id` is the recipient module/AGENTS.md instruction identity. The concrete run is distinguished by task `work_ref`, worker/container metadata, and App Server thread/turn ids. Worker notes should be written through `bus notes` so they become Bus ecosystem data, not hidden local log files. Worker closeout should report `agent_id`, `agent_instruction_path`, and Bus Notes IDs or query metadata so notes can be grouped by agent and inspected per run; local memo files are only an explicit fallback/draft when the Notes API is unavailable.
 
 ## Planning, Trackers, And Data Modeling
