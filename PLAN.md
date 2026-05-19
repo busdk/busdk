@@ -91,6 +91,13 @@
   implementation tasks for the owning modules; keep paid UpCloud provisioning
   behind explicit operator approval; document the cost-control operating mode;
   and verify with local/provider-neutral smokes before any live-cloud spend.
+  Current UpCloud direction: optimize first for one manually installed
+  UpCloud VPS image that can run Bus-owned worker containers and later be
+  resized or changed to a different UpCloud GPU/server format on demand without
+  reinstalling the virtual server. Bus should eventually be able to request
+  that format/model switch, but broad GPU virtual-server creation/provisioning
+  is not part of the immediate lane unless existing installation support already
+  covers it safely.
 
 - [x] Refactor root `AGENTS.md` guidance structure end to end: move non-memo operational rules out from the `Live Working Memo` section into topical sections or scoped module `AGENTS.md` files, clarify the difference between cross-module family policy and module-specific guidance, remove ambiguous repeated ordered-list numbers, rerun `bus lint AGENTS.md`, and keep the supervisor/development-speed rules easy to find.
 
