@@ -11,8 +11,11 @@ project memory.
 ## Hourly Memo
 
 Maintain `logs/{YYYYMMDD}-{HH}-agent-memo.md` during each work session. Write it
-as a narrative engineering diary, not a raw checklist. Explain goals, findings,
-decisions, tests, friction, and handoff state.
+as a narrative engineering diary, not a raw checklist. Explain goals, end-user
+value, operator capability, product quality, or release confidence being
+unlocked, findings, decisions, tests, friction, and handoff state. Do not reduce
+value to commercial value; useful software that end users and operators like
+using is the primary target.
 
 When the hour changes, add a short handoff to the previous memo and continue in
 the new hour.
