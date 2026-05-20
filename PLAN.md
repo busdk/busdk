@@ -194,7 +194,7 @@
     pin behavior. Acceptance evidence: non-secret command transcript summary,
     `git diff --check`, focused root smoke, and affected module gates for any
     follow-up fixes.
-  - [ ] UpCloud existing-runner worker execution smoke: owner
+  - [x] UpCloud existing-runner worker execution smoke: owner
     `bus-integration-upcloud` for provider behavior, with `bus-dev` /
     `bus-integration-dev-task` follow-ups only if routing or worker-start
     contracts fail. Use static-provider coverage by default and a real
@@ -205,7 +205,14 @@
     worker request, no unsupported mounts are projected, no create/delete API
     calls occur in no-spend modes, relevant module `make check`/e2e static
     provider checks pass, and any live-cloud run records the operator approval
-    reference.
+    reference. Closed by `bus-integration-upcloud` commit
+    `759cb6b39e7941ff56045985c09834c918f65578`: static no-spend coverage now
+    proves env/workdir/source metadata reaches the remote Podman request,
+    unsupported mounts are rejected before projection, and no create/delete API
+    calls occur in existing-runner mode. Evidence: `git diff --check HEAD^
+    HEAD`, `go test ./pkg/upcloudintegration`, and `make -C
+    bus-integration-upcloud check` passed; real UpCloud e2e remained opt-in and
+    was not run.
 
 - [x] Refactor root `AGENTS.md` guidance structure end to end: move non-memo operational rules out from the `Live Working Memo` section into topical sections or scoped module `AGENTS.md` files, clarify the difference between cross-module family policy and module-specific guidance, remove ambiguous repeated ordered-list numbers, rerun `bus lint AGENTS.md`, and keep the supervisor/development-speed rules easy to find.
 
