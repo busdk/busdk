@@ -34,9 +34,13 @@
   - [ ] Smooth Go agent tooling: make `gopls` MCP and Go debugger support
     usable by Codex/dev-task workers without brittle method errors, surprise
     installs, host attach, or unclear prompt context.
-  - [ ] Finish release-quality blockers that directly affect this lane:
-    `bus-configure --help` hang, full `quality-complete` rerun, and remaining
-    module help/docs cleanup found by the sweep.
+  - [ ] Finish release-quality blockers that directly affect this lane: the
+    full all-module `quality-complete` rerun and remaining module help/docs
+    cleanup found by the sweep. `busdk#99.1` reclassified the old
+    `busdk#86.1` blocker: the exact prior failure command,
+    `timeout 10s env -u BINARY bus-configure/bin/bus-configure --help`, now
+    exits 0 with deterministic help, and the focused root changed-module
+    `quality-complete` run for `bus-configure` passes doc/help lint.
   - [ ] When reporting "release hardening", name the concrete risk, affected
     user/operator workflow, and why the fix matters now; do not use broad
     hardening language without enough detail for the operator to choose.
