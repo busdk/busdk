@@ -98,7 +98,7 @@ new_tmp_bin() {
   return 1
 }
 
-tmp_bin=\$(new_tmp_bin)
+tmp_bin=
 cleanup_tmp_bin() {
   [ -z "\${tmp_bin:-}" ] || rm -f "\$tmp_bin"
 }
@@ -110,6 +110,7 @@ if [ ! -f "\$module/cmd/\$tool/main.go" ]; then
 fi
 
 mkdir -p "\$bin_dir"
+tmp_bin=\$(new_tmp_bin)
 (
   cd "\$module"
   "\$go_cmd" build -o "\$tmp_bin" "\$cmd"

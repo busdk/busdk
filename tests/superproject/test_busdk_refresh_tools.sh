@@ -8,6 +8,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 workspace="$tmp_dir/workspace"
 wrapper_dir="$tmp_dir/wrappers"
 bin_dir="$tmp_dir/runtime-bin"
+missing_bin_dir="$tmp_dir/runtime-bin-created-by-wrapper"
 fake_bin="$tmp_dir/fake-bin"
 fallback_bin="$tmp_dir/fallback-bin"
 caller_dir="$tmp_dir/caller"
@@ -125,6 +126,13 @@ if [ "$output" != "bus|$caller_dir|--help" ]; then
   printf 'FAIL busdk refresh tools: mktemp fallback produced %s\n' "$output" >&2
   exit 1
 fi
+
+output=$(cd "$caller_dir" && PATH="$wrapper_dir:$fake_bin:$PATH" BUSDK_TOOL_BIN_DIR="$missing_bin_dir" bus --help)
+if [ "$output" != "bus|$caller_dir|--help" ]; then
+  printf 'FAIL busdk refresh tools: missing runtime bin dir produced %s\n' "$output" >&2
+  exit 1
+fi
+test -d "$missing_bin_dir"
 
 : >"$build_log"
 concurrent_pids=
