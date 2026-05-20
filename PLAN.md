@@ -1,5 +1,46 @@
 # PLAN.md
 
+- [ ] Current first-priority product lane: make multi-remote worker execution
+  useful enough for real operator testing and daily development. Business/user
+  value: Bus operators should be able to send work to `localhost`, `ai.hg.fi`,
+  UpCloud, and future worker systems through one natural workflow, compare
+  which systems produce accepted work, and avoid wasting hosted quota or cloud
+  spend on blind experiments.
+  - [ ] Prove parallel multi-remote execution with at least two remote
+    identities active in the same run, preserving isolated worktrees,
+    recipient/write-scope ownership, terminal evidence, and serialized
+    promotion.
+  - [ ] Add per-remote capacity and throughput reporting so supervisors can see
+    accepted/failed/blocked work, tasks/hour, latency, and stale workers by
+    remote id/kind and by remote+recipient.
+  - [ ] Mature remote default/selection UX so commands that need worker
+    systems make `--remote`, configured defaults, and built-in remotes feel as
+    predictable as `git remote` rather than special-case local/cloud flags.
+  - [ ] Add integrated multi-system worker scheduling: users should be able to
+    request work and let Bus choose or fan out across eligible remotes according
+    to explicit capacity/cost/policy limits, instead of manually starting a
+    separate flow per system.
+  - [ ] Prepare the UpCloud manually installed runner path for operator-owned
+    live testing. Do not run paid live tests here; instead provide the software
+    readiness checklist, expected commands, non-secret evidence to collect, and
+    clear pass/fail criteria so the external UpCloud system can test it.
+  - [ ] Add GPU/server format switching support from Bus for the single-image
+    UpCloud model: support changing the existing VPS format/model on demand
+    without reinstalling the image, keeping create/delete/provisioning outside
+    the near-term scope unless explicitly approved.
+  - [ ] Measure worker throughput and cost by remote, including enough event
+    metadata for local Docker, UpCloud, and future remotes to compare accepted
+    work per hour and operator-visible cost signals.
+  - [ ] Smooth Go agent tooling: make `gopls` MCP and Go debugger support
+    usable by Codex/dev-task workers without brittle method errors, surprise
+    installs, host attach, or unclear prompt context.
+  - [ ] Finish release-quality blockers that directly affect this lane:
+    `bus-configure --help` hang, full `quality-complete` rerun, and remaining
+    module help/docs cleanup found by the sweep.
+  - [ ] When reporting "release hardening", name the concrete risk, affected
+    user/operator workflow, and why the fix matters now; do not use broad
+    hardening language without enough detail for the operator to choose.
+
 - [x] Make AI Product Delivery Supervisor heartbeat/service operation
   deterministic end to end: add a root Compose `bus-dev-supervisor` service
   that refreshes BusDK wrappers, issues a scoped local token, runs

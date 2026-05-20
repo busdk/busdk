@@ -77,17 +77,18 @@ Merged guidance from `.cursor/rules/*.mdc`.
   supervisor to keep `wait`/`watch` processes open. Streaming views are useful
   for humans, but worker throughput must not be capped by the supervising
   agent's local process/session limit.
-- The intended durable supervisor loop is a containerized Bus service, not an
-  ad hoc habit of the current Codex session. Its 5-15 minute heartbeat should
-  run behind that service: check that the supervisor container is alive, confirm
-  recent task progress or explicit idle state, restart or report failures
-  through normal task/event surfaces, and keep worker refill bounded by policy.
+- Do not prioritize replacing the human/Codex supervisor loop with an
+  always-on Bus supervisor service unless the operator asks for that product
+  direction. Near-term Bus development value is in making worker execution
+  itself scalable across remotes, observable, and easy to operate; supervisor
+  automation is only worth improving when it removes a concrete blocker or
+  makes worker offload safer.
 - While workers run, keep the supervisor loop active with non-overlapping work: review returned patches, promote verified changes, groom `PLAN.md` queues, prepare next task briefs, investigate infrastructure friction, or start additional safe workers. Avoid idle waiting when useful review or dispatch work is available.
 - Review/progress-audit outsourcing should exercise the Bus dev-task worker
   system whenever practical. Codex subagents are useful for bounded local
-  assistance, but scalable supervisor work belongs in local Bus worker agents
-  now and provider-neutral/cloud Bus worker agents later so the same substrate
-  is tested and improved.
+  assistance, but scalable implementation and verification work belongs in
+  local Bus worker agents now and provider-neutral/cloud Bus worker agents
+  later so the same substrate is tested and improved.
 - Keep parallelism high when scopes are independent and review capacity exists. Recent project logs showed successful batches above fifteen concurrent workers; do not assume one-worker-per-module is the ceiling. Increase concurrency until write-scope conflicts, dirty primary checkouts, resource saturation, or review bandwidth become the real limit.
 - Treat throughput targets and prior best results as floors to exceed, not caps
   or comfort targets. Compare each long-running supervisor pulse against the
