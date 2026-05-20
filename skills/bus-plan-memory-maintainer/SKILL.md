@@ -17,6 +17,11 @@ decisions, tests, friction, and handoff state.
 When the hour changes, add a short handoff to the previous memo and continue in
 the new hour.
 
+For supervisor heartbeats and progress reports, first compare the current
+local/project hour with the active memo filename. If the memo is stale, roll it
+over before reporting or starting substantial new work, and record the
+correction in the new memo.
+
 ## AGENTS Guidance
 
 When the user states durable workflow guidance or a recurring mistake is found,
