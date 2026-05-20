@@ -47,6 +47,17 @@ grep -q 'scripts/busdk-refresh-tools.sh' deploy/local-ai-platform/codex/Dockerfi
 grep -Fq 'ARG GOPLS_VERSION=v0.20.0' deploy/local-ai-platform/codex/Dockerfile
 grep -Fq 'go install "golang.org/x/tools/gopls@${GOPLS_VERSION}"' deploy/local-ai-platform/codex/Dockerfile
 grep -Fq 'gopls mcp -instructions' deploy/local-ai-platform/codex/Dockerfile
+grep -Fq 'ARG DELVE_VERSION=v1.25.2' deploy/local-ai-platform/codex/Dockerfile
+grep -Fq 'go install "github.com/go-delve/delve/cmd/dlv@${DELVE_VERSION}"' deploy/local-ai-platform/codex/Dockerfile
+grep -Fq 'dlv dap --help' deploy/local-ai-platform/codex/Dockerfile
+grep -Fq 'BUS_DEV_TASK_GO_DEBUGGER: ${BUS_DEV_TASK_GO_DEBUGGER:-auto}' compose.dev-task-docker.yaml
+grep -Fq 'BUS_DEV_TASK_GO_DEBUGGER_COMMAND: ${BUS_DEV_TASK_GO_DEBUGGER_COMMAND:-dlv}' compose.dev-task-docker.yaml
+grep -Fq -- '--go-debugger "$${BUS_DEV_TASK_GO_DEBUGGER}"' compose.dev-task-docker.yaml
+grep -Fq -- '--go-debugger-command "$${BUS_DEV_TASK_GO_DEBUGGER_COMMAND}"' compose.dev-task-docker.yaml
+if grep -Eq 'dlv[[:space:]]+dap[[:space:]].*(--listen|--accept-multiclient|--client-addr)|attach_policy[[:space:]]*=[[:space:]]*host|--go-debugger-attach' compose.dev-task-docker.yaml; then
+  printf 'unexpected default debugger server or host-attach wiring in compose.dev-task-docker.yaml\n' >&2
+  exit 1
+fi
 grep -q 'scripts/dev-task-supervisor-heartbeat.sh check' compose.dev-task-docker.yaml
 grep -q 'pull_policy: build' compose.dev-task-docker.yaml
 grep -q 'build: \*codex-image-build' compose.dev-task-docker.yaml

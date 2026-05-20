@@ -70,6 +70,11 @@ docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
 
 docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
   cd /workspace/bus-containers
+  go run ./cmd/bus-containers run --profile codex -- sh -ec "test \"$(command -v dlv)\" = /usr/local/bin/dlv && dlv version | grep -q \"Version: 1.25.2\" && dlv dap --help | grep -qi dap"
+'
+
+docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
+  cd /workspace/bus-containers
   go run ./cmd/bus-containers run --profile codex -- bus-dev --help | grep -q "Usage: bus dev"
 '
 
@@ -123,6 +128,16 @@ docker run --rm \
 
 docker run --rm \
   -v "${PWD}:/workspace" \
+  -w /workspace \
+  "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
+  sh -ec '
+    test "$(command -v dlv)" = /usr/local/bin/dlv
+    dlv version | grep -q "Version: 1.25.2"
+    dlv dap --help | grep -qi dap
+  '
+
+docker run --rm \
+  -v "${PWD}:/workspace" \
   -w /workspace/docs \
   "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
   bus lint --help | grep -q 'Usage: bus-lint'
@@ -142,6 +157,14 @@ docker compose "${compose_args[@]}" exec -T bus-integration-dev-task sh -ec '
   test "$(command -v gopls)" = /usr/local/bin/gopls
   gopls version | grep -q "v0.20.0"
   gopls mcp -instructions | grep -qi "gopls MCP server"
+'
+
+docker compose "${compose_args[@]}" exec -T bus-integration-dev-task sh -ec '
+  test "${BUS_DEV_TASK_GO_DEBUGGER:-}" = auto
+  test "${BUS_DEV_TASK_GO_DEBUGGER_COMMAND:-}" = dlv
+  test "$(command -v dlv)" = /usr/local/bin/dlv
+  dlv version | grep -q "Version: 1.25.2"
+  dlv dap --help | grep -qi dap
 '
 
 docker compose "${compose_args[@]}" exec -T bus-integration-dev-task sh -ec '

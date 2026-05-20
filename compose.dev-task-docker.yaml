@@ -252,6 +252,8 @@ services:
       BUS_DEV_TASK_CODEX_SOURCE_HOME: ${BUS_DEV_TASK_CODEX_SOURCE_HOME:-/root/.codex-shared}
       BUS_DEV_TASK_CODEX_STATE_ROOT: ${BUS_DEV_TASK_CODEX_STATE_ROOT:-/workspace/tmp/bus-dev-task-codex-homes}
       BUS_DEV_TASK_CODEX_INHERIT_ENV: ${BUS_DEV_TASK_CODEX_INHERIT_ENV:-true}
+      BUS_DEV_TASK_GO_DEBUGGER: ${BUS_DEV_TASK_GO_DEBUGGER:-auto}
+      BUS_DEV_TASK_GO_DEBUGGER_COMMAND: ${BUS_DEV_TASK_GO_DEBUGGER_COMMAND:-dlv}
       BUS_LINT_AGENT: ${BUS_LINT_AGENT:-codex}
       BUS_DEV_TASK_CONTAINER_PROFILE: codex
       BUS_DEV_TASK_WORKSPACE_ROOT: ${BUS_DEV_TASK_WORKSPACE_ROOT:-/workspace}
@@ -332,6 +334,8 @@ services:
         --codex-network-access="$${BUS_DEV_TASK_CODEX_NETWORK_ACCESS}"
         --codex-state-root "$${BUS_DEV_TASK_CODEX_STATE_ROOT}"
         --codex-inherit-env="$${BUS_DEV_TASK_CODEX_INHERIT_ENV}"
+        --go-debugger "$${BUS_DEV_TASK_GO_DEBUGGER}"
+        --go-debugger-command "$${BUS_DEV_TASK_GO_DEBUGGER_COMMAND}"
         --container-profile "$${BUS_DEV_TASK_CONTAINER_PROFILE}"
         --workspace-root "$${BUS_DEV_TASK_WORKSPACE_ROOT}"
         --workspace-host-root "$${BUS_DEV_TASK_WORKSPACE_HOST_ROOT}"

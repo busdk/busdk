@@ -166,14 +166,23 @@
     no host attach/default debug server. Evidence: focused debugger/lifecycle
     tests, help schema tests, `git diff --check`, and
     `make BINARY=bus-integration-dev-task check` passed.
-  - [ ] Root local worker image debugger provisioning slice: owner `busdk`.
+  - [x] Root local worker image debugger provisioning slice: owner `busdk`.
     Add a pinned Delve install to the local Codex worker image and root
     compose/smoke coverage that proves `dlv dap` is available when the
     `bus-integration-dev-task` debugger policy is enabled, while preserving the
     no-host-attach/no-server-start default. Acceptance evidence: Dockerfile or
     image-build check for the pinned `dlv`, focused compose smoke, `git diff
     --check`, `bus lint PLAN.md README.md` if docs change, and relevant root
-    selftests.
+    selftests. Closed by adding pinned Delve v1.25.2 to
+    `deploy/local-ai-platform/codex/Dockerfile`, wiring explicit
+    `BUS_DEV_TASK_GO_DEBUGGER=auto` / `BUS_DEV_TASK_GO_DEBUGGER_COMMAND=dlv`
+    defaults through `compose.dev-task-docker.yaml`, and extending root
+    compose config/full-stack smoke coverage for `dlv dap` plus no default
+    listener or host attach. Evidence: Docker image build passed the pinned
+    `dlv` and `dlv dap --help` checks, focused compose config selftest passed,
+    narrow compose image smoke passed, and the full dev-task Docker compose
+    smoke skipped only because the local Docker daemon could not share the
+    workspace path.
   - [ ] Localhost end-to-end worker execution release smoke: owner `busdk` with
     follow-up fixes in `bus-dev` or `bus-integration-dev-task` only if the smoke
     fails. From a clean root checkout, run the documented

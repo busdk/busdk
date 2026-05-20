@@ -4,6 +4,7 @@ FROM golang:${GO_VERSION}
 ARG CODEX_NPM_PACKAGE=@openai/codex
 ARG CODEX_NPM_VERSION=0.128.0
 ARG GOPLS_VERSION=v0.20.0
+ARG DELVE_VERSION=v1.25.2
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates chromium fonts-liberation nodejs npm xz-utils \
@@ -25,6 +26,11 @@ RUN GOBIN=/usr/local/bin go install "golang.org/x/tools/gopls@${GOPLS_VERSION}" 
     && gopls version | grep -q "${GOPLS_VERSION}" \
     && gopls mcp -instructions >/usr/local/share/gopls-mcp-instructions.md \
     && test -s /usr/local/share/gopls-mcp-instructions.md
+
+RUN GOBIN=/usr/local/bin go install "github.com/go-delve/delve/cmd/dlv@${DELVE_VERSION}" \
+    && dlv version | grep -q "Version: ${DELVE_VERSION#v}" \
+    && dlv dap --help >/usr/local/share/dlv-dap-help.txt \
+    && grep -qi "dap" /usr/local/share/dlv-dap-help.txt
 
 RUN printf '%s\n' \
     '#!/bin/sh' \
