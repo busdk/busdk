@@ -165,6 +165,14 @@ Use narrower skills alongside this one when the work has a focused shape:
    - Add unresolved implementation work to the owning module `PLAN.md`; do not
      rely on final-answer promises.
 
+## Business-Value Reporting
+
+When reporting feature progress, translate technical status into the business
+capability the user cares about. For each unfinished feature, state what is
+still unavailable to users/operators, what the remaining work will unlock, and
+why it is or is not worth spending development capacity on next. Avoid reports
+that only list commits, task refs, tooling names, or implementation mechanics.
+
 ## Worker Brief Shape
 
 Use compact, concrete briefs:
