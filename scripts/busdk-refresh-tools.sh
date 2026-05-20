@@ -77,7 +77,32 @@ cmd="./cmd/\$tool"
 go_cmd=\${GO:-go}
 bin_dir=\${BUSDK_TOOL_BIN_DIR:-$bin_dir_q}
 bin="\$bin_dir/\$tool"
-tmp_bin="\$bin.tmp.\$\$"
+
+new_tmp_bin() {
+  if tmp_path=\$(mktemp "\$bin.tmp.XXXXXX" 2>/dev/null); then
+    printf '%s\n' "\$tmp_path"
+    return 0
+  fi
+
+  i=0
+  while [ "\$i" -lt 100 ]; do
+    tmp_path="\$bin.tmp.\$\$.\$i"
+    if (set -C; : >"\$tmp_path") 2>/dev/null; then
+      printf '%s\n' "\$tmp_path"
+      return 0
+    fi
+    i=\$((i + 1))
+  done
+
+  printf '%s\n' "unable to allocate temporary build path for \$bin" >&2
+  return 1
+}
+
+tmp_bin=\$(new_tmp_bin)
+cleanup_tmp_bin() {
+  [ -z "\${tmp_bin:-}" ] || rm -f "\$tmp_bin"
+}
+trap cleanup_tmp_bin EXIT HUP INT TERM
 
 if [ ! -f "\$module/cmd/\$tool/main.go" ]; then
   printf '%s\n' "\$tool wrapper requires \$module/cmd/\$tool/main.go" >&2
@@ -91,6 +116,7 @@ mkdir -p "\$bin_dir"
 )
 chmod +x "\$tmp_bin"
 mv "\$tmp_bin" "\$bin"
+tmp_bin=
 exec "\$bin" "\$@"
 EOF
   chmod +x "$tmp_wrapper"
