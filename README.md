@@ -649,6 +649,38 @@ go run ./cmd/bus-dev work watch <task-ref-from-work-start-output> --timeout 5m
 Use the task reference printed by `work start`, for example `task_01example`
 when that exact value appears in the command output.
 
+For the controller-owned localhost remote path, run `bus dev work --remote
+localhost start ...` from the root checkout instead of starting
+`bus-integration-dev-task` manually. A release smoke for the root recipient used
+a fake App Server and `--write-scope PLAN.md`; the non-secret transcript showed:
+
+```text
+bus remote --format json resolve localhost
+  id=localhost kind=compose url=http://localhost:8081 compose_file=compose.dev-task-docker.yaml
+bus dev work bootstrap --check
+  dispatcher fresh
+bus dev work --remote localhost start --write-scope PLAN.md @busdk ...
+  created <root>#3.1 -> busdk (branch bus-dev-task/busdk-3-1; scopes PLAN.md)
+bus dev work --remote localhost watch <root>#3.1 --timeout 4m
+  worker launched
+  bus.dev.task.claimed
+  prepared isolated worktree ... branch=bus-dev-task/busdk-3-1
+  Codex app-server process started
+  Codex app-server thread started thread_id=thread-smoke
+  Codex app-server turn started turn_id=turn-smoke
+  removed isolated worktree without promotion
+  bus.dev.task.done
+bus dev work --remote localhost monitor --format json
+  terminal transition for the smoke plus current active supervisor state
+```
+
+When running this smoke from inside a worker container against Docker Desktop,
+two local-only accommodations may be needed: forward the container's
+`127.0.0.1:8081` to the Compose `bus-events` service, and use a resolved
+Compose config whose bind mounts point at the Docker host checkout path already
+used by the `busdk` stack. On a normal host checkout, the documented
+`compose.dev-task-docker.yaml` path should be used directly.
+
 The default task command for real local use runs `codex exec` in the addressed
 module repository, prepares the requested branch, then runs the configured
 post-command. A task without branch flags defaults to the current branch of the

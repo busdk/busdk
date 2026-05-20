@@ -183,7 +183,7 @@
     narrow compose image smoke passed, and the full dev-task Docker compose
     smoke skipped only because the local Docker daemon could not share the
     workspace path.
-  - [ ] Localhost end-to-end worker execution release smoke: owner `busdk` with
+  - [x] Localhost end-to-end worker execution release smoke: owner `busdk` with
     follow-up fixes in `bus-dev` or `bus-integration-dev-task` only if the smoke
     fails. From a clean root checkout, run the documented
     `compose.dev-task-docker.yaml` stack, resolve `localhost` through
@@ -193,7 +193,25 @@
     closeout, remote metadata, monitor/status output, tool freshness, and root
     pin behavior. Acceptance evidence: non-secret command transcript summary,
     `git diff --check`, focused root smoke, and affected module gates for any
-    follow-up fixes.
+    follow-up fixes. Closed by `busdk#85.1`: `bus remote --format json resolve
+    localhost` returned the built-in Compose remote with
+    `compose.dev-task-docker.yaml`; `bus dev work bootstrap --check` passed with
+    dispatcher-visible `/tmp/busdk-tools` binaries; `bus dev work --remote
+    localhost start --write-scope PLAN.md @busdk ...` launched a
+    controller-owned `bus-integration-dev-task` worker without a manual
+    `docker compose run`; `watch` showed `worker launched`,
+    `bus.dev.task.claimed`, isolated root worktree branch
+    `bus-dev-task/busdk-3-1`, fake App Server process/thread/turn start,
+    `removed isolated worktree without promotion`, and `bus.dev.task.done`; and
+    `monitor --format json` showed the active supervisor task plus the smoke
+    terminal transition. The worker container environment required two
+    non-product accommodations: a temporary localhost TCP forward to the
+    Compose `bus-events` service because this worker container's
+    `127.0.0.1:8081` is not the host, and a temporary resolved Compose config
+    using the already-running `busdk` stack's Docker host checkout path because
+    Docker Desktop rejected `/workspace` as an unshared host bind path. No
+    cloud resources or manual worker containers were provisioned for the
+    accepted smoke.
   - [x] UpCloud existing-runner worker execution smoke: owner
     `bus-integration-upcloud` for provider behavior, with `bus-dev` /
     `bus-integration-dev-task` follow-ups only if routing or worker-start
