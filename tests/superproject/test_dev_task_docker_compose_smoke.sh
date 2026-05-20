@@ -2,6 +2,20 @@
 set -euo pipefail
 [[ "${BUS_E2E_VERBOSE:-0}" = "1" ]] && set -x
 
+compose_args=(-f compose.dev-task-docker.yaml)
+tmp_dir=$(mktemp -d)
+export DOCKER_CONFIG="${DOCKER_CONFIG:-$tmp_dir/docker-config}"
+mkdir -p "$DOCKER_CONFIG"
+
+cleanup() {
+  rm -f bus-dev/.bus/dev/task.json
+  if [ -z "${BUS_DEV_TASK_DOCKER_KEEP:-}" ]; then
+    docker compose "${compose_args[@]}" down >/dev/null 2>&1 || true
+  fi
+  rm -rf "$tmp_dir"
+}
+trap cleanup EXIT
+
 if ! command -v docker >/dev/null 2>&1; then
   printf 'SKIP dev-task Docker compose smoke: docker not installed\n'
   exit 0
@@ -12,8 +26,6 @@ if ! docker compose version >/dev/null 2>&1; then
   exit 0
 fi
 
-compose_args=(-f compose.dev-task-docker.yaml)
-
 export BUS_DEV_TASK_COMMAND_JSON="${BUS_DEV_TASK_COMMAND_JSON:-[\"codex\",\"--version\"]}"
 export BUS_DEV_TASK_PRE_COMMAND_JSON="${BUS_DEV_TASK_PRE_COMMAND_JSON:-[]}"
 export BUS_DEV_TASK_POST_COMMAND_JSON="${BUS_DEV_TASK_POST_COMMAND_JSON:-[]}"
@@ -22,16 +34,16 @@ export BUS_DEV_TASK_RECIPIENT="${BUS_DEV_TASK_RECIPIENT:-bus-containers}"
 export BUS_DEV_TASK_COMMIT="${BUS_DEV_TASK_COMMIT:-false}"
 task_recipient="@${BUS_DEV_TASK_RECIPIENT}"
 
-cleanup() {
-  rm -f bus-dev/.bus/dev/task.json
-  if [ -z "${BUS_DEV_TASK_DOCKER_KEEP:-}" ]; then
-    docker compose "${compose_args[@]}" down >/dev/null 2>&1 || true
-  fi
-}
-trap cleanup EXIT
-
 docker compose "${compose_args[@]}" down --remove-orphans >/dev/null 2>&1 || true
-docker compose "${compose_args[@]}" up --build -d >/dev/null
+compose_up_output="$tmp_dir/compose-up.output"
+if ! docker compose "${compose_args[@]}" up --build -d >"$compose_up_output" 2>&1; then
+  if grep -q 'Mounts denied' "$compose_up_output"; then
+    printf 'SKIP dev-task Docker compose smoke: workspace path is not shared with Docker\n'
+    exit 0
+  fi
+  cat "$compose_up_output" >&2
+  exit 1
+fi
 
 docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
   for i in $(seq 1 120); do
@@ -49,6 +61,11 @@ docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
 docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
   cd /workspace/bus-containers
   go run ./cmd/bus-containers run --profile codex -- codex --version | grep -q "codex-cli"
+'
+
+docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
+  cd /workspace/bus-containers
+  go run ./cmd/bus-containers run --profile codex -- gopls version | grep -q "v0.20.0"
 '
 
 docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
@@ -96,6 +113,16 @@ docker run --rm \
 
 docker run --rm \
   -v "${PWD}:/workspace" \
+  -w /workspace \
+  "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
+  sh -ec '
+    test "$(command -v gopls)" = /usr/local/bin/gopls
+    gopls version | grep -q "v0.20.0"
+    gopls mcp -instructions | grep -qi "gopls MCP server"
+  '
+
+docker run --rm \
+  -v "${PWD}:/workspace" \
   -w /workspace/docs \
   "${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}" \
   bus lint --help | grep -q 'Usage: bus-lint'
@@ -110,6 +137,12 @@ docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
   cd /workspace/bus-containers
   go run ./cmd/bus-containers run --profile codex -- sh -ec "bus-dev -C /workspace/bus-containers context | grep -q MODULE_NAME=bus-containers"
 ' | grep -q '"exit_code": 0'
+
+docker compose "${compose_args[@]}" exec -T bus-integration-dev-task sh -ec '
+  test "$(command -v gopls)" = /usr/local/bin/gopls
+  gopls version | grep -q "v0.20.0"
+  gopls mcp -instructions | grep -qi "gopls MCP server"
+'
 
 docker compose "${compose_args[@]}" exec -T bus-integration-dev-task sh -ec '
   export BUS_API_TOKEN="$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$BUS_LOCAL_ACCOUNT_ID" --audience ai.hg.fi/api --scope "notes.write notes.read notes.search" --ttl 2h)"

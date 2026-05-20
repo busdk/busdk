@@ -44,6 +44,9 @@ awk '
 ' "$tmp_dir/compose.config"
 
 grep -q 'scripts/busdk-refresh-tools.sh' deploy/local-ai-platform/codex/Dockerfile
+grep -Fq 'ARG GOPLS_VERSION=v0.20.0' deploy/local-ai-platform/codex/Dockerfile
+grep -Fq 'go install "golang.org/x/tools/gopls@${GOPLS_VERSION}"' deploy/local-ai-platform/codex/Dockerfile
+grep -Fq 'gopls mcp -instructions' deploy/local-ai-platform/codex/Dockerfile
 grep -q 'scripts/dev-task-supervisor-heartbeat.sh check' compose.dev-task-docker.yaml
 grep -q 'pull_policy: build' compose.dev-task-docker.yaml
 grep -q 'build: \*codex-image-build' compose.dev-task-docker.yaml

@@ -104,6 +104,15 @@
   `gopls mcp -instructions` into task context, expose opt-in policy/config for
   Go workers, and account for security/network/cache behavior before enabling
   it on local or UpCloud worker images.
+  - [x] Local Codex worker image slice: provision pinned `gopls` v0.20.0 in
+    `deploy/local-ai-platform/codex/Dockerfile`, verify MCP instructions at
+    image build time, and extend dev-task Docker compose config/smoke coverage
+    so the Codex profile image and `bus-integration-dev-task` worker service
+    assert `gopls` availability.
+  - [ ] Remaining Go-aware worker context slice: wire detached `gopls mcp`
+    server and generated instructions into task context, expose opt-in
+    policy/config for Go workers, and document security, network, and cache
+    behavior before enabling local or UpCloud worker runtime use.
 
 - [x] Refactor root `AGENTS.md` guidance structure end to end: move non-memo operational rules out from the `Live Working Memo` section into topical sections or scoped module `AGENTS.md` files, clarify the difference between cross-module family policy and module-specific guidance, remove ambiguous repeated ordered-list numbers, rerun `bus lint AGENTS.md`, and keep the supervisor/development-speed rules easy to find.
 

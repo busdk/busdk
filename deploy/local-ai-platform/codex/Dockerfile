@@ -3,6 +3,7 @@ FROM golang:${GO_VERSION}
 
 ARG CODEX_NPM_PACKAGE=@openai/codex
 ARG CODEX_NPM_VERSION=0.128.0
+ARG GOPLS_VERSION=v0.20.0
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates chromium fonts-liberation nodejs npm xz-utils \
@@ -19,6 +20,11 @@ RUN ln -sf /usr/local/go/bin/go /usr/local/bin/go \
     && rg_bin="$(find /usr/local/lib/node_modules/@openai -path '*/vendor/*/path/rg' -type f | head -n 1)" \
     && test -n "$rg_bin" \
     && ln -sf "$rg_bin" /usr/local/bin/rg
+
+RUN GOBIN=/usr/local/bin go install "golang.org/x/tools/gopls@${GOPLS_VERSION}" \
+    && gopls version | grep -q "${GOPLS_VERSION}" \
+    && gopls mcp -instructions >/usr/local/share/gopls-mcp-instructions.md \
+    && test -s /usr/local/share/gopls-mcp-instructions.md
 
 RUN printf '%s\n' \
     '#!/bin/sh' \
