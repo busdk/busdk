@@ -109,10 +109,15 @@
     image build time, and extend dev-task Docker compose config/smoke coverage
     so the Codex profile image and `bus-integration-dev-task` worker service
     assert `gopls` availability.
-  - [ ] Remaining Go-aware worker context slice: wire detached `gopls mcp`
-    server and generated instructions into task context, expose opt-in
-    policy/config for Go workers, and document security, network, and cache
-    behavior before enabling local or UpCloud worker runtime use.
+  - [x] Remaining Go-aware worker context slice: closed by
+    `bus-integration-dev-task` commit `958dbeb`, now pinned at `78277ac`,
+    which wires detached `gopls mcp` and `gopls mcp -instructions` into
+    task-scoped Codex context, exposes `--gopls-mcp` and lifecycle-policy
+    auto/off/require configuration for Go workers, records App Server gopls
+    metadata, documents security/network/cache behavior, and adds focused
+    config/instruction tests with an optional `gopls` smoke. Local image
+    provisioning is covered by root commit `e8e42b8` with pinned `gopls`
+    v0.20.0; no UpCloud resources were provisioned.
 
 - [x] Refactor root `AGENTS.md` guidance structure end to end: move non-memo operational rules out from the `Live Working Memo` section into topical sections or scoped module `AGENTS.md` files, clarify the difference between cross-module family policy and module-specific guidance, remove ambiguous repeated ordered-list numbers, rerun `bus lint AGENTS.md`, and keep the supervisor/development-speed rules easy to find.
 
