@@ -172,6 +172,11 @@ capability the user cares about. For each unfinished feature, state what is
 still unavailable to users/operators, what the remaining work will unlock, and
 why it is or is not worth spending development capacity on next. Avoid reports
 that only list commits, task refs, tooling names, or implementation mechanics.
+Also distinguish what actually changed from the previous baseline: net-new
+capability, hardening, release proof, wider coverage, safer defaults, easier
+operation, recovery of a failed path, documentation, or observability. Do not
+describe an existing workflow as newly created when the real value was making it
+more reliable, automated, measurable, or release-ready.
 
 ## Worker Brief Shape
 
