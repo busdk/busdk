@@ -16,22 +16,18 @@
   classification provider-neutral, document the local check workflow, and
   verify it with focused shell smoke coverage.
 
-- [ ] Complete AI Product Delivery Supervisor action-loop automation end to
+- [x] Complete AI Product Delivery Supervisor action-loop automation end to
   end:
   owner/entrypoint is the root Compose `bus-dev-supervisor` service plus the
-  `bus-dev` workflow command surface. Remaining actions: add root Git pin
-  handling for accepted promoted commits, add Bus-worker review/progress-audit
-  task dispatch through the same local dev-task substrate used by implementation
-  workers, keep the worker abstraction provider-neutral for later cloud Bus
-  workers, add mechanical reopen/refill decisions for documented blocker
-  classes, and leave product direction, security/privacy, cost, destructive
-  actions, and hard-to-reverse architecture to operator input. Acceptance
-  sequence: smoke one review-worker dispatch and terminal closeout, document any
-  additional local run/check workflow, and verify with
-  `bash ./tests/superproject/test_dev_task_supervisor_heartbeat.sh`, `git diff
-  --check`, `bus lint README.md PLAN.md`, and the affected `bus-dev` or
-  `bus-integration-dev-task` module gates when that slice changes those
-  modules.
+  `bus-dev` workflow command surface. Closed after the dry-run action queue was
+  followed by the accepted mutating `bus-dev` executor surface: `bus-dev` commit
+  `c5164b8` added approved supervisor execution, review/refill dispatch, root
+  pin planning, and reopen/refill gates; later `bus-dev` commit `3c9437f`,
+  pinned by superproject commit `d26ce86`, documented and e2e-tested the
+  approved mutation gates. Verification recorded in the 2026-05-19/20 memos:
+  focused supervisor executor tests, `go test ./cmd/bus-dev`, `go test ./run`,
+  `make build`, `make check`, `bus lint`/worker-safe `bus-lint`, and `git diff
+  --check` passed for the changed slices.
   - [x] Add a provider-neutral, non-mutating heartbeat action-plan artifact
     that turns terminal monitor classification into explicit review/pin,
     reopen, blocker-record, and refill-eligibility decisions without running
@@ -46,9 +42,11 @@
     and refill-worker operations without mutating Git, task streams, worker
     queues, product direction, security/privacy posture, cost, destructive
     state, or hard-to-reverse architecture.
-  - [ ] Implement the follow-on mutating consumer slices in `bus-dev` for root
+  - [x] Implement the follow-on mutating consumer slices in `bus-dev` for root
     pin handling, review/progress-audit Bus worker dispatch, and safe
-    reopen/refill execution after the dry-run executor plan is reviewed.
+    reopen/refill execution after the dry-run executor plan is reviewed. Closed
+    by accepted `bus-dev` commits `c5164b8` and `3c9437f`, with root pin
+    evidence through superproject commits `27965d3` and `d26ce86`.
 
 - [x] Make BusDK dev-task container and host toolchain freshness automatic end
   to end: reproduce the recurring stale-tool problem where worker containers or
@@ -60,23 +58,27 @@
   commands after recent submodule promotions. Document the refresh path and
   verify focused root gates.
 
-- [ ] Operationalize AI Product Delivery Supervisor task dispatch end to end:
+- [x] Operationalize AI Product Delivery Supervisor task dispatch end to end:
   persist the supervisor/delegation rules in `AGENTS.md`, inspect root
   `BUGS.md`, `FEATURE_REQUESTS.md`, and module `PLAN.md` backlogs, start the
   documented Docker Compose development-task stack with
   `docker compose -f compose.dev-task-docker.yaml up -d`, issue non-overlapping
   `bus dev task` work for active module issues, fix any blockers in the task
   system itself, and review returned task artifacts before accepting or closing
-  items.
+  items. Closed by the 2026-05-19/20 localhost worker batches and blocker-first
+  supervisor passes: remote, dev-task, UpCloud, gopls, debugger, bus-events,
+  bus-lint, and bus-dev follow-up workers were dispatched through the local
+  dev-task substrate, reviewed, corrected or reopened when needed, accepted, and
+  pinned through superproject commits up to `d26ce86`.
   - [x] Add a root-stack supervisor `inspect` check that validates heartbeat
     freshness, prints the current policy/action queue summary, and reports
     root/module `PLAN.md` backlog counts without dispatching, reopening,
     approving, pinning, or editing submodules.
-  - [ ] Cross-module request for `bus-dev`: add the executable supervisor
+  - [x] Cross-module request for `bus-dev`: add the executable supervisor
     command surface that consumes the non-mutating heartbeat action queue and
     performs review-worker dispatch, precise reopen/refill decisions, and root
     pin handling with dry-run evidence and operator approval gates where
-    required.
+    required. Closed by accepted `bus-dev` commits `c5164b8` and `3c9437f`.
   - [x] Cross-module request for `bus-integration-dev-task`: expose
     controller-owned worker startup/refill mechanics so the supervisor service
     can request recipient-scoped workers deterministically instead of relying
@@ -104,6 +106,19 @@
   `gopls mcp -instructions` into task context, expose opt-in policy/config for
   Go workers, and account for security/network/cache behavior before enabling
   it on local or UpCloud worker images.
+  Current accepted base: `bus-remote` owns named remotes including
+  `localhost`, `localhost:{port}`, URL remotes, and `ai.hg.fi`; `localhost` is a
+  Docker Compose remote, not a special local-only shortcut. `bus-dev` resolves
+  dev-task/work commands through `bus-remote`, launches Compose remotes through
+  `compose.dev-task-docker.yaml`, uses conditional append for multi-remote
+  claiming/group allocation, and has no open local PLAN work. The
+  `bus-integration-dev-task` module records remote metadata in worker/App
+  Server closeout evidence, consumes worker-start requests, supports
+  task-scoped `gopls` MCP context, and supports safe no-install `dlv dap`
+  debugger context. `bus-integration-upcloud` supports no-spend
+  `existing-only`/`adopt-existing` manually installed runner modes and preserves
+  task env/workdir/source metadata. No paid UpCloud provisioning has been
+  performed.
   - [x] Local Codex worker image slice: provision pinned `gopls` v0.20.0 in
     `deploy/local-ai-platform/codex/Dockerfile`, verify MCP instructions at
     image build time, and extend dev-task Docker compose config/smoke coverage
@@ -118,6 +133,70 @@
     config/instruction tests with an optional `gopls` smoke. Local image
     provisioning is covered by root commit `e8e42b8` with pinned `gopls`
     v0.20.0; no UpCloud resources were provisioned.
+  - [x] Remote registry and localhost Compose selection slice: closed by
+    accepted `bus-remote` commits `600e6f7`, `be1b037`, `cb274c4`, and
+    `823b7d5`, plus accepted `bus-dev` commits `c4d7d65`, `93b4424`,
+    `9c61068`, and `ebf1347`. Evidence: focused remote/launcher tests,
+    localhost read-only smoke `busdk#53.1`, documentation/SDD follow-ups, and
+    `git diff --check` passed; root pins are recorded through commits including
+    `abc8fcc`, `2fbee6e`, `de8af8f`, `d242dc9`, `bbaad41`, `604d5a8`,
+    `17621ce`, and `4985a50`.
+  - [x] Provider-neutral worker-start and remote metadata slice: closed by
+    `bus-integration-dev-task` commits `b5ab8f7` and `61d2135`, which propagate
+    resolved remote metadata, reject credential-bearing endpoints, and consume
+    `bus.dev.work.worker.start.request` events into
+    `bus.containers.run.request` without host-local mounts. Evidence: focused
+    worker-start/metadata/help tests and `git diff --check` passed; broader
+    reopened metadata failures were tracked separately and later fixed.
+  - [x] Multi-remote claim correctness slice: closed by `bus-events` commit
+    `3974901` and `bus-dev` commit `5402b1b`, with bus-events PLAN hygiene in
+    `c81fa37`. Evidence: conditional append unit/race/module checks, focused
+    `bus-dev` task claim/group allocation tests, `make build`, `bus lint`, and
+    `git diff --check` passed for the changed slices.
+  - [x] No-spend UpCloud existing-runner slice: closed by
+    `bus-integration-upcloud` commits `b4f39ad` and `6d1a757`, now pinned by
+    superproject commit `6a2ba13`. Evidence: focused command/provider tests,
+    `go test ./...`, changed-file `bus lint --type go-source`, and
+    `make BINARY=bus-integration-upcloud check` passed; real UpCloud e2e
+    remained opt-in and no live UpCloud provisioning or deletion was attempted.
+  - [x] Safe Go debugger context slice: closed by
+    `bus-integration-dev-task` commit `217226d`, pinned by superproject commit
+    `55bf63f`, which mirrors the `gopls` policy/config pattern for optional
+    no-install `dlv dap` detection, App Server metadata, prompt guidance, and
+    no host attach/default debug server. Evidence: focused debugger/lifecycle
+    tests, help schema tests, `git diff --check`, and
+    `make BINARY=bus-integration-dev-task check` passed.
+  - [ ] Root local worker image debugger provisioning slice: owner `busdk`.
+    Add a pinned Delve install to the local Codex worker image and root
+    compose/smoke coverage that proves `dlv dap` is available when the
+    `bus-integration-dev-task` debugger policy is enabled, while preserving the
+    no-host-attach/no-server-start default. Acceptance evidence: Dockerfile or
+    image-build check for the pinned `dlv`, focused compose smoke, `git diff
+    --check`, `bus lint PLAN.md README.md` if docs change, and relevant root
+    selftests.
+  - [ ] Localhost end-to-end worker execution release smoke: owner `busdk` with
+    follow-up fixes in `bus-dev` or `bus-integration-dev-task` only if the smoke
+    fails. From a clean root checkout, run the documented
+    `compose.dev-task-docker.yaml` stack, resolve `localhost` through
+    `bus-remote`, dispatch a recipient-scoped no-op or tiny PLAN-only worker
+    through `bus dev work --remote localhost`, prove the controller-owned worker
+    starts without manual Compose container commands, and verify claim,
+    closeout, remote metadata, monitor/status output, tool freshness, and root
+    pin behavior. Acceptance evidence: non-secret command transcript summary,
+    `git diff --check`, focused root smoke, and affected module gates for any
+    follow-up fixes.
+  - [ ] UpCloud existing-runner worker execution smoke: owner
+    `bus-integration-upcloud` for provider behavior, with `bus-dev` /
+    `bus-integration-dev-task` follow-ups only if routing or worker-start
+    contracts fail. Use static-provider coverage by default and a real
+    manually installed UpCloud VPS only with explicit operator approval and
+    `existing-only` or `adopt-existing`; do not create, resize, delete, or
+    otherwise provision paid UpCloud resources in this smoke. Acceptance
+    evidence: proof that env/workdir/source metadata reaches the remote Podman
+    worker request, no unsupported mounts are projected, no create/delete API
+    calls occur in no-spend modes, relevant module `make check`/e2e static
+    provider checks pass, and any live-cloud run records the operator approval
+    reference.
 
 - [x] Refactor root `AGENTS.md` guidance structure end to end: move non-memo operational rules out from the `Live Working Memo` section into topical sections or scoped module `AGENTS.md` files, clarify the difference between cross-module family policy and module-specific guidance, remove ambiguous repeated ordered-list numbers, rerun `bus lint AGENTS.md`, and keep the supervisor/development-speed rules easy to find.
 
