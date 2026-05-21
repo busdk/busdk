@@ -442,6 +442,9 @@ Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from t
 - When running commands from the superproject root, use explicit module-relative paths (for example `bus-integration-upcloud/cmd/...`) rather than paths that would only exist inside the module workdir.
 - Module e2e scripts should be quiet by default: successful runs print only a short stable success line, and detailed shell tracing is enabled only with `BUS_E2E_VERBOSE=1`.
 - When checking `.env` or other local secret-bearing files for configuration presence, never print raw values. Use redacted output such as `sed 's/=.*$/=<redacted>/'`, `cut -d= -f1`, or a purpose-built script that emits only variable names.
+- For Docker container or image inspection, prefer `scripts/docker-safe-inspect.sh`
+  over ad hoc `docker inspect` pipelines. The script provides a narrow approval
+  surface and redacts secret-like environment and label values by default.
 - Module `test-e2e` Makefile targets should capture script output and print it only on failure; do not stream verbose e2e logs during successful runs by default.
 - For date-bounded Git history inspection, use `git log --since=... --until=...` (optionally with `--stat` or `--name-only`). Do not try to pass date strings as a revision range to `git show`; `git show` expects commit-ish arguments, not calendar boundaries.
 - ACP-related `bus-agent` extraction/integration tasks are low priority by default; do not pick them up unless the user explicitly asks for low-priority work or they are required to unblock higher-priority work.

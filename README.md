@@ -461,7 +461,12 @@ Watch task state and container pressure while scaling:
 bus dev -C ./bus-dev task list --all
 docker ps
 docker stats --no-stream
+scripts/docker-safe-inspect.sh container busdk-bus-events-1
 ```
+
+Use `scripts/docker-safe-inspect.sh` instead of ad hoc `docker inspect`
+pipelines when sharing or approving container diagnostics. It emits a compact
+JSON view and redacts secret-like environment and label values.
 
 One-shot per-recipient workers should exit by themselves. Persistent stack
 workers should be removed and recreated freely when changing worker layout:
