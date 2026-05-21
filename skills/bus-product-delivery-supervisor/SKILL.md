@@ -178,7 +178,14 @@ operation, recovery of a failed path, documentation, or observability. Do not
 describe an existing workflow as newly created when the real value was making it
 more reliable, automated, measurable, or release-ready.
 
-Use readable Markdown for non-trivial progress reports. A good default shape is:
+Use readable Markdown for non-trivial progress reports, rendered directly in
+the assistant message. Do not put Markdown inside heartbeat XML or CDATA; the
+app displays that as literal text. For heartbeat responses, keep the required
+XML `<message>` to one short plain-text status sentence. If a user-facing
+notification is warranted, put the readable Markdown report before the XML
+envelope and keep the XML as a compact machine-readable summary.
+
+A good default shape is:
 
 - `Report Time`: UTC and local project time.
 - `What Changed`: accepted, pinned, reopened, started, or fixed work since the
