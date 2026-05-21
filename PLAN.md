@@ -45,6 +45,41 @@
     user/operator workflow, and why the fix matters now; do not use broad
     hardening language without enough detail for the operator to choose.
 
+- [ ] Coordinate oversized module `AGENTS.md` linting and compaction from the
+  superproject. Use `bus lint AGENTS.md` in each affected module, review every
+  AI-backed agent-guidance finding, and refactor oversized guidance without
+  losing useful rules.
+  - Goal: keep module guidance useful for workers while reducing repeated,
+    stale, or misplaced instructions that waste agent context and make
+    supervision less reliable.
+  - Discovery command: `find bus bus-* docs busdk.com sdd logs -maxdepth 2
+    -name AGENTS.md -type f -size +8k -print`; ignore `./tmp` and other
+    disposable worker homes.
+  - Initial affected modules/projects: `bus`, `bus-accounts`, `bus-agent`,
+    `bus-api`, `bus-api-provider-books`, `bus-api-provider-session`,
+    `bus-assets`, `bus-attachments`, `bus-balances`, `bus-bank`, `bus-bfl`,
+    `bus-books`, `bus-budget`, `bus-config`, `bus-configure`, `bus-data`,
+    `bus-dev`, `bus-faq`, `bus-filing`, `bus-filing-prh`,
+    `bus-filing-vero`, `bus-gateway`, `bus-gx`, `bus-help`, `bus-init`,
+    `bus-integration-dev-task`, `bus-inventory`, `bus-invoices`,
+    `bus-journal`, `bus-ledger`, `bus-loans`, `bus-payroll`, `bus-pdf`,
+    `bus-period`, `bus-preferences`, `bus-reconcile`, `bus-replay`,
+    `bus-reports`, `bus-run`, `bus-sheets`, `bus-ui`, `bus-validate`,
+    `bus-vat`, `docs`, and `busdk.com`.
+  - Scope: remove duplicate instructions; move module-local detail into closer
+    child `AGENTS.md`, repo-local skills, or durable docs when appropriate;
+    keep compact trigger/index references so future agents know what exists
+    and when to read it.
+  - Boundaries: do not delete guidance just to reduce size; do not move
+    private/customer guidance into public docs; preserve module-specific
+    safety, test, and release rules.
+  - Execution shape: shard this from the superproject into module-recipient
+    workers with non-overlapping ownership, then review and promote each
+    module separately.
+  - Verification: rerun `bus lint AGENTS.md` in each changed module, run
+    module-appropriate text/check gates, and record what was moved, kept, or
+    intentionally deferred.
+
 - [x] Make AI Product Delivery Supervisor heartbeat/service operation
   deterministic end to end: add a root Compose `bus-dev-supervisor` service
   that refreshes BusDK wrappers, issues a scoped local token, runs
