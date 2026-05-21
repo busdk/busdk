@@ -52,33 +52,80 @@
   - Goal: keep module guidance useful for workers while reducing repeated,
     stale, or misplaced instructions that waste agent context and make
     supervision less reliable.
-  - Discovery command: `find bus bus-* docs busdk.com sdd logs -maxdepth 2
-    -name AGENTS.md -type f -size +8k -print`; ignore `./tmp` and other
-    disposable worker homes.
-  - Initial affected modules/projects: `bus`, `bus-accounts`, `bus-agent`,
-    `bus-api`, `bus-api-provider-books`, `bus-api-provider-session`,
-    `bus-assets`, `bus-attachments`, `bus-balances`, `bus-bank`, `bus-bfl`,
-    `bus-books`, `bus-budget`, `bus-config`, `bus-configure`, `bus-data`,
-    `bus-dev`, `bus-faq`, `bus-filing`, `bus-filing-prh`,
-    `bus-filing-vero`, `bus-gateway`, `bus-gx`, `bus-help`, `bus-init`,
-    `bus-integration-dev-task`, `bus-inventory`, `bus-invoices`,
-    `bus-journal`, `bus-ledger`, `bus-loans`, `bus-payroll`, `bus-pdf`,
-    `bus-period`, `bus-preferences`, `bus-reconcile`, `bus-replay`,
-    `bus-reports`, `bus-run`, `bus-sheets`, `bus-ui`, `bus-validate`,
-    `bus-vat`, `docs`, and `busdk.com`.
-  - Scope: remove duplicate instructions; move module-local detail into closer
-    child `AGENTS.md`, repo-local skills, or durable docs when appropriate;
-    keep compact trigger/index references so future agents know what exists
-    and when to read it.
-  - Boundaries: do not delete guidance just to reduce size; do not move
-    private/customer guidance into public docs; preserve module-specific
-    safety, test, and release rules.
-  - Execution shape: shard this from the superproject into module-recipient
-    workers with non-overlapping ownership, then review and promote each
-    module separately.
-  - Verification: rerun `bus lint AGENTS.md` in each changed module, run
-    module-appropriate text/check gates, and record what was moved, kept, or
-    intentionally deferred.
+  - Supervisor discovery: run `find bus bus-* docs busdk.com sdd logs
+    -maxdepth 2 -name AGENTS.md -type f -size +8k -print` from the
+    superproject, ignoring `./tmp`, disposable worker homes, generated
+    artifacts, and archived logs that are not active instruction surfaces.
+    Save the affected path list in the supervisor note/worker brief, not in a
+    generated file, unless a later worker owns a real tracker/document update.
+  - Initial affected modules/projects for sharding: `bus`, `bus-accounts`,
+    `bus-agent`, `bus-api`, `bus-api-provider-books`,
+    `bus-api-provider-session`, `bus-assets`, `bus-attachments`,
+    `bus-balances`, `bus-bank`, `bus-bfl`, `bus-books`, `bus-budget`,
+    `bus-config`, `bus-configure`, `bus-data`, `bus-dev`, `bus-faq`,
+    `bus-filing`, `bus-filing-prh`, `bus-filing-vero`, `bus-gateway`,
+    `bus-gx`, `bus-help`, `bus-init`, `bus-integration-dev-task`,
+    `bus-inventory`, `bus-invoices`, `bus-journal`, `bus-ledger`, `bus-loans`,
+    `bus-payroll`, `bus-pdf`, `bus-period`, `bus-preferences`,
+    `bus-reconcile`, `bus-replay`, `bus-reports`, `bus-run`, `bus-sheets`,
+    `bus-ui`, `bus-validate`, `bus-vat`, `docs`, and `busdk.com`. Re-run
+    discovery before dispatch because the affected set may change as shards
+    land.
+  - Worker shard shape: dispatch one recipient-scoped task per affected module
+    or per tightly related small batch only when the recipients share one
+    public docs surface and have non-overlapping write scopes. Each worker owns
+    exactly that recipient's `AGENTS.md` plus any closer child `AGENTS.md`,
+    repo-local `skills/**`, or public docs paths explicitly listed in the
+    brief. Do not let a module worker edit the superproject `PLAN.md`, another
+    module's `AGENTS.md`, or public docs unless the write scopes name those
+    paths.
+  - Batching priority: start with the highest worker-context and dispatch-risk
+    surfaces: `bus-dev`, `bus-integration-dev-task`, `bus-agent`, `bus-api`,
+    `bus-gx`, `bus-ui`, `docs`, `busdk.com`, and root-facing command modules
+    such as `bus-configure`, `bus-help`, `bus-run`, and `bus-validate`. Next
+    batch private/commercial business-domain modules by shared accounting
+    vocabulary (`bus-accounts`, `bus-books`, `bus-journal`, `bus-ledger`,
+    `bus-reports`, `bus-vat`, payroll/filing/reconcile/bank flows), then
+    compact remaining leaf provider/helper modules. Serialize promotion for
+    same-recipient follow-ups.
+  - Compaction method: preserve guidance by deduplicating repeated root policy,
+    moving long operational runbooks into repo-local skills, moving durable
+    public architecture or user-facing behavior into docs/SDD when appropriate,
+    and replacing moved detail with compact trigger/index bullets that say
+    when to read the new location. Use closer child `AGENTS.md` files only for
+    path-specific implementation rules that workers need before editing those
+    paths.
+  - Public/private boundary: never move private/customer/commercial-module
+    rules, customer examples, local deployment details, or secret-handling
+    specifics into public docs, `docs`, `busdk.com`, or the public root. Public
+    repos may keep generic safety, CLI/API boundary, and release-quality rules;
+    private modules keep commercial implementation constraints inside their own
+    repository guidance or private repo-local skills.
+  - Preservation rules: do not delete guidance merely to reduce byte count.
+    Keep module-specific safety, auth/token handling, data/privacy, release,
+    generated-artifact, e2e, and lint/test requirements unless they are exact
+    duplicates of stronger root guidance. When removing or moving text, record
+    the destination or reason in the worker closeout.
+  - Required worker loop for each shard: read root `AGENTS.md`, the target
+    module `AGENTS.md`, and any existing local skills first; run `bus lint
+    AGENTS.md` before editing to capture agent-guidance findings; compact or
+    move/reference-index the guidance; then rerun `bus lint AGENTS.md` and the
+    module-appropriate Markdown/text gates. Use worker-safe lint mode only for
+    deterministic closeout if the AI-backed lint runtime is unavailable, and
+    report that limitation explicitly.
+  - Acceptance criteria per shard: `AGENTS.md` is smaller or clearly better
+    indexed; every moved rule has a reachable destination or trigger; no
+    private guidance moved to public surfaces; no module-specific safety/test
+    rule silently disappears; `bus lint AGENTS.md` findings are resolved or
+    individually deferred with rationale; changed files match declared write
+    scopes; closeout lists moved/kept/deferred guidance and exact verification
+    commands.
+  - Superproject review gates: review each worker diff before promotion with
+    `git diff --check`, `bus lint AGENTS.md` in the changed recipient, and any
+    module `make`/docs quality target the worker reports as appropriate. Reject
+    shards that only delete content for size, blur public/private boundaries,
+    add broad public process rules, omit lint evidence, or leave moved guidance
+    undiscoverable.
 
 - [x] Make AI Product Delivery Supervisor heartbeat/service operation
   deterministic end to end: add a root Compose `bus-dev-supervisor` service
