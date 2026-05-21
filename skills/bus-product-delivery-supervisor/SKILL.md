@@ -183,7 +183,13 @@ Use readable Markdown for non-trivial progress reports. A good default shape is:
 - `Report Time`: UTC and local project time.
 - `What Changed`: accepted, pinned, reopened, started, or fixed work since the
   previous report.
+- `Done / Usable`: features or workflows that are now complete enough for
+  users/operators to use, especially fully completed items, with credible
+  evidence such as commits, pins, tests, docs, or release versions.
 - `Current Work`: active task refs with purpose and latest meaningful evidence.
+- `Open Next`: the next unfinished features or work items, what value each
+  would unlock, and whether each is active, queued, blocked, or deliberately
+  deferred.
 - `Value`: user/operator/release value, including what changed from the prior
   baseline.
 - `Evidence`: commits, tests, logs, or resource signals.
@@ -192,7 +198,10 @@ Use readable Markdown for non-trivial progress reports. A good default shape is:
   line.
 
 Keep each bullet short enough to scan. Avoid burying task identities, evidence,
-or blockers in a single paragraph.
+open work, or blockers in a single paragraph. The `Done / Usable` section
+should prevent ambiguity about what can be used now. The `Open Next` section
+should make scope guidance easy: the reader should see what remains valuable,
+what is being worked now, and what can safely wait.
 
 ## Worker Brief Shape
 
