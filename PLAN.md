@@ -171,6 +171,12 @@
     `bus-integration-upcloud`, `docs`, and `sdd`. Acceptance: commands and docs
     show how an operator can test localhost plus an external manually installed
     runner without provisioning paid resources here.
+    - [x] `busdk#115.1` docs slice: public docs now include a no-spend
+      multi-remote worker test checklist, integration navigation links,
+      bus-dev module reference links, explicit live-run token scopes, a
+      read-only live smoke prompt, and cleanup guidance for temporary external
+      remotes. Evidence: focused `bus lint` on the changed docs passed 5/5,
+      `make -C docs quality` passed, and `git -C docs diff --check` passed.
   - [x] Local Codex worker image slice: provision pinned `gopls` v0.20.0 in
     `deploy/local-ai-platform/codex/Dockerfile`, verify MCP instructions at
     image build time, and extend dev-task Docker compose config/smoke coverage
