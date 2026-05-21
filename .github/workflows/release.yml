@@ -20,15 +20,18 @@ jobs:
       fail-fast: false
       matrix:
         os:
+          # Keep Linux/macOS on GitHub's current hosted images for release
+          # packaging. Pin Windows to the VS 2026 migration label so releases
+          # exercise the June 2026 default Windows image before migration.
           - ubuntu-latest
           - macos-latest
-          - windows-latest
+          - windows-2025-vs2026
     env:
       SUBMODULES_TOKEN: ${{ secrets.BUSDK_SUBMODULES_TOKEN }}
       GIT_TERMINAL_PROMPT: "0"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: false
@@ -67,7 +70,7 @@ jobs:
           git submodule update --init --recursive
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "1.22"
           cache: false
@@ -284,7 +287,7 @@ jobs:
           chmod +x install.sh
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artifacts-${{ matrix.os }}
           path: |
@@ -305,7 +308,7 @@ jobs:
       GIT_TERMINAL_PROMPT: "0"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: false
@@ -465,13 +468,13 @@ jobs:
           EOF
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: dist
           merge-multiple: true
 
       - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           body_path: RELEASE_NOTES.md
           files: |

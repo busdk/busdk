@@ -45,7 +45,7 @@
     user/operator workflow, and why the fix matters now; do not use broad
     hardening language without enough detail for the operator to choose.
 
-- [ ] Fix GitHub Actions release workflow Node 20 deprecation warnings and
+- [x] Fix GitHub Actions release workflow Node 20 deprecation warnings and
   moving runner labels.
   - Goal: keep the release workflow compatible with GitHub's June/September
     2026 hosted-runner changes before they become release blockers.
