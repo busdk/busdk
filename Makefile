@@ -365,7 +365,7 @@ quality:
 	trap 'cleanup; exit 130' HUP INT TERM; \
 	step_log=$$(mktemp); \
 	tmp_files="$$tmp_files $$step_log"; \
-	if ! "$(MAKE)" -C bus-dev build $(MODULE_MAKE_VARS) >"$$step_log" 2>&1; then \
+	if ! "$(MAKE)" -C bus-dev build $(MODULE_MAKE_VARS) BINARY="bus-dev" >"$$step_log" 2>&1; then \
 		if [ -s "$$step_log" ]; then cat "$$step_log" >&2; fi; \
 		printf "Quality tool build failed, run this for more information: make -C bus-dev build\n" >&2; \
 		exit 1; \
@@ -414,7 +414,7 @@ quality:
 			if [ "$(QUALITY_PROGRESS)" = "1" ]; then printf "==> %s:%s\n" "$$mod" "$$target"; fi; \
 			step_log=$$(mktemp); \
 			tmp_files="$$tmp_files $$step_log"; \
-			if ! "$(MAKE)" -C "$$mod" "$$target" $(MODULE_MAKE_VARS) BUS_DEV="$(QUALITY_BUS_DEV)" BUS_GO_QUALITY_PROFILE="$$profile" >"$$step_log" 2>&1; then \
+			if ! "$(MAKE)" -C "$$mod" "$$target" $(MODULE_MAKE_VARS) BINARY="$$mod" BUS_DEV="$(QUALITY_BUS_DEV)" BUS_GO_QUALITY_PROFILE="$$profile" >"$$step_log" 2>&1; then \
 				case "$$target" in \
 					test|test-race) label="Unit tests"; show_log=0;; \
 					test-fuzz) label="Fuzz tests"; show_log=0;; \
@@ -453,11 +453,11 @@ quality-complete:
 		fi; \
 	fi; \
 	if [ "$(QUALITY_COMPLETE_BUILD)" = "1" ]; then \
-		if ! "$(MAKE)" -C bus build $(MODULE_MAKE_VARS); then \
+		if ! "$(MAKE)" -C bus build $(MODULE_MAKE_VARS) BINARY="bus"; then \
 			printf "quality-complete: failed to build bus dispatcher\n" >&2; \
 			exit 1; \
 		fi; \
-		if ! "$(MAKE)" -C bus-lint build $(MODULE_MAKE_VARS); then \
+		if ! "$(MAKE)" -C bus-lint build $(MODULE_MAKE_VARS) BINARY="bus-lint"; then \
 			printf "quality-complete: failed to build bus-lint\n" >&2; \
 			exit 1; \
 		fi; \
@@ -488,7 +488,7 @@ quality-complete:
 		if [ "$(QUALITY_COMPLETE_BUILD)" = "1" ]; then \
 			step_log=$$(mktemp); \
 			tmp_files="$$tmp_files $$step_log"; \
-			if ! "$(MAKE)" -C "$$mod" build $(MODULE_MAKE_VARS) >"$$step_log" 2>&1; then \
+			if ! "$(MAKE)" -C "$$mod" build $(MODULE_MAKE_VARS) BINARY="$$mod" >"$$step_log" 2>&1; then \
 				if [ -s "$$step_log" ]; then cat "$$step_log" >&2; fi; \
 				printf "Complete quality build for %s failed, run this for more information: make -C %s build\n" "$$mod" "$$mod" >&2; \
 				failed=$$((failed + 1)); \
@@ -557,7 +557,7 @@ build:
 		fi; \
 		if [ -f "$$mod/Makefile" ]; then \
 			printf "==> %s\n" "$$mod"; \
-			"$(MAKE)" -C "$$mod" build $(MODULE_MAKE_VARS); \
+			"$(MAKE)" -C "$$mod" build $(MODULE_MAKE_VARS) BINARY="$$mod"; \
 		fi; \
 	done
 
@@ -581,7 +581,7 @@ install:
 				continue; \
 			fi; \
 			printf "==> %s\n" "$$mod"; \
-			"$(MAKE)" -C "$$mod" install $(MODULE_MAKE_VARS); \
+			"$(MAKE)" -C "$$mod" install $(MODULE_MAKE_VARS) BINARY="$$mod"; \
 		fi; \
 	done
 
@@ -598,7 +598,7 @@ clean:
 		fi; \
 		if [ -f "$$mod/Makefile" ]; then \
 			printf "==> %s\n" "$$mod"; \
-			"$(MAKE)" -C "$$mod" clean $(MODULE_MAKE_VARS); \
+			"$(MAKE)" -C "$$mod" clean $(MODULE_MAKE_VARS) BINARY="$$mod"; \
 		fi; \
 	done
 	rm -rf "$(BIN_DIR)"
@@ -632,7 +632,7 @@ tidy:
 			continue; \
 		fi; \
 		printf "==> %s\n" "$$mod"; \
-		"$(MAKE)" -C "$$mod" tidy $(MODULE_MAKE_VARS); \
+		"$(MAKE)" -C "$$mod" tidy $(MODULE_MAKE_VARS) BINARY="$$mod"; \
 	done
 
 tidy-mods:

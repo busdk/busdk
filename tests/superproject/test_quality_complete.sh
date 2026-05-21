@@ -17,6 +17,7 @@ trap 'rm -rf "$MODULE_DIR" "$DOCS_DIR" "$FAKE_BIN_DIR"; rm -f "$OUT_PASS" "$OUT_
 mkdir -p "$MODULE_DIR/bin" "$DOCS_DIR"
 cat >"$MODULE_DIR/Makefile" <<'MAKE'
 build:
+	test "$$BINARY" = "bus-quality-complete-selftest"
 	@:
 MAKE
 cat >"$MODULE_DIR/bin/$MODULE_DIR" <<'SH'
@@ -66,6 +67,8 @@ fi
 exit 0
 SH
 chmod +x "$FAKE_BUS_LINT"
+
+BINARY=wrong-from-env make -s build MODULE_DIRS="$MODULE_DIR" >"$OUT_PASS" 2>&1
 
 QUALITY_COMPLETE_CALLS="$CALLS" PATH="$FAKE_BIN_DIR:$PATH" make -s quality-complete \
 	QUALITY_COMPLETE_SCOPE=changed \

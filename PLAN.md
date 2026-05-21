@@ -294,6 +294,75 @@
 - [x] Add a local-only Bus cloud platform compose stack end to end: translate the UpCloud/Stripe tutorial into `docker compose up` from the BusDK superproject root using `.env`/`.env.example` style configuration, run PostgreSQL, MailHog, nginx, Events, Auth, LLM, Usage, Billing, VM, Containers, Stripe webhook, and local Docker-backed container execution with non-secret defaults, avoid UpCloud/systemd/real TLS dependencies, document local smoke flows and safety boundaries, add deterministic compose/config validation and shell smoke tests where practical, and verify changed-module/root quality gates.
 - [x] Add a root Docker Compose environment for live-style `bus dev task` to local Docker-backed Codex container testing end to end: provide a superproject-root compose file that starts the local Events API and container API surfaces with non-secret development defaults, wires local macOS Docker execution through a new `bus-integration-docker` worker behind the existing `bus.containers.*` event contract, exposes a testing-agent shell with the relevant Bus CLIs available through module `go run`, documents token generation and smoke-test commands, avoids checked-in secrets or developer-machine paths, and verify the compose configuration plus direct container and `bus dev task watch` smoke paths deterministically.
 - [ ] Run and finish the complete superproject quality sweep end to end: use the existing slow `quality-complete` root target to run source/static quality across every buildable `bus` and `bus-*` module, lint each available module `--help` output with `bus lint --type cli-help`, lint each published end-user module page under `docs/docs/modules/{name}.md` with `bus lint --type documentation`, fix source/help/documentation findings in the owning module/docs repo, rerun focused checks while iterating, and close only after the full all-module complete-quality sweep passes with no findings.
+  - [x] `busdk#100.1` root orchestration fix: root module delegation now passes
+    `BINARY=<module>` to module `make -C` calls, so worker or shell
+    environments with `BINARY=busdk` no longer make `bus-dev`, `bus`, or other
+    modules build the wrong `cmd/busdk` binary. Regression evidence:
+    `bash tests/superproject/test_quality_complete.sh` passes with
+    `BINARY=wrong-from-env`.
+  - [x] `busdk#100.1` all-module source/static quality rerun reached every
+    selected module after the root `BINARY` fix: in a disposable root copy with
+    matching pinned module checkouts, `make quality-complete
+    QUALITY_COMPLETE_KEEP_GOING=1 QUALITY_COMPLETE_PROGRESS=1` reported
+    `quality: ran 114 module(s)` before entering doc/help lint. The direct
+    isolated-worktree `make init` path is environment-limited in this worker
+    because Git cannot create submodule gitdirs under read-only
+    `/workspace/.git/worktrees/-busdk-busdk-100-1/modules/...`.
+  - [ ] `busdk#100.1` remaining module-owned doc/help cleanup from the
+    doc/help-only evidence capture: `make quality-complete
+    QUALITY_COMPLETE_SOURCE=0 QUALITY_COMPLETE_BUILD=0
+    QUALITY_COMPLETE_KEEP_GOING=1 QUALITY_COMPLETE_PROGRESS=1` reported
+    `quality-complete: 117 step(s) failed across 114 module(s) (doc lint 114,
+    help lint 107)`, with 45 documentation-lint failures and 72 help-lint
+    failures. Exact focused rerun form for each module:
+    `make quality-complete QUALITY_COMPLETE_SCOPE=changed
+    CHANGED_MODULES='<module>' QUALITY_COMPLETE_SOURCE=0
+    QUALITY_COMPLETE_PROGRESS=1`. Current failing modules and failure classes:
+    `bus-accounts` documentation; `bus-api` help;
+    `bus-api-provider-billing` help; `bus-api-provider-books`
+    documentation/help; `bus-api-provider-cloud` help;
+    `bus-api-provider-containers` help; `bus-api-provider-data`
+    documentation; `bus-api-provider-database` help;
+    `bus-api-provider-events` documentation/help;
+    `bus-api-provider-inference` help; `bus-api-provider-llm`
+    documentation/help; `bus-api-provider-node` help;
+    `bus-api-provider-notes` documentation; `bus-api-provider-session`
+    documentation/help; `bus-api-provider-terminal` help;
+    `bus-api-provider-usage` help; `bus-api-provider-vm`
+    documentation/help; `bus-assets` documentation/help;
+    `bus-attachments` documentation/help; `bus-balances` documentation;
+    `bus-bank` documentation; `bus-bfl` help; `bus-billing` help;
+    `bus-books` help; `bus-budget` help; `bus-chat` help; `bus-config` help;
+    `bus-configure` help; `bus-data` documentation/help; `bus-debts`
+    documentation; `bus-entities` help; `bus-events` documentation;
+    `bus-factory` documentation; `bus-faq` help; `bus-files` documentation;
+    `bus-filing-prh` documentation/help; `bus-filing-vero`
+    documentation/help; `bus-gateway` documentation/help; `bus-gx` help;
+    `bus-help` help; `bus-init` help; `bus-inspection` help;
+    `bus-integration-billing` help; `bus-integration-cloud`
+    documentation/help; `bus-integration-codex` help;
+    `bus-integration-containers` documentation/help;
+    `bus-integration-database` help; `bus-integration-dev-task` help;
+    `bus-integration-docker` documentation/help;
+    `bus-integration-inference` documentation/help;
+    `bus-integration-node` documentation/help; `bus-integration-notes`
+    documentation; `bus-integration-ollama` help; `bus-integration-podman`
+    documentation/help; `bus-integration-postgres` help;
+    `bus-integration-ssh-runner` documentation/help;
+    `bus-integration-stripe` documentation/help; `bus-integration-upcloud`
+    help; `bus-integration-usage` help; `bus-inventory` documentation/help;
+    `bus-invoices` help; `bus-journal` documentation; `bus-ledger` help;
+    `bus-loans` documentation/help; `bus-memo` help; `bus-notes`
+    documentation/help; `bus-operator-auth` help; `bus-operator-billing`
+    documentation; `bus-operator-cloud` documentation/help;
+    `bus-operator-database` documentation/help; `bus-operator-deploy` help;
+    `bus-operator-node` help; `bus-operator-stripe` help;
+    `bus-operator-token` help; `bus-payroll` documentation; `bus-pdf`
+    documentation/help; `bus-period` help; `bus-portal` help;
+    `bus-portal-ai` documentation; `bus-portal-notes` documentation;
+    `bus-reconcile` help; `bus-remote-control` documentation; `bus-replay`
+    documentation; `bus-secrets` documentation/help; `bus-sheets` help;
+    `bus-status` help; `bus-update` help; `bus-validate` documentation/help.
 - [x] Fix BusDK source-package pricing end to end: make the generated pricing model account for time-based human labour and deterministic operating-cost assumptions while still using commits for relative module sizing; remove stale hard-coded EUR totals from `busdk.com/docs`; update public docs/FAQ caveats; add regression coverage for the pricing generator; refresh generated pricing data; and verify root/docs/site checks.
 - [x] Document Bus API JWT audiences and scopes end to end: review the current auth, events, LLM, VM, containers, and usage providers; write the public operator/end-user contract in `docs/docs`; write the implementation/security contract in `sdd/docs`; document which scopes are end-user API scopes versus internal service/admin scopes; flag any suspicious current mismatches; update navigation; verify docs quality; and close only after the documentation reflects the reviewed code.
 - [x] Replicate module-local `quality` targets to every buildable submodule end to end: audit all top-level `bus`, `bus-*`, docs, sdd, aiz, and site Makefiles; add a source/static-only `quality` target that delegates to each module's existing formatting/lint/static checks without running unit/e2e tests; preserve module-local quality semantics and custom Bus lint wiring; run root `make quality QUALITY_SCOPE=all`; fix all reported source-quality issues; and close only when every selected module has a `quality` rule and passes.
