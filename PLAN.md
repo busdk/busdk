@@ -45,6 +45,20 @@
     user/operator workflow, and why the fix matters now; do not use broad
     hardening language without enough detail for the operator to choose.
 
+- [ ] Fix GitHub Actions release workflow Node 20 deprecation warnings and
+  moving runner labels.
+  - Goal: keep the release workflow compatible with GitHub's June/September
+    2026 hosted-runner changes before they become release blockers.
+  - Scope: update `.github/workflows/release.yml` to use current Node 24 action
+    majors where available for checkout, setup-go, upload/download artifacts,
+    and GitHub release publication; replace moving runner labels where the
+    workflow should intentionally test a specific OS image, especially the
+    Windows VS 2026 migration path.
+  - Verification: validate the workflow YAML, run a lightweight grep check
+    that no release workflow step still uses the deprecated action majors or
+    `windows-latest`, and document any intentionally retained `*-latest`
+    labels with rationale.
+
 - [ ] Coordinate oversized module `AGENTS.md` linting and compaction from the
   superproject. Use `bus lint AGENTS.md` in each affected module, review every
   AI-backed agent-guidance finding, and refactor oversized guidance without
