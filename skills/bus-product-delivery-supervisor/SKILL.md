@@ -178,6 +178,22 @@ operation, recovery of a failed path, documentation, or observability. Do not
 describe an existing workflow as newly created when the real value was making it
 more reliable, automated, measurable, or release-ready.
 
+Use readable Markdown for non-trivial progress reports. A good default shape is:
+
+- `Report Time`: UTC and local project time.
+- `What Changed`: accepted, pinned, reopened, started, or fixed work since the
+  previous report.
+- `Current Work`: active task refs with purpose and latest meaningful evidence.
+- `Value`: user/operator/release value, including what changed from the prior
+  baseline.
+- `Evidence`: commits, tests, logs, or resource signals.
+- `Risks / Blockers`: only remaining issues that affect decisions or next work.
+- `Next Action`: the concrete supervisor action already being taken or next in
+  line.
+
+Keep each bullet short enough to scan. Avoid burying task identities, evidence,
+or blockers in a single paragraph.
+
 ## Worker Brief Shape
 
 Use compact, concrete briefs:
