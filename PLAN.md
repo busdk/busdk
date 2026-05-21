@@ -363,6 +363,20 @@
     `bus-reconcile` help; `bus-remote-control` documentation; `bus-replay`
     documentation; `bus-secrets` documentation/help; `bus-sheets` help;
     `bus-status` help; `bus-update` help; `bus-validate` documentation/help.
+  - [ ] `busdk#109.1` focused root quality reconnaissance follow-up: the worker
+    stopped the broad AI-backed quality run early when it was heating the
+    operator laptop, but captured enough evidence to route high-value owner
+    fixes. Direct isolated worktree discovery found zero buildable modules
+    because empty submodules plus the read-only `/workspace/.git/worktrees/...`
+    gitdir block `make init`; the disposable `/tmp` copy excluding `.git`,
+    `tmp`, and copied `bin` outputs found 114 buildable modules. Source/static
+    quality reached all 114 modules and failed on `bus-books`,
+    `bus-inspection`, `bus-ledger`, `bus-portal`, and `bus-portal-ai`. Route
+    those as first follow-up workers, then continue with AI-platform and
+    multi-remote docs/help cleanup, then accounting/filesystem/destructive CLI
+    docs/help cleanup. Later `/tmp/.../bus/bin/bus: not found` lines in the
+    task evidence were stop artifacts from terminating the expensive run, not a
+    separate product finding.
 - [x] Fix BusDK source-package pricing end to end: make the generated pricing model account for time-based human labour and deterministic operating-cost assumptions while still using commits for relative module sizing; remove stale hard-coded EUR totals from `busdk.com/docs`; update public docs/FAQ caveats; add regression coverage for the pricing generator; refresh generated pricing data; and verify root/docs/site checks.
 - [x] Document Bus API JWT audiences and scopes end to end: review the current auth, events, LLM, VM, containers, and usage providers; write the public operator/end-user contract in `docs/docs`; write the implementation/security contract in `sdd/docs`; document which scopes are end-user API scopes versus internal service/admin scopes; flag any suspicious current mismatches; update navigation; verify docs quality; and close only after the documentation reflects the reviewed code.
 - [x] Replicate module-local `quality` targets to every buildable submodule end to end: audit all top-level `bus`, `bus-*`, docs, sdd, aiz, and site Makefiles; add a source/static-only `quality` target that delegates to each module's existing formatting/lint/static checks without running unit/e2e tests; preserve module-local quality semantics and custom Bus lint wiring; run root `make quality QUALITY_SCOPE=all`; fix all reported source-quality issues; and close only when every selected module has a `quality` rule and passes.
