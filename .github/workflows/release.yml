@@ -384,6 +384,122 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+  publish-bus-integration-dev-task-image:
+    needs: build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: false
+
+      - name: Download Linux release artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: artifacts-ubuntu-latest
+          path: release-artifacts
+
+      - name: Prepare image binary payload
+        run: |
+          set -euo pipefail
+          VERSION="${{ github.ref_name }}"
+          ARCHIVE="release-artifacts/busdk-${VERSION}-Linux-amd64.tar.gz"
+          if [ ! -f "$ARCHIVE" ]; then
+            ARCHIVE="$(find release-artifacts -maxdepth 1 -name 'busdk-*-Linux-amd64.tar.gz' | sort | head -n 1)"
+          fi
+          if [ -z "${ARCHIVE:-}" ] || [ ! -f "$ARCHIVE" ]; then
+            printf 'missing Linux amd64 BusDK release artifact for dev-task worker image\n' >&2
+            find release-artifacts -maxdepth 1 -type f -print >&2
+            exit 1
+          fi
+          rm -rf dist-bin
+          mkdir -p dist-bin
+          tar -xzf "$ARCHIVE" -C dist-bin
+          for bin in bus bus-dev bus-integration-dev-task bus-lint bus-notes bus-operator-token; do
+            if [ ! -x "dist-bin/$bin" ]; then
+              printf 'release artifact is missing executable %s required by the dev-task worker image\n' "$bin" >&2
+              exit 1
+            fi
+          done
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image name
+        id: image
+        run: |
+          echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/bus-integration-dev-task" >>"$GITHUB_OUTPUT"
+
+      - name: Derive Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.image.outputs.name }}
+          tags: |
+            type=ref,event=tag
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+
+      - name: Build image smoke
+        run: |
+          set -euo pipefail
+          docker build \
+            -f deploy/local-ai-platform/codex/dev-task-worker.Dockerfile \
+            -t bus-integration-dev-task:ci-smoke \
+            .
+          docker run --rm --entrypoint sh bus-integration-dev-task:ci-smoke -ec '
+            bus-integration-dev-task --help >/dev/null
+            bus dev work --help >/dev/null
+            bus lint --help >/dev/null
+            bus notes --help >/dev/null
+            codex --version >/dev/null
+            gopls version | grep -q "v0.20.0"
+            dlv version | grep -q "Version: 1.25.2"
+          '
+          docker run --rm bus-integration-dev-task:ci-smoke --help >/dev/null
+          docker run --rm \
+            -e BUS_DEV_TASK_IMAGE_DRY_RUN=true \
+            -e BUS_EVENTS_API_URL=http://127.0.0.1:8081 \
+            -e BUS_API_TOKEN=workflow-smoke-token \
+            -e BUS_DEV_TASK_RECIPIENT=busdk \
+            -e BUS_DEV_TASK_WORK_REF=busdk#workflow-smoke \
+            -e BUS_DEV_TASK_WRITE_SCOPES=PLAN.md,README.md \
+            bus-integration-dev-task:ci-smoke > image-worker-dry-run.txt
+          grep -Fq 'command: bus-integration-dev-task' image-worker-dry-run.txt
+          grep -Fq -- '--events-url http://127.0.0.1:8081' image-worker-dry-run.txt
+          grep -Fq -- '--recipient busdk' image-worker-dry-run.txt
+          grep -Fq -- '--work-ref busdk#workflow-smoke' image-worker-dry-run.txt
+          grep -Fq -- '--write-scopes PLAN.md,README.md' image-worker-dry-run.txt
+          grep -Fq -- '--agent-backend codex-appserver' image-worker-dry-run.txt
+          grep -Fq -- '--codex-command codex' image-worker-dry-run.txt
+          grep -Fq -- '--worktree=true' image-worker-dry-run.txt
+          grep -Fq 'BUS_API_TOKEN=present(redacted)' image-worker-dry-run.txt
+          if grep -Fq 'workflow-smoke-token' image-worker-dry-run.txt; then
+            printf 'dry-run leaked BUS_API_TOKEN\n' >&2
+            exit 1
+          fi
+
+      - name: Publish bus-integration-dev-task image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/local-ai-platform/codex/dev-task-worker.Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
   release:
     needs: build
     runs-on: ubuntu-latest

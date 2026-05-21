@@ -635,6 +635,51 @@ build`, so `docker compose -f compose.dev-task-docker.yaml up -d` rebuilds the
 checked-in Dockerfile-backed `bus-local-codex:dev` image instead of silently
 reusing a stale local tag after Docker cache cleanup or submodule promotion.
 
+The release workflow also publishes an image-backed SSH-Docker worker image at
+`ghcr.io/busdk/bus-integration-dev-task:latest` for tagged releases. That image
+is built from the Linux release artifact binaries and the checked-in
+`deploy/local-ai-platform/codex/dev-task-worker.Dockerfile`, so the final image
+contains `bus-integration-dev-task`, the `bus` dispatcher, worker helper CLIs,
+Codex, Go, Docker CLI/Compose, `gopls`, and `dlv` without copying a BusDK source
+checkout or private module source into the runtime layer. A bare
+`docker run ghcr.io/busdk/bus-integration-dev-task:<tag>` starts
+`bus-integration-dev-task` as a worker; it does not default to `--help`. Use
+the immutable `sha-*` tag for repeatable external-host tests; `latest` advances
+only on release tags.
+
+Before running an image-backed SSH-Docker smoke on a remote Docker host, check
+image access separately from worker routing:
+
+```bash
+ssh coding-agent@dev.hg.fi 'docker version'
+ssh coding-agent@dev.hg.fi \
+  'docker pull ghcr.io/busdk/bus-integration-dev-task:latest'
+ssh coding-agent@dev.hg.fi \
+  'docker run --rm ghcr.io/busdk/bus-integration-dev-task:latest bus-integration-dev-task --help'
+ssh coding-agent@dev.hg.fi \
+  'docker run --rm \
+    -e BUS_DEV_TASK_IMAGE_DRY_RUN=true \
+    -e BUS_EVENTS_API_URL=http://worker-reachable-events.example.invalid \
+    -e BUS_API_TOKEN=redacted-placeholder \
+    -e BUS_DEV_TASK_RECIPIENT=busdk \
+    -e BUS_DEV_TASK_WORK_REF=busdk#example \
+    -e BUS_DEV_TASK_WRITE_SCOPES=PLAN.md \
+    ghcr.io/busdk/bus-integration-dev-task:latest'
+```
+
+`docker version` failures mean the remote host cannot run Docker yet. `docker
+pull` failures with `denied`, `unauthorized`, or `not found` mean the GHCR
+package has not been published with the expected tag or the host needs `docker
+login ghcr.io` with package read access. Do not pass Bus API tokens on the SSH
+command line; runner-owned deployment secrets should inject runtime tokens into
+the launched worker environment. The dry-run token above is a placeholder, not
+a real credential. The dry-run command is only for diagnostics: it prints the
+worker command and redacts token presence. Real image mode should launch the
+same image with deployment-owned environment injection for
+`BUS_EVENTS_API_URL`, `BUS_API_TOKEN`, `BUS_DEV_TASK_RECIPIENT`,
+`BUS_DEV_TASK_WORK_REF`, `BUS_DEV_TASK_WRITE_SCOPES`, optional remote metadata,
+and any workspace/worktree overrides.
+
 Inside the testing shell, the stack has generated a local development JWT at
 `~/.config/bus/auth/api-token` and exposes:
 

@@ -1,3 +1,15 @@
 {
-  "default": "localhost"
+  "default": "localhost",
+  "remotes": [
+    {
+      "id": "dev-hg",
+      "kind": "ssh-docker",
+      "compose_file": "compose.dev-task-docker.yaml",
+      "ssh_target": "coding-agent@dev.hg.fi",
+      "ssh_host": "dev.hg.fi",
+      "ssh_user": "coding-agent",
+      "ssh_port": 22,
+      "remote_workdir": "/home/coding-agent/coding-agent/git/busdk/busdk"
+    }
+  ]
 }

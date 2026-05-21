@@ -45,7 +45,7 @@
     user/operator workflow, and why the fix matters now; do not use broad
     hardening language without enough detail for the operator to choose.
 
-- [ ] Publish a real image-backed dev-task worker image for SSH-Docker hosts.
+- [x] Publish a real image-backed dev-task worker image for SSH-Docker hosts.
   - Goal: make `BUS_DEV_SSH_DOCKER_LAUNCH_MODE=image` usable without a
     pre-cloned BusDK checkout or private GitHub submodule access on every
     remote Docker host.
@@ -70,10 +70,28 @@
       --remote <id> check` can tell whether the host lacks image access versus
       Docker itself.
   - Verification:
-    - CI or local build smoke for the image.
-    - External host pull smoke on `coding-agent@dev.hg.fi` or a documented
-      access-limited equivalent.
-    - Follow-up external SSH-Docker worker smoke reaches terminal task state.
+    - CI release workflow now builds the worker image from the Linux release
+      artifact binaries, smoke-runs `bus-integration-dev-task --help`, `bus dev
+      work --help`, `bus notes --help`, `codex --version`, `gopls version`, and
+      `dlv version`, verifies the bare image invocation dry-runs to a
+      worker-shaped `bus-integration-dev-task` command with token redaction
+      rather than defaulting to help, then publishes
+      `ghcr.io/busdk/bus-integration-dev-task` with tag, sha, and release
+      `latest` tags.
+    - Local static validation for this slice: Dockerfile/workflow/README
+      checks plus `docker compose -f compose.dev-task-docker.yaml config`.
+    - Runtime image publication still requires the GitHub Actions release
+      workflow to run; the external host pull and worker terminal-state smoke
+      are tracked as the follow-up item below.
+
+- [ ] Run the external SSH-Docker worker smoke on `coding-agent@dev.hg.fi`
+  after the release workflow publishes
+  `ghcr.io/busdk/bus-integration-dev-task:latest`. The matching `bus-dev`
+  and `bus-integration-ssh-runner` worker-start/check changes are already
+  promoted and pinned.
+  Verification: remote `docker version`, `docker pull`, image `--help`, `bus
+  dev work --remote <id> check`, and one image-backed task reaching a terminal
+  state with redacted token/environment evidence.
 
 - [x] Fix GitHub Actions release workflow Node 20 deprecation warnings and
   moving runner labels.
