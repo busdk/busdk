@@ -45,6 +45,36 @@
     user/operator workflow, and why the fix matters now; do not use broad
     hardening language without enough detail for the operator to choose.
 
+- [ ] Publish a real image-backed dev-task worker image for SSH-Docker hosts.
+  - Goal: make `BUS_DEV_SSH_DOCKER_LAUNCH_MODE=image` usable without a
+    pre-cloned BusDK checkout or private GitHub submodule access on every
+    remote Docker host.
+  - End-user/operator value: a normal user should be able to run a remote worker
+    after `bus remote add lab-host ssh://lab-host` when the host has SSH,
+    Docker, and access to the published worker image.
+  - Triggering evidence: `coding-agent@dev.hg.fi` can SSH and run Docker, but
+    `docker pull ghcr.io/busdk/bus-integration-dev-task:latest` returned
+    `denied`, and the existing local `bus-local-codex:dev` image relies on the
+    superproject being mounted at `/workspace`.
+  - Scope:
+    - Add or refine a release/build workflow that publishes the default
+      `ghcr.io/busdk/bus-integration-dev-task:latest` image, or define the
+      correct public/private package name and tags if `latest` is not the right
+      contract.
+    - Ensure the image contains the runtime/tooling needed by
+      `bus-integration-dev-task` in image-backed mode, rather than depending on
+      a mounted checkout.
+    - Keep private source/access boundaries explicit; do not make private
+      module source public accidentally through a public image.
+    - Add operator diagnostics for pull/access failures so `bus dev work
+      --remote <id> check` can tell whether the host lacks image access versus
+      Docker itself.
+  - Verification:
+    - CI or local build smoke for the image.
+    - External host pull smoke on `coding-agent@dev.hg.fi` or a documented
+      access-limited equivalent.
+    - Follow-up external SSH-Docker worker smoke reaches terminal task state.
+
 - [x] Fix GitHub Actions release workflow Node 20 deprecation warnings and
   moving runner labels.
   - Goal: keep the release workflow compatible with GitHub's June/September
