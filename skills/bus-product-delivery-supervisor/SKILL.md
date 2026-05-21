@@ -36,6 +36,11 @@ Use narrower skills alongside this one when the work has a focused shape:
    - Run `bus dev work status` and inspect relevant `PLAN.md` files.
    - Use `rg --files -g 'PLAN.md'` for broad plan discovery. Avoid broad
      repository walks from the superproject unless there is no narrower path.
+   - When hosted Codex/cloud usage is constrained, shift attention to Bus-owned
+     local and UpCloud execution infrastructure before broad content batches.
+     Preserve hosted budget for high-leverage review, unblock local/container
+     workers, and require operator approval before provisioning paid cloud
+     resources or changing cost posture.
 
 2. Build a dispatch board:
    - Active workers by ref and recipient.
@@ -60,6 +65,16 @@ Use narrower skills alongside this one when the work has a focused shape:
 4. Dispatch workers:
    - Use `bus dev work start` or `bus dev task new` with explicit recipients.
    - Give each worker non-overlapping module or file ownership.
+   - Use the documented local development system as the default execution path
+     for broad module work. Prefer automation-owned worker provisioning over
+     manual container/script starts.
+   - Treat `bus dev task` as the durable two-way task communication channel.
+     `bus dev work` may compose user-defined workflows, but task state,
+     worker replies, reopen guidance, and closeout evidence belong in the task
+     stream.
+   - Keep worker-facing briefs free of supervisor-only benchmark numbers,
+     throughput experiments, and worker-count comparisons. Put that context in
+     supervisor notes or task metadata.
    - Keep Codex `spawn_agent` subagents separate from Bus dev-task workers. Use
      Codex subagents only when explicit parallelism is useful, and run them in
      bounded batches, normally no more than 8 at a time.
@@ -91,6 +106,14 @@ Use narrower skills alongside this one when the work has a focused shape:
    - After each worker terminal event, immediately accept/promote, reopen with
      precise guidance, record a blocker, or dispatch the next unblocked item.
    - Count throughput only as verified and promoted work, not claimed work.
+   - Keep parallelism high when scopes are independent and review capacity
+     exists. Do not assume one worker per module is the ceiling; increase
+     concurrency until write-scope conflicts, dirty primary checkouts, resource
+     saturation, or review bandwidth becomes the real limit.
+   - Compare each long-running supervisor pulse against recent best accepted
+     work per hour. Look for safe scaling improvements: more independent
+     workers, narrower shards, faster review/pin/reopen routing, stronger
+     automation, or removal of the current bottleneck.
    - Continuously ask progress-improvement and bottleneck questions, then
      answer them from evidence: what would increase accepted work per hour, is
      final AI review the limit, does five versus fifteen parallel workers
@@ -157,6 +180,10 @@ Use narrower skills alongside this one when the work has a focused shape:
    - Common blockers include stale BusDK tools in containers, auth/token drift,
      dirty primary checkouts, generated artifact churn, stale submodule pins,
      missing write scopes, and incomplete worker evidence.
+   - Do not prioritize replacing the human/Codex supervisor loop with an
+     always-on Bus supervisor service unless the operator asks for that product
+     direction. Near-term value is worker execution that is scalable,
+     observable, and easy to operate.
 
 7. Preserve memory:
    - Update the current hourly memo after meaningful phases.
@@ -164,6 +191,26 @@ Use narrower skills alongside this one when the work has a focused shape:
      recurring lesson should not be repeated.
    - Add unresolved implementation work to the owning module `PLAN.md`; do not
      rely on final-answer promises.
+
+## Supervisor Implementation Boundary
+
+In supervisor mode, do not absorb product/module implementation locally when a
+clean recipient-scoped worker can do it with clear acceptance criteria. The
+supervisor may edit `PLAN.md`, memo, `AGENTS.md`, skills, and urgent
+coordination artifacts, but feature implementation should be assigned to
+recipient-scoped workers unless the operator explicitly asks the supervisor to
+make the code change directly.
+
+If the delegation substrate itself is broken and a worker cannot patch the
+defect because of that same failure, stop the affected batch, fix the launcher
+or bridge through the narrowest safe path, verify it, pin it, and reopen
+affected work.
+
+Review and progress-audit outsourcing should exercise the Bus dev-task worker
+system whenever practical. Codex subagents can help with bounded local
+assistance when explicitly authorized, but scalable implementation and
+verification belongs in Bus worker agents so the substrate is tested and
+improved.
 
 ## Business-Value Reporting
 

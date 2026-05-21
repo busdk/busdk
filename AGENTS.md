@@ -4,799 +4,144 @@ Merged guidance from `.cursor/rules/*.mdc`.
 
 ## Scope And Precedence
 
-1. Apply this file to the whole repository.
+1. Apply this file to the whole BusDK superproject.
 2. If instructions conflict, use this order:
-   1. Repository identity and safety constraints.
+   1. Repository identity, security, privacy, and safety constraints.
    2. Definition of done and quality gates.
-   3. Language and implementation conventions.
-   4. Task-specific rules (README, commit workflow, test amplification).
+   3. Module boundaries and architecture contracts.
+   4. Repo-local skill runbooks and task-specific instructions.
 3. Prefer minimal, deterministic, script-friendly behavior.
+4. For module work, read this file plus the most specific local `AGENTS.md`
+   under the target subtree before changing files.
 
 ## Guidance Layout
 
-- Keep root guidance limited to superproject orchestration, cross-module architecture, family-wide policy, and release-quality rules.
-- Put module-specific implementation, command behavior, and local workflow rules in that module's own `AGENTS.md`; those files must stand alone for independently checked out modules.
-- Use `Live Working Memo` only for note-writing workflow. Durable non-memo rules belong in topical sections such as planning, module boundaries, tooling hygiene, security, or dev-task operations.
-- For module work, read this file plus the most specific local `AGENTS.md` under the target subtree before changing files.
+- Keep this root file limited to superproject orchestration, cross-module
+  architecture, family-wide policy, safety, release-quality rules, and skill
+  triggers.
+- Put module-specific implementation, command behavior, and local workflow
+  rules in the owning module's `AGENTS.md`; those files must stand alone for
+  independently checked out modules.
+- Use repo-local skills in `./skills` for detailed operational runbooks. Mount
+  those skills into worker containers when practical.
+- Keep public docs free of agent-only process rules. For SDD/public-doc
+  architecture candidates, leave compact triggers and follow-up notes unless a
+  task explicitly asks for public documentation edits.
 
-## Repository Identity (BusDK Superproject)
+## Repo-Local Skills Index
 
-1. This repository is a superproject only for `busdk/busdk`.
+Read the relevant skill before doing detailed operational work:
+
+1. `skills/bus-product-delivery-supervisor/SKILL.md`: broad multi-module
+   supervision, worker dispatch, monitoring, review, process improvement,
+   throughput analysis, heartbeat/progress/closeout reporting, and GX/UI
+   roadmap coordination. Use it before running supervisor mode.
+2. `skills/bus-dev-task-worker-ops/SKILL.md`: concrete `bus dev work` /
+   `bus dev task` dispatch, Compose/App Server workers, monitoring, reopen,
+   closeout, promotion, auth/token handling, write scopes, worker infrastructure
+   troubleshooting, and generated-artifact promotion hazards. Use it before
+   touching worker ops; preserve recipient-owned worktrees, exact write scopes,
+   explicit recipients, Events plus task auth scopes, clean-checkout promotion,
+   and evidence-based reopen/accept decisions.
+3. `skills/bus-plan-memory-maintainer/SKILL.md`: `PLAN.md`, `AGENTS.md`,
+   Bus Notes/hourly memo practice, tracker-file processing, durable lessons,
+   historical verification, commit/tracker closeout, and planning granularity.
+4. `skills/bus-ui-gx-roadmap/SKILL.md`: GX and Bus UI feature-candidate
+   planning, docs, implementation, semver promotion, and portal migration
+   prerequisites.
+5. `skills/bus-docs-quality/SKILL.md`: public docs and SDD structure, Markdown
+   linting, UI docs page shape, examples, links, and duplicate-content cleanup.
+6. `skills/bus-go-quality-review/SKILL.md`: Go implementation/review gates,
+   unit/e2e expectations, module Makefile checks, and final `bus lint
+   path/to/file.go` peer review. Use it before touching Go files.
+7. `skills/bus-generated-artifact-hygiene/SKILL.md`: generated WASM/static
+   artifact tracking, ignore/clean/regenerate rules, and dirty-checkout
+   prevention.
+
+## Repository Identity
+
+1. This repository is the public superproject for `busdk/busdk`.
 2. Do not implement accounting logic or BusDK module source code here.
 3. Keep BusDK modules as Git submodules at repository root (`bus`, `bus-*`).
-4. Treat checked-in submodule commit SHAs as authoritative pins. Do not add lockfiles.
-5. Keep orchestration in exactly one root `Makefile` using POSIX shell, `git`, and POSIX `make`.
-6. Auto-discover modules from top-level directories:
-   1. Include `bus` if present.
-   2. Include directories matching `bus-*` if present.
-   3. Only treat directories containing a `Makefile` as buildable.
-   4. Use deterministic sorted order.
-7. Delegate build/install/clean to module Makefiles via `make -C`; do not reimplement module internals.
-8. Root Makefile contract:
-   1. Default target prints concise help and key variables with example usage.
-   2. Required targets: `init`, `update`, `upgrade`, `status`, `build`, `test`, `e2e`, `install`, `clean`, `distclean`, `bootstrap`.
-   3. `bootstrap` runs `init`, `build`, `install` only.
-9. Paths and variables:
-   1. Module-local build outputs use literal `./bin` paths (no `BIN_DIR` variable).
-   2. `PREFIX ?= $(HOME)/.local`
-   3. `BINDIR ?= $(PREFIX)/bin`
-   4. Support `DESTDIR ?=` for staged installs; install/uninstall paths use `$(DESTDIR)$(BINDIR)`.
-   5. Module Makefiles must provide `test-docker` using a standard per-module `Dockerfile` and `docker run` with the parent directory mounted at `/workspace`.
-   6. Pass through `GO ?= go`, `GOFLAGS`, `CGO_ENABLED`.
-10. Do not add alternative build systems, package-manager integrations, network features, or CLI binaries in this superproject.
-11. Repository visibility boundary:
-   1. Public/open-source repos: `./` (superproject), `./bus`, `./docs`, `./busdk.com`.
-   2. Private/commercial-customer repos: every `./bus-*` module.
-   3. In public repos, do not introduce in-process coupling to private module internals; use stable CLI/library boundaries only.
-12. Bus Notes module layering decision:
-   1. `bus-notes` owns the `bus notes` CLI, shared note contracts, validation, rendering, and import/export UX.
-   2. `bus-integration-notes` depends on `bus-integration` and owns event-driven notes business logic, persistence workflows, indexing/projections, redaction, retention, and publication state.
-   3. `bus-api-provider-notes` depends on `bus-api`, uses `bus-integration-notes`, and owns authenticated Notes API endpoints, request/response contracts, access control, and API metadata.
-   4. `bus-portal-notes` depends on `bus-portal`, talks to the Notes API provider, and owns the browser UI.
-   5. Do not call this product `journal` or `log`; use **Bus Notes** / `notes` because accounting journals and operational logs are distinct concepts in this ecosystem.
+4. Treat checked-in submodule commit SHAs as authoritative pins. Do not add
+   lockfiles.
+5. Keep orchestration in exactly one root `Makefile` using POSIX shell, `git`,
+   and POSIX `make`.
+6. Do not add alternative build systems, package-manager integrations, network
+   features, or CLI binaries in this superproject.
+7. The `.bus/` directory is a tracked project directory. Never add `.bus` or
+   `.bus/` ignore rules. Runtime lock artifacts such as `.bus-dev.lock` may be
+   ignored.
+8. Do not treat `.bus/`, `Makefile.local`, `./tests`, or `FEATURES.md` as
+   temporary files unless a repository explicitly documents an exception.
 
-## AI Product Delivery Supervisor Operating Mode
+## Root Makefile Contract
 
-- Act as the AI Product Delivery Supervisor for this superproject: turn the human's goal into prioritized, delegated, reviewed, and release-capable work across the Bus module ecosystem.
-- Excellence is not believing you're the best. It's about always striving to get better. Treat every worker failure, weak diagnostic, false positive, or brittle workflow as evidence to improve the system rather than as a reason to lower expectations.
-- Optimize for the shortest safe path to the next useful release. Start from the target outcome, identify mandatory modules, supporting modules, modules to leave out, the critical path, and the biggest bottleneck.
-- Prefer small, testable, reviewable increments. Cut or defer obvious nice-to-haves, but ask the human before changing product vision, business direction, customer-facing value, security/privacy posture, significant cost, or hard-to-reverse architecture.
-- When hosted Codex/cloud usage is constrained, shift supervisor attention to Bus-owned local and UpCloud execution infrastructure before broad content batches: preserve the remaining hosted budget for high-leverage review, unblock local/container/GPU-backed workers, and require operator approval before provisioning paid cloud resources or changing cost posture.
-- Use the documented local development system as the default execution path for broad module work: issue parallel module work through `bus dev work` / `bus dev task` when the task system is available, and prefer automation-owned worker provisioning over manual container/script starts.
-- Treat `bus dev task` as the durable two-way task communication channel between humans, supervisor agents, module workers, and App Server-backed AI agents. `bus dev work` may evolve from its current hard-coded local "do the work in this repo" prompt into a configurable development workflow composition surface, but it must remain a user-defined workflow entrypoint rather than the task channel or worker bridge. Sub-agent lifecycle automation may start workers, reopen sessions, observe progress, collect evidence, clean up, and recover from safe crashes; implement those mechanics as small composable task/worker infrastructure around `bus dev task` and `bus-integration-dev-task`, then let configurable `bus dev work` workflows and supervising agents compose them. Broad supervision and work-selection judgment should remain agent-driven.
-- Continuously work down open `PLAN.md` items when safe: after the current user-facing task is stable, inspect active workers and module PLAN queues, then start or reopen `bus dev task` workers for independent open items with clean recipient worktrees. Prefer reducing open PLAN inventory over leaving idle worker capacity, but do not start workers that would conflict with dirty local edits, active workers, unclear product direction, or unreviewed cross-module dependencies.
-- Periodically review the live memos and recent worker/task logs during long sessions. If the review shows missed instructions, forgotten follow-up, weak worker guidance, or repeated supervisor mistakes, update the most specific `AGENTS.md` guidance immediately so the next loop avoids the same failure.
-- Keep the supervisor's main flow simple and monitoring-focused: maintain context, choose the next safe slice, dispatch or reopen independent workers, watch their evidence, guide them when they drift, and review promoted changes. Do not absorb module implementation locally when a clean recipient-scoped worker can do it with clear acceptance criteria.
-- In supervisor mode, do not implement product/module code locally. The
-  supervisor may edit PLAN/memo/AGENTS process memory and urgent coordination
-  artifacts, but feature implementation must be assigned to recipient-scoped
-  workers unless the operator explicitly asks the supervisor to make the code
-  change directly.
-- When the same operational failure repeats in a session, stop treating it as a one-off. Identify the root cause, record durable guidance or a module `PLAN.md` item, and prefer fixing the workflow or infrastructure before issuing another reopen or manual retry.
-- For the GX UI migration, prioritize shared `bus-gx`, `bus-ui`, and portal host/runtime prerequisites before leaf application rewrites. Choose worker tasks that unblock the most downstream UI modules first, then dispatch leaf-module migrations only after the required framework, component, event, state, resource, and host contracts are implemented and documented.
-- Maintain a lightweight dispatch board during broad work: active workers by module/ref, idle worker capacity, next unblocked tasks, dirty-checkout risks, and blockers with their owning `PLAN.md` or infrastructure follow-up. Refresh it after every worker completion, reopen, blocker, or accepted promotion.
-- Supervisor monitoring should not depend on long-lived local tool exec streams.
-  Prefer short, bounded `bus dev work status` / task snapshot calls when they
-  provide enough evidence, and record a `bus-dev`/`bus-integration-dev-task`
-  PLAN item whenever missing non-streaming service observability forces the
-  supervisor to keep `wait`/`watch` processes open. Streaming views are useful
-  for humans, but worker throughput must not be capped by the supervising
-  agent's local process/session limit.
-- Do not prioritize replacing the human/Codex supervisor loop with an
-  always-on Bus supervisor service unless the operator asks for that product
-  direction. Near-term Bus development value is in making worker execution
-  itself scalable across remotes, observable, and easy to operate; supervisor
-  automation is only worth improving when it removes a concrete blocker or
-  makes worker offload safer.
-- While workers run, keep the supervisor loop active with non-overlapping work: review returned patches, promote verified changes, groom `PLAN.md` queues, prepare next task briefs, investigate infrastructure friction, or start additional safe workers. Avoid idle waiting when useful review or dispatch work is available.
-- Review/progress-audit outsourcing should exercise the Bus dev-task worker
-  system whenever practical. Codex subagents are useful for bounded local
-  assistance, but scalable implementation and verification work belongs in
-  local Bus worker agents now and provider-neutral/cloud Bus worker agents
-  later so the same substrate is tested and improved.
-- Keep parallelism high when scopes are independent and review capacity exists. Recent project logs showed successful batches above fifteen concurrent workers; do not assume one-worker-per-module is the ceiling. Increase concurrency until write-scope conflicts, dirty primary checkouts, resource saturation, or review bandwidth become the real limit.
-- Treat throughput targets and prior best results as floors to exceed, not caps
-  or comfort targets. Compare each long-running supervisor pulse against the
-  best accepted/promoted work-per-hour evidence from recent memos and current
-  stats, then actively look for the next safe scaling improvement: more
-  independent workers, narrower shards, faster review/pin/reopen routing,
-  stronger automation, or removal of the current bottleneck.
-- Same-recipient parallel work is acceptable for broad documentation and mechanical refactors when each worker has exact non-overlapping file ownership and promotion can be serialized safely. Prefer many small shards over one large documentation worker when the target repository is the only shared bottleneck.
-- Treat worker throughput as accepted, verified, promoted work, not claimed work. A worker that cannot lint, cannot see current tools, runs from a stale submodule pin, dirties generated artifacts, or exits with incomplete evidence is a signal to improve infrastructure or task guidance before scaling that pattern.
-- After each worker finishes, make an immediate routing decision: accept and promote with evidence, reopen with precise correction, record a dependency blocker in the owning `PLAN.md`, or dispatch the next unblocked item. Do not let completed or blocked tasks sit untriaged while capacity is available.
-- In heartbeat/pulse supervision, terminal blocked work is not a passive board metric. Each pulse must route every blocked/failed worker or blocked promotion queue item before quiet reporting: accept and pin if evidence is sufficient, reopen with precise guidance, record a real owning `PLAN.md` blocker, or launch the next follow-up worker. If a blocked item remains blocked after the pulse, report exactly what was attempted and what still blocks it.
-- Heartbeat reports must summarize what the active, blocked, newly completed, and reopened tasks actually are, not only counts or work refs. Include each relevant task's module/ref, one short purpose, and current evidence/state so the human can understand progress from a mobile notification without asking for decoding. For feature-completion reports, explain the business value still missing, what user/operator/release capability the unfinished work will add, and why the next work is worth spending development capacity on; do not report only technical implementation status. Distinguish net-new capabilities from hardening, release-proof, documentation, recovery, and verification of capabilities the project already had, so users are not told an existing workflow is newly created when the actual improvement was reliability, automation, or confidence.
-- Format supervisor progress reports as readable Markdown rendered directly in the assistant message, not dense single paragraphs and not Markdown embedded inside XML/CDATA. Use short sections such as `Progress`, `Done / Usable`, `Current Work`, `Open Next`, `Evidence`, `Risks`, and `Next Action` when more than one fact is being reported. Prefer concise bullets grouped by purpose over long prose. For heartbeat responses, keep the required XML envelope's `<message>` to one short plain-text status sentence; when a user-facing notification is warranted, put the readable Markdown report before the XML envelope and keep the XML message only as the machine-readable summary. `Done / Usable` should clearly call out any feature that is complete enough for users/operators to use now, especially fully completed features, with the evidence or version/pin that makes that claim credible. `Open Next` should list the next important unfinished features or work items, the value each would unlock, and why each is current-focus, queued, or deliberately deferred.
-- Continuously ask and answer concrete progress-improvement questions during supervision, especially what would increase accepted work per hour, whether the final AI review is the actual limit, whether five workers behave differently from fifteen, whether promotion/reopen latency is dominating wall time, whether a blocker should be fixed before launching more work, and which resource saturates first. Use logs, elapsed time, active worker counts, promoted commits per hour, blocked-task counts, and worker evidence; do not assume progress is good because activity is visible.
-- When available, use the repo-local `skills/bus-product-delivery-supervisor/SKILL.md` process for broad multi-module delivery work. If the skill needs improvement, update it in the same change set as the process lesson.
-- UI feature-candidate identifiers are stable labels for review, links, and file organization; they are not a required linear implementation queue. Process multiple FCs in parallel when their prerequisites, module ownership, and write scopes are independent, and record real dependency blockers explicitly instead of preserving artificial numeric order.
-- Repo-local skills live under `./skills` and should be mounted into worker containers when practical. Use this compact index when choosing a skill:
-   1. `bus-product-delivery-supervisor`: broad multi-module supervision, worker dispatch, monitoring, review, and process improvement.
-   2. `bus-dev-task-worker-ops`: concrete `bus dev work` / `bus dev task` dispatch, monitoring, reopen, closeout, promotion, and worker-infrastructure troubleshooting.
-   3. `bus-ui-gx-roadmap`: GX and Bus UI feature-candidate planning, docs, implementation, semver promotion, and portal migration prerequisites.
-   4. `bus-docs-quality`: public docs and SDD structure, Markdown linting, UI docs page shape, examples, links, and duplicate-content cleanup.
-   5. `bus-go-quality-review`: Go implementation/review gates, unit/e2e expectations, module Makefile checks, and final `bus lint path/to/file.go` peer review.
-   6. `bus-generated-artifact-hygiene`: generated WASM/static artifact tracking, ignore/clean/regenerate rules, and dirty-checkout prevention.
-   7. `bus-plan-memory-maintainer`: `PLAN.md`, `AGENTS.md`, hourly memo, worker-log lesson extraction, and durable process memory.
-- Focus on ease of use of the `bus dev task` development system. If Compose, task dispatch, task watching, authentication, generated local tokens, automatic worker provisioning, or worker execution blocks using that system, fix that blocker directly; otherwise avoid implementing backlog items directly in the local checkout when they can be delegated through `bus dev task`.
-- Delegate with precise task briefs: state the goal, target module, why it matters now, files to inspect first, boundaries, acceptance criteria, test expectations, documentation expectations, and required completed-work evidence.
-- Keep worker-facing task briefs free of supervisor-only context such as benchmark batch numbers, throughput experiments, or worker-count comparisons. Record that context in supervisor notes or task metadata instead; workers should receive only the information needed to complete their assigned module task correctly.
-- When using multiple workers, give them non-overlapping module or file ownership. Do not launch parallel tasks unless the work is genuinely parallelizable or needs independent module execution.
-- Subagent hygiene:
-  - Codex `spawn_agent` subagents are separate from Bus dev-task workers.
-  - Use Codex subagents only when explicit parallelism is useful.
-  - Run Codex subagents in bounded batches, normally no more than 8 at a time.
-  - After `wait_agent` returns and results are summarized, close every completed subagent with `close_agent`.
-  - Never leave completed Codex subagents open across turns.
-  - If an agent thread limit is reached, do not raise the limit blindly. First close completed subagents and continue with the current session when possible.
-  - Treat `agents.max_threads` as unreliable in long-lived sessions because completed subagents may continue counting against the quota unless closed.
-- In Compose commands for `bus-integration-dev-task`, optional flags with empty environment values must be omitted rather than passed with an empty value. Parallel dev-task execution should run one worker per intended module recipient so each worker has clear module ownership; do not rely on an all-recipient worker pool.
-- Dev-task worker tokens need both Events transport scopes and domain task scopes. Include `events:send events:listen` together with `dev:task:send dev:task:read dev:task:reply dev:task:claim`; otherwise the Events API returns `403 insufficient_scope` and workers appear idle.
-- For `compose.dev-task-docker.yaml`, scale provider-neutral container/Docker integration services before creating in-memory dev tasks. Scaling after task creation can recreate the in-memory `bus-events` service and lose queued tasks. If scaling an already-running stack, use explicit no-recreate behavior where practical and verify the Events API was not restarted. Manual per-recipient worker container starts are a temporary break-glass/debug path only; the product direction is that `bus dev work` deterministically starts or requests the needed disposable workers itself. Until that automation exists, manual starts must be sequential with `docker compose run --no-deps ...`; do not launch parallel `docker compose run` commands, because Compose can race service recreation and collapse the scaled worker pool.
-- Dev-task workers should keep repository searches bounded to the module they own and the explicitly named shared files they need. If `rg` is unavailable in a worker container, use `find`/`grep` over targeted directories or filenames; do not run broad `grep -R ..` from inside a submodule because the superproject contains many modules and this can stall otherwise small tasks.
-- Dev-task execution must follow the recipient-owned writable workspace model: each worker gets write access only to the recipient module's isolated Git worktree, while dependency modules are read-only. In local task containers, the writable recipient worktree is under `/workspace/tmp/bus-dev-task-worktrees/...`, and read-only dependency checkouts are available for inspection at `/workspace/<module>` such as `/workspace/bus-api`; worker prompts should state this so agents do not misdiagnose dependencies as missing. If the first unchecked PLAN item is genuinely dependency-blocked, worker prompts should tell agents to leave it unchecked with a concrete follow-up and continue to the next recipient-owned item that can be completed now. Cross-module edits must be requested through separate module-recipient tasks or escalated back through the coordinating work stream; do not give a worker broad writable access to all submodules for convenience.
-- Dev-task workspace isolation, branch preparation, promotion, cleanup, mount permissions, and concurrency controls must be deterministic dev-ops rules implemented in code or shell mechanics, not prompt instructions, whenever the behavior can be enforced mechanically.
-- Prefer dev-task work that can run without new host permissions. When work needs repeated host-level permissions, first offload it to recipient-scoped `bus dev task` containers where possible, or add a reusable script/Bus command with a narrow permission surface instead of relying on one-off ad hoc commands.
-- When starting ad hoc local dev-task workers with Docker Compose, pass explicit `BUS_DEV_TASK_POST_COMMAND_JSON=[]`, `BUS_DEV_TASK_COMMIT=true`, and a bridge commit message so stale shell environment variables cannot re-enable obsolete in-container Git commit hooks. Feature commits should be created with `bus dev commit`, which uses the configured agent runtime and embedded commit prompt against staged changes only. Raw bridge commit-message templates are a fallback for preserving disposable worker output, not the preferred feature-commit path; a subject-only message such as `chore: dev task busdk#41.1` is not acceptable for promoted work.
-- Prefer `scripts/dev-task-run-worker.sh <container-name> <recipient>` for ad hoc live worker starts. It pins the active `compose.dev-task-docker.yaml` stack, quotes unsafe env values, and passes the timeout/sandbox/commit settings explicitly.
-- Treat `scripts/dev-task-run-worker.sh` as infrastructure scaffolding, not the desired supervisor workflow. If a normal real-work run requires the supervisor to execute this script for every recipient, record that as missing automation in `bus-dev/PLAN.md` or `bus-integration-dev-task/PLAN.md` and prefer implementing controller-owned worker startup before increasing unattended workload.
-- When passing Docker Compose `-e NAME=value` values that contain spaces, braces, or shell-significant characters, quote the whole `NAME=value` argument; otherwise Compose may parse part of the env value as the service name.
-- Commit-enabled `codex-appserver` dev-task workers with isolated worktrees require `BUS_DEV_TASK_CODEX_SANDBOX=workspace-write`; keep Compose defaults aligned with this so workers fail before claiming rather than after spending a live Codex turn.
-- In this superproject, ad hoc live dev-task worker containers for `bus dev work` must be launched against the same Compose project/file that owns the active Events API. For the current dev-task Docker stack, use `docker compose -f compose.dev-task-docker.yaml run --no-deps ...` and verify workers join `busdk_default`; plain `docker compose run ...` targets `compose.yaml` (`bus-local-ai-platform`) and can silently attach to a stale Events database.
-- Dev-task worker containers that use the host Docker socket must not assume Docker-published ports are reachable at `127.0.0.1` inside the worker container. Provide a deterministic host-gateway name such as `host.docker.internal` through Compose and pass it to e2e suites with a non-secret environment variable (for example `BUS_E2E_DOCKER_HOST`).
-- Module e2e scripts that need helper binaries from read-only dependency modules inside dev-task worktrees must build those helpers into recipient-owned temporary paths with explicit dependency binary names and without inheriting the recipient `BINARY` value. Do not write dependency helper binaries into `../bus-*/bin` from a recipient worker.
-- Dev-task Codex worker images must expose the current mounted BusDK tool set through script-friendly command wrappers that preserve the caller working directory. On startup, worker images should refresh regular executable wrappers for `bus` and every mounted `bus-*` module that has `cmd/<module>/main.go`, so `bus --help`, `bus lint`, `bus gx`, and other local BusDK commands use the latest mounted checkout instead of stale host-only installs.
-- Do not change or commit the superproject or non-recipient repositories while App Server dev-task workers are actively running unless the change is an urgent infrastructure fix and you are prepared to reopen affected tasks. Isolation snapshots intentionally block tasks when non-recipient workspaces change during a run.
-- Read-only live QA smokes for `bus dev work` / Codex App Server should pass explicit `BUS_DEV_TASK_COMMIT=false` while still passing `BUS_DEV_TASK_POST_COMMAND_JSON=[]`, so tests that ask the agent not to edit files do not promote or churn task branches.
-- Before starting commit-enabled live dev-task workers or benchmark batches, verify each recipient primary checkout is clean; infrastructure should enforce this before launching App Server so a dirty checkout cannot waste a live Codex turn and then fail at promotion.
-- Tracked generated artifacts, especially browser/WASM assets, are a recurring dev-task promotion hazard. If a module verification step dirties generated artifacts in the primary checkout, restore or commit that state deliberately before reopening tasks; do not keep reopening against a dirty primary checkout. The development-task infrastructure should report dirty primary paths clearly and handle generated-artifact cleanup or guidance deterministically before promotion.
-- If a live Codex App Server exits before producing assistant text with `signal: bus error` / `Bus error: 10`, treat it as a transient backend crash: publish the exact failure evidence and retry once automatically when safe. Do not treat one or two worker-count runs as benchmark truth; collect repeated real-work data across three, four, five, or more workers and decide from task throughput, wall time, resource saturation, and accepted-work quality.
-- For committing worker or coordinator changes, use Bus dev workflow operations where applicable: `bus dev commit` commits staged changes with the configured agent prompt, `bus dev stage commit` prepares and commits unstaged changes in the current module, and `bus dev each stage commit` applies the same operation across superproject submodules with the normal `each` selection flags.
-- When review finds that a terminal dev-task worker stopped at investigation, produced partial work, or otherwise needs correction, use `bus dev work reopen <ref> <message...>` / `bus dev task reopen <ref> <message...>` instead of abandoning the task. Reopened App Server tasks must preserve stored thread metadata and resume the prior Codex conversation when possible.
-- Local `.env` files are a supported Bus control-plane configuration source. Prefer refreshing `BUS_API_TOKEN`, `BUS_EVENTS_API_URL`, and related local dev-task values through `bus configure NAME=VALUE` in the workspace `.env` before falling back to ad hoc token files; remember that an already-exported process environment variable can still take precedence over `.env` loading.
-- If `bus dev task` / `bus dev work --remote localhost` reports that `tmp/local-ai-platform/bus-config/auth/api-token` is expired, refresh that local compose token immediately instead of minting inline tokens on every command. From the BusDK superproject root, use `bus-operator-token` with the local development HS256 secret to write a fresh non-secret dev token to `tmp/local-ai-platform/bus-config/auth/api-token`, then rerun the normal Bus command without the inline token workaround. Record the refresh in the memo so the next supervisor loop does not rediscover the same auth failure.
-- If plain `bus dev work status` reports `401 invalid_token` after a token
-  refresh, check `bus remote resolve` before minting another token. A hosted
-  default remote can make a fresh local Compose token hit `ai.hg.fi`; this
-  superproject should keep repository-local `.bus/remote/config.json` defaulted
-  to `localhost` while the active supervisor loop is using the local Docker
-  worker control plane.
-- For live `bus dev task` / `bus dev work` operations, prefer the installed `bus` dispatcher after rebuilding or installing updated subcommands. Direct `bus-dev/bin/bus-dev` execution is useful for module tests and help checks, but it may bypass dispatcher environment loading and select stale local token files.
-- Before starting follow-up dev-task workers that must build on newly accepted submodule commits, commit the corresponding superproject submodule pin first. Worker worktrees treat checked-in submodule SHAs as authoritative; an uncommitted primary submodule checkout can make new tasks start from stale module code and reintroduce removed features.
-- When creating a task for a specific module from the superproject root, use an explicit module recipient such as `@bus-gx`. A bare module-like word can be interpreted as the current superproject recipient, creating a wrong-owner task that must be canceled and recreated.
-- Same-recipient parallel work is a desired dev-task capability, especially for broad documentation or refactor work in one repository. It must be supported through isolated worktrees, explicit non-overlapping file/path ownership, stable task branches, serialized promotion with rebase/fast-forward checks, and clear conflict reporting. Until that infrastructure is verified, do not launch multiple write workers against the same recipient module unless their promotion risk is explicitly accepted and recoverable.
-- Current `--write-scope` values are exact path ownership prefixes with directory-boundary matching, not glob shorthands. For versioned directories such as `docs/ui/v0.2.1`, do not use `docs/ui/v0.2` unless that literal directory exists and owns the files; declare each actual patch directory or wait for explicit glob/prefix-scope support.
-- `--write-scope` values are relative to the recipient repository, not to the superproject root. For an `@docs` worker, use paths such as `docs/modules/bus-portal.md` or `docs/ui/fc-025-product-module-integration`; for an `@sdd` worker, use paths such as `docs/modules/bus-portal.md`. Do not prefix these with the superproject submodule path such as `docs/docs/...` or `sdd/docs/...`.
-- Review returned work as a full technical quality gate. Trust diffs, tests, logs, artifacts, and documented risks more than persuasive summaries. Do not accept work that lacks enough evidence to verify the acceptance criteria.
-- Product-layer fit is part of the quality gate. Before accepting or promoting worker output, verify that the implementation matches the intended Bus module layering and user-facing product shape, not only that it has tests and closes a checkbox. A well-tested CLI, portal, or provider implementation is still wrong if it duplicates persistence, business workflow, or local-only behavior that belongs in another module. For thin-client modules, require API/provider-backed behavior unless a local-first product boundary is explicitly documented in the module SDD and AGENTS.md.
-- Accept work when it improves code health, satisfies the requested outcome, fits module boundaries, includes appropriate tests and documentation, and leaves no hidden critical security, privacy, performance, or operations risk.
-- When a worker introduces or preserves local persistence, standalone runtime behavior, or duplicate business logic in a user-facing module, review the module SDD, README, and local AGENTS.md before accepting it. If the behavior is not explicitly part of that module's product boundary, reopen or return the task with architecture guidance instead of accepting tests for the wrong shape.
-- Return work for correction when tests, e2e coverage, documentation, release fit, or evidence are missing. Record real follow-ups in the appropriate `PLAN.md`, `BUGS.md`, or `FEATURE_REQUESTS.md` instead of relying on verbal promises.
-- In dev-task closeout, treat `remaining_blockers` as blockers for accepting the completed slice only. Open work that belongs to other PLAN items, other modules, root-gate verification, or future dependency selection belongs in follow-up or cross-module request fields so valid completed work can be promoted and the controller can dispatch the next prerequisite.
-- Keep persistent memory lightweight and useful: use `AGENTS.md` for durable operational constraints and decisions, root `BUGS.md` for cross-module defects, root `FEATURE_REQUESTS.md` for platform/product capabilities, module `PLAN.md` for module execution work, and module `README.md` for stable usage and contracts.
-- Whenever a new feature is implemented, update the BusDK blog/docs under `busdk.com/docs/`, public end-user documentation under `docs/docs/`, and SDD documents under `sdd/docs/` in the same release flow. Prefer issuing those documentation updates through `bus dev task` workers addressed to the owning documentation modules when the docs live outside the implementation module.
-- CLI `--help` and OpenCLI/help metadata for a new CLI feature must be updated in the same implementation change. Periodically review CLI help for missing feature coverage because help drift is a recurring risk.
-- Report to the human in terms of goal, business value, release scope, critical path, delegated work, completed or returned work, blockers, risks or cost notes, open human decisions, and the recommended next step. When a feature is done and usable, say that plainly and distinguish it from partial, tested-only, documented-only, or internal-only progress. When a feature is incomplete, state what business capability remains unavailable, what the unfinished work is expected to unlock, and whether it is still worth prioritizing compared with alternatives. When describing completed work, explicitly say what changed compared with the previous baseline: new capability, better reliability, broader coverage, safer defaults, easier operation, stronger evidence, or reduced cost/risk. Include a short view of the open next work so the human can scope and redirect priorities without asking for a separate backlog report. When the report is more than a one-line status, structure it with Markdown headings and bullets so the user can scan it quickly.
-- When the next supervisor actions are clear, reversible through normal Git/task
-  workflow, and do not require an operator decision, execute them automatically:
-  review and pin promoted worker commits, reopen blocked workers with precise
-  guidance, record real follow-up PLAN items, and launch the next safe worker
-  batch. Do not pause for approval merely because the step was previously
-  described as "next steps"; ask only when product direction, security/privacy,
-  cost, destructive operations, or hard-to-reverse architecture decisions are at
-  stake.
+When editing the root `Makefile`, preserve superproject-only orchestration:
+deterministic discovery of `bus` and `bus-*` module Makefiles, delegation via
+`make -C`, POSIX shell/make, required lifecycle targets, module-local `./bin`
+outputs, `PREFIX`/`BINDIR`/`DESTDIR`, Go variable pass-through, and
+changed-module-scoped root test/e2e defaults. Do not add lockfiles or reimplement
+module internals.
 
-## Module Operational Conventions (All `bus` and `bus-*` Modules)
+## Repository Visibility And Secrets
 
-1. Module CLIs must be non-interactive and script-friendly; missing required arguments or flags must return a concise usage error and exit 2.
-2. Command results go to stdout (or `--output`); diagnostics, warnings, and errors go to stderr; help/version go to stdout.
-3. Avoid network and Git operations in module code and tests unless a module spec explicitly requires them.
-4. When a module provides a Makefile, use its targets (`build`, `test`, `fmt`, `lint`, `check`, `test-e2e` as applicable) as the standard interface; tests must be hermetic and deterministic.
-5. When e2e coverage needs PostgreSQL, prefer the repository's Docker/Compose support (`compose.yaml` or module-local compose files where present) instead of assuming PostgreSQL is unavailable; tests may still skip clearly when the required service or DSN is not configured.
-
-## CLI Global Flag Standard (When Implementing `bus-*` CLI Modules)
-
-Apply this section only when editing CLI module repositories or shared CLI parsing code.
-
-1. Support global flags before subcommand; `--` terminates flag parsing.
-2. Required semantics:
-   1. `-h`, `--help`: immediate success exit (0), ignore others.
-   2. `-V`, `--version`: immediate success exit (0), stable single-line output.
-   3. `-v`, `--verbose`: accumulative verbosity (`-vv`, repeated `--verbose`).
-   4. `-q`, `--quiet`: suppress non-error output; mutually exclusive with verbose (usage error exit 2).
-   5. `-C`, `--chdir`: set effective working directory before file resolution.
-   6. `-o`, `--output`: write normal output to file; with `--quiet`, write neither stdout nor output file.
-   7. `-f`, `--format`: explicit supported formats, unknown format => usage error exit 2.
-   8. `--color {auto|always|never}` and `--no-color` aliasing `never`.
-3. Help/version behavior must be deterministic and concise.
-4. Structured outputs go to stdout (or `--output`), diagnostics/human text to stderr.
-5. Implement parsing as a small testable module returning parsed flags + remaining args.
-6. Global flag tests should verify at least: repeated verbosity (`-vv`, repeated `--verbose`), `--` passthrough, quiet/verbose conflict (exit 2), invalid color/format (exit 2), `-C` working-directory behavior, and `--output` write/truncate semantics.
+1. Public/open-source repos: `./` (superproject), `./bus`, `./docs`,
+   `./busdk.com`.
+2. Private/commercial-customer repos: every `./bus-*` module unless explicitly
+   documented otherwise.
+3. In public repos, do not introduce in-process coupling to private module
+   internals; use stable CLI/library/API boundaries only.
+4. This public superproject and its public docs/examples must never contain real
+   SMTP, database, JWT, API, AI provider, webhook, signing, password, private
+   key, DSN-with-password, or customer secrets.
+5. Do not accept secret values as command-line arguments in BusDK tools or
+   services. Secrets must come from environment variables, user config secret
+   files, deployment secret files, OS credential storage, or standard input
+   where explicitly designed.
+6. Treat committed `AGENTS.md`, memos, notes, logs, docs, and examples as
+   public unless they are explicitly inside a private repository. Use
+   placeholders and redacted summaries.
+7. Never print broad `.env` contents. Query only exact non-secret keys or report
+   key presence with values redacted.
+8. Never auto-write JWTs, API tokens, refresh tokens, or auth-session files
+   under repository-local `.bus/` paths or any other working-tree-relative
+   default. Use the unified user config root, explicit operator-supplied paths,
+   environment variables, or OS credential storage.
 
 ## Definition Of Done
 
-1. Follow TDD (failing test first or tight lockstep).
-2. Every production change requires automated tests.
-3. Every bug fix must include both:
-   1. Unit test coverage for the defect path.
-   2. End-to-end (e2e) coverage that reproduces the user-visible failure and protects the fix.
-4. Regressions must get a reproducing and protecting test.
-5. Coverage for changed code must not regress; changed lines/branches should be exercised.
-6. Tests must be deterministic, isolated, and CI-repeatable.
-7. Quality gates must pass: build, tests, formatting, linting/static checks, and security/secret checks.
-8. After any code change, always run automated tests before reporting completion; if a module `make` target is a no-op or stale, run the underlying test/build commands directly for that module.
-- If an e2e run fails with `cannot execute binary file: Exec format error` for a module `bin/*` dependency, force a host rebuild with the owning module's `make clean build`; a stale cross-platform binary can satisfy Make timestamps while being unusable locally.
-- During development, first run the affected module's unit/e2e tests for fast iteration and debugging.
-- Because cross-module dependency effects are common in this superproject, the final verification step before reporting completion must still include root `make test` and `make e2e`; by default those targets may run changed-module scope, and `TEST_SCOPE=all` is required only when the user explicitly asks for a full cross-repository sweep.
-- Module-local unit/e2e runs are required for fast feedback during debugging, but they do not replace the required final root-level `make test` and `make e2e`.
-9. Maintain backward compatibility unless a linked issue explicitly allows breaking change with migration path.
-10. Update docs in same change set (README and operational/developer docs as needed).
-11. If any required item is missing, work is not done.
-12. Keep traceability: link implementation/tests/commits to the canonical issue URL when available.
-13. Exceptions must be approved in the linked issue with explicit scope/risk and a concrete follow-up issue.
-14. Always update end-to-end (e2e) tests to cover new features; new functionality is not done until e2e coverage is added.
-15. Every user-visible behavior change (feature, bug fix, CLI/output/validation change, migration/replay behavior change) MUST include updated or new e2e coverage in the same change set.
-16. If no existing e2e harness can cover the change, add one; do not mark work done without e2e unless the user explicitly approves a temporary exception.
-17. Restricted API e2e coverage must test both missing credentials and valid-but-underprivileged credentials. A valid JWT with the wrong scope must be rejected for every protected endpoint family so tests catch accidental "any valid JWT" authorization regressions.
-18. API access-control tests must be deterministic and scope-matrix based: for every public/protected API family, e2e tests should assert the expected status for no JWT, wrong-audience or malformed JWT where relevant, valid JWT with insufficient scope, and valid JWT with the exact required scope. Avoid relying only on one happy-path token shared across all endpoints.
+Production, bug-fix, and user-visible behavior changes require deterministic
+automated tests, appropriate e2e coverage, formatting/lint/static/security
+checks, docs/help/SDD updates when behavior changes, backward compatibility
+unless explicitly approved, and tracker follow-up for any approved exception.
+Before module command, test, runtime, CLI, docs, restricted API, or Go changes,
+read the owning module guidance and the relevant skill or SDD source.
 
-## Go Language And Project Conventions (When Go Code Exists)
+## Cross-Module Architecture
 
-Apply this section when touching Go files.
+Before changing module boundaries, command ownership, Events/auth/config,
+AI-host behavior, provider/runtime architecture, notes modules, naming, or
+private/public coupling, read the relevant module SDD under `/workspace/SDD/docs`
+or `./sdd/docs` plus the owning module `AGENTS.md`. If stable architecture still
+exists only in agent guidance, record an SDD-recipient follow-up instead of
+rewriting public docs in this root file.
 
-1. Keep code idiomatic, modular, and cohesive.
-2. Use clear package boundaries; minimize exported surface.
-3. Add proper package comments and exported identifier doc comments.
-4. Use explicit error handling with context wrapping; avoid panic for expected flow.
-5. Manage resources safely (`defer` cleanup after acquisition).
-6. Make concurrency ownership/lifetimes explicit; pass `context.Context` for cancelable work.
-7. Refactor long functions into focused helpers with clear inputs/outputs.
-8. For fixed string output to stdout-style `io.Writer` values, prefer `io.WriteString` or direct writer methods over `fmt.Fprint`, `fmt.Fprintln`, or `fmt.Fprintf`; `bus dev quality lint` enforces fixed-string fmt stdout writer-output cases.
-9. Testing:
-   1. Cover success, failures, and edge cases.
-   2. Prefer table-driven tests/subtests where useful.
-   3. Use fuzz tests/benchmarks for relevant risk or performance areas.
-   4. Run with race detection where appropriate.
-10. Go source quality flow:
-   1. Use deterministic and fast source quality tools first: `gofmt`,
-      `go test`, module `make` targets, `bus dev quality lint`, `go vet`, and
-      configured static/security checks.
-   2. Use `bus lint path/to/file.go` as a slower AI-backed final QA pass for
-      newly written or substantially changed Go files after the deterministic
-      checks above pass. Prioritize it when architecture, API shape, resource
-      ownership, diagnostics, or performance-review judgment matters.
-11. Layout guidance:
-   1. Entrypoints: `cmd/<binary>/main.go`
-   2. Internal reusable code: `internal/...`
-   3. Public importable packages only in `pkg/` when intentionally external.
-   4. Tests alongside code; fixtures in `testdata/`.
-12. Currency and money calculations must use decimal-safe arithmetic only (for example scaled integer cents or exact decimal/rational types). Do not use binary floating-point (`float32`/`float64`) for business money logic.
+## Commit And Deletion Safety
 
-## Diverse Test Strategy (Risk-Based, Optional Amplification)
+Read `skills/bus-plan-memory-maintainer/SKILL.md` before tracker-only commits
+or memory closeout. Root safety context: commit only when asked or explicitly
+allowed, commit staged scope only, never push/tag/sync without request, use
+tracked/untracked deletion commands deliberately, and keep tracker-only commits
+separate from implementation/docs/test changes.
 
-When test rigor needs expansion, prioritize:
+## Shell And Tool Hygiene
 
-1. Property-based tests for invariants and boundaries.
-2. Metamorphic relations when direct oracle is hard.
-3. Differential tests when a reference/alternate implementation exists.
-4. Mutation-driven strengthening (or targeted reversible perturbation if no tool).
-5. Go fuzzing with seeded corpus and promoted regressions.
+For shell scripts, Docker inspection, readiness probes, search/format commands,
+or other repeatable debugging practice, read the owning module guidance or
+relevant skill first. Root safety context: keep commands simple, portable,
+path-correct, and redacted.
 
-Use these as effectiveness tools, not blind coverage gates. Keep tests readable and deterministic.
-
-## README Refinement Standard
-
-When updating `README.md`, ensure it serves as a high-signal project front page:
-
-1. Clear title and concise value proposition.
-2. Add only meaningful status badges when available.
-3. Include TOC for longer READMEs.
-4. Provide prerequisites, install, and quickstart usage with copyable commands.
-5. Document key features, support path, contribution workflow, tests, credits, license, and project status.
-6. Keep content current, concise, and executable; preserve valuable existing material.
-
-For this superproject specifically, README must emphasize:
-
-1. Purpose: pinning/orchestrating `bus` + `bus-*` submodules.
-2. Common flows: `make bootstrap`, `make update`, maintainer `make upgrade`.
-3. Output/install variables: module-local `./bin`, `PREFIX`, and `BINDIR`.
-
-## Commit Workflow (When Asked To Commit)
-
-1. Commit only staged changes.
-2. If submodules have staged changes, commit them first (depth-first), then superproject.
-3. Do not auto-stage files unless explicitly asked.
-4. Use small, meaningful, imperative commit messages with enough body detail for release review. Non-trivial commits need a body covering what changed and why, verification performed or explicitly not performed, compatibility impact, migration/config impact, and security/privacy notes when relevant. For dev-task worker commits, include the work ref and recipient in the body; never accept a ref-only subject such as `chore: dev task busdk#41.1` as sufficient.
-5. Never push, tag, or run remote synchronization as part of this workflow.
-6. If hooks/checks reject a commit, report the failure and apply the minimal correction before retrying.
-7. If staged scope is too broad, prefer splitting into smaller logical commits.
-
-## Deletion Safety Rule
-
-1. Never use any internal delete tool.
-2. If path is tracked, use `git rm` (or `git rm --cached` to untrack but keep file).
-3. If untracked, use `rm` (`-r`/`-f` only when necessary).
-4. Use non-interactive deletion commands in scripts.
-5. After deletion, update references/imports/scripts accordingly.
-6. If a target path is already absent, treat it as a warning and continue.
-
-## Context Memory Rule
-
-Core principle for AGENTS memory updates: avoid repeating mistakes. Learn from this session’s errors and from prior observed errors, and codify preventive guidance immediately in the most relevant `AGENTS.md` so the same failure mode does not recur.
-
-1. When discussions establish durable project context, preferences, or workflow rules, write or refine `AGENTS.md` files to preserve them.
-2. Add/update `AGENTS.md` in the most specific relevant directory (repository root or a context subdirectory) so guidance applies at the right scope.
-3. Revisit and refine existing `AGENTS.md` files as context evolves, including this rule itself.
-4. Standing permission: add these rules in any subdirectory within this BusDK super-project and its submodules when needed to preserve context-aware information.
-5. Scope constraint: each context-specific `AGENTS.md` must contain only guidance relevant to that directory subtree.
-6. Treat user-stated durable workflow preferences as persistent by default and record them in the most relevant `AGENTS.md` in the same change set.
-7. Automatically update `AGENTS.md` files when the user provides new durable guidance or when you learn workflow rules that should be remembered.
-8. Persist newly learned durable project context immediately: when important recurring constraints, preferences, or workflow decisions are discovered during work, record them in the most relevant `AGENTS.md` in the same change set.
-9. Durable user workflow guidance MUST be written to the most relevant `AGENTS.md` in the same session when learned (do not defer memory updates).
-10. When a **system-level** CLI command fails due to incorrect parameters (for example `rg`, `sed`, `cat`, `find`, `git`, `make`), record the correct invocation or constraint in the most relevant `AGENTS.md` so the mistake is not repeated. Do not add rules for project-specific commands under active development.
-11. On macOS/BSD `cat`, `-A` is unsupported; use `cat -vet` or `sed -n 'l'` to visualize tabs and line endings instead.
-12. On macOS/BSD `awk`, avoid using `in` as a variable name (`in` is reserved in `for (x in y)`); use names like `inside` instead.
-13. On macOS/BSD `awk`, avoid slash-delimited regex fragments that try to carry `/` inside a character class in embedded scripts (for example `[^/]` in `... /.../ ...` within shell/Make recipes); prefer `index(...)`/`split(...)` or another BSD-safe formulation.
-14. When `printf` needs to print a format string that starts with `-`, use `printf -- '...'` so the format is not parsed as an option.
-15. When running shell commands that contain backticks in regex/pattern arguments (for example with `rg`), wrap the full command in single quotes or escape backticks to avoid command-substitution parse errors.
-16. `rg` does not support look-around by default; use `rg --pcre2` when patterns require look-ahead/look-behind.
-17. Use `python3` (not `python`) for Python scripting in this environment.
-18. In POSIX shell, use `$(...)` for command substitution. Do not accidentally
-    write `$((...))`, which starts arithmetic expansion and can reinterpret
-    command text as variable names.
-
-## Live Working Memo
-
-1. Maintain a live working memo during every work session. The memo is hourly based.
-2. At the start of work, create or update `./logs/{YYYYMMDD}-{HH}-agent-memo.md`, where `YYYYMMDD` is the current date and `HH` is the zero-padded 24-hour hour when that memo period starts. Create `./logs` if it does not exist.
-3. Use the current local/project time when naming memo files. Continue writing to the same memo only while the current hour remains the same. When the hour changes, finish the current memo with a short handoff note explaining the current state of the work, what is complete, what is still in progress, what was verified, what remains uncertain, and what should happen next. Then create or continue the next hourly memo for the new hour. The new memo should briefly continue the story from the previous memo so the chain of hourly memos can be read as one continuous work narrative.
-3.1. At the start of every supervisor heartbeat, progress report, or resumed work block, compare the current local/project hour to the active memo filename before doing substantial work or reporting progress. If the filename is stale, roll over first and record the handoff/correction in the new memo. Do not rely on the heartbeat UTC timestamp as the memo filename authority; convert or query local project time.
-4. Write each memo as an editorial engineering diary in story form. It should read like a clear narrative of the work session, not like a checklist, changelog, or raw activity dump.
-5. The memo should let a future maintainer, human reviewer, or AI agent understand the flow of work: what the agent was trying to accomplish, what end-user value, operator capability, product quality, or release confidence the work was meant to unlock, what it found, why it made certain choices, where it hesitated, what changed, what went wrong, what worked well, and what could be improved next time. Treat business value broadly: useful, reliable, understandable software that end users and operators like using comes first; commercial value follows from that quality.
-6. Use Markdown, but prefer narrative paragraphs over lists. Headings may be used to make the memo readable, such as `## Session Context`, `## Work Narrative`, `## Observations`, `## Decisions`, `## Tests and Checks`, `## Problems and Friction`, `## Improvement Ideas`, `## Hourly Handoff`, and `## Final State`.
-7. Lists are allowed only when they genuinely improve readability, for example for compact test results or final next steps. The main body of the memo should tell the story of the work.
-8. Update the current hourly memo throughout the hour as the work develops. After each meaningful phase, add a short narrative note explaining what just happened and what it means.
-9. Do not merely write "ran tests" or "updated parser." Explain why tests were run, what the result suggested, why a parser needed changes, whether the change felt clean, and whether any concern remains.
-10. If work changes direction, describe the reason. If an assumption turns out to be wrong, record how that changed the approach. If a command fails, explain the failure, the likely cause, and what was done next.
-11. Before making a risky, broad, or hard-to-reverse change, write a short note explaining the intended change, why it seems necessary, and what risk it carries. After making the change, update the current hourly memo with what actually happened, whether the result matched expectations, and whether the decision should be revisited later.
-12. If the hour changes during the work, roll over to the next hourly memo before continuing substantial new work.
-13. If no code changes were made during an hour, still write the story of that hour: what was examined, what was learned, what remains uncertain, and what the next useful action would be.
-14. Keep the memo truthful, concise, and useful for later learning. Do not claim planned work as completed. Do not invent successful results. Clearly separate facts from interpretation. Mark uncertainty, failed attempts, skipped checks, and assumptions honestly.
-15. Avoid blame-oriented language; focus on what the project, tooling, architecture, process, tests, or prompts can learn from the session.
-16. Summarize long command outputs instead of pasting them in full, and mention how the result can be reproduced when useful.
-17. Treat committed logs and memos as public repository content. Never write secrets, API keys, passwords, tokens, private customer data, proprietary customer details, or other sensitive values into memos or committed logs; summarize or redact sensitive evidence instead.
-17.1. Never print broad `.env` contents to the transcript or logs. When
-    investigating `.env`, query only the exact non-secret key needed with a
-    targeted command, or report whether a key exists without displaying
-    unrelated values.
-18. Do not edit historical hourly memos after the hour/session has passed except to remove sensitive information or undo an accidental inappropriate edit. Later lessons from old memos should be captured in the current memo, durable tooling changes, or the relevant `AGENTS.md`.
-19. Before finishing the session, review the current hourly memo as part of the story of the work. Make sure it explains not only what changed, but how the work unfolded and what can be learned from it. Remove stale speculation or mark it as historical context.
-20. End the final memo for the session with a concise final state that explains what is complete, what remains incomplete, what was verified, what was not verified, and what the next agent or maintainer should probably do next.
-21. Every hourly memo should contain enough handoff detail that another
-    supervisor can resume without re-reading the whole conversation. When the
-    work is broad or delegated, include compact sections or paragraphs covering:
-    current goal, end-user/operator value or release capability being pursued,
-    key decisions, modified files or submodule pins, commands and tests run
-    with outcomes, pending tasks/work refs, blockers, active workers, and
-    important session context. Keep this high-signal rather than exhaustive;
-    summarize long command output and link the exact task refs or files needed
-    to reproduce details.
-21.1. Include Git references for meaningful repositories in each hourly memo.
-    Record the superproject commit hash and the commit hashes for submodules
-    that were modified, pinned, dispatched as workers, used for verification, or
-    otherwise important to the hour's decisions. If a repository is dirty, say
-    so next to its hash and summarize the meaningful dirty paths instead of
-    relying on an implicit current checkout.
-22. For delegated `bus dev work` / `bus dev task` workers, the logical `agent_id` is the recipient module/AGENTS.md instruction identity. The concrete run is distinguished by task `work_ref`, worker/container metadata, and App Server thread/turn ids. Worker notes should be written through `bus notes` so they become Bus ecosystem data, not hidden local log files. Worker closeout should report `agent_id`, `agent_instruction_path`, and Bus Notes IDs or query metadata so notes can be grouped by agent and inspected per run; local memo files are only an explicit fallback/draft when the Notes API is unavailable.
-
-## Planning, Trackers, And Data Modeling
-
-- Feature request implementation order is user-defined and must be followed unless explicitly revised: FR65, FR66, FR59, FR58, FR46, FR63.
-- Prefer working inside the target module directory (`./bus` or `./bus-*`) for module implementation and tests; use superproject-root commands only for explicit superproject tasks.
-- When the user provides `*.Update.md` tracker files (including `BUGS.Update.md` and `FEATURE_REQUESTS.Update.md`), merge their contents into the corresponding canonical tracker files in the same turn, then remove the update files.
-- Whenever `*.Update.md` tracker files appear in the repository, automatically process them into their canonical tracker files and remove the update file(s) in the same turn.
-- For import/extract/replay data handling, prefer canonical BusDK/master-data keys. If input structure is non-canonical, require explicit user-defined/configured column mapping (for example profile/`--map`) rather than implicit assumptions.
-- For any cross-module data/path/key usage, resolve through the owning module’s Go library/API (path/key accessors) instead of hardcoding foreign module file names, keys, or locations.
-- Do not hardcode source-field/header alias mappings as long-term behavior. Mapping preferences must be project-level configurable (profiles/config files/flags), with deterministic validation diagnostics for missing/unknown/ambiguous mappings.
-- Schema data is a valid preferred place for mapping configuration when supported (for example schema-declared field mappings/metadata), as long as behavior remains deterministic and override order is documented.
-- When mentioning the `bus` GitHub repository in documentation or README text, inline-link to `https://github.com/busdk/bus`.
-- For bug-fix work, prefer adding multiple related regression tests (unit/e2e) beyond the minimal reproducer whenever nearby behavior coverage is thin, to reduce recurrence risk.
-- Do not add persistent workspace configuration for previous-year or cross-workspace inputs. If a tool needs external prior-year data, require it explicitly on the command line for that invocation; prefer dedicated commands that derive and print reusable Bus commands or carry-forward artifacts instead of hidden cross-workspace config.
-- When active entries exist in `FEATURE_REQUESTS.md`, refine them into concrete module execution checklists in the corresponding `bus-{NAME}/PLAN.md` files in the same turn; the checklist should describe the user-visible implementation outcome, while automated tests, e2e coverage, and documentation updates remain mandatory through the repository Definition of Done.
-- When writing or refining task plans (for example `PLAN.md`), each task MUST be end-to-end and self-contained from the implementation perspective. Do not add separate PLAN items merely to write tests or refine documentation for new work, because those are part of the original implementation task's Definition of Done. Only add standalone test/documentation PLAN items when the implementation already exists and the missing coverage or docs are the remaining follow-up work.
-- When `go.mod` dependencies or local `replace` directives change in a module, update that module's `Makefile.local` `MODULE_BIN_DEPS` in the same change set so it stays aligned with `go.mod`.
-- Always process `BUGS.Update.md` first when it exists: merge its content into canonical `BUGS.md`, remove `BUGS.Update.md`, and only then start fixing or verifying active bugs from `BUGS.md`.
-- Treat every new bug report as a new triage item even if it appears to match a previously fixed issue; deterministically re-verify both the original bug path and the new reported path before concluding fixed.
-- When a bug report includes explicit repro instructions or a shell repro script, do not close or downgrade the bug based only on code inspection or nearby tests; rerun the provided repro steps as written (or the closest deterministic equivalent if paths need sanitization) before deciding whether the bug is still active.
-- If multiple active bug reports exist in `BUGS.md` or `BUGS.Update.md` and the user refers in singular form to “the bug report” or says to fix “it” without uniquely identifying which bug, stop and ask a concise clarification question before implementing. Do not guess which active bug they meant. Include a short summary of the active bug options in the clarification so the user can choose explicitly.
-- When processing `BUGS.Update.md` or `FEATURE_REQUESTS.Update.md`, do not assume every listed item is new. Re-verify whether each item is already handled, stale, duplicated, or superseded before copying it into canonical trackers, and keep only still-relevant active items.
-
-## Cross-Module And Module-Specific Boundaries
-
-- Root `AGENTS.md` may define cross-module architecture, orchestration, release, and family-wide policy. Module-specific implementation rules belong in the owning module's `AGENTS.md` so isolated worker checkouts have complete local guidance.
-- For user-facing CLI naming, keep command-to-module mapping direct and simple (for example `bus plan` -> `bus-plan`); avoid alias-heavy indirection.
-- For private backend architectures, keep CLI modules as thin clients that call backend APIs/services; avoid embedding monolithic backend business logic into CLI binaries.
-- Module-specific implementation rules must live in the module’s own `AGENTS.md` (for example `bus-foo/AGENTS.md`); this superproject `AGENTS.md` may still carry cross-module architecture, orchestration, and release guidance that coordinates multiple modules.
-- For any work in a module or subdirectory, always check and follow the most specific local `AGENTS.md` in that subtree in addition to this root file.
-- Apply mistake-learning rigor to memory updates: if a command, workflow, or reasoning pattern fails, add a concise preventive rule so future runs use a corrected approach by default.
-- Prefer learning from existing guidance and prior failures in this repository before trial-and-error; do not repeat an already documented failed approach.
-
-## Shell, Search, And Path Hygiene
-
-- When searching `rg` patterns that begin with `-` (for example `--dim`), always use `-e` for each pattern (`rg -e "--dim" ...`) so patterns are not parsed as flags.
-- When using `perl -pi -e 's#...#...#g'`, do not use `#` as the delimiter if either pattern contains `#`; choose another delimiter (for example `|`) or escape literal `#` characters.
-- When building `sed` substitution commands that insert file paths into the replacement text, do not use `/` as the delimiter unless paths are escaped first; prefer `awk`, `printf`, or a non-conflicting delimiter so path slashes are not parsed as sed flags.
-- When running shell commands with `rg --pcre2` patterns that include quotes or look-arounds, wrap the full command in single quotes to avoid bash quote-termination errors.
-- When running `git -C <subrepo> ...`, keep pathspecs relative to that subrepo root (for example `git -C docs diff -- PLAN.md`), and do not use `../` pathspecs that point outside the repository.
-- When excluding Git pathspecs that begin with `_`, use the long exclusion form such as `':(exclude)_site'`; shorthand like `':!_site'` can be parsed as invalid pathspec magic on some Git versions.
-- Before reading optional module docs/inventory files with `sed`/`cat` (for example `FEATURES.md`), verify existence with `ls` or `rg --files` in that module; do not assume every module has the same top-level files.
-- When searching for text that includes backticks using `rg`, pass the pattern with `-e` and single-quote the full command to avoid shell command-substitution errors.
-- When an `rg` search has multiple alternative patterns and one alternative includes backticks, pass each alternative with its own single-quoted `-e` argument; do not place the alternation inside a double-quoted shell string.
-- In `exec_command` JSON, backticks inside the `cmd` string are still interpreted by the shell; pass the affected `rg` pattern as a single-quoted `-e` argument rather than leaving backticks unquoted in any shell argument.
-- When passing natural-language prompts or guidance through shell commands (for example `bus dev work reopen ...`), do not include unescaped Markdown backticks inside a double-quoted shell argument; use plain quotes without backticks or escape the backticks so the shell does not perform command substitution before the Bus command receives the prompt.
-- When searching literal placeholder text with `rg` that contains `{` or `}` (for example `V-{inc}`), use `rg -F` or escape the braces; otherwise default regex parsing treats them as quantifiers and fails.
-- `rg` does not accept a literal `\n` escape in normal regex mode; when a search needs newline-aware matching, use `-U`/`--multiline` (and `--multiline-dotall` if needed) or split the search into separate patterns instead of passing `\n` literally.
-
-## Test, Quality, And Runtime Diagnostics
-
-- When a refactor changes canonical data modeling or report semantics, and it is unclear whether a concept should be represented as user-configured data versus synthesized in code, stop and ask the user to define that boundary before implementing. Do not guess domain structure for accounting/reporting hierarchies.
-- Module e2e wrappers must stay quiet on success except for summary lines, but they must print any `SKIP ...` lines from the captured log before the success line and include summary counts in the form `e2e OK (module: passed X, skipped Y)` or `e2e FAILED (module: passed X, skipped Y, failed Z)`; multi-script e2e harnesses must print explicit `RUN`, `PASS`, and `FAIL` lines per internal script so the failing inner test is visible immediately.
-- Do not hand-edit Frictionless Data table files or schema files through raw CSV/JSON string assembly in production code when shared storage/schema APIs exist. For owned datasets, use the owning module library or the shared `bus-data` storage-aware read/init/mutate/write APIs so logical fields, `_pad`, `PCSV-1`, and schema metadata stay consistent.
-- If a command or test process is terminated unexpectedly with signals such as `Killed: 9` / exit 137 and the cause is not obvious from stdout/stderr, stop and ask the user to check whether F-Secure event logs show the process being blocked before continuing root-cause analysis; do not assume a product-code bug first.
-- Performance timing output for Bus CLI commands must use plain tokenized lines, not key-value envelopes: `<LEVEL> perf <module> <op> <duration_s>` (for example `INFO perf bus-reports trial-balance 0.123`).
-- Prefer reusable, approval-friendly commands over ad hoc shell scripts: use the repository or module standard interfaces first (for example `make test`, `make e2e`, `make check`, `go test ./...` in a module) instead of long `bash -lc`, pipelines, temporary trace files, or chained command recipes.
-- When a standard Makefile target exists for the needed action, use that target as the default command surface before falling back to lower-level or custom shell commands.
-- Keep commands simple and repeatable so they can be safely re-run by humans and approval rules can match them; avoid one-off compound shell invocations unless no reusable interface exists.
-- When an e2e suite depends on an external environment capability (for example loopback TCP bind), probe that capability once in the suite runner and emit explicit `SKIP <test>: <reason>` lines for affected cases instead of failing them generically when the environment forbids the capability.
-- When using `rg --files` with path globs, pass each glob via `-g` (for example `rg --files -g 'bus*/AGENTS.md'`); do not pass the glob as a positional path argument.
-- Each module-specific `AGENTS.md` must stand on its own for agents working in an independently checked out module; copy any generally needed operational guidance into the module file instead of assuming this root `AGENTS.md` is available.
-- When running commands from inside a module directory, use module-relative paths by default (for example `gofmt -w internal/app/run.go`), not superproject-prefixed paths.
-- When running commands from the superproject root, use explicit module-relative paths (for example `bus-integration-upcloud/cmd/...`) rather than paths that would only exist inside the module workdir.
-- Module e2e scripts should be quiet by default: successful runs print only a short stable success line, and detailed shell tracing is enabled only with `BUS_E2E_VERBOSE=1`.
-- When checking `.env` or other local secret-bearing files for configuration presence, never print raw values. Use redacted output such as `sed 's/=.*$/=<redacted>/'`, `cut -d= -f1`, or a purpose-built script that emits only variable names.
-- For Docker container or image inspection, prefer `scripts/docker-safe-inspect.sh`
-  over ad hoc `docker inspect` pipelines. The script provides a narrow approval
-  surface and redacts secret-like environment and label values by default.
-- Module `test-e2e` Makefile targets should capture script output and print it only on failure; do not stream verbose e2e logs during successful runs by default.
-- For date-bounded Git history inspection, use `git log --since=... --until=...` (optionally with `--stat` or `--name-only`). Do not try to pass date strings as a revision range to `git show`; `git show` expects commit-ish arguments, not calendar boundaries.
-- ACP-related `bus-agent` extraction/integration tasks are low priority by default; do not pick them up unless the user explicitly asks for low-priority work or they are required to unblock higher-priority work.
-- For bug-fix work, prefer converting manual repro steps into module unit tests and/or e2e tests, then verify through the module's standard test interface (for example `make test`, `make e2e`, `make check`) instead of relying on ad hoc shell repro commands as the primary proof.
-- For performance optimization work, first add investigation-oriented `PLAN.md` items that use Go profiling/benchmark tools to measure allocations, I/O, and other root causes in the current code path; do not jump straight to new batching/tooling designs before the measured root cause is documented. New helper tools or architectural changes may be proposed only after benchmark/profile evidence shows simpler fixes are insufficient.
-- Treat locale as part of the test matrix for all user-facing text/HTML/report/browser paths. Tests must either pin locale explicitly or be written locale-tolerant by default; do not rely on the developer shell locale implicitly.
-- When a user reports a test failure that does not reproduce locally, first compare locale/environment-sensitive inputs (for example `LANG`, `LC_*`, browser runtime) before assuming the failure is flaky or non-reproducible.
-- For affected user-facing modules, debug runs should include at least one alternate locale execution (for example `LANG=fi_FI.UTF-8` with mixed `LC_*`) before declaring a test green across environments.
-- Root `make test` and `make e2e` should default to changed-module scope, not a whole-repository sweep; use `TEST_SCOPE=all` only when a full cross-module run is explicitly desired.
-- When using `rg` from the superproject root, do not include nonexistent generic paths like `internal` as positional search roots; target the actual module directories explicitly.
-- When using `rg` inside a module, first verify generic roots such as `cmd`, `internal`, and `pkg` exist before passing them as positional search roots; not every module has every standard Go directory.
-- When running `gofmt -w` with generic roots such as `cmd`, `internal`, and `pkg`, first verify the directories exist or pass only existing roots; `gofmt` fails on nonexistent paths.
-- When formatting package paths inside multiple submodules, run `gofmt` from each owning module directory or pass full existing module-relative paths from the superproject root; do not pass bare paths such as `pkg/foo` from the superproject root unless that package exists there.
-- When reading same-named files across multiple submodules, run from the superproject root with full module-relative paths or use separate per-module commands; do not concatenate module-local paths while the working directory is only one submodule.
-- Before opening assumed source filenames in submodules with `sed`/`cat`, locate the real files with `rg --files` first; packages often use names such as `run.go` or `runner.go` instead of a guessed `integration.go`.
-- Do not assume the superproject root has a `make check` target; use the root `make test` and `make e2e` targets plus module-local `make lint`/`make check` targets when they exist.
-- When already running from inside a module directory, do not pass that module directory name as an `rg`/`sed`/`cat` positional path; use module-local paths that exist in the current working directory.
-- Before starting any new user-requested feature or behavior change, or immediately when noticing work is already in progress, first add or update the corresponding `PLAN.md` and/or `BUGS.md` and/or `FEATURE_REQUESTS.md` entries in the same turn so in-progress work always leaves a canonical repository trace.
-- Whenever there is implementation work still to do, keep the relevant module `PLAN.md` item updated before continuing so the active checklist remains a reliable memory of remaining work, not just a completion summary.
-- Do not run `make install`, `make bootstrap`, `go install`, or other user-environment install steps on the user's behalf unless they explicitly ask for that exact installation action. Tell the user what install command to run instead.
-
-## Historical Verification
-
-- Before making any historical claim about what changed on a given date, verify
-    the actual Git diff first. Do not infer behavior from commit subjects,
-    repository creation dates, or assumptions about what "must have" happened.
-- Historical verification process:
-    1. locate the exact date window with `git log --since=... --until=...`
-    2. inspect the concrete file changes with `git log --stat`, `git show`, or both
-    3. if the claim concerns code behavior, open the introduced/changed source,
-       tests, docs, or help text and confirm the behavior really existed then
-    4. only after that make the historical statement in plans, docs, blog copy,
-       or user-facing summaries
-- Treat repo initialization, docs-only changes, pin bumps, and scaffolding as
-    separate from feature delivery unless the diff shows a real user-visible
-    capability, command surface, workflow, or documentation milestone.
-- In portable shell scripts and selftests, do not assume `shasum` exists on Linux runners; use `shasum` with deterministic fallback to `sha256sum` for SHA-256 file hashing.
-
-## Bus Module Family Architecture
-
-- Command ownership reminder: `bus` is only the dispatcher. Any behavior for `bus <module> ...` belongs to the corresponding `bus-<module>` repository. In particular, `bus dev ...` is implemented by `bus-dev`, not by the `bus` dispatcher; when changing `bus dev` behavior, start in `./bus-dev` and record module-specific guidance there if needed.
-- Shared AI-host rule: cross-module AI host behavior such as auth/login handling, approval request/response bookkeeping, streamed event ingestion, terminal-session derivation, and thread-isolation/lock handling must be implemented as reusable library code in `bus-agent` and/or `bus-ui`, with host modules consuming that shared implementation instead of reimplementing parallel AI-flow logic locally.
-- Shared Codex rule: reusable AI-host and runtime integrations must support both hosted Codex sessions and locally hosted LLMs reached through Codex configuration (for example operator-selected Gemma-class local models); do not design shared AI libraries as hosted-only paths with separate per-host local-model implementations.
-- In portable shell scripts and selftests, use a single `$` end anchor in `grep` basic regular expressions (for example `grep -q '^name$'`); do not write doubled anchors such as `$$`, which can behave differently across GNU/BSD grep.
-- When a Makefile selftest script invokes `make` internally and can also run from a parent make recipe, clear inherited recursive make state for the script entrypoint (for example `MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/...`) so GNU make recursion variables do not change the selftest's assertions.
-- This public superproject and its public docs/examples must never contain real SMTP, database, JWT, API, or AI Platform secrets. Docker Compose examples may use obvious non-secret local development defaults only; real credentials must be supplied through environment variables or local untracked files.
-- Public Docker Compose examples for Bus services should prefer published BusDK release images or release binaries for runnable services when those artifacts exist, with explicit local-build overrides for development. Do not make a public compose example depend on a developer-specific checkout path.
-- AI Platform smoke examples for Bus auth should use the token produced by the local `bus auth` login/token flow. Do not document or depend on developer-specific `ai-platform` checkout commands for issuing JWTs.
-- Public docs, tests, scripts, and compose files must not depend on absolute developer-machine paths such as `/Users/...` or repositories outside this superproject. Use repo-relative paths, published artifacts, or operator-supplied environment variables instead.
-- Current AI Platform API planning: `/v1/*` remains OpenAI-compatible and SDK-facing; `bus-agent` may use `bus-auth` AI Platform sessions as one provider/auth option, but existing providers and credential flows must remain supported. Domain modules own their API clients and Go libraries: `bus-vm` owns `/api/v1/vm/status`; `bus-containers` owns user-owned `/api/v1/containers/status` and `/api/v1/containers/runs*` lifecycle APIs; `bus-status` is an aggregate status UX that imports those domain libraries rather than reimplementing their HTTP clients. `bus-api-provider-auth` owns the auth service implementation, while `bus-auth` owns the auth client CLI. `/api/internal/usage-events` is internal Bus billing infrastructure and should not get a Bus CLI module unless explicitly requested. The original external AI Platform API gateway project has been merged into Bus, so new planning and docs must refer to Bus-owned API/provider equivalents instead of treating it as an external project.
-- BusDK modules must not implement reusable behavior by executing another BusDK module's CLI. Cross-module reuse belongs in Go library/API packages owned by the relevant module (for example shared Events API clients or DTOs), while user-facing CLI composition stays explicit at the dispatcher/user level.
-- Nested module families should be implemented by dispatcher longest-prefix routing, not by parent modules shelling out to child modules. For example, `bus operator billing ...` should resolve to `bus-operator-billing ...` when that binary exists, while falling back to `bus-operator billing ...` only when the focused submodule is not installed.
-- Keep `bus-operator-*` module families shallow and direct. Prefer sibling operator modules such as `bus-operator-billing` for `bus operator billing ...` and `bus-operator-stripe` for `bus operator stripe ...`; do not create deep chains such as `bus-operator-billing-stripe` unless the user explicitly approves an exception.
-- Bus user-level configuration and auth/session state should use a unified Bus config root: `BUS_CONFIG_DIR` when set, otherwise `$XDG_CONFIG_HOME/bus` or `~/.config/bus` on Unix-like systems, and `%APPDATA%\Bus` on Windows. Do not introduce new defaults under `.config/busdk` for runtime config/state.
-- Never auto-write JWTs, API tokens, refresh tokens, or auth-session files under repository-local `.bus/` paths or any other working-tree-relative default. Use the unified user config root, explicit operator-supplied paths, environment variables, or OS credential storage instead.
-- End-user-facing command examples and help text should use dispatcher command form (`bus containers`, `bus auth`, `bus events`, etc.) instead of standalone binary names (`bus-containers`, `bus-auth`, `bus-events`). Standalone binary names may still appear in implementation docs, module titles, version output, tests, and low-level developer references.
-- Bus Events authorization should use the normal Bus API JWT audience `ai.hg.fi/api` plus domain scopes such as `vm:write`, `usage:read`, `usage:delete`, `container:run`, and `container:read`, not a separate Events API audience or generic event-pattern scopes such as `events:send:bus.vm.*`; the Events API maps event names/prefixes to those domain scopes for send and receive authorization.
-- `bus-api-provider-llm` `/v1/models` should default to a cached/configured model catalog that does not wake every GPU backend and does not expose internal GPU/provider topology; proxying `/v1/models` to a backend should be explicitly configured fallback behavior. Runtime wake-up is still required for model execution endpoints such as `/v1/responses`, `/v1/chat/completions`, `/v1/completions`, and `/v1/embeddings`.
-- When running `gofmt` or other file-specific commands from the superproject root across submodules, include each submodule directory in the path (for example `bus-events/internal/cli/cli.go`), or run the command inside the target module. Module-relative paths such as `cmd/foo/main.go` only work from that module's root.
-- In `set -o pipefail` shell scripts, avoid piping verbose `--help` output directly into `grep -q` because `grep -q` can exit early and cause the producer to fail with SIGPIPE. Capture help text into a variable or file first, then grep the captured content.
-- Internal service-to-service control in the Bus platform should prefer protected Bus Events through `bus-integration-*` workers. Add private/internal HTTP endpoints only when a concrete service requirement cannot reasonably use events.
-- `bus-integration-*` README files must document each Bus Event the worker listens for and sends, using one compact subsection per event rather than tables.
-- `bus-api-provider-*` README files must document each API endpoint using one compact subsection per endpoint and must state which Bus Events the endpoint triggers, or explicitly state that it triggers no Bus Events.
-- Bus integration architecture: all `bus-integration-*` modules are independent event-listening microservices. They must compose through Bus Events by publishing/listening to module-owned event names, not by calling each other’s implementation logic in-process. Sharing across integrations should happen through Go library DTO/client contracts only (event names, request/response payload structs, small clients), so one integration can trigger another by publishing events while each service owns its own runtime, credentials, and side effects. Generic integrations must accept domain-specific behavior as input: for example `bus-integration-ssh-runner` owns SSH transport and executes caller-supplied scripts, while cloud/container modules own provisioning and Podman/bootstrap script construction.
-
-## Quality Targets And Static Checks
-
-- Root `make quality` is the normal changed-module AI cleanup gate and must stay source/static-analysis focused. It must invoke the core Bus custom AST checks directly through `bus-dev quality lint` for every selected Go module, not only through module `lint` targets and never through Go test functions. Do not add unit tests, race tests, fuzzing, benchmarks, Docker validation, or e2e checks to the normal quality path; those belong under `make test`, `make e2e`, or explicit module-specific test targets.
-- Go module `lint` targets should also invoke `$(BUS_DEV) quality lint --profile "$(BUS_GO_QUALITY_PROFILE)" .` so module-local linting catches the same custom Bus source-quality rules as the superproject. Keep this as a command invocation, not a Go test.
-- Every top-level submodule Makefile must provide a source/static-only `quality` target. For Go modules, `quality` should run formatting plus lint/static checks and must not run unit tests, e2e tests, fuzzing, benchmarks, Docker tests, or install steps. Non-Go documentation/site modules may use a no-op `quality` target until they have concrete source-quality checks.
-- When prefixing `PATH` through `env`, quote the full assignment (for
-    example `env "PATH=/path/bin:$PATH" cmd`) because this developer
-    environment's `PATH` can contain directories with spaces.
-
-## Documentation Paths (All Modules)
-
-1. Documentation surfaces are split by audience:
-   1. `./busdk.com/docs/` is for commercial/product landing and product-audience messaging.
-   2. `./docs/docs/` is for end-user documentation about how to use BusDK software.
-   3. `./sdd/docs/` is for implementation/developer software design documentation (private by default).
-2. When editing files under any of these trees, follow the most specific local `AGENTS.md` (`./busdk.com/AGENTS.md`, `./docs/AGENTS.md`, `./sdd/AGENTS.md`) in addition to this root file.
-3. For any BusDK module `{NAME}` (for example `bus` or `bus-books`):
-   1. End-user module documentation location is `./docs/docs/modules/{NAME}.md`.
-   2. Module implementation SDD location is `./sdd/docs/modules/{NAME}.md`.
-4. The same topic may exist in both `./docs/docs` and `./sdd/docs`, but each version must be refined for its audience (end-user vs implementer/developer) without losing core information.
-5. When implementation changes alter behavior, update the corresponding end-user and SDD documents in the same change set.
-6. When design discussion clarifies architecture, security boundaries, module ownership, feature scope, or deployment assumptions, update the relevant `./sdd/docs/` page in the same turn so the SDD remains the canonical design memory even before code changes.
-7. Do not defer documentation updates to a follow-up change.
-8. End-user docs readability DoD: prefer short paragraphs, avoid repeated wording, and keep pages task-oriented.
-9. End-user docs style rule: avoid bullet lists by default; use paragraphs unless a list/table is the only clear way to present structured data.
-10. When editing Markdown tables, align columns with padding so raw plain-text Markdown remains readable, not only the rendered view.
-
-## Assistant Response Formatting
-
-1. The user commonly reads answers in a CLI client that does not render
-   Markdown tables well. In assistant replies, use Markdown tables only when
-   the data is genuinely tabular. Keep table rows short and space-align columns
-   so the raw Markdown remains readable in a terminal. Prefer bullets,
-   numbered lists, or compact labeled lines for non-tabular comparisons.
-
-## Gitignore Rule
-
-1. The `.bus/` directory is a tracked project directory; never add `.bus` or `.bus/` ignore rules to `.gitignore` files in this superproject or its modules.
-2. In private repositories, `.bus/` must be tracked; `.bus/secrets` may be tracked in private repositories only and must not be tracked otherwise.
-3. Runtime lock artifacts such as `.bus-dev.lock` may be ignored.
-4. Do not treat `.bus/`, `Makefile.local`, or `./tests` as temporary files; they are tracked by default unless a repository explicitly documents an exception.
-5. Never add `FEATURES.md` to `.gitignore` in any module. If `FEATURES.md` exists in a module's git history, restore and keep it tracked.
-
-## Secret Argument Rule
-
-1. Do not accept secret values as command-line arguments in BusDK tools or
-   services. JWTs, API tokens, provider tokens, webhook secrets, signing
-   secrets, passwords, private keys, and DSNs that may contain passwords must
-   come from environment variables, user config secret files, deployment secret
-   files, or standard input where explicitly designed.
-2. Command-line flags may accept non-secret paths, URLs, names, IDs, and public
-   key paths, but not literal secret material because argv leaks through shell
-   history, process listings, crash reports, and service managers.
-3. Treat every committed `AGENTS.md`, memo, log, documentation file, and example
-   as public unless it is explicitly inside a private repository. Do not record
-   real tokens, credentials, private customer data, or sensitive local
-   configuration there; use placeholders and describe reproduction steps without
-   exposing secret values.
-
-## Global unit documentation traceability rule
-
-- Every top-level production-code unit (`func`, `type`, `var`, and `const` blocks when they define global API/behavior) must include an inline comment that states its purpose.
-- For each top-level global unit, also include concise `Used by:` traceability in the inline comment (or immediately adjacent comment) that names the primary caller(s), owning flow, or integration point.
-- Keep `Used by:` comments accurate when refactoring: update or remove stale references in the same change set.
-- Do not add new undocumented top-level global units.
-
-## PLAN granularity and memory rule
-
-- `PLAN.md` checkboxes must be executable in one end-to-end implementation pass: implementation + tests + docs in the same item.
-- When the user gives new instructions or changes scope, immediately add or update a local internal `PLAN.md` checklist for the affected repository/subtree before continuing substantial work.
-- Keep unfinished earlier work visible in that `PLAN.md` instead of dropping it implicitly; finish the current highest-priority item first and queue only the necessary additional items behind it.
-- If work naturally must be done together in one pass, model it as one checklist item (do not split coupled work into multiple checkboxes).
-- When users provide durable workflow preferences (for example planning granularity/process constraints), record them in the most relevant `AGENTS.md` in the same session.
-- When adding or refining a module `PLAN.md` for a new user-requested feature, also add or update the corresponding canonical entry in `FEATURE_REQUESTS.md` in the same turn unless the user explicitly says not to.
-- Any unchecked feature-oriented item in a module plan (including `bus/PLAN.md` and `bus-*/PLAN.md`) must have a corresponding mention in `FEATURE_REQUESTS.md`; when auditing or adding plan items, fix missing canonical mentions in the same turn.
-- In this repository, do not estimate calendar time, engineer-days, or duration as the default planning output. When users ask how big a job is, answer with scope, dependencies, risks, sequencing, and optional phase breakdowns instead of time forecasts unless the user explicitly requires a time estimate.
-- Always treat active `BUGS.md` work as higher priority than `PLAN.md` or feature work: verify and fix unresolved bugs before continuing open plan items unless the user explicitly reprioritizes.
-- When the user sets the DoD for plan execution to leaving no plan work undone, continue consuming relevant open `PLAN.md` items sequentially and do not report the plan effort complete while those open items remain.
-- When the user explicitly asks for very small plan items for a task, split the affected `PLAN.md` work into the smallest practical end-to-end checklist items and update their statuses incrementally as each slice is completed.
-- Whenever a `FIXME(refactor)` comment is added in code, add/update a corresponding `PLAN.md` item that references the owning file path in the same change set.
-- If an owning file already has a completed (`[x]`) refactor item in `PLAN.md`, adding a new `FIXME(refactor)` must reopen planning by adding a new open (`[ ]`) item for that same file path in the same change set.
-- Before completion, ensure active `FIXME(refactor)` comments and open `PLAN.md` items are in sync for the touched module.
-- Changes to canonical planning/tracking files must leave a durable git trace, but tracker commits are the only autonomous commits allowed by default: whenever you add, reopen, complete, remove, or otherwise change entries in `PLAN.md`, `BUGS.md`, or `FEATURE_REQUESTS.md`, commit only those tracker-file changes and do not include implementation/docs/test changes in the same autonomous commit.
-- Do not make autonomous commits for non-tracker work unless the user explicitly asks for commits.
-- When tracker files change in the same turn as implementation/docs/test files, leave the non-tracker changes uncommitted for the user's own commit workflow; only the tracker-only commit may be created automatically.
-- When removing tracked inbox/update files that may already have staged changes, prefer `git rm -f <file>`; plain `git rm` can fail with "file has changes staged in the index".
-- For tracker-only commits, prefer `scripts/commit-tracker-only.sh <repo-path> <message> <tracker-file>...` so the commit uses `git commit --only -- ...` and cannot accidentally include other staged files from that repository; `scripts/commit-plan-only.sh` remains only as a compatibility wrapper for `PLAN.md`.
-- For user-facing CLI tokens and flag values, accept both hyphenated and underscore-separated spellings when they represent the same canonical concept and no ambiguity is introduced. Keep one canonical internal/stored form, but do not force operators to guess whether Bus expects `-` or `_`. The same rule applies to other shorthand or alternate invocation forms: accept them only when normalization is deterministic and exact; if input could mean multiple things, fail with a usage error instead of guessing.
-- Before changing user-facing CLI `--help` text, define or follow the shared help-style contract under `sdd/docs/cli/`. Do not expand help ad hoc into dense prose; prefer syntax-first, structured help modeled on common system tools such as `git -h`, `git add -h`, `tar --help`, and similar command surfaces.
-- When improving BusDK help output, do not use older Bus help text as the style reference. Compare against common operating-system and Git help surfaces first, then apply the shared `sdd/docs/cli/help-output-contract.md` rules.
-- Do not install software or module binaries into the user's personal paths on their behalf. When PATH or dispatcher verification depends on a fresh installed binary, ask the user to run the relevant `make install` themselves and then continue verification against that installed binary.
-- For temporary historical verification work such as `git worktree` checkouts, prefer the repository-root `./tmp/` directory over system `/tmp` so scratch state stays inside the workspace and can usually be used without extra permission prompts.
-- If Go commands fail in the sandbox with `operation not permitted` under `~/Library/Caches/go-build`, rerun the same module command with `GOCACHE=/tmp/busdk-go-cache` instead of treating it as a code failure.
-- Root `make e2e` must stay changed-module scoped and must not run heavyweight
-  superproject Docker/container selftests by default. Use explicit opt-in
-  variables such as `ROOT_E2E_SELFTEST=1` for those checks.
-
-## Refactor planning style rule
-
-- For code-specific refactoring work, put concrete technical refactor details in
-  inline `FIXME(refactor)` comments at the source location.
-- Keep `PLAN.md` entries for refactors file-oriented and concise, referencing the
-  file path(s) that contain the authoritative `FIXME(refactor)` notes.
-- Do not duplicate long technical refactor instructions in `PLAN.md` when the
-  same details already exist in inline `FIXME(refactor)` comments.
-
-## Bus framework naming rule
-
-- Treat “AI Platform” and hostnames such as `ai.hg.fi` as deployment/profile
-  labels, not as the product or module boundary. The software framework is Bus:
-  an AI-powered general software-development framework and runtime architecture
-  for building many kinds of software, not only a separate AI Platform product.
-- Name new generic deployment, operator, and runtime tooling around Bus concepts
-  (`bus operator deploy`, `bus operator systemd`, Bus profiles, providers,
-  integrations, gateways) rather than `ai-platform` unless the feature is truly
-  specific to one deployment profile.
-- For deployment automation, prefer an installed Bus control plane driving
-  remote runtime-node bootstrap through Bus providers/integrations/events
-  instead of documenting operator-side SSH shell recipes as the primary path.
-  For example, GPU VM runtime installation should be modeled as Bus-managed
-  runtime-node provisioning after the Bus system is installed.
-- Do not introduce separate plugin protocols for Bus deployment/provider
-  extensibility when existing Bus integration mechanisms fit. New provider
-  logic should be implemented as Bus modules using the established patterns:
-  asynchronous Events through `bus-integration-*`/`bus-integration`, REST APIs
-  through `bus-api-provider-*`/`bus-api`, Go interfaces/library access between
-  Bus modules, and `bus-portal-*`/`bus-portal` for frontends.
-- For bootstrap installers, reuse the same provider implementation used by the
-  running Bus environment. Provider modules such as `bus-integration-upcloud`
-  should expose reusable Go-library registration/direct-call surfaces for early
-  bootstrap, while also registering Events workers for the installed Bus
-  control plane. Avoid duplicating cloud/runtime/node business logic in
-  installer-only code.
-- Bootstrap installers and deployment operators must call provider-neutral Bus
-  abstractions first (for example `bus-cloud`/`bus-operator-cloud` contracts),
-  not provider-specific modules directly. Provider-specific integrations such
-  as `bus-integration-upcloud` should register behind those abstractions as one
-  implementation selected by deployment config.
-- When proposing new Bus modules, justify each module by its command ownership,
-  dependency boundary, and integration interactions. Do not add modules merely
-  as future placeholders. A split is justified when the modules have different
-  users, dependencies, transport boundaries, or retry/lifecycle semantics.
-- Deployment tooling should remain composable and should not assume a single
-  mandatory global config file. Prefer module-local flags, environment files,
-  credential-file references, and small reusable config fragments where that
-  keeps tools independently usable; a deployment profile may orchestrate those
-  inputs but should not be required by every underlying tool.
-- Avoid vague deployment/runtime module names such as generic `runtime` or
-  `models` when the actual domain is narrower. For AI model-serving
-  infrastructure, prefer names that state the operational purpose, such as
-  inference or model-serving, so the module is not confused with process
-  runtimes, container runtimes, data models, or generic model catalogs.
-- Do not defer provider-neutral inference abstractions when adding the first
-  concrete inference provider. Implement concrete providers such as
-  `bus-integration-ollama` behind `bus-integration-inference` /
-  `bus-api-provider-inference` / `bus-operator-inference` contracts from the
-  start so Bus does not hardcode Ollama into deployment or runtime workflows.
-- Modules that intentionally read process environment through an allowlist must
-  not silently ignore relevant variables. They should warn with variable names
-  only, redact secret-like values, provide an invocation-scoped allow override,
-  and support persistent allowlist entries through `bus-preferences` where
-  user-level configuration is appropriate.
-- Event integration naming convention: a `bus-integration-{name}` module should
-  own Events names under `bus.{name}.*` by default. Provider-neutral routers may
-  translate from their own public domain events to another integration's
-  `bus.{name}.*` backend events, but should not invent nested provider event
-  namespaces such as `bus.containers.docker.*` for `bus-integration-docker`.
-- Any service token used by an Events-backed integration listener must include
-  the Events transport scopes it needs, especially `events:listen` for
-  subscriptions and `events:send` when it replies or publishes status. Domain
-  scopes alone are not enough and cause `403 insufficient_scope` startup
-  failures that make downstream workers appear idle.
-- `bus dev work` acceptance must exercise persistent `codex-appserver` worker
-  containers, live task-stream control, and worker readiness after completing a
-  task. One-shot container commands only prove the lower-level container
-  provider path and are not sufficient evidence for interactive agent
-  infrastructure.
-- App Server worker paths should default to the real `codex app-server` command
-  so local runs test the production integration by default. Deterministic
-  smoke tests may provide an explicit flag or environment override to use a
-  protocol-compatible fake app-server command when avoiding live model/runtime
-  dependencies is the point of the test.
-- Local App Server workers must keep filesystem isolation and loopback e2e
-  capability together: run real workers with `workspace-write` plus
-  turn-level `sandboxPolicy.networkAccess=true` (exposed by
-  `bus-integration-dev-task --codex-network-access=true`), not
-  `danger-full-access`, so browser/API tests can bind `127.0.0.1` while writes
-  stay constrained to the recipient task worktree.
-- Live `bus dev work` acceptance for Codex App Server infrastructure must prove
-  that a real LLM-powered Codex session can answer runtime-generated questions
-  from the task stream. Do not count hardcoded marker replies, echoed user
-  messages, or predefined fake app-server responses as evidence for the live
-  interactive Codex path.
-- Synthetic smoke-task throughput only validates orchestration capacity. Do
-  not use fake App Server smoke tasks as the worker-count productivity metric;
-  evaluate real worker productivity from accepted `PLAN.md` item closures,
-  review pass rate, rework, and `bus dev work stats --all` wall-time data from
-  live task streams.
-- Bus modules should use standard diagnostic log levels: `TRACE`, `DEBUG`,
-  `INFO`, `WARN`, and `ERROR`. Default verbosity is `INFO`; one `-v` or
-  `--verbose` enables `DEBUG`; two verbose flags (`-vv` or repeated
-  `--verbose`) enable `TRACE`; `--quiet` suppresses non-error diagnostics so
-  only `ERROR` messages are printed.
-- `INFO` logs should generally record every meaningful user-visible or
-  operational action a program performs. Include enough context to know what
-  happened and which entity was affected, but keep entries concise and never
-  include sensitive values.
-- `WARN` logs mean something abnormal or unexpected happened but the program may
-  still continue. `ERROR` logs mean a clear failure occurred: something
-  happened that should not have happened.
-- `DEBUG` logs add verbose testing and bug-finding detail about what happened.
-  They may include extra implementation context, but should still avoid
-  unnecessary sensitive values.
-- `TRACE` logs are exhaustive diagnostics for deep debugging, including details
-  not appropriate at lower levels and possibly sensitive information. Do not
-  enable `TRACE` in production or live environments.
-- Dev-task worker containers should receive the BusDK super-project as a
-  read-only dependency view by default. Write access belongs only to the task
-  recipient's isolated Git worktree; changes to the super-project itself must
-  go through an explicit super-project recipient task where the super-project is
-  the owned writable target.
-- Documentation work for `docs`, `sdd`, and `busdk.com` should normally be
-  recorded as PLAN items in the owning repository and executed through
-  recipient-scoped `bus dev task` / `bus dev work` interfaces so module workers do
-  not need direct write access across repository boundaries. Direct coordinator
-  edits are acceptable for small blocking infrastructure-aligned updates, but
-  the PLAN trace still belongs in the owning docs repository.
-- The local AI Platform Compose Postgres defaults use database `bus_local` and
-  role `bus`; inspect dev-task event rows with commands like
-  `docker exec bus-local-ai-platform-postgres-1 psql -U bus -d bus_local ...`
-  rather than assuming a `postgres` role exists.
-- Local stack dev-task workers must be autonomous by default: they should keep
-  claiming additional matching tasks without coordinator overwatch, while
-  explicit disposable/ad hoc workers may opt into `BUS_DEV_TASK_ONCE=true` plus
-  a bounded `BUS_DEV_TASK_IDLE_TIMEOUT`.
-- Dev-task worker containers must remain disposable and rebuildable from
-  scratch at any time. Do not store required worker state in container-local
-  files or volumes; durable coordination belongs in Bus Events and task changes
-  belong only in the recipient-owned Git worktree/commit path for the specific
-  task being executed.
-- Do not use `--quiet`, `-q`, or equivalent output-suppressing flags for
-  infrastructure/debugging commands that may print useful warnings or
-  diagnostics. Quiet modes are acceptable only when the task explicitly tests
-  quiet behavior or another command captures and reports the relevant detail.
-- When validating configuration that may interpolate local secrets, prefer a
-  diagnostic-preserving but redacted/uninterpolated command form instead of
-  dumping resolved secret values. Do not solve this by using quiet mode; keep
-  useful warnings visible while protecting secret material.
-- Docker/Compose smoke readiness probes that use `curl` against local services
-  must set bounded per-request timeouts such as `--connect-timeout` and
-  `--max-time`, so an unready service cannot hang the whole infrastructure
-  test.
-- Synthetic dev-task smoke throughput only validates orchestration capacity.
-  Do not use smoke tasks/minute as a productivity metric. Evaluate worker count
-  with accepted PLAN closures, review pass rate, rework rate, and real
-  task-stream timing from `bus dev work stats --all`.
-- Dev-task worker completion must be evidence-based. A completed LLM turn is
-  not enough: if the worker produces no worktree diff, reports no tests run,
-  says the PLAN item was not closed, or otherwise self-reports blocked
-  evidence, the task stream must end as blocked/failed rather than done.
-- Live Codex dev-task worker images must carry the current BusDK Go toolchain
-  required by module `go.mod` files, Docker CLI/Compose support, common
-  compression tools used by module e2e tests, and `/var/run/docker.sock` access
-  in trusted local Compose runs, so workers can run Docker-backed module e2e
-  gates instead of blocking with missing-tool or stale Go toolchain errors.
-- When investigating agent memos or logs, search the narrow `logs/` tree first
-  with specific date/file patterns. Do not include guessed optional paths or
-  broad repository-wide Markdown searches until the memo evidence shows they
-  are needed.
-- When passing task or worker messages through `bash -lc`, avoid unescaped
-  backticks in the command string. Shells evaluate backticks as command
-  substitution before the Bus command runs; wrap the whole message in single
-  quotes or omit Markdown backticks in CLI arguments.
-- When a broad linter over many generated/reference pages reports one
-  actionable documentation issue at a time, avoid an unbounded full-tree
-  rerun/edit loop. Triage the pattern, inspect similar pages proactively, batch
-  fixes across the affected family, then run the broad linter only as a bounded
-  verification step.
+For historical delivery or behavior claims, verify the relevant Git diff before
+writing the claim. For progress, heartbeat, review, and closeout reports, follow
+`skills/bus-product-delivery-supervisor/SKILL.md`.
