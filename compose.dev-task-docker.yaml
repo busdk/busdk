@@ -309,13 +309,15 @@ services:
         if [ "$${BUS_DEV_TASK_AGENT_BACKEND}" = "codex-appserver" ]; then
         export BUS_DEV_TASK_COMMAND_JSON="[]";
         fi;
+        if [ -z "$${BUS_API_TOKEN:-}" ]; then
         export BUS_API_TOKEN="$(cd /workspace/bus-operator-token &&
         go run ./cmd/bus-operator-token --format token issue --local
         --subject "$${BUS_LOCAL_ACCOUNT_ID}"
         --audience ai.hg.fi/api
         --scope 'events:send events:listen dev:task:send dev:task:read dev:task:reply dev:task:claim container:read container:run container:delete notes.write notes.read notes.search notes.import.memo_file notes.import.task_summary notes.import.session_summary'
-        --ttl 12h)" &&
-        export BUS_NOTES_API_TOKEN="$${BUS_API_TOKEN}" &&
+        --ttl 12h)";
+        fi;
+        export BUS_NOTES_API_TOKEN="$${BUS_NOTES_API_TOKEN:-$${BUS_API_TOKEN}}" &&
         set -- go run ./cmd/bus-integration-dev-task
         --events-url http://bus-events:8081;
         if [ -n "$${BUS_DEV_TASK_RECIPIENT}" ]; then

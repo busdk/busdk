@@ -54,6 +54,8 @@ grep -Fq 'BUS_DEV_TASK_GO_DEBUGGER: ${BUS_DEV_TASK_GO_DEBUGGER:-auto}' compose.d
 grep -Fq 'BUS_DEV_TASK_GO_DEBUGGER_COMMAND: ${BUS_DEV_TASK_GO_DEBUGGER_COMMAND:-dlv}' compose.dev-task-docker.yaml
 grep -Fq -- '--go-debugger "$${BUS_DEV_TASK_GO_DEBUGGER}"' compose.dev-task-docker.yaml
 grep -Fq -- '--go-debugger-command "$${BUS_DEV_TASK_GO_DEBUGGER_COMMAND}"' compose.dev-task-docker.yaml
+grep -Fq 'if [ -z "$${BUS_API_TOKEN:-}" ]; then' compose.dev-task-docker.yaml
+grep -Fq 'export BUS_NOTES_API_TOKEN="$${BUS_NOTES_API_TOKEN:-$${BUS_API_TOKEN}}"' compose.dev-task-docker.yaml
 if grep -Eq 'dlv[[:space:]]+dap[[:space:]].*(--listen|--accept-multiclient|--client-addr)|attach_policy[[:space:]]*=[[:space:]]*host|--go-debugger-attach' compose.dev-task-docker.yaml; then
   printf 'unexpected default debugger server or host-attach wiring in compose.dev-task-docker.yaml\n' >&2
   exit 1
