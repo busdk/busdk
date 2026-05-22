@@ -84,14 +84,34 @@
       workflow to run; the external host pull and worker terminal-state smoke
       are tracked as the follow-up item below.
 
-- [ ] Run the external SSH-Docker worker smoke on `coding-agent@dev.hg.fi`
-  after the release workflow publishes
+- [x] Run a real external Docker-backed worker integration smoke on
+  `coding-agent@dev.hg.fi`.
+  - Done: created remote Events task `busdk#1.1`, built the remote worker
+    support image on the SSH host, initialized the source checkout through
+    `ssh -A`, mounted the remote rootless Docker socket into the worker stack,
+    and ran a Docker child task through the remote container backend.
+  - Evidence: final task evidence reported
+    `REMOTE_SMOKE_PWD=/workspace/bus-integration-dev-task`,
+    `REMOTE_SMOKE_HOST=ddfcc6a156a1`, `REMOTE_SMOKE_HEAD=e1d6022`, followed
+    by `bus.dev.task.done` for run
+    `ddfcc6a156a1f9e6ac871e346f58aaa088e62274003e4ced7815fd05739a266f`.
+  - Value: proves that an external SSH-accessible Docker host can run the
+    BusDK worker stack, claim a task from Events, launch a child Docker task,
+    and publish terminal evidence back through Events.
+  - Important limitation: this was a manual/source-checkout integration smoke,
+    not the final normal-user image-backed path. It required remote submodule
+    hydration and a temporary rootless Docker socket override.
+
+- [ ] Run the external image-backed SSH-Docker worker smoke on
+  `coding-agent@dev.hg.fi` after the release workflow publishes
   `ghcr.io/busdk/bus-integration-dev-task:latest`. The matching `bus-dev`
   and `bus-integration-ssh-runner` worker-start/check changes are already
   promoted and pinned.
   Verification: remote `docker version`, `docker pull`, image `--help`, `bus
   dev work --remote <id> check`, and one image-backed task reaching a terminal
   state with redacted token/environment evidence.
+  This closes the remaining normal-user readiness gap by proving a host can run
+  with SSH, Docker, and the selected image instead of a private source checkout.
 
 - [x] Fix GitHub Actions release workflow Node 20 deprecation warnings and
   moving runner labels.
