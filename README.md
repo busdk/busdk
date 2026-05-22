@@ -768,8 +768,12 @@ make refresh-tools
 
 The stack mounts `/var/run/docker.sock` into `bus-integration-docker` and live
 Codex dev-task workers; use it only on trusted local development machines. The
-local worker image includes the current Go toolchain, Docker CLI/Compose, and
-compression tools needed by Docker-backed module e2e gates. It also pins
+local stack defaults Go service containers and local Codex image builds to Go
+1.26.3. Override with `BUS_LOCAL_GO_IMAGE` for prebuilt Go service containers
+or `BUS_LOCAL_GO_VERSION` for the local Codex image build when intentionally
+testing another toolchain. The local worker image includes the current Go
+toolchain, Docker CLI/Compose, and compression tools needed by Docker-backed
+module e2e gates. It also pins
 `gopls` for detached saved-file MCP context and `dlv` for optional Delve DAP
 debugger context. The debugger policy defaults to detection only: the bridge
 does not start `dlv dap`, open a listener, or grant host process attach

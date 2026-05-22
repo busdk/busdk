@@ -17,7 +17,19 @@ if ! docker compose version >/dev/null 2>&1; then
   exit 0
 fi
 
-docker compose -f compose.dev-task-docker.yaml config >"$tmp_dir/compose.config"
+env -u BUS_LOCAL_GO_IMAGE -u BUS_LOCAL_GO_VERSION \
+  docker compose -f compose.dev-task-docker.yaml config >"$tmp_dir/compose.config"
+env -u BUS_LOCAL_GO_IMAGE -u BUS_LOCAL_GO_VERSION \
+  docker compose -f compose.yaml config >"$tmp_dir/local-ai-platform.compose.config"
+
+if grep -Fq 'golang:1.24' compose.yaml compose.dev-task-docker.yaml; then
+  printf 'unexpected stale golang:1.24 default in root compose files\n' >&2
+  exit 1
+fi
+grep -Fq 'image: golang:1.26.3' "$tmp_dir/compose.config"
+grep -Fq 'GO_VERSION: 1.26.3' "$tmp_dir/compose.config"
+grep -Fq 'image: golang:1.26.3' "$tmp_dir/local-ai-platform.compose.config"
+grep -Fq 'GO_VERSION: 1.26.3' "$tmp_dir/local-ai-platform.compose.config"
 
 for service in codex-image bus-integration-dev-task bus-dev-supervisor testing-agent; do
   grep -q "^[[:space:]]*$service:" "$tmp_dir/compose.config"

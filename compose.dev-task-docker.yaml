@@ -26,6 +26,7 @@
 x-codex-image-build: &codex-image-build
   context: ./deploy/local-ai-platform/codex
   args:
+    GO_VERSION: ${BUS_LOCAL_GO_VERSION:-1.26.3}
     CODEX_NPM_PACKAGE: ${BUS_LOCAL_CODEX_NPM_PACKAGE:-@openai/codex}
     CODEX_NPM_VERSION: ${BUS_LOCAL_CODEX_NPM_VERSION:-0.128.0}
 
@@ -39,7 +40,7 @@ services:
       - --version
 
   bus-events:
-    image: golang:1.24
+    image: ${BUS_LOCAL_GO_IMAGE:-golang:1.26.3}
     working_dir: /workspace/bus-api-provider-events
     environment:
       PATH: /workspace/.busdk-tools/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -72,7 +73,7 @@ services:
       - dev-task-postgres:/var/lib/postgresql/data
 
   bus-notes-api:
-    image: golang:1.24
+    image: ${BUS_LOCAL_GO_IMAGE:-golang:1.26.3}
     working_dir: /workspace/bus-api
     depends_on:
       postgres:
@@ -100,7 +101,7 @@ services:
       - .:/workspace
 
   bus-api-provider-containers:
-    image: golang:1.24
+    image: ${BUS_LOCAL_GO_IMAGE:-golang:1.26.3}
     working_dir: /workspace/bus-api-provider-containers
     depends_on:
       - bus-events
@@ -132,7 +133,7 @@ services:
       - .:/workspace
 
   bus-integration-docker:
-    image: golang:1.24
+    image: ${BUS_LOCAL_GO_IMAGE:-golang:1.26.3}
     working_dir: /workspace/bus-integration-docker
     depends_on:
       codex-image:
@@ -186,7 +187,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
   bus-integration-containers:
-    image: golang:1.24
+    image: ${BUS_LOCAL_GO_IMAGE:-golang:1.26.3}
     working_dir: /workspace/bus-integration-containers
     depends_on:
       - bus-events
@@ -360,7 +361,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
   bus-dev-supervisor:
-    image: golang:1.24
+    image: ${BUS_LOCAL_GO_IMAGE:-golang:1.26.3}
     working_dir: /workspace
     depends_on:
       bus-events:
@@ -402,7 +403,7 @@ services:
       - .:/workspace
 
   testing-agent:
-    image: golang:1.24
+    image: ${BUS_LOCAL_GO_IMAGE:-golang:1.26.3}
     working_dir: /workspace
     depends_on:
       - bus-events

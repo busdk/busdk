@@ -405,6 +405,12 @@
     narrow compose image smoke passed, and the full dev-task Docker compose
     smoke skipped only because the local Docker daemon could not share the
     workspace path.
+  - [x] Root Go 1.26.3 local compose alignment slice: owner `busdk`. Update
+    root local AI platform and dev-task Docker Compose defaults so Go service
+    containers and local Codex image builds use the current Go 1.26.3 line,
+    document the `BUS_LOCAL_GO_IMAGE` / `BUS_LOCAL_GO_VERSION` overrides, and
+    extend focused compose config coverage so stale `golang:1.24` defaults are
+    caught before local worker runs.
   - [x] Localhost end-to-end worker execution release smoke: owner `busdk` with
     follow-up fixes in `bus-dev` or `bus-integration-dev-task` only if the smoke
     fails. From a clean root checkout, run the documented
