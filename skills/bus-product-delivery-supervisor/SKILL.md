@@ -106,6 +106,12 @@ Use narrower skills alongside this one when the work has a focused shape:
    - After each worker terminal event, immediately accept/promote, reopen with
      precise guidance, record a blocker, or dispatch the next unblocked item.
    - Count throughput only as verified and promoted work, not claimed work.
+   - Treat a "running" or "claimed" worker as untrusted until task-stream
+     evidence shows a real bridge claim, App Server/container progress, or
+     meaningful worker output for the intended work ref. If only container
+     status exists, inspect logs promptly and route the task as false-active,
+     blocked, reopened, or fixed; do not let board counts substitute for
+     progress.
    - Keep parallelism high when scopes are independent and review capacity
      exists. Do not assume one worker per module is the ceiling; increase
      concurrency until write-scope conflicts, dirty primary checkouts, resource
@@ -125,6 +131,11 @@ Use narrower skills alongside this one when the work has a focused shape:
 6. Fix repeated blockers:
    - If a failure repeats, stop retrying blindly.
    - Record or implement the root-cause fix in the owning module.
+   - If a blocker might be solvable by the operator, ask for the exact help
+     needed instead of silently working around it with a hack. Continue
+     parallel useful work only when it is real product work or safe
+     infrastructure repair, not a way to hide that the intended path is
+     blocked.
    - If the delegation substrate itself is broken and a worker cannot patch the
      defect because of that same failure, stop the batch, fix the launcher or
      bridge locally through the narrowest path, verify it, pin it, and reopen

@@ -40,9 +40,7 @@ Read the relevant skill before doing detailed operational work:
    `bus dev task` dispatch, Compose/App Server workers, monitoring, reopen,
    closeout, promotion, auth/token handling, write scopes, worker infrastructure
    troubleshooting, and generated-artifact promotion hazards. Use it before
-   touching worker ops; preserve recipient-owned worktrees, exact write scopes,
-   explicit recipients, Events plus task auth scopes, clean-checkout promotion,
-   and evidence-based reopen/accept decisions.
+   touching worker ops.
 3. `skills/bus-plan-memory-maintainer/SKILL.md`: `PLAN.md`, `AGENTS.md`,
    Bus Notes/hourly memo practice, tracker-file processing, durable lessons,
    historical verification, commit/tracker closeout, and planning granularity.
@@ -108,6 +106,8 @@ module internals.
    under repository-local `.bus/` paths or any other working-tree-relative
    default. Use the unified user config root, explicit operator-supplied paths,
    environment variables, or OS credential storage.
+9. For multi-remote worker credential design, keep root metadata non-secret and
+   read `skills/bus-dev-task-worker-ops/SKILL.md`.
 
 ## Definition Of Done
 

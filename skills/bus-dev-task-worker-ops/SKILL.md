@@ -100,6 +100,14 @@ immediately:
 
 Trust diffs, commands, logs, and artifacts more than summaries.
 
+Do not trust `bus.dev.task.container.status status=claimed` or a Docker
+container alone as evidence that a task is being worked. A useful running worker
+must emit a real task claim, App Server/container progress, output, approval
+request, or terminal closeout for the intended work ref. If a container is
+running at idle CPU with only replay/listener startup logs, stop or quarantine
+it, mark the task with the exact bridge/Events blocker, and record the owning
+`PLAN.md` follow-up before relaunching.
+
 Completed or blocked tasks must not sit untriaged. In heartbeat/pulse
 supervision, route every terminal or blocked item before quiet reporting: accept
 and pin if evidence is sufficient, reopen with precise guidance, record a real
@@ -233,6 +241,16 @@ Dev-task worker tokens need both Events transport scopes and domain task
 scopes: `events:send events:listen dev:task:send dev:task:read
 dev:task:reply dev:task:claim`. Missing Events scopes cause
 `403 insufficient_scope` and make workers appear idle.
+
+Multi-remote worker systems must not depend on one process-global
+`BUS_API_TOKEN` or one process-global Events URL when different remotes need
+different control planes, scopes, or credential sources. Prefer per-remote
+credential resolution through `bus-remote`/user config/deployment secret
+sources, and pass only the selected remote's non-secret endpoint plus its
+resolved token source into the controller, SSH runner, or worker. If current
+commands force env-only credentials for multiple remotes, record a
+`bus-remote`, `bus-dev`, or deployment-module `PLAN.md` item instead of adding
+more ad hoc env workarounds.
 
 Local `.env` files are supported Bus control-plane configuration sources.
 Prefer refreshing `BUS_API_TOKEN`, `BUS_EVENTS_API_URL`, and related local
