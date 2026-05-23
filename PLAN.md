@@ -352,6 +352,18 @@
     `bus-integration-upcloud`, `docs`, and `sdd`. Acceptance: commands and docs
     show how an operator can test localhost plus an external manually installed
     runner without provisioning paid resources here.
+    - [x] Initial no-spend UpCloud GPU worker proof package:
+      `scripts/test-upcloud-worker-offload-dry-run.sh` configures an
+      `upcloud-h100` SSH-Docker candidate remote, checks the static UpCloud
+      existing-runner surface, runs Ollama/Gemma `model.ensure` and install
+      dry-runs, and emits a `bus dev work --remote upcloud-h100 start
+      --dry-run` image-backed worker plan. This proves the minimum product path
+      without paid provisioning, GHCR visibility, or remote model download.
+      Verification: `sh -n scripts/test-upcloud-worker-offload-dry-run.sh`
+      passed, and the script completed with `OK no-spend Upcloud worker offload
+      dry-run`; the worker plan reported `launch_mode=image`,
+      `worker_events_api_url_status=ok`, `worker_image=bus-integration-dev-task:local-image-smoke`,
+      and `no task streams created; no workers launched; no provisioning requested`.
     - [x] `busdk#115.1` docs slice: public docs now include a no-spend
       multi-remote worker test checklist, integration navigation links,
       bus-dev module reference links, explicit live-run token scopes, a
