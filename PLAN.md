@@ -353,6 +353,10 @@
   scratch loss, avoid SFTP/SCP assumptions, make setup commands repeatable,
   keep durable state in Git/Bus Events/image artifacts, and treat `/workspace`
   as shared scratch rather than permanent storage.
+  `scripts/build-ssh-docker-worker-image-remote.sh` now bootstraps a missing
+  remote checkout from the configured Git remote before pinned submodule sync
+  and image build, so disposable GPU hosts do not need pre-existing source
+  state.
   - [ ] Next concrete slice: run an operator-ready multi-remote dry-run and
     local proof package from the current pinned root, covering `bus dev work
     --remote eligible start --dry-run`, `bus dev work stats`, and the no-spend

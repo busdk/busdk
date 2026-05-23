@@ -10,6 +10,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 SSH_TARGET=${BUS_REMOTE_WORKER_BUILD_SSH_TARGET:-coding-agent@dev.hg.fi}
 REMOTE_ROOT=${BUS_REMOTE_WORKER_BUILD_REMOTE_ROOT:-/home/coding-agent/coding-agent/git/busdk/busdk}
 REMOTE_NAME=${BUS_REMOTE_WORKER_BUILD_REMOTE_NAME:-origin}
+REPO_URL=${BUS_REMOTE_WORKER_BUILD_REPO_URL:-}
 BRANCH=${BUS_REMOTE_WORKER_BUILD_BRANCH:-}
 IMAGE=${BUS_REMOTE_WORKER_BUILD_IMAGE:-bus-integration-dev-task:local-image-smoke}
 PLATFORM=${BUS_REMOTE_WORKER_BUILD_PLATFORM:-linux/amd64}
@@ -18,12 +19,17 @@ SUBMODULE_MODE=${BUS_REMOTE_WORKER_BUILD_SUBMODULE_MODE:-pinned}
 SUBMODULES=${BUS_REMOTE_WORKER_BUILD_SUBMODULES:-"bus bus-dev bus-integration-dev-task bus-lint bus-notes bus-operator-token bus-integration-docker bus-integration-containers logs"}
 PUSH_FIRST=${BUS_REMOTE_WORKER_BUILD_PUSH_FIRST:-false}
 REQUIRE_CLEAN=${BUS_REMOTE_WORKER_BUILD_REQUIRE_CLEAN:-true}
+BOOTSTRAP_CHECKOUT=${BUS_REMOTE_WORKER_BUILD_BOOTSTRAP_CHECKOUT:-true}
 
 if [ -z "$BRANCH" ]; then
 	BRANCH=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)
 	if [ "$BRANCH" = HEAD ]; then
 		BRANCH=main
 	fi
+fi
+
+if [ -z "$REPO_URL" ]; then
+	REPO_URL=$(git -C "$ROOT" remote get-url "$REMOTE_NAME")
 fi
 
 shell_quote() {
@@ -42,6 +48,15 @@ case "$REQUIRE_CLEAN" in
 		;;
 	*)
 		printf 'invalid BUS_REMOTE_WORKER_BUILD_REQUIRE_CLEAN=%s\n' "$REQUIRE_CLEAN" >&2
+		exit 2
+		;;
+esac
+
+case "$BOOTSTRAP_CHECKOUT" in
+	true|1|yes|on|false|0|no|off|'')
+		;;
+	*)
+		printf 'invalid BUS_REMOTE_WORKER_BUILD_BOOTSTRAP_CHECKOUT=%s\n' "$BOOTSTRAP_CHECKOUT" >&2
 		exit 2
 		;;
 esac
@@ -73,10 +88,12 @@ esac
 
 remote_root_q=$(shell_quote "$REMOTE_ROOT")
 remote_name_q=$(shell_quote "$REMOTE_NAME")
+repo_url_q=$(shell_quote "$REPO_URL")
 branch_q=$(shell_quote "$BRANCH")
 image_q=$(shell_quote "$IMAGE")
 platform_q=$(shell_quote "$PLATFORM")
 go_version_q=$(shell_quote "$GO_VERSION")
+bootstrap_checkout_q=$(shell_quote "$BOOTSTRAP_CHECKOUT")
 submodules_q=
 for module in $SUBMODULES; do
 	submodules_q="$submodules_q $(shell_quote "$module")"
@@ -84,6 +101,23 @@ done
 
 remote_script="
 set -eu
+remote_root=$remote_root_q
+case $bootstrap_checkout_q in
+	true|1|yes|on)
+		if [ ! -d \"\$remote_root/.git\" ]; then
+			if [ -e \"\$remote_root\" ] && [ \"\$(find \"\$remote_root\" -mindepth 1 -maxdepth 1 2>/dev/null | sed -n '1p')\" ]; then
+				printf 'remote path exists but is not a Git checkout: %s\n' \"\$remote_root\" >&2
+				exit 2
+			fi
+			parent=\${remote_root%/*}
+			if [ \"\$parent\" = \"\$remote_root\" ]; then
+				parent=.
+			fi
+			mkdir -p \"\$parent\"
+			git clone --origin $remote_name_q --recurse-submodules=no $repo_url_q \"\$remote_root\"
+		fi
+		;;
+esac
 cd $remote_root_q
 git fetch --recurse-submodules=no $remote_name_q $branch_q
 git checkout $branch_q
