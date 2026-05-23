@@ -35,7 +35,6 @@ for module in $MODULES; do
 	case "$BUILD_MODE" in
 		docker)
 			docker run --rm --platform "$PLATFORM" \
-				--user "$(id -u):$(id -g)" \
 				-v "$ROOT:/workspace" \
 				-w "/workspace/$module" \
 				-e GOCACHE=/tmp/bus-go-build-cache \
