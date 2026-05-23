@@ -11,7 +11,7 @@ LABEL org.opencontainers.image.description="Image-backed bus-integration-dev-tas
 LABEL org.opencontainers.image.source="https://github.com/busdk/busdk"
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates chromium fonts-liberation nodejs npm xz-utils \
+    && apt-get install -y --no-install-recommends ca-certificates chromium fonts-liberation git make nodejs npm openssh-client xz-utils \
     && (apt-get install -y --no-install-recommends docker-cli docker-compose || apt-get install -y --no-install-recommends docker.io docker-compose) \
     && rm -rf /var/lib/apt/lists/*
 
@@ -40,6 +40,9 @@ RUN GOBIN=/usr/local/bin go install "github.com/go-delve/delve/cmd/dlv@${DELVE_V
 COPY dist-bin/ /usr/local/bin/
 
 RUN set -eu; \
+    for bin in git make ssh docker go gofmt rg codex gopls dlv; do \
+      command -v "$bin" >/dev/null; \
+    done; \
     for bin in /usr/local/bin/bus* /usr/local/bin/aiz* /usr/local/bin/unaiz; do \
       [ -e "$bin" ] || continue; \
       chmod 0755 "$bin"; \
