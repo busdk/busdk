@@ -426,6 +426,11 @@
         using the mounted remote Codex home returned `BUS_CODEX_AUTH_OK`.
         Added `scripts/test-ssh-docker-codex-smoke.sh` so this real-Codex proof
         is a reusable script instead of a hand-written environment recipe.
+        Wrapper verification: `scripts/test-ssh-docker-codex-smoke.sh` passed
+        as `bus-ssh-docker-smoke#10.1`, again reaching `bus.dev.task.done`.
+        The App Server stream still emitted transient OpenAI websocket
+        `401 Unauthorized` diagnostics before completion; keep watching this
+        auth/runtime signal, but it did not block the no-edit smoke.
       - [ ] Prove writable edit/commit/promotion on the prepared SSH-Docker
         host with a tiny controlled task, then decide whether GitHub push/pull
         should be part of worker closeout or a separate deterministic sync
