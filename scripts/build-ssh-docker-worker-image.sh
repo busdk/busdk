@@ -12,6 +12,7 @@ GOOS=${BUS_SSH_DOCKER_BUILD_GOOS:-linux}
 GOARCH=${BUS_SSH_DOCKER_BUILD_GOARCH:-amd64}
 GO_VERSION=${BUS_SSH_DOCKER_BUILD_GO_VERSION:-1.26.3}
 MODULES=${BUS_SSH_DOCKER_BUILD_MODULES:-bus bus-dev bus-integration-dev-task bus-lint bus-notes bus-operator-token}
+DEPENDENCY_MODULES=${BUS_SSH_DOCKER_BUILD_DEPENDENCY_MODULES:-bus-agent bus-events bus-help bus-integration bus-preferences bus-remote bus-secrets bus-update}
 BUILD_MODE=${BUS_SSH_DOCKER_BUILD_MODE:-docker}
 
 case "$PLATFORM" in
@@ -32,6 +33,16 @@ for module in $MODULES; do
 		printf 'module not found: %s\n' "$module" >&2
 		exit 2
 	fi
+done
+
+for module in $DEPENDENCY_MODULES; do
+	if [ ! -d "$ROOT/$module" ]; then
+		printf 'dependency module not found: %s\n' "$module" >&2
+		exit 2
+	fi
+done
+
+for module in $MODULES; do
 	case "$BUILD_MODE" in
 		docker)
 			docker run --rm --platform "$PLATFORM" \
