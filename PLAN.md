@@ -345,6 +345,14 @@
   that talks to an operator-managed local inference endpoint. Use existing
   inference/UpCloud/Ollama modules and command-line tools; do not build new MCP
   servers for this slice.
+  H100 target note: `dev@ai.hg.fi` is a special SSH-gateway target. Current
+  operator observation says repeated SSH connections can land on the same live
+  system, so it can be used like a normal remote shell while the gateway session
+  is alive. The system/storage is still non-persistent, so product automation
+  should treat it as session-local compute only: tolerate reconnects and
+  scratch loss, avoid SFTP/SCP assumptions, make setup commands repeatable,
+  keep durable state in Git/Bus Events/image artifacts, and treat `/workspace`
+  as shared scratch rather than permanent storage.
   - [ ] Next concrete slice: run an operator-ready multi-remote dry-run and
     local proof package from the current pinned root, covering `bus dev work
     --remote eligible start --dry-run`, `bus dev work stats`, and the no-spend
@@ -409,6 +417,21 @@
         dev-task CLI defaulting child container network from
         `BUS_DEV_SSH_DOCKER_WORKER_NETWORK` for image-backed SSH-Docker workers.
         Rebuild/reinstall and rerun the smoke with these commits.
+      - [x] Real remote Codex no-edit smoke on the prepared SSH-Docker host:
+        `scripts/test-ssh-docker-image-smoke.sh` with
+        `BUS_SSH_DOCKER_SMOKE_AGENT_BACKEND=codex-appserver` launched the
+        image-backed worker, claimed `bus-ssh-docker-smoke#9.1`, started Codex
+        App Server in `/workspace/bus-dev`, configured gopls and Delve context,
+        and reached `bus.dev.task.done`. A direct in-image `codex exec` check
+        using the mounted remote Codex home returned `BUS_CODEX_AUTH_OK`.
+        Added `scripts/test-ssh-docker-codex-smoke.sh` so this real-Codex proof
+        is a reusable script instead of a hand-written environment recipe.
+      - [ ] Prove writable edit/commit/promotion on the prepared SSH-Docker
+        host with a tiny controlled task, then decide whether GitHub push/pull
+        should be part of worker closeout or a separate deterministic sync
+        command. Current state: source sync and remote image rebuild are
+        deterministic scripts, while worker-authored branch publication through
+        GitHub is not yet fully automated in the SSH-Docker smoke path.
     - [x] `busdk#115.1` docs slice: public docs now include a no-spend
       multi-remote worker test checklist, integration navigation links,
       bus-dev module reference links, explicit live-run token scopes, a

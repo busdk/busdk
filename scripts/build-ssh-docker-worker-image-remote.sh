@@ -14,7 +14,8 @@ BRANCH=${BUS_REMOTE_WORKER_BUILD_BRANCH:-}
 IMAGE=${BUS_REMOTE_WORKER_BUILD_IMAGE:-bus-integration-dev-task:local-image-smoke}
 PLATFORM=${BUS_REMOTE_WORKER_BUILD_PLATFORM:-linux/amd64}
 GO_VERSION=${BUS_REMOTE_WORKER_BUILD_GO_VERSION:-1.26.3}
-SUBMODULE_MODE=${BUS_REMOTE_WORKER_BUILD_SUBMODULE_MODE:-remote}
+SUBMODULE_MODE=${BUS_REMOTE_WORKER_BUILD_SUBMODULE_MODE:-pinned}
+SUBMODULES=${BUS_REMOTE_WORKER_BUILD_SUBMODULES:-"bus bus-dev bus-integration-dev-task bus-lint bus-notes bus-operator-token bus-integration-docker bus-integration-containers logs"}
 PUSH_FIRST=${BUS_REMOTE_WORKER_BUILD_PUSH_FIRST:-false}
 REQUIRE_CLEAN=${BUS_REMOTE_WORKER_BUILD_REQUIRE_CLEAN:-true}
 
@@ -76,6 +77,10 @@ branch_q=$(shell_quote "$BRANCH")
 image_q=$(shell_quote "$IMAGE")
 platform_q=$(shell_quote "$PLATFORM")
 go_version_q=$(shell_quote "$GO_VERSION")
+submodules_q=
+for module in $SUBMODULES; do
+	submodules_q="$submodules_q $(shell_quote "$module")"
+done
 
 remote_script="
 set -eu
@@ -83,7 +88,7 @@ cd $remote_root_q
 git fetch --recurse-submodules=no $remote_name_q $branch_q
 git checkout $branch_q
 git pull --ff-only $remote_name_q $branch_q
-$submodule_cmd
+$submodule_cmd $submodules_q
 BUS_SSH_DOCKER_BUILD_IMAGE=$image_q \\
 BUS_SSH_DOCKER_BUILD_PLATFORM=$platform_q \\
 BUS_SSH_DOCKER_BUILD_GO_VERSION=$go_version_q \\
