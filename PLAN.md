@@ -102,16 +102,26 @@
     not the final normal-user image-backed path. It required remote submodule
     hydration and a temporary rootless Docker socket override.
 
-- [ ] Run the external image-backed SSH-Docker worker smoke on
-  `coding-agent@dev.hg.fi` after the release workflow publishes
-  `ghcr.io/busdk/bus-integration-dev-task:latest`. The matching `bus-dev`
-  and `bus-integration-ssh-runner` worker-start/check changes are already
-  promoted and pinned.
-  Verification: remote `docker version`, `docker pull`, image `--help`, `bus
-  dev work --remote <id> check`, and one image-backed task reaching a terminal
-  state with redacted token/environment evidence.
-  This closes the remaining normal-user readiness gap by proving a host can run
-  with SSH, Docker, and the selected image instead of a private source checkout.
+- [x] Run the external image-backed SSH-Docker worker smoke on
+  `coding-agent@dev.hg.fi`.
+  - Done: pushed the current root and touched submodules, updated the remote
+    checkout without requiring GHCR visibility, built
+    `bus-integration-dev-task:local-image-smoke` directly on the SSH host, and
+    ran `scripts/test-ssh-docker-image-smoke.sh` from the local controller.
+  - Evidence: remote image id
+    `sha256:6a63b42945d7fe14ba40b5ef0ee37e64a86b6c8db50c87caeb7c1d164a950302`;
+    smoke task `bus-ssh-docker-smoke#7.1`; remote container
+    `143cc4e3f82488bbf20fef273600e0bfda20d7de883dc40f18ebb44a9439e946`;
+    normal Bus Events showed container launch, `bus.dev.task.claimed`,
+    isolated worktree preparation, self-test execution, and terminal
+    `bus.dev.task.done`.
+  - Value: proves the image-backed SSH-Docker worker path can run on an
+    external host with SSH, Docker, a reachable Events control plane, and a
+    locally built/installed worker image. This avoids requiring GitHub package
+    visibility just to test a private software installation path.
+  - Boundary: this diagnostic proof used the `self-test` backend. Real Codex
+    auth, open-source model inference quality, and UpCloud GPU offload are
+    tracked by the next local/UpCloud worker infrastructure lane.
 
 - [x] Fix GitHub Actions release workflow Node 20 deprecation warnings and
   moving runner labels.
@@ -328,6 +338,13 @@
   `existing-only`/`adopt-existing` manually installed runner modes and preserves
   task env/workdir/source metadata. No paid UpCloud provisioning has been
   performed.
+  Current shortest path after the external SSH-Docker proof: treat the first
+  UpCloud H100 server as an operator-provisioned SSH-Docker remote, install or
+  build the worker image on that host from pushed source, run the same
+  image-backed self-test smoke there, then add one model-backed worker backend
+  that talks to an operator-managed local inference endpoint. Use existing
+  inference/UpCloud/Ollama modules and command-line tools; do not build new MCP
+  servers for this slice.
   - [ ] Next concrete slice: run an operator-ready multi-remote dry-run and
     local proof package from the current pinned root, covering `bus dev work
     --remote eligible start --dry-run`, `bus dev work stats`, and the no-spend
