@@ -401,6 +401,14 @@
         SSH-Docker host, rerun `scripts/test-ssh-docker-local-model-smoke.sh`
         against the mock endpoint on `coding-agent@dev.hg.fi`, then repeat on
         the operator-provided H100 host with the real local inference endpoint.
+        The first rerun reached the nested local-model container but failed
+        DNS for `bus-ollama-mock` because provider-neutral container requests
+        had no child-container network field and Docker defaulted to `bridge`.
+        Local fixes now carry `network` through `bus-integration-dev-task`,
+        `bus-integration-containers`, and `bus-integration-docker`, with the
+        dev-task CLI defaulting child container network from
+        `BUS_DEV_SSH_DOCKER_WORKER_NETWORK` for image-backed SSH-Docker workers.
+        Rebuild/reinstall and rerun the smoke with these commits.
     - [x] `busdk#115.1` docs slice: public docs now include a no-spend
       multi-remote worker test checklist, integration navigation links,
       bus-dev module reference links, explicit live-run token scopes, a
