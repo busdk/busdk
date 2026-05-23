@@ -97,9 +97,10 @@ module internals.
    services. Secrets must come from environment variables, user config secret
    files, deployment secret files, OS credential storage, or standard input
    where explicitly designed.
-6. Treat committed `AGENTS.md`, memos, notes, logs, docs, and examples as
-   public unless they are explicitly inside a private repository. Use
-   placeholders and redacted summaries.
+6. Treat committed `AGENTS.md`, docs, and examples as public unless they are
+   explicitly inside a private repository. Logs, memos, and notes are internal
+   operator records, but still avoid writing secrets unless the owning
+   repository explicitly documents a private secret-handling surface.
 7. Never print broad `.env` contents. Query only exact non-secret keys or report
    key presence with values redacted.
 8. Never auto-write JWTs, API tokens, refresh tokens, or auth-session files
