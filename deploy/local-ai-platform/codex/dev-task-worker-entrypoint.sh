@@ -30,7 +30,7 @@ fi
 : "${BUS_DEV_TASK_CODEX_SANDBOX:=workspace-write}"
 : "${BUS_DEV_TASK_CODEX_NETWORK_ACCESS:=true}"
 : "${BUS_DEV_TASK_CODEX_INHERIT_ENV:=true}"
-: "${BUS_DEV_TASK_CODEX_STATE_ROOT:=/tmp/bus-dev-task-codex-homes}"
+: "${BUS_DEV_TASK_CODEX_STATE_ROOT:=/workspace/tmp/bus-dev-task-codex-homes}"
 : "${BUS_DEV_TASK_GOPLS_MCP:=auto}"
 : "${BUS_DEV_TASK_GOPLS_COMMAND:=gopls}"
 : "${BUS_DEV_TASK_GOPLS_MIN_VERSION:=v0.20.0}"
