@@ -8,6 +8,7 @@ set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
 SSH_TARGET=${BUS_REMOTE_WORKER_BUILD_SSH_TARGET:-coding-agent@dev.hg.fi}
+SSH_MODE=${BUS_REMOTE_WORKER_BUILD_SSH_MODE:-command}
 REMOTE_ROOT=${BUS_REMOTE_WORKER_BUILD_REMOTE_ROOT:-/home/coding-agent/coding-agent/git/busdk/busdk}
 REMOTE_NAME=${BUS_REMOTE_WORKER_BUILD_REMOTE_NAME:-origin}
 REPO_URL=${BUS_REMOTE_WORKER_BUILD_REPO_URL:-}
@@ -20,6 +21,7 @@ SUBMODULES=${BUS_REMOTE_WORKER_BUILD_SUBMODULES:-"bus bus-dev bus-integration-de
 PUSH_FIRST=${BUS_REMOTE_WORKER_BUILD_PUSH_FIRST:-false}
 REQUIRE_CLEAN=${BUS_REMOTE_WORKER_BUILD_REQUIRE_CLEAN:-true}
 BOOTSTRAP_CHECKOUT=${BUS_REMOTE_WORKER_BUILD_BOOTSTRAP_CHECKOUT:-true}
+REFUSE_ROOT=${BUS_REMOTE_WORKER_BUILD_REFUSE_ROOT:-}
 
 if [ -z "$BRANCH" ]; then
 	BRANCH=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)
@@ -61,6 +63,28 @@ case "$BOOTSTRAP_CHECKOUT" in
 		;;
 esac
 
+case "$SSH_MODE" in
+	command|gateway-tty)
+		;;
+	*)
+		printf 'invalid BUS_REMOTE_WORKER_BUILD_SSH_MODE=%s; expected command or gateway-tty\n' "$SSH_MODE" >&2
+		exit 2
+		;;
+esac
+
+if [ -z "$REFUSE_ROOT" ] && [ "$SSH_MODE" = gateway-tty ]; then
+	REFUSE_ROOT=true
+fi
+
+case "$REFUSE_ROOT" in
+	true|1|yes|on|false|0|no|off|'')
+		;;
+	*)
+		printf 'invalid BUS_REMOTE_WORKER_BUILD_REFUSE_ROOT=%s\n' "$REFUSE_ROOT" >&2
+		exit 2
+		;;
+esac
+
 case "$PUSH_FIRST" in
 	true|1|yes|on)
 		"$ROOT/scripts/push-submodules.sh"
@@ -94,6 +118,7 @@ image_q=$(shell_quote "$IMAGE")
 platform_q=$(shell_quote "$PLATFORM")
 go_version_q=$(shell_quote "$GO_VERSION")
 bootstrap_checkout_q=$(shell_quote "$BOOTSTRAP_CHECKOUT")
+refuse_root_q=$(shell_quote "$REFUSE_ROOT")
 submodules_q=
 for module in $SUBMODULES; do
 	submodules_q="$submodules_q $(shell_quote "$module")"
@@ -101,6 +126,15 @@ done
 
 remote_script="
 set -eu
+case $refuse_root_q in
+	true|1|yes|on)
+		if [ \"\$(id -u)\" = 0 ]; then
+			printf 'refusing to prepare SSH-Docker worker host as root; fix the remote account or set BUS_REMOTE_WORKER_BUILD_REFUSE_ROOT=false intentionally\n' >&2
+			exit 2
+		fi
+		;;
+esac
+export GIT_SSH_COMMAND=\${GIT_SSH_COMMAND:-ssh -o StrictHostKeyChecking=accept-new}
 remote_root=$remote_root_q
 case $bootstrap_checkout_q in
 	true|1|yes|on)
@@ -130,4 +164,14 @@ BUS_SSH_DOCKER_BUILD_GO_VERSION=$go_version_q \\
 docker image inspect $image_q --format '{{.Id}}'
 "
 
-ssh -A "$SSH_TARGET" "$remote_script"
+case "$SSH_MODE" in
+	command)
+		ssh -A "$SSH_TARGET" "$remote_script"
+		;;
+	gateway-tty)
+		{
+			printf '%s\n' "$remote_script"
+			printf '%s\n' "exit"
+		} | ssh -A -tt "$SSH_TARGET"
+		;;
+esac

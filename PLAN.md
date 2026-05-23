@@ -357,6 +357,12 @@
   remote checkout from the configured Git remote before pinned submodule sync
   and image build, so disposable GPU hosts do not need pre-existing source
   state.
+  `scripts/prepare-ssh-docker-worker-host.sh` now wraps that into a first-run
+  host preparation path: bootstrap/update source, build the worker image, and
+  start the Compose services needed by image-backed workers. Gateway TTY mode
+  refuses to run as root by default because the H100 `dev@ai.hg.fi` account
+  briefly exposed a root shell; do not retry that target until the gateway lands
+  in the intended non-root operator account with usable forwarded credentials.
   - [ ] Next concrete slice: run an operator-ready multi-remote dry-run and
     local proof package from the current pinned root, covering `bus dev work
     --remote eligible start --dry-run`, `bus dev work stats`, and the no-spend
@@ -441,6 +447,36 @@
         command. Current state: source sync and remote image rebuild are
         deterministic scripts, while worker-authored branch publication through
         GitHub is not yet fully automated in the SSH-Docker smoke path.
+        - [x] Substrate proof: added `scripts/test-ssh-docker-write-smoke.sh`
+          and ran it against `coding-agent@dev.hg.fi` as
+          `bus-ssh-docker-smoke#12.1`. The image-backed worker launched,
+          prepared isolated branch
+          `codex/ssh-docker-substrate-smoke-20260523231940`, wrote
+          `testdata/ssh-docker-write-smoke.txt`, passed a post-command check,
+          and reached `bus.dev.task.done`. Retrieval evidence from the remote
+          `bus-dev` checkout: `HEAD`/branch
+          `codex/ssh-docker-substrate-smoke-20260523231940` at `ad84b61`
+          contains `test: ssh-docker substrate write smoke` with the expected
+          two-line smoke file.
+        - [ ] Model-backed write proof: `scripts/test-ssh-docker-codex-write-smoke.sh`
+          reached the real Codex App Server on `coding-agent@dev.hg.fi` as
+          `bus-ssh-docker-smoke#11.1`, but repeated OpenAI websocket
+          `401 Unauthorized` diagnostics led to no worktree changes. The bridge
+          correctly blocked with `codex app-server task produced no worktree
+          changes`; next step is fixing the remote Codex/model auth path or
+          running the same writable smoke through the planned local-model
+          endpoint.
+      - [ ] Design the minimum non-central Events/history synchronization path
+        for disposable remotes: task/event history, worker closeout evidence,
+        promoted commit metadata, and notes must be durably pullable back to the
+        supervisor/local control plane without trusting remote disk state.
+        Keep the first version simple and scriptable, but make it suitable for
+        later fast incremental sync between local, UpCloud, and other remotes.
+      - [ ] Retry H100 setup only after `dev@ai.hg.fi` no longer opens a root
+        shell and preserves enough SSH credential access for private Git
+        submodule fetches. First verification should be identity-only (`id -un`,
+        `id -u`, `SSH_AUTH_SOCK` presence), then run the prepare script in
+        non-root gateway mode.
     - [x] `busdk#115.1` docs slice: public docs now include a no-spend
       multi-remote worker test checklist, integration navigation links,
       bus-dev module reference links, explicit live-run token scopes, a
