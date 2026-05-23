@@ -384,6 +384,23 @@
       `bus dev work --remote <id> start`, verify the child container reaches
       the inference endpoint, records model output in the task stream, and
       reaches a terminal Bus Events state without hosted Codex credentials.
+      - [x] Removed the immediate container mount blocker found during the
+        `coding-agent@dev.hg.fi` mock-model smoke: `bus-dev` now passes
+        remote workspace host roots and worktree-disable knobs into
+        image-backed workers, the smoke scripts can select a local-model child
+        container command, and `bus-integration-docker` honors explicit
+        provider-neutral mounts plus fallback workspace mounts for non-Codex
+        profiles. This keeps the first local-model path on existing container
+        contracts instead of adding a new backend. Verification:
+        `make -C bus-integration-docker test`, escalated
+        `GOCACHE=/private/tmp/bus-go-cache make -C bus-dev test`, focused
+        `go test` runs, `sh -n` for the SSH-Docker smoke scripts,
+        `git diff --check`, and AI-backed `bus lint` on the changed Go files
+        passed.
+      - [ ] Reinstall/rebuild the updated worker/provider stack on the target
+        SSH-Docker host, rerun `scripts/test-ssh-docker-local-model-smoke.sh`
+        against the mock endpoint on `coding-agent@dev.hg.fi`, then repeat on
+        the operator-provided H100 host with the real local inference endpoint.
     - [x] `busdk#115.1` docs slice: public docs now include a no-spend
       multi-remote worker test checklist, integration navigation links,
       bus-dev module reference links, explicit live-run token scopes, a
