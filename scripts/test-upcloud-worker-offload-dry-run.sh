@@ -17,9 +17,11 @@ CONTROLLER_EVENTS_URL=${BUS_UPCLOUD_OFFLOAD_CONTROLLER_EVENTS_URL:-http://127.0.
 WORKER_EVENTS_URL=${BUS_UPCLOUD_OFFLOAD_WORKER_EVENTS_URL:-http://bus-events:8081}
 WORKER_IMAGE=${BUS_UPCLOUD_OFFLOAD_WORKER_IMAGE:-bus-integration-dev-task:local-image-smoke}
 MODEL=${BUS_UPCLOUD_OFFLOAD_MODEL:-gemma4:31b}
+MODEL_ENDPOINT=${BUS_UPCLOUD_OFFLOAD_MODEL_ENDPOINT:-http://ollama:11434}
 INFERENCE_PROVIDER=${BUS_UPCLOUD_OFFLOAD_INFERENCE_PROVIDER:-ollama}
 RUNNER_PROVISIONING=${BUS_UPCLOUD_OFFLOAD_RUNNER_PROVISIONING:-existing-only}
 RUNNER_NAME=${BUS_UPCLOUD_OFFLOAD_RUNNER_NAME:-$REMOTE_ID}
+MODEL_COMMAND_JSON=${BUS_UPCLOUD_OFFLOAD_MODEL_COMMAND_JSON:-}
 WORK_DIR=${BUS_UPCLOUD_OFFLOAD_DRY_RUN_DIR:-}
 
 if [ -z "$WORK_DIR" ]; then
@@ -46,6 +48,30 @@ if [ ! -d "$WORK_DIR/.git" ]; then
 fi
 
 printf 'BUS_UPCLOUD_OFFLOAD_DRY_RUN_DIR=%s\n' "$WORK_DIR"
+
+json_escape() {
+	printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
+if [ -z "$MODEL_COMMAND_JSON" ]; then
+	model_payload=$(printf '{"model":"%s","prompt":"Reply with one sentence confirming Bus remote worker offload is connected.","stream":false}' "$MODEL")
+	model_command=$(printf 'curl -fsS --max-time 120 %s -H %s --data-binary %s' \
+		"$(printf '%s/api/generate' "${MODEL_ENDPOINT%/}")" \
+		"'Content-Type: application/json'" \
+		"$(printf "'%s'" "$model_payload")")
+	MODEL_COMMAND_JSON=$(printf '["sh","-lc","%s"]' "$(json_escape "$model_command")")
+fi
+
+{
+	printf 'provider=%s\n' "$INFERENCE_PROVIDER"
+	printf 'model=%s\n' "$MODEL"
+	printf 'model_endpoint=%s\n' "$MODEL_ENDPOINT"
+	printf 'worker_image=%s\n' "$WORKER_IMAGE"
+	printf 'agent_backend=container\n'
+	printf 'child_container_image=%s\n' "$WORKER_IMAGE"
+	printf 'command_json_file=%s\n' "$WORK_DIR/local-model-command.json"
+} >"$WORK_DIR/local-model-worker-profile.env"
+printf '%s\n' "$MODEL_COMMAND_JSON" >"$WORK_DIR/local-model-command.json"
 
 "$ROOT/bus-remote/bin/bus-remote" -C "$WORK_DIR" --format json add \
 	--id "$REMOTE_ID" \
@@ -84,11 +110,17 @@ printf 'BUS_UPCLOUD_OFFLOAD_DRY_RUN_DIR=%s\n' "$WORK_DIR"
 BUS_API_TOKEN=${BUS_API_TOKEN:-dry-run-token} \
 BUS_DEV_SSH_DOCKER_LAUNCH_MODE=image \
 BUS_DEV_SSH_DOCKER_WORKER_IMAGE="$WORKER_IMAGE" \
-BUS_DEV_TASK_AGENT_BACKEND=${BUS_DEV_TASK_AGENT_BACKEND:-self-test} \
+BUS_DEV_TASK_AGENT_BACKEND=container \
+BUS_DEV_TASK_CONTAINER_IMAGE="$WORKER_IMAGE" \
+BUS_DEV_TASK_CONTAINER_PROFILE=local-model \
+BUS_DEV_TASK_COMMAND_JSON="$MODEL_COMMAND_JSON" \
+BUS_DEV_TASK_COMMIT=false \
 "$ROOT/bus-dev/bin/bus-dev" -C "$WORK_DIR" work --remote "$REMOTE_ID" start --dry-run \
 	@bus-dev "No-spend Upcloud GPU worker scheduling proof for $MODEL" \
 	>"$WORK_DIR/bus-dev-work-dry-run.txt"
 
+printf 'wrote %s\n' "$WORK_DIR/local-model-worker-profile.env"
+printf 'wrote %s\n' "$WORK_DIR/local-model-command.json"
 printf 'wrote %s\n' "$WORK_DIR/remote.json"
 printf 'wrote %s\n' "$WORK_DIR/upcloud-status.json"
 printf 'wrote %s\n' "$WORK_DIR/inference-model-ensure.json"

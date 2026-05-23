@@ -71,7 +71,10 @@ docker run --rm --platform "$PLATFORM" \
 	-e BUS_API_TOKEN=redacted-placeholder \
 	-e BUS_DEV_TASK_RECIPIENT=bus-dev \
 	-e BUS_DEV_TASK_WORK_REF=busdk#image-smoke \
-	-e BUS_DEV_TASK_AGENT_BACKEND=self-test \
+	-e BUS_DEV_TASK_AGENT_BACKEND=container \
+	-e BUS_DEV_TASK_CONTAINER_IMAGE="$IMAGE" \
+	-e BUS_DEV_TASK_CONTAINER_PROFILE=local-model \
+	-e BUS_DEV_TASK_COMMAND_JSON='["sh","-lc","curl --version >/dev/null && git --version >/dev/null && make --version >/dev/null"]' \
 	-e BUS_DEV_TASK_COMMIT=false \
 	"$IMAGE" >/dev/null
 

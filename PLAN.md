@@ -364,6 +364,26 @@
       dry-run`; the worker plan reported `launch_mode=image`,
       `worker_events_api_url_status=ok`, `worker_image=bus-integration-dev-task:local-image-smoke`,
       and `no task streams created; no workers launched; no provisioning requested`.
+    - [x] Local-model command profile slice: image-mode SSH-Docker workers now
+      pass `BUS_DEV_TASK_CONTAINER_IMAGE` and `BUS_DEV_TASK_CONTAINER_PROFILE`
+      through to the image worker, the dev-task worker image includes `curl`
+      for first inference endpoint smokes, and
+      `scripts/test-upcloud-worker-offload-dry-run.sh` writes
+      `local-model-worker-profile.env` plus `local-model-command.json` for an
+      Ollama-style `/api/generate` smoke. The profile runs the existing
+      `container` backend with the selected worker image as the child task
+      image, keeping the first model lane on existing Bus container contracts
+      instead of adding a new MCP/backend. Verification:
+      `go test ./run -run TestDevTaskSSHDockerRunnerRequestSupportsImageLaunchMode`
+      in `bus-dev`, `sh -n` for the changed scripts, `git diff --check`,
+      `bus lint bus-dev/run/worker.go`, `bus lint bus-dev/run/worker_test.go`,
+      and `scripts/test-upcloud-worker-offload-dry-run.sh` passed.
+    - [ ] Live operator-host model smoke: on an approved H100/GPU-capable
+      SSH-Docker host with the worker image and local inference runtime
+      installed, run the generated local-model command profile through
+      `bus dev work --remote <id> start`, verify the child container reaches
+      the inference endpoint, records model output in the task stream, and
+      reaches a terminal Bus Events state without hosted Codex credentials.
     - [x] `busdk#115.1` docs slice: public docs now include a no-spend
       multi-remote worker test checklist, integration navigation links,
       bus-dev module reference links, explicit live-run token scopes, a
