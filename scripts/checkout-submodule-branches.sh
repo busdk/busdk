@@ -6,18 +6,21 @@ DRY_RUN=false
 FORCE=false
 FETCH=true
 INIT=true
+MODE=branches
 BRANCH_MAP=
 
 usage() {
 	cat <<'USAGE'
 usage: checkout-submodule-branches.sh [options]
 
-Initialize BusDK submodules and checkout each submodule to the branch declared
-in .gitmodules. Most modules use 1-{module}; exceptions are read from
-.gitmodules instead of guessed.
+Initialize BusDK submodules. By default this also checks each submodule out to
+the branch declared in .gitmodules, which is useful for branch maintenance.
+Use --mode pins before reproducible worker runs; that mode preserves the exact
+superproject gitlinks instead of fast-forwarding submodule branches.
 
 Options:
   --dry-run     Print the commands that would run without mutating checkouts.
+  --mode MODE   branches (default) or pins.
   --force       Allow checkout when a submodule has local changes.
   --no-fetch    Do not fetch the configured branch from origin.
   --no-init     Do not run submodule sync/update before branch checkout.
@@ -65,6 +68,11 @@ run() {
 while [ "$#" -gt 0 ]; do
 	case "$1" in
 		--dry-run) DRY_RUN=true; shift ;;
+		--mode)
+			[ "$#" -ge 2 ] || die "missing value for --mode"
+			MODE=$2
+			shift 2
+			;;
 		--force) FORCE=true; shift ;;
 		--no-fetch) FETCH=false; shift ;;
 		--no-init) INIT=false; shift ;;
@@ -80,6 +88,11 @@ done
 
 cd "$ROOT"
 
+case "$MODE" in
+	branches|pins) ;;
+	*) die "invalid --mode: $MODE; expected branches or pins" ;;
+esac
+
 if [ ! -f .gitmodules ]; then
 	die ".gitmodules not found at $ROOT"
 fi
@@ -90,6 +103,11 @@ fi
 if [ "$INIT" = true ]; then
 	run git -C "$ROOT" submodule sync --recursive
 	run git -C "$ROOT" submodule update --init --recursive
+fi
+
+if [ "$MODE" = pins ]; then
+	printf 'submodules synchronized to superproject pins\n'
+	exit 0
 fi
 
 git config --file .gitmodules --get-regexp '^submodule\..*\.path$' |
