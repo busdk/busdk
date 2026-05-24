@@ -13,6 +13,8 @@ WORKER_IMAGE=${BUS_SSH_DOCKER_MODEL_SMOKE_IMAGE:-${BUS_SSH_DOCKER_SMOKE_IMAGE:-b
 PROMPT=${BUS_SSH_DOCKER_MODEL_SMOKE_PROMPT:-Reply with one short sentence confirming the Bus remote model worker can reach local inference.}
 TASK_PROMPT=${BUS_SSH_DOCKER_MODEL_SMOKE_TASK_PROMPT:-}
 TOOL_PROFILE=${BUS_SSH_DOCKER_MODEL_SMOKE_TOOL_PROFILE:-shell-only}
+CODEX_EXEC=${BUS_SSH_DOCKER_MODEL_SMOKE_CODEX_EXEC:-false}
+REASONING_EFFORT=${BUS_SSH_DOCKER_MODEL_SMOKE_REASONING_EFFORT:-}
 COMMAND_JSON=${BUS_SSH_DOCKER_MODEL_SMOKE_COMMAND_JSON:-}
 POST_COMMAND_JSON=${BUS_SSH_DOCKER_MODEL_SMOKE_POST_COMMAND_JSON:-${BUS_SSH_DOCKER_SMOKE_POST_COMMAND_JSON:-}}
 WORKTREE=${BUS_SSH_DOCKER_MODEL_SMOKE_WORKTREE:-${BUS_SSH_DOCKER_SMOKE_WORKTREE:-false}}
@@ -36,6 +38,8 @@ variables. Unknown lower-level SSH-Docker smoke options can be passed after
   --prompt TEXT                  model prompt when command JSON is omitted
   --task-prompt TEXT             dev-task prompt forwarded to bus-dev
   --tool-profile NAME            tool profile hint: shell-only or unrestricted
+  --codex-exec[=BOOL]            build a codex exec Ollama command JSON
+  --reasoning-effort EFFORT      default/model reasoning effort
   --command-json JSON            explicit command JSON
   --post-command-json JSON       explicit post-command JSON
   --worktree[=BOOL]              request a task worktree
@@ -68,6 +72,10 @@ while [ "$#" -gt 0 ]; do
 		--prompt) need_arg "$@"; PROMPT=$2; shift 2 ;;
 		--task-prompt) need_arg "$@"; TASK_PROMPT=$2; shift 2 ;;
 		--tool-profile) need_arg "$@"; TOOL_PROFILE=$2; shift 2 ;;
+		--codex-exec) CODEX_EXEC=true; shift ;;
+		--codex-exec=*) CODEX_EXEC=${1#*=}; shift ;;
+		--no-codex-exec) CODEX_EXEC=false; shift ;;
+		--reasoning-effort|--reasoning) need_arg "$@"; REASONING_EFFORT=$2; shift 2 ;;
 		--command-json) need_arg "$@"; COMMAND_JSON=$2; shift 2 ;;
 		--post-command-json) need_arg "$@"; POST_COMMAND_JSON=$2; shift 2 ;;
 		--worktree) WORKTREE=true; shift ;;
@@ -91,6 +99,14 @@ case "$TOOL_PROFILE" in
 	shell-only|unrestricted) ;;
 	*) printf 'invalid --tool-profile=%s; expected shell-only or unrestricted\n' "$TOOL_PROFILE" >&2; exit 2 ;;
 esac
+case "$CODEX_EXEC" in
+	true|false|1|0|yes|no|on|off) ;;
+	*) printf 'invalid --codex-exec=%s; expected boolean\n' "$CODEX_EXEC" >&2; exit 2 ;;
+esac
+case "$REASONING_EFFORT" in
+	''|none|minimal|low|medium|high|xhigh|hard) ;;
+	*) printf 'invalid --reasoning-effort=%s; expected none|minimal|low|medium|high|xhigh|hard\n' "$REASONING_EFFORT" >&2; exit 2 ;;
+esac
 
 json_escape() {
 	printf '%s' "$1" | awk '
@@ -104,14 +120,33 @@ json_escape() {
 	'
 }
 
-if [ -z "$COMMAND_JSON" ]; then
-	payload=$(printf '{"model":"%s","prompt":"%s","stream":false}' "$MODEL" "$PROMPT")
-	command=$(printf 'curl -fsS --max-time 180 %s -H %s --data-binary %s' \
-		"$(printf '%s/api/generate' "${MODEL_ENDPOINT%/}")" \
-		"'Content-Type: application/json'" \
-		"$(printf "'%s'" "$payload")")
-	COMMAND_JSON=$(printf '["sh","-lc","%s"]' "$(json_escape "$command")")
-fi
+json_string() {
+	printf '"%s"' "$(json_escape "$1")"
+}
+
+json_array() {
+	out='['
+	sep=''
+	for value do
+		out=$out$sep$(json_string "$value")
+		sep=','
+	done
+	printf '%s]' "$out"
+}
+
+json_array_begin() {
+	JSON_ARRAY='['
+	JSON_ARRAY_SEP=''
+}
+
+json_array_add() {
+	JSON_ARRAY=$JSON_ARRAY$JSON_ARRAY_SEP$(json_string "$1")
+	JSON_ARRAY_SEP=','
+}
+
+json_array_end() {
+	printf '%s]' "$JSON_ARRAY"
+}
 
 if [ -z "$TASK_PROMPT" ]; then
 	TASK_PROMPT="SSH-Docker local-model smoke for $MODEL: run the configured model command and report the model response; do not edit files."
@@ -120,6 +155,33 @@ if [ "$TOOL_PROFILE" = shell-only ]; then
 	TASK_PROMPT="$TASK_PROMPT
 
 Tool profile: shell-only. The child worker can run normal shell commands in its writable task worktree, but it must not call an apply_patch tool or assume App Server-only tools exist. Use ordinary shell commands or checked-in scripts for file edits."
+fi
+
+if [ -z "$COMMAND_JSON" ]; then
+	case "$CODEX_EXEC" in
+		true|1|yes|on)
+			json_array_begin
+			for value in env "OLLAMA_HOST=${MODEL_ENDPOINT%/}" codex exec --oss --local-provider ollama -m "$MODEL"; do
+				json_array_add "$value"
+			done
+			if [ -n "$REASONING_EFFORT" ]; then
+				json_array_add -c
+				json_array_add "model_reasoning_effort=\"$REASONING_EFFORT\""
+			fi
+			for value in --dangerously-bypass-approvals-and-sandbox -C . "$TASK_PROMPT"; do
+				json_array_add "$value"
+			done
+			COMMAND_JSON=$(json_array_end)
+			;;
+		*)
+			payload=$(printf '{"model":"%s","prompt":"%s","stream":false}' "$MODEL" "$PROMPT")
+			command=$(printf 'curl -fsS --max-time 180 %s -H %s --data-binary %s' \
+				"$(printf '%s/api/generate' "${MODEL_ENDPOINT%/}")" \
+				"'Content-Type: application/json'" \
+				"$(printf "'%s'" "$payload")")
+			COMMAND_JSON=$(printf '["sh","-lc","%s"]' "$(json_escape "$command")")
+			;;
+	esac
 fi
 
 "$ROOT/scripts/test-ssh-docker-image-smoke.sh" \
