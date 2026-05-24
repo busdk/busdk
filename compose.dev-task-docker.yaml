@@ -184,7 +184,7 @@ services:
         --codex-workspace-container-path "$${BUS_DOCKER_CODEX_WORKSPACE_CONTAINER}"
     volumes:
       - .:/workspace
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${BUS_DOCKER_SOCKET_HOST:-/var/run/docker.sock}:/var/run/docker.sock
 
   bus-integration-containers:
     image: ${BUS_LOCAL_GO_IMAGE:-golang:1.26.3}
@@ -358,7 +358,7 @@ services:
       - .:/workspace
       - ${BUS_CODEX_HOME:-${HOME}/.codex}:/root/.codex-shared:ro
       - ${BUS_GO_MOD_CACHE_HOST:-${HOME}/go/pkg/mod}:/go/pkg/mod:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${BUS_DOCKER_SOCKET_HOST:-/var/run/docker.sock}:/var/run/docker.sock
 
   bus-dev-supervisor:
     image: ${BUS_LOCAL_GO_IMAGE:-golang:1.26.3}

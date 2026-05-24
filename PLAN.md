@@ -6,6 +6,38 @@
   UpCloud, and future worker systems through one natural workflow, compare
   which systems produce accepted work, and avoid wasting hosted quota or cloud
   spend on blind experiments.
+  Current action: turn the now-proven H100 worker path into local-supervisor
+  routing. The H100 writable model-backed worker proof passed on
+  `dev@ai.hg.fi`: `scripts/test-h100-local-model-write-smoke.sh` built
+  `bus-integration-dev-task:h100-smoke`, launched
+  `bus-h100-write-smoke-20260524061759#1.1`, claimed the task, prepared an
+  isolated `bus-dev` worktree, reserved
+  `testdata/h100-local-model-write-smoke.txt`, ran an H100-local
+  `gemma4:31b` child-container command, published `bus.dev.task.done`, and
+  verified branch `codex/h100-local-model-write-smoke-20260524061759` at commit
+  `1eb0ea7b6b162eb5365069a73a847050b7e2ced0` with message
+  `test: h100 local-model write smoke`. A follow-up flag-based run also proved
+  `gpt-oss:120b` with `--reasoning-effort high`: task
+  `bus-h100-gpt-oss-120b-write-smoke#1.1` published `bus.dev.task.done` and
+  verified branch `codex/h100-local-model-write-smoke-20260524130052` at commit
+  `7a974d1fae2967eaf56a5bba95a3600e32beb530`.
+  Supporting fixes from this proof: SSH-Docker runner scripts now default to a
+  300-second remote script timeout with
+  `BUS_DEV_SSH_DOCKER_SCRIPT_TIMEOUT_SECONDS`, trusted image-backed workers can
+  mount an explicit remote Docker socket, smoke/debug runs can preserve worker
+  containers with `BUS_DEV_SSH_DOCKER_WORKER_KEEP_CONTAINER=1`, local-model
+  command JSON correctly escapes multi-line shell commands, and the H100
+  harness restores copied source patches after building so recipient checkouts
+  are clean before workers edit. The smoke scripts now take normal flags for
+  model, reasoning effort, endpoint, branch, file/write scope, timeouts, smoke
+  dir, runner log, keep-container, image, Docker socket, and Events URLs while
+  retaining env fallbacks, so routine runs use stable approved script prefixes
+  instead of env-heavy command shapes.
+  Next action: make local-supervisor to H100 task routing automatic enough for
+  daily use by turning the working SSH Events sync into a bounded loop or Bus
+  remote transport, then prove the supervisor can issue a task locally and have
+  the H100 worker claim, complete, sync evidence back, and expose promotion
+  metadata without manually running the whole smoke on the remote host.
   - [ ] Prove parallel multi-remote execution with at least two remote
     identities active in the same run, preserving isolated worktrees,
     recipient/write-scope ownership, terminal evidence, and serialized
@@ -312,6 +344,26 @@
   implementation tasks for the owning modules; keep paid UpCloud provisioning
   behind explicit operator approval; document the cost-control operating mode;
   and verify with local/provider-neutral smokes before any live-cloud spend.
+  Current operator-ready state:
+  - H100 host `dev@ai.hg.fi` has been proven reachable through SSH as non-root
+    `dev` when the managed GPU runtime is up; in that state it can run
+    Docker/Compose, has Ollama with `gemma4:31b`, and can rebuild the dev-task
+    worker image from a disposable checkout.
+  - `scripts/test-h100-local-model-worker-smoke.sh` is the repeatable setup and
+    smoke command. A passing run must rebuild/install the worker image, start
+    minimal Events/Docker provider services, run the local-model child
+    container, record the model response, and end with `bus.dev.task.done`.
+  - SSH local port forwarding is not available; use
+    `scripts/sync-events-over-ssh.sh` for bootstrap event/history movement.
+    A passing sync reports imported event counts and can be verified by replay
+    on the destination Events API.
+  Next ordered steps:
+  - Convert manual Events sync into an operator UX/loop suitable for local
+    supervisor to remote worker task routing.
+  - Prove local-supervisor-issued work can sync to H100, run there, sync
+    terminal evidence and promotion metadata back, and be reviewed locally.
+  - Run a two-remote proof after local-supervisor routing works: one local
+    Docker remote plus `ai.hg.fi`, with per-remote status/stat evidence.
   Current UpCloud direction: optimize first for one manually installed
   UpCloud VPS image that can run Bus-owned worker containers and later be
   resized or changed to a different UpCloud GPU/server format on demand without
@@ -359,17 +411,25 @@
   state.
   `scripts/prepare-ssh-docker-worker-host.sh` now wraps that into a first-run
   host preparation path: bootstrap/update source, build the worker image, and
-  start the Compose services needed by image-backed workers. Gateway TTY mode
-  refuses to run as root by default because the H100 `dev@ai.hg.fi` account
-  briefly exposed a root shell; do not retry that target until the gateway lands
-  in the intended non-root operator account with usable forwarded credentials.
-  - [ ] Next concrete slice: run an operator-ready multi-remote dry-run and
-    local proof package from the current pinned root, covering `bus dev work
-    --remote eligible start --dry-run`, `bus dev work stats`, and the no-spend
-    UpCloud existing-runner checklist. Owner modules: `bus-dev`, `bus-remote`,
+  start the Compose services needed by image-backed workers. The H100 gateway
+  now lands as non-root `dev` and accepts normal non-interactive SSH commands;
+  the remaining gateway limitation is local port forwarding to the remote
+  Events API.
+  - [ ] Queued after local-supervisor-to-H100 routing proof: run an
+    operator-ready multi-remote dry-run and local proof package from the current
+    pinned root,
+    covering `bus dev work --remote eligible start --dry-run`, `bus dev work
+    stats`, and the no-spend UpCloud existing-runner checklist. Owner modules:
+    `bus-dev`, `bus-remote`,
     `bus-integration-upcloud`, `docs`, and `sdd`. Acceptance: commands and docs
     show how an operator can test localhost plus an external manually installed
-    runner without provisioning paid resources here.
+    runner without provisioning paid resources here. Prerequisites: a clean or
+    intentionally dirty-reconciled root checkout, local Events token file,
+    configured `localhost` and external SSH-Docker remotes, and no live UpCloud
+    create/delete command unless explicitly approved. Expected safe results:
+    dry-run emits worker plans only, stats show remote ids/kinds without
+    starting paid resources, and the checklist names exact evidence an operator
+    should collect from the external runner.
     - [x] Initial no-spend UpCloud GPU worker proof package:
       `scripts/test-upcloud-worker-offload-dry-run.sh` configures an
       `upcloud-h100` SSH-Docker candidate remote, checks the static UpCloud
@@ -396,12 +456,36 @@
       in `bus-dev`, `sh -n` for the changed scripts, `git diff --check`,
       `bus lint bus-dev/run/worker.go`, `bus lint bus-dev/run/worker_test.go`,
       and `scripts/test-upcloud-worker-offload-dry-run.sh` passed.
-    - [ ] Live operator-host model smoke: on an approved H100/GPU-capable
+    - [x] Live operator-host model smoke: on an approved H100/GPU-capable
       SSH-Docker host with the worker image and local inference runtime
       installed, run the generated local-model command profile through
       `bus dev work --remote <id> start`, verify the child container reaches
       the inference endpoint, records model output in the task stream, and
       reaches a terminal Bus Events state without hosted Codex credentials.
+      Done on `dev@ai.hg.fi` through
+      `scripts/test-h100-local-model-worker-smoke.sh`. Evidence:
+      `bus-ssh-docker-model-smoke#5.1` launched the image-backed worker on the
+      H100 host, claimed the task, ran the `local-model` child container
+      against Ollama `gemma4:31b` on `127.0.0.1:11434`, recorded the model
+      response `"The Bus remote model worker can reach local inference."`, and
+      reached `bus.dev.task.done`. The smoke rebuilt
+      `bus-integration-dev-task:h100-smoke` on the remote host with Go
+      `1.26.3`, used the detected rootless Docker socket
+      `/run/user/1002/docker.sock`, and ran without hosted Codex credentials.
+      Remaining product gaps for the broader offload lane are local-supervisor
+      Events connectivity/sync and a writable model-backed development task.
+      Follow-up proof for local-supervisor Events transport: SSH port
+      forwarding to remote `bus-events` still fails with
+      `administratively prohibited`, but `scripts/sync-events-over-ssh.sh`
+      now works as the no-forwarding transport. It synced 31 H100 task-history
+      events from remote to a temporary local Events API, then synced one
+      local `example.h100.sync.probe` event back to H100 and verified it by
+      remote replay. This proves bidirectional Events/history movement between
+      local supervisor and H100 over SSH. The helper now also has bounded
+      repeat mode through `BUS_EVENTS_SSH_SYNC_REPEAT` and
+      `BUS_EVENTS_SSH_SYNC_INTERVAL_SECONDS`, plus bounded SSH waits through
+      `BUS_EVENTS_SSH_SYNC_SSH_WAIT_TIMEOUT`, which is enough for temporary
+      supervisor polling experiments but still not automatic live task routing.
       - [x] Removed the immediate container mount blocker found during the
         `coding-agent@dev.hg.fi` mock-model smoke: `bus-dev` now passes
         remote workspace host roots and worktree-disable knobs into
@@ -415,7 +499,7 @@
         `go test` runs, `sh -n` for the SSH-Docker smoke scripts,
         `git diff --check`, and AI-backed `bus lint` on the changed Go files
         passed.
-      - [ ] Reinstall/rebuild the updated worker/provider stack on the target
+      - [x] Reinstall/rebuild the updated worker/provider stack on the target
         SSH-Docker host, rerun `scripts/test-ssh-docker-local-model-smoke.sh`
         against the mock endpoint on `coding-agent@dev.hg.fi`, then repeat on
         the operator-provided H100 host with the real local inference endpoint.
@@ -426,7 +510,13 @@
         `bus-integration-containers`, and `bus-integration-docker`, with the
         dev-task CLI defaulting child container network from
         `BUS_DEV_SSH_DOCKER_WORKER_NETWORK` for image-backed SSH-Docker workers.
-        Rebuild/reinstall and rerun the smoke with these commits.
+        Rebuild/reinstall and rerun the smoke with these commits. Closed by
+        the H100 `gemma4:31b` smoke described above. Additional fix discovered
+        during the live run: rootless Docker hosts need both the image-backed
+        worker and `compose.dev-task-docker.yaml` provider service to use the
+        same operator-selected Docker socket, so the compose file now supports
+        `BUS_DOCKER_SOCKET_HOST` and the H100 smoke auto-detects
+        `/run/user/$(id -u)/docker.sock`.
       - [x] Real remote Codex no-edit smoke on the prepared SSH-Docker host:
         `scripts/test-ssh-docker-image-smoke.sh` with
         `BUS_SSH_DOCKER_SMOKE_AGENT_BACKEND=codex-appserver` launched the
@@ -466,17 +556,64 @@
           changes`; next step is fixing the remote Codex/model auth path or
           running the same writable smoke through the planned local-model
           endpoint.
-      - [ ] Design the minimum non-central Events/history synchronization path
+      - [x] Design the minimum non-central Events/history synchronization path
         for disposable remotes: task/event history, worker closeout evidence,
         promoted commit metadata, and notes must be durably pullable back to the
         supervisor/local control plane without trusting remote disk state.
         Keep the first version simple and scriptable, but make it suitable for
         later fast incremental sync between local, UpCloud, and other remotes.
-      - [ ] Retry H100 setup only after `dev@ai.hg.fi` no longer opens a root
-        shell and preserves enough SSH credential access for private Git
-        submodule fetches. First verification should be identity-only (`id -un`,
-        `id -u`, `SSH_AUTH_SOCK` presence), then run the prepare script in
-        non-root gateway mode.
+        Minimum Events metadata support landed in `bus-events`: stable
+        environment IDs, mutable environment names, target environment IDs,
+        export/import, and per-destination sync-state properties. Remaining
+        work is the rsync-like automatic transport and product UX on top of
+        those primitives. Bootstrap transport proof now exists:
+        `scripts/sync-events-over-ssh.sh` can move event history in both
+        directions without SSH port forwarding, including Docker-based remote
+        `bus-events` CLI fallback for disposable hosts that have Docker but no
+        host Go binary or built `bus-events` executable.
+      - [x] Retry H100 setup after the root-shell fix and forwarded-agent
+        check. Interactive `ssh -A -tt dev@ai.hg.fi` now lands as non-root
+        user `dev`, exposes `SSH_AUTH_SOCK`, uses
+        `DOCKER_HOST=unix:///run/user/1002/docker.sock`, has Docker `29.5.2`
+        and Compose `v5.1.4`, and sees an NVIDIA H100 80GB GPU. The remote
+        checkout was updated from pushed GitHub source at root commit
+        `8ccc546`, required private submodules were initialized through the
+        forwarded agent, and `bus-integration-dev-task:h100-smoke` was built
+        on the H100 host with Go `1.26.3`. Build-script self-tests passed
+        inside the image, including `bus-integration-dev-task --help` and
+        local-model dry-run tool checks for `curl`, `git`, and `make`. Image
+        ID: `sha256:6b73ddf055a15a9bec6a1ea81e5dc4f253621ce593d23f6236215379cfe40`.
+        Normal non-interactive `ssh dev@ai.hg.fi <command>` was later enabled
+        by the operator and verified by the supervisor. The remote
+        build/prepare scripts now stream command-mode scripts through
+        `ssh ... sh -s`, which avoids gateways that reject multi-line command
+        arguments, and the H100 prepare path can start the minimal remote
+        `bus-events` control plane from a fresh service-submodule checkout.
+        A fully remote no-tunnel smoke then passed on H100:
+        `scripts/test-ssh-docker-image-smoke.sh` ran on the host with
+        `BUS_SSH_DOCKER_SMOKE_TUNNEL=false`, remote `bus-events`,
+        SSH target `dev@localhost`, and image
+        `bus-integration-dev-task:h100-smoke`. Evidence:
+        `bus-ssh-docker-smoke#2.1` launched the image worker, claimed the task,
+        prepared an isolated worktree, reached the self-test backend, and
+        published `bus.dev.task.done`. Remaining gaps: local-supervisor access
+        to remote Events still needs SSH forwarding or Events sync, and
+        model-backed container execution needs the image worker to mount the
+        remote Docker socket when the operator explicitly enables that access.
+        Added `scripts/test-h100-local-model-worker-smoke.sh` to replace the
+        current long manual rerun recipe with one deterministic command: it can
+        bootstrap/update the H100 checkout, hydrate required submodules, copy
+        the local smoke patches, rebuild the worker image/tool binaries on the
+        remote host with Go `1.26.3`, start the minimal Events/Docker provider
+        services, and run the no-tunnel `gemma4:31b` local-model smoke with an
+        explicit trusted Docker socket mount. The script now bounds setup SSH
+        waits separately from the longer model-run wait, copies the patched
+        compose file as well as worker/smoke files to disposable hosts, and
+        auto-detects rootless Docker sockets for provider plus worker access.
+        Verification: `sh -n scripts/test-h100-local-model-worker-smoke.sh`,
+        `BUS_DOCKER_SOCKET_HOST=/run/user/1002/docker.sock docker compose -f
+        compose.dev-task-docker.yaml config --quiet`, `git diff --check`, and
+        the live H100 `gemma4:31b` smoke passed.
     - [x] `busdk#115.1` docs slice: public docs now include a no-spend
       multi-remote worker test checklist, integration navigation links,
       bus-dev module reference links, explicit live-run token scopes, a

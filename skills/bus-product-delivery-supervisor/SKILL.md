@@ -136,6 +136,10 @@ Use narrower skills alongside this one when the work has a focused shape:
      parallel useful work only when it is real product work or safe
      infrastructure repair, not a way to hide that the intended path is
      blocked.
+   - When a clear operator-facing blocker is stopping the active goal, say it
+     plainly and visibly in user-facing reports. Start the relevant sentence or
+     bullet with `**Clear blocker:**` so the operator can notice it and decide
+     whether to help, fix infrastructure, or redirect the work.
    - If the delegation substrate itself is broken and a worker cannot patch the
      defect because of that same failure, stop the batch, fix the launcher or
      bridge locally through the narrowest path, verify it, pin it, and reopen

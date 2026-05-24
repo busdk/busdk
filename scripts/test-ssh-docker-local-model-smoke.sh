@@ -12,9 +12,85 @@ MODEL_ENDPOINT=${BUS_SSH_DOCKER_MODEL_SMOKE_ENDPOINT:-${BUS_UPCLOUD_OFFLOAD_MODE
 WORKER_IMAGE=${BUS_SSH_DOCKER_MODEL_SMOKE_IMAGE:-${BUS_SSH_DOCKER_SMOKE_IMAGE:-bus-integration-dev-task:local-image-smoke}}
 PROMPT=${BUS_SSH_DOCKER_MODEL_SMOKE_PROMPT:-Reply with one short sentence confirming the Bus remote model worker can reach local inference.}
 COMMAND_JSON=${BUS_SSH_DOCKER_MODEL_SMOKE_COMMAND_JSON:-}
+POST_COMMAND_JSON=${BUS_SSH_DOCKER_MODEL_SMOKE_POST_COMMAND_JSON:-${BUS_SSH_DOCKER_SMOKE_POST_COMMAND_JSON:-}}
+WORKTREE=${BUS_SSH_DOCKER_MODEL_SMOKE_WORKTREE:-${BUS_SSH_DOCKER_SMOKE_WORKTREE:-false}}
+COMMIT=${BUS_SSH_DOCKER_MODEL_SMOKE_COMMIT:-${BUS_SSH_DOCKER_SMOKE_COMMIT:-false}}
+WRITE_SCOPE=${BUS_SSH_DOCKER_MODEL_SMOKE_WRITE_SCOPE:-${BUS_SSH_DOCKER_SMOKE_WRITE_SCOPE:-}}
+NEW_BRANCH=${BUS_SSH_DOCKER_MODEL_SMOKE_NEW_BRANCH:-${BUS_SSH_DOCKER_SMOKE_NEW_BRANCH:-}}
+BASE_BRANCH=${BUS_SSH_DOCKER_MODEL_SMOKE_BASE_BRANCH:-${BUS_SSH_DOCKER_SMOKE_BASE_BRANCH:-}}
+COMMIT_MESSAGE=${BUS_SSH_DOCKER_MODEL_SMOKE_COMMIT_MESSAGE:-${BUS_SSH_DOCKER_SMOKE_COMMIT_MESSAGE:-}}
+
+usage() {
+	cat >&2 <<'USAGE'
+usage: test-ssh-docker-local-model-smoke.sh [options] [-- image-smoke-options...]
+
+Options override compatibility BUS_SSH_DOCKER_MODEL_SMOKE_* environment
+variables. Unknown lower-level SSH-Docker smoke options can be passed after
+-- and are forwarded to test-ssh-docker-image-smoke.sh.
+
+  --model MODEL                  local model name
+  --model-endpoint URL           Ollama-compatible endpoint
+  --image IMAGE                  worker launcher/container image
+  --prompt TEXT                  model prompt when command JSON is omitted
+  --command-json JSON            explicit command JSON
+  --post-command-json JSON       explicit post-command JSON
+  --worktree[=BOOL]              request a task worktree
+  --commit[=BOOL]                request worker commit
+  --write-scope PATH             task write scope
+  --new-branch BRANCH            task new branch
+  --base-branch BRANCH           task base branch
+  --commit-message TEXT          worker commit message
+USAGE
+}
+
+need_arg() {
+	if [ "$#" -lt 2 ]; then
+		printf 'missing value for %s\n' "$1" >&2
+		usage
+		exit 2
+	fi
+}
+
+set -- "$@"
+while [ "$#" -gt 0 ]; do
+	case "$1" in
+		--)
+			shift
+			break
+			;;
+		--model) need_arg "$@"; MODEL=$2; shift 2 ;;
+		--model-endpoint|--endpoint) need_arg "$@"; MODEL_ENDPOINT=$2; shift 2 ;;
+		--image|--worker-image) need_arg "$@"; WORKER_IMAGE=$2; shift 2 ;;
+		--prompt) need_arg "$@"; PROMPT=$2; shift 2 ;;
+		--command-json) need_arg "$@"; COMMAND_JSON=$2; shift 2 ;;
+		--post-command-json) need_arg "$@"; POST_COMMAND_JSON=$2; shift 2 ;;
+		--worktree) WORKTREE=true; shift ;;
+		--worktree=*) WORKTREE=${1#*=}; shift ;;
+		--no-worktree) WORKTREE=false; shift ;;
+		--commit) COMMIT=true; shift ;;
+		--commit=*) COMMIT=${1#*=}; shift ;;
+		--no-commit) COMMIT=false; shift ;;
+		--write-scope) need_arg "$@"; WRITE_SCOPE=$2; shift 2 ;;
+		--new-branch) need_arg "$@"; NEW_BRANCH=$2; shift 2 ;;
+		--base-branch) need_arg "$@"; BASE_BRANCH=$2; shift 2 ;;
+		--commit-message) need_arg "$@"; COMMIT_MESSAGE=$2; shift 2 ;;
+		--help|-h) usage; exit 0 ;;
+		*)
+			break
+			;;
+	esac
+done
 
 json_escape() {
-	printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+	printf '%s' "$1" | awk '
+		BEGIN { sep = "" }
+		{
+			gsub(/\\/, "\\\\")
+			gsub(/"/, "\\\"")
+			printf "%s%s", sep, $0
+			sep = "\\n"
+		}
+	'
 }
 
 if [ -z "$COMMAND_JSON" ]; then
@@ -26,12 +102,18 @@ if [ -z "$COMMAND_JSON" ]; then
 	COMMAND_JSON=$(printf '["sh","-lc","%s"]' "$(json_escape "$command")")
 fi
 
-BUS_SSH_DOCKER_SMOKE_AGENT_BACKEND=container \
-BUS_SSH_DOCKER_SMOKE_CONTAINER_IMAGE="$WORKER_IMAGE" \
-BUS_SSH_DOCKER_SMOKE_CONTAINER_PROFILE=local-model \
-BUS_SSH_DOCKER_SMOKE_COMMAND_JSON="$COMMAND_JSON" \
-BUS_SSH_DOCKER_SMOKE_WORKTREE=false \
-BUS_SSH_DOCKER_SMOKE_COMMIT=false \
-BUS_SSH_DOCKER_SMOKE_IMAGE="$WORKER_IMAGE" \
-BUS_SSH_DOCKER_SMOKE_PROMPT="SSH-Docker local-model smoke for $MODEL: run the configured model command and report the model response; do not edit files." \
-"$ROOT/scripts/test-ssh-docker-image-smoke.sh"
+"$ROOT/scripts/test-ssh-docker-image-smoke.sh" \
+	--agent-backend container \
+	--container-image "$WORKER_IMAGE" \
+	--container-profile local-model \
+	--command-json "$COMMAND_JSON" \
+	--post-command-json "$POST_COMMAND_JSON" \
+	--worktree="$WORKTREE" \
+	--commit="$COMMIT" \
+	--write-scope "$WRITE_SCOPE" \
+	--new-branch "$NEW_BRANCH" \
+	--base-branch "$BASE_BRANCH" \
+	--commit-message "$COMMIT_MESSAGE" \
+	--image "$WORKER_IMAGE" \
+	--prompt "SSH-Docker local-model smoke for $MODEL: run the configured model command and report the model response; do not edit files." \
+	"$@"

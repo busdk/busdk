@@ -13,7 +13,8 @@ SSH_MODE=${BUS_SSH_DOCKER_PREPARE_SSH_MODE:-${BUS_REMOTE_WORKER_BUILD_SSH_MODE:-
 REMOTE_ROOT=${BUS_SSH_DOCKER_PREPARE_REMOTE_ROOT:-${BUS_REMOTE_WORKER_BUILD_REMOTE_ROOT:-/home/coding-agent/coding-agent/git/busdk/busdk}}
 COMPOSE_FILE=${BUS_SSH_DOCKER_PREPARE_COMPOSE_FILE:-compose.dev-task-docker.yaml}
 IMAGE=${BUS_SSH_DOCKER_PREPARE_IMAGE:-${BUS_REMOTE_WORKER_BUILD_IMAGE:-bus-integration-dev-task:local-image-smoke}}
-SERVICES=${BUS_SSH_DOCKER_PREPARE_SERVICES:-bus-events bus-integration-docker bus-integration-containers}
+SERVICES=${BUS_SSH_DOCKER_PREPARE_SERVICES:-bus-events}
+SERVICE_SUBMODULES=${BUS_SSH_DOCKER_PREPARE_SERVICE_SUBMODULES:-"bus-api-provider-auth bus-api-provider-events bus-events bus-help"}
 BUILD_IMAGE=${BUS_SSH_DOCKER_PREPARE_BUILD_IMAGE:-true}
 START_SERVICES=${BUS_SSH_DOCKER_PREPARE_START_SERVICES:-true}
 REFUSE_ROOT=${BUS_SSH_DOCKER_PREPARE_REFUSE_ROOT:-${BUS_REMOTE_WORKER_BUILD_REFUSE_ROOT:-}}
@@ -49,6 +50,10 @@ case "$START_SERVICES" in
 		compose_file_q=$(shell_quote "$COMPOSE_FILE")
 		image_q=$(shell_quote "$IMAGE")
 		refuse_root_q=$(shell_quote "$REFUSE_ROOT")
+		service_submodules_q=
+		for module in $SERVICE_SUBMODULES; do
+			service_submodules_q="$service_submodules_q $(shell_quote "$module")"
+		done
 		services_q=
 		for service in $SERVICES; do
 			services_q="$services_q $(shell_quote "$service")"
@@ -64,19 +69,17 @@ case $refuse_root_q in
 	;;
 esac
 cd $remote_root_q
+git submodule update --init --recursive$service_submodules_q
 docker compose -f $compose_file_q up -d$services_q
 docker compose -f $compose_file_q ps$services_q
 docker image inspect $image_q --format '{{.Id}}'
 "
 		case "$SSH_MODE" in
 			command)
-				ssh -A "$SSH_TARGET" "$remote_script"
+				printf '%s\n' "$remote_script" | ssh -A "$SSH_TARGET" sh -s
 				;;
 			gateway-tty)
-				{
-					printf '%s\n' "$remote_script"
-					printf '%s\n' "exit"
-				} | ssh -A -tt "$SSH_TARGET"
+				printf '%s\n' "$remote_script" | "$ROOT/scripts/ssh-gateway-tty-run.sh" "$SSH_TARGET"
 				;;
 			*)
 				printf 'invalid BUS_SSH_DOCKER_PREPARE_SSH_MODE=%s; expected command or gateway-tty\n' "$SSH_MODE" >&2

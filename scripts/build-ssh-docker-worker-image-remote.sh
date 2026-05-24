@@ -17,7 +17,7 @@ IMAGE=${BUS_REMOTE_WORKER_BUILD_IMAGE:-bus-integration-dev-task:local-image-smok
 PLATFORM=${BUS_REMOTE_WORKER_BUILD_PLATFORM:-linux/amd64}
 GO_VERSION=${BUS_REMOTE_WORKER_BUILD_GO_VERSION:-1.26.3}
 SUBMODULE_MODE=${BUS_REMOTE_WORKER_BUILD_SUBMODULE_MODE:-pinned}
-SUBMODULES=${BUS_REMOTE_WORKER_BUILD_SUBMODULES:-"bus bus-agent bus-dev bus-events bus-help bus-integration bus-integration-dev-task bus-integration-docker bus-integration-containers bus-lint bus-notes bus-operator-token bus-preferences bus-remote bus-secrets bus-update logs"}
+SUBMODULES=${BUS_REMOTE_WORKER_BUILD_SUBMODULES:-"bus bus-agent bus-api-provider-auth bus-api-provider-events bus-dev bus-events bus-help bus-integration bus-integration-dev-task bus-integration-docker bus-integration-containers bus-lint bus-notes bus-operator-token bus-preferences bus-remote bus-secrets bus-update logs"}
 PUSH_FIRST=${BUS_REMOTE_WORKER_BUILD_PUSH_FIRST:-false}
 REQUIRE_CLEAN=${BUS_REMOTE_WORKER_BUILD_REQUIRE_CLEAN:-true}
 BOOTSTRAP_CHECKOUT=${BUS_REMOTE_WORKER_BUILD_BOOTSTRAP_CHECKOUT:-true}
@@ -166,12 +166,9 @@ docker image inspect $image_q --format '{{.Id}}'
 
 case "$SSH_MODE" in
 	command)
-		ssh -A "$SSH_TARGET" "$remote_script"
+		printf '%s\n' "$remote_script" | ssh -A "$SSH_TARGET" sh -s
 		;;
 	gateway-tty)
-		{
-			printf '%s\n' "$remote_script"
-			printf '%s\n' "exit"
-		} | ssh -A -tt "$SSH_TARGET"
+		printf '%s\n' "$remote_script" | "$ROOT/scripts/ssh-gateway-tty-run.sh" "$SSH_TARGET"
 		;;
 esac
