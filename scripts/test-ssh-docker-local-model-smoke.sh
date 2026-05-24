@@ -11,6 +11,8 @@ MODEL=${BUS_SSH_DOCKER_MODEL_SMOKE_MODEL:-${BUS_UPCLOUD_OFFLOAD_MODEL:-gemma4:31
 MODEL_ENDPOINT=${BUS_SSH_DOCKER_MODEL_SMOKE_ENDPOINT:-${BUS_UPCLOUD_OFFLOAD_MODEL_ENDPOINT:-http://ollama:11434}}
 WORKER_IMAGE=${BUS_SSH_DOCKER_MODEL_SMOKE_IMAGE:-${BUS_SSH_DOCKER_SMOKE_IMAGE:-bus-integration-dev-task:local-image-smoke}}
 PROMPT=${BUS_SSH_DOCKER_MODEL_SMOKE_PROMPT:-Reply with one short sentence confirming the Bus remote model worker can reach local inference.}
+TASK_PROMPT=${BUS_SSH_DOCKER_MODEL_SMOKE_TASK_PROMPT:-}
+TOOL_PROFILE=${BUS_SSH_DOCKER_MODEL_SMOKE_TOOL_PROFILE:-shell-only}
 COMMAND_JSON=${BUS_SSH_DOCKER_MODEL_SMOKE_COMMAND_JSON:-}
 POST_COMMAND_JSON=${BUS_SSH_DOCKER_MODEL_SMOKE_POST_COMMAND_JSON:-${BUS_SSH_DOCKER_SMOKE_POST_COMMAND_JSON:-}}
 WORKTREE=${BUS_SSH_DOCKER_MODEL_SMOKE_WORKTREE:-${BUS_SSH_DOCKER_SMOKE_WORKTREE:-false}}
@@ -32,6 +34,8 @@ variables. Unknown lower-level SSH-Docker smoke options can be passed after
   --model-endpoint URL           Ollama-compatible endpoint
   --image IMAGE                  worker launcher/container image
   --prompt TEXT                  model prompt when command JSON is omitted
+  --task-prompt TEXT             dev-task prompt forwarded to bus-dev
+  --tool-profile NAME            tool profile hint: shell-only or unrestricted
   --command-json JSON            explicit command JSON
   --post-command-json JSON       explicit post-command JSON
   --worktree[=BOOL]              request a task worktree
@@ -62,6 +66,8 @@ while [ "$#" -gt 0 ]; do
 		--model-endpoint|--endpoint) need_arg "$@"; MODEL_ENDPOINT=$2; shift 2 ;;
 		--image|--worker-image) need_arg "$@"; WORKER_IMAGE=$2; shift 2 ;;
 		--prompt) need_arg "$@"; PROMPT=$2; shift 2 ;;
+		--task-prompt) need_arg "$@"; TASK_PROMPT=$2; shift 2 ;;
+		--tool-profile) need_arg "$@"; TOOL_PROFILE=$2; shift 2 ;;
 		--command-json) need_arg "$@"; COMMAND_JSON=$2; shift 2 ;;
 		--post-command-json) need_arg "$@"; POST_COMMAND_JSON=$2; shift 2 ;;
 		--worktree) WORKTREE=true; shift ;;
@@ -80,6 +86,11 @@ while [ "$#" -gt 0 ]; do
 			;;
 	esac
 done
+
+case "$TOOL_PROFILE" in
+	shell-only|unrestricted) ;;
+	*) printf 'invalid --tool-profile=%s; expected shell-only or unrestricted\n' "$TOOL_PROFILE" >&2; exit 2 ;;
+esac
 
 json_escape() {
 	printf '%s' "$1" | awk '
@@ -102,6 +113,15 @@ if [ -z "$COMMAND_JSON" ]; then
 	COMMAND_JSON=$(printf '["sh","-lc","%s"]' "$(json_escape "$command")")
 fi
 
+if [ -z "$TASK_PROMPT" ]; then
+	TASK_PROMPT="SSH-Docker local-model smoke for $MODEL: run the configured model command and report the model response; do not edit files."
+fi
+if [ "$TOOL_PROFILE" = shell-only ]; then
+	TASK_PROMPT="$TASK_PROMPT
+
+Tool profile: shell-only. The child worker can run normal shell commands in its writable task worktree, but it must not call an apply_patch tool or assume App Server-only tools exist. Use ordinary shell commands or checked-in scripts for file edits."
+fi
+
 "$ROOT/scripts/test-ssh-docker-image-smoke.sh" \
 	--agent-backend container \
 	--container-image "$WORKER_IMAGE" \
@@ -115,5 +135,5 @@ fi
 	--base-branch "$BASE_BRANCH" \
 	--commit-message "$COMMIT_MESSAGE" \
 	--image "$WORKER_IMAGE" \
-	--prompt "SSH-Docker local-model smoke for $MODEL: run the configured model command and report the model response; do not edit files." \
+	--prompt "$TASK_PROMPT" \
 	"$@"
