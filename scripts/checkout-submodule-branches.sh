@@ -40,7 +40,14 @@ quote() {
 branch_from_map() {
 	path=$1
 	[ -n "$BRANCH_MAP" ] || return 1
-	awk -v want="$path" '$1 == want && $3 != "" { print $3; found = 1; exit } END { if (!found) exit 1 }' "$BRANCH_MAP"
+	awk -v want="$path" '
+		$1 == want && $3 != "" && $3 !~ /^\(/ {
+			print $3
+			found = 1
+			exit
+		}
+		END { if (!found) exit 1 }
+	' "$BRANCH_MAP"
 }
 
 run() {
