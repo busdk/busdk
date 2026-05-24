@@ -229,6 +229,20 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+task_event_row_present() {
+	event_name=$1
+	file_name=$2
+	awk -F '	' -v event_name="$event_name" '
+		$1 == event_name { found = 1 }
+		END {
+			if (found) {
+				exit 0
+			}
+			exit 1
+		}
+	' "$file_name"
+}
+
 case "$USE_TUNNEL" in
 	true|1|yes|on)
 		ssh -A -N -o ExitOnForwardFailure=yes -L "127.0.0.1:${TUNNEL_PORT}:${REMOTE_EVENTS_HOST}:${REMOTE_EVENTS_PORT}" "$SSH_TARGET" &
@@ -306,11 +320,11 @@ BUS_API_TOKEN="$TOKEN" "$ROOT/bus-dev/bin/bus-dev" -C "$SMOKE_DIR" work --remote
 wait_status=$?
 set -e
 cat "$wait_output"
-if grep -q 'bus.dev.task.failed' "$wait_output"; then
+if task_event_row_present 'bus.dev.task.failed' "$wait_output"; then
 	rm -f "$wait_output"
 	exit 1
 fi
-if ! grep -q 'bus.dev.task.done' "$wait_output"; then
+if ! task_event_row_present 'bus.dev.task.done' "$wait_output"; then
 	rm -f "$wait_output"
 	exit 1
 fi
