@@ -112,7 +112,11 @@ while read -r key path; do
 	fi
 
 	if [ "$FETCH" = true ]; then
-		run git -C "$path" fetch origin "$branch"
+		if [ "$DRY_RUN" = true ]; then
+			run git -C "$path" fetch origin "$branch"
+		elif ! git -C "$path" fetch origin "$branch"; then
+			printf 'warning: %s could not fetch origin/%s; using existing refs or current HEAD\n' "$path" "$branch" >&2
+		fi
 	fi
 
 	if git -C "$path" show-ref --verify --quiet "refs/heads/$branch"; then
