@@ -52,6 +52,25 @@ the next owned actions before opening older context.
   remote transport, then prove the supervisor can issue a task locally and have
   the H100 worker claim, complete, sync evidence back, and expose promotion
   metadata without manually running the whole smoke on the remote host.
+  H100 real-work verification checklist:
+  - [ ] Prepare the H100 checkout from authoritative Git source: push current
+    root/submodule commits, fast-forward the remote superproject, hydrate only
+    required submodules at pinned commits, build the Bus binaries needed by the
+    worker harness, and record root plus touched submodule commit ids.
+  - [ ] Launch one H100 image-backed worker on a real product task, not a
+    smoke-only file edit, using explicit task arguments for model, reasoning
+    effort, write scope, branch, Events URL, and commit behavior. The first
+    target is a small `bus-integration-ssh-runner` health/status slice using
+    `gpt-oss:120b`; if it fails from model quality, retry the same task with
+    `gemma4:31b` and record the handoff.
+  - [ ] Retrieve and review the H100 branch locally: inspect the diff, run the
+    module's focused tests/checks plus `git diff --check`, and either promote
+    it, reopen with precise guidance, or mark the platform/model issue in the
+    owning module PLAN.
+  - [ ] Record proof evidence in the current hourly memo and task event stream:
+    model, reasoning effort, runtime duration, terminal status, commit hash,
+    checks, whether another model/supervisor fixed the work, and what should
+    be automated next.
   - [ ] Prove parallel multi-remote execution with at least two remote
     identities active in the same run, preserving isolated worktrees,
     recipient/write-scope ownership, terminal evidence, and serialized

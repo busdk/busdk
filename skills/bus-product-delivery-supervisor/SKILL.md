@@ -131,6 +131,9 @@ Use narrower skills alongside this one when the work has a focused shape:
 6. Fix repeated blockers:
    - If a failure repeats, stop retrying blindly.
    - Record or implement the root-cause fix in the owning module.
+   - When a proof loop is not verified yet, do not leave the status as a vague
+     complaint. Investigate the exact next steps, write a short pass/fail
+     checklist in the owning `PLAN.md`, then dispatch or run the first item.
    - If a blocker might be solvable by the operator, ask for the exact help
      needed instead of silently working around it with a hack. Continue
      parallel useful work only when it is real product work or safe
