@@ -10,6 +10,10 @@ branch_prefix=codex/h100-offload
 events_url=http://127.0.0.1:8081
 image=bus-integration-dev-task:h100-smoke
 timeout=300
+ensure_services=false
+compose_file=compose.dev-task-docker.yaml
+services="bus-events bus-integration-docker bus-integration-containers"
+docker_socket=auto
 
 usage() {
 	cat <<USAGE
@@ -27,6 +31,11 @@ Options:
   --events-url URL         Events URL as seen from H100 (default: $events_url)
   --image IMAGE            worker image expected on H100 (default: $image)
   --timeout SECONDS        bounded command timeout (default: $timeout)
+  --ensure-services        Start minimal H100 Bus services before preflight
+  --compose-file FILE      Compose file for --ensure-services
+  --services "A B ..."     Compose services for --ensure-services
+  --docker-socket PATH|auto
+                           Docker socket for --ensure-services (default: auto)
   -h, --help               show this help
 USAGE
 }
@@ -53,6 +62,10 @@ while [ "$#" -gt 0 ]; do
 		--events-url) need_arg "$@"; events_url=$2; shift 2 ;;
 		--image) need_arg "$@"; image=$2; shift 2 ;;
 		--timeout) need_arg "$@"; timeout=$2; shift 2 ;;
+		--ensure-services) ensure_services=true; shift ;;
+		--compose-file) need_arg "$@"; compose_file=$2; shift 2 ;;
+		--services) need_arg "$@"; services=$2; shift 2 ;;
+		--docker-socket) need_arg "$@"; docker_socket=$2; shift 2 ;;
 		-h|--help) usage; exit 0 ;;
 		*) die "unknown option: $1" ;;
 	esac
@@ -92,11 +105,18 @@ remote_preflight_script() {
 	image_q=$(shell_quote "$image")
 	events_q=$(shell_quote "$events_url")
 	timeout_q=$(shell_quote "$timeout")
-	printf '%s' "set -eu; command -v timeout >/dev/null 2>&1 || { echo 'missing timeout' >&2; exit 19; }; cd $root_q; dirty=\$(timeout $timeout_q git status --porcelain); if [ -n \"\$dirty\" ]; then printf 'dirty remote checkout at %s\n' $root_q >&2; git status --short | sed -n '1,80p' >&2; exit 20; fi; command -v docker >/dev/null 2>&1 || { echo 'missing docker' >&2; exit 21; }; timeout $timeout_q docker image inspect $image_q >/dev/null 2>&1 || { echo 'missing worker image: '$image_q >&2; exit 22; }; command -v curl >/dev/null 2>&1 || { echo 'missing curl' >&2; exit 23; }; timeout $timeout_q curl -fsS --max-time $timeout_q $events_q/api/v1/events/capabilities >/dev/null || { echo 'missing Events capabilities at '$events_q >&2; exit 24; }; timeout $timeout_q curl -fsS --max-time $timeout_q http://127.0.0.1:11434/api/tags | grep -F $model_pattern_q >/dev/null || { echo 'missing Ollama model: '$model_q >&2; exit 25; }; printf 'preflight ok: root=%s image=%s model=%s events=%s\n' $root_q $image_q $model_q $events_q"
+	ensure_q=$(shell_quote "$ensure_services")
+	compose_q=$(shell_quote "$compose_file")
+	docker_socket_q=$(shell_quote "$docker_socket")
+	services_q=
+	for service in $services; do
+		services_q="$services_q $(shell_quote "$service")"
+	done
+	printf '%s' "set -eu; command -v timeout >/dev/null 2>&1 || { echo 'missing timeout' >&2; exit 19; }; cd $root_q; dirty=\$(timeout $timeout_q git status --porcelain); if [ -n \"\$dirty\" ]; then printf 'dirty remote checkout at %s\n' $root_q >&2; git status --short | sed -n '1,80p' >&2; exit 20; fi; command -v docker >/dev/null 2>&1 || { echo 'missing docker' >&2; exit 21; }; timeout $timeout_q docker image inspect $image_q >/dev/null 2>&1 || { echo 'missing worker image: '$image_q >&2; exit 22; }; if [ $ensure_q = true ]; then docker_socket=$docker_socket_q; if [ \"\$docker_socket\" = auto ]; then case \"\${DOCKER_HOST:-}\" in unix://*) docker_socket=\${DOCKER_HOST#unix://} ;; esac; fi; if [ \"\$docker_socket\" = auto ] || [ -z \"\$docker_socket\" ]; then uid=\$(id -u); if [ -S \"/run/user/\$uid/docker.sock\" ]; then docker_socket=/run/user/\$uid/docker.sock; elif [ -S /var/run/docker.sock ]; then docker_socket=/var/run/docker.sock; else echo 'could not locate Docker socket for --ensure-services' >&2; exit 26; fi; fi; BUS_DOCKER_SOCKET_HOST=\"\$docker_socket\" timeout $timeout_q docker compose -f $compose_q up -d --no-deps$services_q >/dev/null; fi; command -v curl >/dev/null 2>&1 || { echo 'missing curl' >&2; exit 23; }; timeout $timeout_q curl -fsS --max-time $timeout_q $events_q/api/v1/events/capabilities >/dev/null || { echo 'missing Events capabilities at '$events_q >&2; exit 24; }; timeout $timeout_q curl -fsS --max-time $timeout_q http://127.0.0.1:11434/api/tags | grep -F $model_pattern_q >/dev/null || { echo 'missing Ollama model: '$model_q >&2; exit 25; }; printf 'preflight ok: root=%s image=%s model=%s events=%s\n' $root_q $image_q $model_q $events_q"
 }
 
 run_preflight() {
-	printf 'h100-offload-runner: preflight target=%s root=%s model=%s image=%s\n' "$ssh_target" "$remote_root" "$model" "$image" >&2
+	printf 'h100-offload-runner: preflight target=%s root=%s model=%s image=%s ensure_services=%s\n' "$ssh_target" "$remote_root" "$model" "$image" "$ensure_services" >&2
 	if ! output=$(bounded_ssh "$(remote_preflight_script)"); then
 		printf '%s\n' "$output" >&2
 		return 1

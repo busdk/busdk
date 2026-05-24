@@ -33,6 +33,16 @@
   dir, runner log, keep-container, image, Docker socket, and Events URLs while
   retaining env fallbacks, so routine runs use stable approved script prefixes
   instead of env-heavy command shapes.
+  2026-05-24 21 EEST update: the latest H100 smoke evidence branch
+  `codex/h100-local-model-write-smoke-20260524210440` was preserved on
+  `bus-dev` origin after the disposable H100 checkout drifted to the smoke
+  commit; diverged H100 logs were preserved on `logs` branch
+  `codex/h100-offload-logs-20260524`, then the H100 checkout was returned to
+  superproject pins with `scripts/checkout-submodule-branches.sh --mode pins`.
+  `scripts/h100-offload-runner.sh --mode preflight --timeout 20` now passes for
+  both `gemma4:31b` and `gpt-oss:120b`, and the runner has an explicit
+  `--ensure-services` option for starting the minimal H100 Events/Docker
+  provider control plane before preflight when the host is fresh.
   Next action: make local-supervisor to H100 task routing automatic enough for
   daily use by turning the working SSH Events sync into a bounded loop or Bus
   remote transport, then prove the supervisor can issue a task locally and have
