@@ -43,6 +43,14 @@ the next owned actions before opening older context.
   commit; diverged H100 logs were preserved on `logs` branch
   `codex/h100-offload-logs-20260524`, then the H100 checkout was returned to
   superproject pins with `scripts/checkout-submodule-branches.sh --mode pins`.
+  Cost-control follow-up: the `dev@ai.hg.fi` inner H100 VM booted again at
+  2026-05-24 21:20 UTC when the supervisor later ran a plain SSH update
+  command. The host idle-shutdown timer only counts boot grace, interactive SSH,
+  and active Ollama TCP connections as activity, so it can power off while Bus
+  services, Docker workers, or supervisor-assigned work are still meaningful.
+  Add an explicit Bus/H100 lease or keepalive signal while continuing H100
+  validation, and make idle shutdown consider that lease plus active Bus
+  task/worker evidence so accidental reconnects do not burn new billed hours.
   `scripts/h100-offload-runner.sh --mode preflight --timeout 20` now passes for
   both `gemma4:31b` and `gpt-oss:120b`, and the runner has an explicit
   `--ensure-services` option for starting the minimal H100 Events/Docker
