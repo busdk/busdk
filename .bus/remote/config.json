@@ -9,7 +9,63 @@
       "ssh_host": "dev.hg.fi",
       "ssh_user": "coding-agent",
       "ssh_port": 22,
-      "remote_workdir": "/home/coding-agent/coding-agent/git/busdk/busdk"
+      "remote_workdir": "/home/coding-agent/coding-agent/git/busdk/busdk",
+      "worker_events_url": "http://bus-events:8081"
+    },
+    {
+      "id": "ai-hg-h100",
+      "kind": "ssh-docker",
+      "compose_file": "compose.dev-task-docker.yaml",
+      "ssh_target": "dev@ai.hg.fi",
+      "ssh_host": "ai.hg.fi",
+      "ssh_user": "dev",
+      "ssh_port": 22,
+      "remote_workdir": "/home/dev/workspace/busdk/busdk",
+      "worker_events_url": "http://bus-events:8081",
+      "worker_defaults": {
+        "model": "gpt-oss:120b",
+        "reasoning_effort": "high",
+        "backend": "container",
+        "profile": "h100"
+      }
+    }
+  ],
+  "environments": [
+    {
+      "id": "env-ai-hg-h100",
+      "name": "h100",
+      "display_name": "H100 Local",
+      "remote_id": "ai-hg-h100",
+      "sync_target_ids": [
+        "local-events"
+      ],
+      "sync_state": {
+        "local-events": "manual"
+      },
+      "worker_styles": [
+        "ssh-docker"
+      ],
+      "worker_defaults": {
+        "model": "gpt-oss:120b",
+        "reasoning_effort": "high",
+        "backend": "container",
+        "profile": "h100"
+      }
+    },
+    {
+      "id": "env-dev-hg-codex",
+      "name": "dev-hg",
+      "display_name": "dev.hg.fi Codex",
+      "remote_id": "dev-hg",
+      "worker_styles": [
+        "ssh-docker"
+      ],
+      "worker_defaults": {
+        "model": "gpt-5.5",
+        "reasoning_effort": "high",
+        "backend": "codex-appserver",
+        "profile": "cloud-codex"
+      }
     }
   ]
 }
