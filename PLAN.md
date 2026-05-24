@@ -1,5 +1,9 @@
 # PLAN.md
 
+This is the active BusDK superproject work tracker; start with the first
+unchecked priority lane, then use the nested unchecked items under that lane as
+the next owned actions before opening older context.
+
 - [ ] Current first-priority product lane: make multi-remote worker execution
   useful enough for real operator testing and daily development. Business/user
   value: Bus operators should be able to send work to `localhost`, `ai.hg.fi`,
@@ -345,15 +349,12 @@
     can request recipient-scoped workers deterministically instead of relying
     on manual Compose worker starts.
 
-- [ ] Shift development execution toward Bus-owned local and UpCloud AI worker
-  infrastructure under hosted Codex budget constraints end to end: review the
-  current local Docker Compose, container-provider, LLM-provider,
-  UpCloud-runner, SSH-runner, and dev-task worker paths; identify the shortest
-  safe path for `bus dev task` workers to run in operator-owned containers and
-  GPU/local-model runtimes instead of hosted Codex; dispatch recipient-scoped
-  implementation tasks for the owning modules; keep paid UpCloud provisioning
-  behind explicit operator approval; document the cost-control operating mode;
-  and verify with local/provider-neutral smokes before any live-cloud spend.
+Historical context for the current first-priority worker-offload lane:
+  development execution has been shifting toward Bus-owned local and UpCloud AI
+  worker infrastructure under hosted Codex budget constraints. The remaining
+  concrete follow-ups live under the first lane above; this section records
+  accepted state and prior evidence so supervisors do not reopen completed
+  broad discovery work.
   Current operator-ready state:
   - H100 host `dev@ai.hg.fi` has been proven reachable through SSH as non-root
     `dev` when the managed GPU runtime is up; in that state it can run
@@ -425,6 +426,18 @@
   now lands as non-root `dev` and accepts normal non-interactive SSH commands;
   the remaining gateway limitation is local port forwarding to the remote
   Events API.
+  - [ ] Add automatic remote rebuild/upgrade planning for both released and
+    development versions. Production operator systems should be able to detect
+    newer signed/released Bus artifacts or image bundles, fetch only the needed
+    artifacts, rebuild/restart worker services when policy allows, record
+    source/image identity, and preserve rollback evidence. Development systems
+    should additionally support a Git-based upgrade lane that fetches/pulls the
+    superproject and submodules to the requested branch or pinned SHA, rebuilds
+    local tools/images directly from source, and restarts the worker stack
+    without requiring a GitHub release, GHCR visibility, or published private
+    software. Keep secrets out of command arguments, make the upgrade
+    idempotent for non-persistent H100/UpCloud hosts, and expose dry-run/status
+    output so supervisors know when a remote is stale before dispatching work.
   - [ ] Queued after local-supervisor-to-H100 routing proof: run an
     operator-ready multi-remote dry-run and local proof package from the current
     pinned root,
