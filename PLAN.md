@@ -67,6 +67,14 @@ the next owned actions before opening older context.
     module's focused tests/checks plus `git diff --check`, and either promote
     it, reopen with precise guidance, or mark the platform/model issue in the
     owning module PLAN.
+  - [ ] Add deterministic superproject dependency hydration for disposable
+    module review/worktree tests: a reviewer or worker should be able to create
+    a temporary checkout of one submodule and run its focused Go tests without
+    hand-linking sibling `replace` modules from the superproject. Acceptance
+    requires a script or Bus command that reads the superproject/submodule
+    layout, prepares sibling module paths beside the disposable worktree using
+    authoritative pins or configured branches, and documents when to use the
+    helper for remote worker review and promotion.
   - [ ] Record proof evidence in the current hourly memo and task event stream:
     model, reasoning effort, runtime duration, terminal status, commit hash,
     checks, whether another model/supervisor fixed the work, and what should
