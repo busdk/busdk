@@ -1,6 +1,6 @@
 FROM node:24-bookworm
 
-ARG GO_VERSION=1.26.1
+ARG GO_VERSION=1.26.3
 ARG TARGETARCH
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -24,8 +24,8 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 RUN case "${TARGETARCH}" in \
-      amd64) go_arch='amd64'; go_sha256='031f088e5d955bab8657ede27ad4e3bc5b7c1ba281f05f245bcc304f327c987a' ;; \
-      arm64) go_arch='arm64'; go_sha256='a290581cfe4fe28ddd737dde3095f3dbeb7f2e4065cab4eae44dfc53b760c2f7' ;; \
+      amd64) go_arch='amd64'; go_sha256='2b2cfc7148493da5e73981bffbf3353af381d5f93e789c82c79aff64962eb556' ;; \
+      arm64) go_arch='arm64'; go_sha256='9d89a3ea57d141c2b22d70083f2c8459ba3890f2d9e818e7e933b75614936565' ;; \
       *) echo "unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
     esac \
  && curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${go_arch}.tar.gz" -o /tmp/go.tgz \
