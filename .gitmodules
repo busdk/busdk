@@ -445,7 +445,7 @@
 [submodule "logs"]
 	path = logs
 	url = git@github.com:busdk/logs.git
-	branch = main
+	branch = 1-logs
 [submodule "bus-notes"]
 	path = bus-notes
 	url = git@github.com:busdk/bus-notes.git
