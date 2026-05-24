@@ -10,7 +10,7 @@ set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
 REMOTE_ID=${BUS_SSH_DOCKER_SMOKE_REMOTE_ID:-dev-hg}
-SMOKE_DIR=${BUS_SSH_DOCKER_SMOKE_DIR:-/private/tmp/bus-ssh-docker-smoke}
+SMOKE_DIR=${BUS_SSH_DOCKER_SMOKE_DIR:-${TMPDIR:-/tmp}/bus-ssh-docker-smoke}
 TUNNEL_PORT=${BUS_SSH_DOCKER_SMOKE_TUNNEL_PORT:-18086}
 SSH_TARGET=${BUS_SSH_DOCKER_SMOKE_SSH_TARGET:-coding-agent@dev.hg.fi}
 SSH_HOST=${BUS_SSH_DOCKER_SMOKE_SSH_HOST:-dev.hg.fi}
@@ -48,7 +48,7 @@ PROMPT=${BUS_SSH_DOCKER_SMOKE_PROMPT:-SSH-Docker image smoke: do not edit files;
 LOCAL_SECRET=${BUS_AUTH_HS256_SECRET:-not-a-secret-local-development-hs256-key}
 ACCOUNT_ID=${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
 CONTROLLER_URL=${BUS_SSH_DOCKER_SMOKE_CONTROLLER_URL:-http://127.0.0.1:${TUNNEL_PORT}}
-RUNNER_LOG=${BUS_SSH_DOCKER_SMOKE_RUNNER_LOG:-/private/tmp/bus-ssh-runner-smoke.log}
+RUNNER_LOG=${BUS_SSH_DOCKER_SMOKE_RUNNER_LOG:-${TMPDIR:-/tmp}/bus-ssh-runner-smoke.log}
 
 usage() {
 	cat >&2 <<'USAGE'
