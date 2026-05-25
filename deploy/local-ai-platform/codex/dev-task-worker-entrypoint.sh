@@ -22,9 +22,9 @@ if [ "$#" -gt 0 ]; then
 fi
 
 : "${BUS_DEV_TASK_AGENT_BACKEND:=codex-appserver}"
-: "${BUS_DEV_TASK_CODEX_COMMAND:=codex-appserver-stdio}"
+: "${BUS_DEV_TASK_CODEX_COMMAND:=codex}"
 if [ -z "${BUS_DEV_TASK_CODEX_ARGS+x}" ]; then
-  BUS_DEV_TASK_CODEX_ARGS='["app-server","-c","approval_policy=\"never\"","-c","shell_environment_policy.inherit=all","-c","sandbox_mode=\"workspace-write\"","-c","sandbox_workspace_write.network_access=true","proxy"]'
+  BUS_DEV_TASK_CODEX_ARGS='["app-server","--listen","stdio://","-c","approval_policy=\"never\"","-c","shell_environment_policy.inherit=all","-c","sandbox_mode=\"workspace-write\"","-c","sandbox_workspace_write.network_access=true"]'
 fi
 : "${BUS_DEV_TASK_CODEX_APPROVAL_POLICY:=never}"
 : "${BUS_DEV_TASK_CODEX_SANDBOX:=workspace-write}"
