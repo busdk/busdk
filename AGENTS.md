@@ -28,6 +28,123 @@ Merged guidance from `.cursor/rules/*.mdc`.
   architecture candidates, leave compact triggers and follow-up notes unless a
   task explicitly asks for public documentation edits.
 
+## Live Working Memo
+
+This section is core operating memory for Codex agents in this repository. Do
+not compact it out of root `AGENTS.md`, move it only to a less visible skill, or
+replace it with a pointer. Other guidance may summarize it, but this root file
+must preserve the live memo contract itself.
+
+1. Maintain a live working memo during every substantial work session. The memo
+   is hourly based.
+2. At the start of work, create or update
+   `./logs/{YYYYMMDD}-{HH}-agent-memo.md`, where `YYYYMMDD` is the current
+   local/project date and `HH` is the zero-padded 24-hour hour when that memo
+   period starts. Create `./logs` if it does not exist.
+3. Use the current local/project time when naming memo files. Continue writing
+   to the same memo only while the current hour remains the same.
+4. When the hour changes, finish the current memo with a short handoff note
+   explaining the current state of the work, what is complete, what is still in
+   progress, what was verified, what remains uncertain, and what should happen
+   next. Then create or continue the next hourly memo for the new hour.
+5. Write each memo as an editorial engineering diary in story form. It should
+   read like a clear narrative of the work session, not like a checklist,
+   changelog, or raw activity dump.
+6. The memo should let a future maintainer, human reviewer, or AI agent
+   understand the flow of work: what the agent was trying to accomplish, what
+   it found, why it made certain choices, where it hesitated, what changed,
+   what went wrong, what worked well, and what could be improved next time.
+7. Use Markdown. Prefer narrative paragraphs over lists. Headings may be used
+   when helpful, such as `## Session Context`, `## Work Narrative`,
+   `## Observations`, `## Decisions`, `## Tests and Checks`,
+   `## Problems and Friction`, `## Improvement Ideas`, `## Hourly Handoff`,
+   and `## Final State`.
+8. Lists are allowed only when they genuinely improve readability, for example
+   for compact test results or final next steps.
+9. Update the current hourly memo throughout the hour after meaningful phases
+   of work. Add a short narrative note explaining what just happened and what
+   it means.
+10. Do not merely write "ran tests" or "updated parser." Explain why tests were
+    run, what the result suggested, why a change was needed, whether the change
+    felt clean, and whether any concern remains.
+11. If work changes direction, describe the reason. If an assumption turns out
+    to be wrong, record how that changed the approach. If a command fails,
+    explain the failure, likely cause, and next action.
+12. Before making a risky, broad, or hard-to-reverse change, write a short note
+    explaining the intended change, why it seems necessary, and what risk it
+    carries. After making the change, update the memo with what actually
+    happened.
+13. If no code changes were made during an hour, still write the story of that
+    hour: what was examined, what was learned, what remains uncertain, and what
+    the next useful action would be.
+14. Keep the memo truthful, concise, and useful for later learning. Do not
+    claim planned work as completed. Do not invent successful results. Clearly
+    separate facts from interpretation. Mark uncertainty, failed attempts,
+    skipped checks, and assumptions honestly.
+15. Avoid blame-oriented language. Focus on what the project, tooling,
+    architecture, process, tests, or prompts can learn from the session.
+16. Summarize long command outputs instead of pasting them in full, and mention
+    how the result can be reproduced when useful.
+17. Treat committed logs and memos as public repository content. Never write
+    secrets, API keys, passwords, tokens, private customer data, proprietary
+    customer details, raw `.env` contents, or other sensitive values into memos
+    or committed logs. Summarize or redact sensitive evidence instead.
+18. When investigating environment variables or config files, query only the
+    exact non-secret key needed, or report whether a key exists without
+    displaying unrelated values.
+19. Do not edit historical hourly memos after the hour/session has passed
+    except to remove sensitive information or undo an accidental inappropriate
+    edit. Later lessons from old memos should be captured in the current memo
+    or in durable project guidance.
+20. Before finishing a session, review the current hourly memo. Make sure it
+    explains not only what changed, but how the work unfolded and what can be
+    learned from it.
+21. End the final memo for the session with a concise final state: what is
+    complete, what remains incomplete, what was verified, what was not
+    verified, and what the next agent or maintainer should probably do next.
+22. Every hourly memo should contain enough handoff detail that another agent
+    can resume without re-reading the whole conversation. For broad work,
+    include compact coverage of the current goal, key decisions, modified
+    files, commands and tests run with outcomes, blockers, active follow-ups,
+    and important context.
+23. When Bus Notes is available and configured, delegated workers or
+    long-running agents may also publish concise notes through `bus notes` so
+    the work becomes searchable and attributable. Local
+    `./logs/*-agent-memo.md` files remain the canonical session diary unless
+    this repository explicitly chooses Bus Notes as the primary store.
+24. If Bus Notes is unavailable, unconfigured, or inappropriate for the current
+    repository, continue with local memo files only and mention that limitation
+    in the memo or final handoff when relevant.
+
+## Supervisor Worker Delegation
+
+This section is core operating memory for Codex supervisor agents in this
+repository. Do not compact it out of root `AGENTS.md`, move it only to a less
+visible skill, or replace it with a pointer. Other guidance may expand it, but
+this root file must preserve the supervisor/worker boundary itself.
+
+1. In supervisor mode, all implementation work that can be delegated must be
+   done through Bus task/work workers, not by the supervisor directly editing
+   product or module code in the primary checkout.
+2. The supervisor's default job is to define work, update PLAN/memo guidance,
+   dispatch workers with clear scopes and acceptance criteria, monitor
+   progress, provide guidance, review results, reopen incomplete work, promote
+   accepted commits, and keep the board moving.
+3. The supervisor may edit repo guidance, `PLAN.md`, live memos, and narrow
+   coordination artifacts when those edits are themselves supervision work.
+4. The only normal exception for direct implementation edits is when there is a
+   real blocker and the infrastructure needed to run Bus task workers is not
+   available, and the direct edit is the narrowest safe change to restore that
+   worker infrastructure.
+5. If the worker substrate is partially usable, prefer dispatching an
+   infrastructure worker or reviewer worker over local implementation. Use the
+   supervisor checkout for investigation and evidence gathering, not for
+   absorbing product implementation.
+6. When the supervisor must make an exception, record the reason in the current
+   hourly memo, including why worker delegation was unavailable, what exact
+   infrastructure path was restored, what verification was run, and which tasks
+   should be reopened or dispatched afterward.
+
 ## Repo-Local Skills Index
 
 Read the relevant skill before doing detailed operational work:
@@ -44,6 +161,8 @@ Read the relevant skill before doing detailed operational work:
 3. `skills/bus-plan-memory-maintainer/SKILL.md`: `PLAN.md`, `AGENTS.md`,
    Bus Notes/hourly memo practice, tracker-file processing, durable lessons,
    historical verification, commit/tracker closeout, and planning granularity.
+   Use it before `PLAN.md` or `AGENTS.md` edits, memo closeout, tracker-only
+   commits, or durable lesson capture.
 4. `skills/bus-ui-gx-roadmap/SKILL.md`: GX and Bus UI feature-candidate
    planning, docs, implementation, semver promotion, and portal migration
    prerequisites.

@@ -221,12 +221,13 @@ Use narrower skills alongside this one when the work has a focused shape:
 
 ## Supervisor Implementation Boundary
 
-In supervisor mode, do not absorb product/module implementation locally when a
-clean recipient-scoped worker can do it with clear acceptance criteria. The
-supervisor may edit `PLAN.md`, memo, `AGENTS.md`, skills, and urgent
-coordination artifacts, but feature implementation should be assigned to
-recipient-scoped workers unless the operator explicitly asks the supervisor to
-make the code change directly.
+Follow the root `AGENTS.md` `Supervisor Worker Delegation` section as the
+authoritative supervisor/worker boundary. In supervisor mode, do not absorb
+product/module implementation locally when a clean recipient-scoped worker can
+do it with clear acceptance criteria. The supervisor may edit `PLAN.md`, memo,
+`AGENTS.md`, skills, and urgent coordination artifacts, but feature
+implementation should be assigned to recipient-scoped workers unless the
+operator explicitly asks the supervisor to make the code change directly.
 
 If the delegation substrate itself is broken and a worker cannot patch the
 defect because of that same failure, stop the affected batch, fix the launcher

@@ -10,12 +10,14 @@ project memory.
 
 ## Hourly Memo
 
-Maintain `logs/{YYYYMMDD}-{HH}-agent-memo.md` during each work session. Write it
-as a narrative engineering diary, not a raw checklist. Explain goals, end-user
-value, operator capability, product quality, or release confidence being
-unlocked, findings, decisions, tests, friction, and handoff state. Do not reduce
-value to commercial value; useful software that end users and operators like
-using is the primary target.
+Follow the root `AGENTS.md` `Live Working Memo` section as the authoritative
+memo contract. Maintain `logs/{YYYYMMDD}-{HH}-agent-memo.md` during each work
+session. Write it as an editorial engineering diary in story form, not a raw
+checklist, changelog, or activity dump. Explain goals, end-user value, operator
+capability, product quality, or release confidence being unlocked, findings,
+decisions, tests, friction, and handoff state. Do not reduce value to
+commercial value; useful software that end users and operators like using is
+the primary target.
 
 The hourly memo is a mandatory work log gate, not an optional closeout note.
 Before starting substantial supervisor work, compute the current local/project
@@ -25,12 +27,11 @@ or active-worker state. Keep updating that same hourly memo after meaningful
 phases during the hour. Do not wait until final response time to reconstruct the
 hour from memory.
 
-Use the established `logs/{YYYYMMDD}-{HH}-agent-memo.md` filename unless the
-repository already has a current-hour memo with a slightly different suffix.
-The important invariant is one active memo per hour, updated in place while the
-hour is live. Do not create multiple same-hour memo fragments. If a wrong
-same-hour memo filename was already created, either continue using that one for
-the hour or merge it into the established filename before committing.
+Use the established `logs/{YYYYMMDD}-{HH}-agent-memo.md` filename. The
+important invariant is one active memo per hour, updated in place while the hour
+is live. Do not create multiple same-hour memo fragments. If a wrong same-hour
+memo filename was already created, merge or rename it to the established
+filename before committing unless doing so would lose important context.
 
 Claims in the memo must distinguish evidence from recollection. Whenever a memo
 says something was finished, blocked, dispatched, accepted, promoted, or
@@ -73,14 +74,19 @@ remove sensitive information or undo an accidental inappropriate edit. Later
 lessons from old memos belong in the current memo, durable tooling changes, or
 the relevant `AGENTS.md`.
 
-For delegated `bus dev work` / `bus dev task` workers, the logical `agent_id`
-is the recipient module/AGENTS.md instruction identity. Worker notes should be
-written through `bus notes` so they become Bus ecosystem data, not hidden local
-files. Worker closeout should report `agent_id`, `agent_instruction_path`, and
-Bus Notes IDs or query metadata.
+When Bus Notes is available and configured, delegated `bus dev work` /
+`bus dev task` workers or long-running agents may also publish concise notes
+through `bus notes` so work becomes searchable and attributable. Local
+`./logs/*-agent-memo.md` files remain the canonical session diary unless the
+repository explicitly chooses Bus Notes as the primary store. If Bus Notes is
+unavailable, unconfigured, or inappropriate for the current repository,
+continue with local memo files only and mention that limitation in the memo or
+final handoff when relevant.
 
-If Bus Notes cannot reach the Notes API, report that as a blocker or explicit
-fallback; do not silently replace Bus Notes with local files.
+For delegated workers, the logical `agent_id` is the recipient
+module/AGENTS.md instruction identity. Worker closeout should report
+`agent_id`, `agent_instruction_path`, and Bus Notes IDs or query metadata when
+Bus Notes are used.
 
 Before finishing a session, review the current memo and end it with a concise
 final state: what is complete, incomplete, verified, not verified, and what the
