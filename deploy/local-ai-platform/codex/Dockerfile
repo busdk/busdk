@@ -29,7 +29,7 @@ RUN GOBIN=/usr/local/bin go install "github.com/go-delve/delve/cmd/dlv@${DELVE_V
     && dlv dap --help >/usr/local/share/dlv-dap-help.txt \
     && grep -qi "dap" /usr/local/share/dlv-dap-help.txt
 
-COPY deploy/local-ai-platform/codex/codex-appserver-stdio.sh /usr/local/bin/codex-appserver-stdio
+COPY codex-appserver-stdio.sh /usr/local/bin/codex-appserver-stdio
 RUN chmod 0755 /usr/local/bin/codex-appserver-stdio
 
 RUN printf '%s\n' \

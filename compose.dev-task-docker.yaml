@@ -28,7 +28,7 @@ x-codex-image-build: &codex-image-build
   args:
     GO_VERSION: ${BUS_LOCAL_GO_VERSION:-1.26.3}
     CODEX_NPM_PACKAGE: ${BUS_LOCAL_CODEX_NPM_PACKAGE:-@openai/codex}
-    CODEX_NPM_VERSION: ${BUS_LOCAL_CODEX_NPM_VERSION:-0.128.0}
+    CODEX_NPM_VERSION: ${BUS_LOCAL_CODEX_NPM_VERSION:-0.133.0}
 
 services:
   codex-image:
