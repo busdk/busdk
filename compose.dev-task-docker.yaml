@@ -245,7 +245,7 @@ services:
       BUS_DEV_TASK_RECIPIENT: ${BUS_DEV_TASK_RECIPIENT:-}
       BUS_DEV_TASK_AGENT_BACKEND: ${BUS_DEV_TASK_AGENT_BACKEND:-codex-appserver}
       BUS_DEV_TASK_CODEX_COMMAND: ${BUS_DEV_TASK_CODEX_COMMAND:-codex}
-      BUS_DEV_TASK_CODEX_ARGS: ${BUS_DEV_TASK_CODEX_ARGS:-["app-server","-c","approval_policy=\"never\"","-c","shell_environment_policy.inherit=all","-c","sandbox_mode=\"workspace-write\"","-c","sandbox_workspace_write.network_access=true"]}
+      BUS_DEV_TASK_CODEX_ARGS: ${BUS_DEV_TASK_CODEX_ARGS:-["app-server","--listen","stdio://"]}
       BUS_DEV_TASK_CODEX_MODEL: ${BUS_DEV_TASK_CODEX_MODEL:-auto}
       BUS_DEV_TASK_CODEX_APPROVAL_POLICY: ${BUS_DEV_TASK_CODEX_APPROVAL_POLICY:-never}
       BUS_DEV_TASK_CODEX_SANDBOX: ${BUS_DEV_TASK_CODEX_SANDBOX:-workspace-write}
