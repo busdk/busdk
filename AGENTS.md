@@ -143,6 +143,10 @@ or other repeatable debugging practice, read the owning module guidance or
 relevant skill first. Root safety context: keep commands simple, portable,
 path-correct, and redacted.
 
+Use `./tmp/worktrees` for disposable supervisor, worker, review, and remote
+checkout worktrees. `tmp/` is already ignored, so do not introduce separate
+local-only worktree directories such as `./worktrees`.
+
 For historical delivery or behavior claims, verify the relevant Git diff before
 writing the claim. For progress, heartbeat, review, and closeout reports, follow
 `skills/bus-product-delivery-supervisor/SKILL.md`.
