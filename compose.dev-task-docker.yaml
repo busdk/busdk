@@ -135,6 +135,8 @@ services:
   bus-integration-docker:
     image: ${BUS_LOCAL_GO_IMAGE:-golang:1.26.3}
     working_dir: /workspace/bus-integration-docker
+    group_add:
+      - ${BUS_DOCKER_SOCKET_CONTAINER_GID:-65534}
     depends_on:
       codex-image:
         condition: service_completed_successfully
@@ -223,6 +225,8 @@ services:
     pull_policy: build
     build: *codex-image-build
     working_dir: /workspace/bus-integration-dev-task
+    group_add:
+      - ${BUS_DOCKER_SOCKET_CONTAINER_GID:-65534}
     depends_on:
       codex-image:
         condition: service_completed_successfully
