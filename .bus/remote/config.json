@@ -46,16 +46,16 @@
   ],
   "environments": [
     {
-      "id": "env-ai-hg-h100",
+      "id": "env_h100_ai",
       "name": "h100",
       "display_name": "H100 Local",
       "remote_id": "ai-hg-h100",
       "local_environment_id": "local-events",
       "sync_target_ids": [
-        "env-ai-hg-h100"
+        "env_h100_ai"
       ],
       "sync_state": {
-        "env-ai-hg-h100": "pending"
+        "env_h100_ai": "pending"
       },
       "worker_styles": [
         "ssh-docker"
