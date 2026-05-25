@@ -17,6 +17,29 @@ unlocked, findings, decisions, tests, friction, and handoff state. Do not reduce
 value to commercial value; useful software that end users and operators like
 using is the primary target.
 
+The hourly memo is a mandatory work log gate, not an optional closeout note.
+Before starting substantial supervisor work, compute the current local/project
+hour, open or create exactly one memo for that hour, and add a short "started"
+or "continued" entry with the current goal, evidence sources checked, and dirty
+or active-worker state. Keep updating that same hourly memo after meaningful
+phases during the hour. Do not wait until final response time to reconstruct the
+hour from memory.
+
+Use the established `logs/{YYYYMMDD}-{HH}-agent-memo.md` filename unless the
+repository already has a current-hour memo with a slightly different suffix.
+The important invariant is one active memo per hour, updated in place while the
+hour is live. Do not create multiple same-hour memo fragments. If a wrong
+same-hour memo filename was already created, either continue using that one for
+the hour or merge it into the established filename before committing.
+
+Claims in the memo must distinguish evidence from recollection. Whenever a memo
+says something was finished, blocked, dispatched, accepted, promoted, or
+verified, include the authoritative source used for that claim: task refs,
+commit hashes, command/test names with outcomes, worker ids, relevant log files,
+or current-state inspections. If the source is only immediate conversation
+context or supervisor recollection, label it as such and avoid treating it as
+proof.
+
 When the hour changes, add a short handoff to the previous memo and continue in
 the new hour.
 

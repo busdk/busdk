@@ -30,6 +30,9 @@ Use narrower skills alongside this one when the work has a focused shape:
 ## Operating Loop
 
 1. Refresh memory:
+   - Before dispatching, editing, or reporting substantial work, open or create
+     the current hourly memo under `logs/` and add/update the live entry for
+     this hour. Treat this as a gate, not a final-answer cleanup step.
    - Read the current hourly memo and recent `logs/*agent-memo.md` entries.
    - Check the most specific `AGENTS.md` files for root, recipient modules,
      `docs`, and `sdd` before dispatching work.
@@ -204,7 +207,13 @@ Use narrower skills alongside this one when the work has a focused shape:
      observable, and easy to operate.
 
 7. Preserve memory:
-   - Update the current hourly memo after meaningful phases.
+   - Update the current hourly memo after meaningful phases in the same hour;
+     do not create a second memo for the same hour unless merging/correcting an
+     accidental filename.
+   - Memo claims about finished work, blockers, dispatches, and verification
+     should cite the evidence source used: task refs, commits, command/test
+     results, active-worker snapshots, or relevant log files. Mark recollection
+     as recollection instead of proof.
    - Add durable rules to the most specific `AGENTS.md` when a mistake or
      recurring lesson should not be repeated.
    - Add unresolved implementation work to the owning module `PLAN.md`; do not
