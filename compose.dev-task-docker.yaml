@@ -242,7 +242,8 @@ services:
       BUS_NOTES_API_URL: ${BUS_NOTES_API_URL:-http://bus-notes-api:8092/local-dev/v1}
       BUS_API_URL: ${BUS_API_URL:-http://bus-notes-api:8092/local-dev/v1}
       BUS_DEV_TASK_POLICY_FILE: ${BUS_DEV_TASK_POLICY_FILE:-/workspace/config/dev-task-lifecycle-policy.json}
-      BUS_DEV_TASK_RECIPIENT: ${BUS_DEV_TASK_RECIPIENT:-}
+      BUS_DEV_TASK_RECIPIENT: ${BUS_DEV_TASK_RECIPIENT:-bus-dev}
+      BUS_DEV_TASK_WORK_REF: ${BUS_DEV_TASK_WORK_REF:-}
       BUS_DEV_TASK_AGENT_BACKEND: ${BUS_DEV_TASK_AGENT_BACKEND:-codex-appserver}
       BUS_DEV_TASK_CODEX_COMMAND: ${BUS_DEV_TASK_CODEX_COMMAND:-codex}
       BUS_DEV_TASK_CODEX_ARGS: ${BUS_DEV_TASK_CODEX_ARGS:-["app-server","--listen","stdio://"]}
@@ -326,6 +327,9 @@ services:
         fi;
         if [ -n "$${BUS_DEV_TASK_POLICY_FILE:-}" ]; then
         set -- "$$@" --policy-file "$${BUS_DEV_TASK_POLICY_FILE}";
+        fi;
+        if [ -n "$${BUS_DEV_TASK_WORK_REF:-}" ]; then
+        set -- "$$@" --work-ref "$${BUS_DEV_TASK_WORK_REF}";
         fi;
         set -- "$$@"
         --agent-backend "$${BUS_DEV_TASK_AGENT_BACKEND}"

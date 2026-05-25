@@ -7,11 +7,9 @@ ARG GOPLS_VERSION=v0.20.0
 ARG DELVE_VERSION=v1.25.2
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates chromium fonts-liberation nodejs npm ripgrep xz-utils \
+    && apt-get install -y --no-install-recommends ca-certificates git make nodejs npm ripgrep xz-utils \
     && (apt-get install -y --no-install-recommends docker-cli docker-compose || apt-get install -y --no-install-recommends docker.io docker-compose) \
     && rm -rf /var/lib/apt/lists/*
-
-ENV CHROME_BIN=/usr/bin/chromium
 
 RUN npm install -g "${CODEX_NPM_PACKAGE}@${CODEX_NPM_VERSION}" \
     && codex --version
