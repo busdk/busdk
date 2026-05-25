@@ -10,7 +10,16 @@
       "ssh_user": "coding-agent",
       "ssh_port": 22,
       "remote_workdir": "/home/coding-agent/coding-agent/git/busdk/busdk",
-      "worker_events_url": "http://bus-events:8081"
+      "worker_events_url": "http://bus-events:8081",
+      "worker_environment": {
+        "path_additions": [
+          "/home/coding-agent/coding-agent/.nvm/versions/node/v22.19.0/bin"
+        ],
+        "tool_paths": {
+          "codex": "/home/coding-agent/coding-agent/.nvm/versions/node/v22.19.0/bin/codex",
+          "node": "/home/coding-agent/coding-agent/.nvm/versions/node/v22.19.0/bin/node"
+        }
+      }
     },
     {
       "id": "ai-hg-h100",

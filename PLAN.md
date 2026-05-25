@@ -73,13 +73,18 @@ the next owned actions before opening older context.
     `bus-integration-containers`, refresh the per-remote token file with the
     configured local-development signing path, and then run the bounded sync
     without requiring supervisor hand steps.
-  - [ ] Add deterministic remote tool path/env support for worker systems:
+  - [x] Add deterministic remote tool path/env support for worker systems:
     `coding-agent@dev.hg.fi` has Codex installed under an NVM path, but
     noninteractive SSH exposes only system PATH entries, so `codex` and its
     `/usr/bin/env node` shebang fail unless the supervisor injects the NVM bin
     directory. Bus remote config should support explicit tool paths or
     non-secret environment profiles for worker commands, while host infra may
-    additionally install stable `/usr/local/bin` wrappers.
+    additionally install stable `/usr/local/bin` wrappers. Done in
+    `bus-remote` commit `32354f7` and `bus-dev` commit `9e84ee2`: remotes now
+    accept non-secret `worker_environment` path/tool/env metadata, ssh-docker
+    check/dry-run/runner requests surface it, generated remote scripts prepend
+    configured PATH additions for noninteractive SSH, and dev-hg root config
+    declares the observed NVM bin/tool paths.
   - [ ] Prepare the H100 checkout from authoritative Git source: push current
     root/submodule commits, fast-forward the remote superproject, hydrate only
     required submodules at pinned commits, build the Bus binaries needed by the
