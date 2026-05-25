@@ -85,10 +85,18 @@ the next owned actions before opening older context.
     check/dry-run/runner requests surface it, generated remote scripts prepend
     configured PATH additions for noninteractive SSH, and dev-hg root config
     declares the observed NVM bin/tool paths.
-  - [ ] Prepare the H100 checkout from authoritative Git source: push current
-    root/submodule commits, fast-forward the remote superproject, hydrate only
-    required submodules at pinned commits, build the Bus binaries needed by the
-    worker harness, and record root plus touched submodule commit ids.
+  - [x] Add a deterministic remote checkout/update helper for H100 source prep:
+    `scripts/remote-checkout-update.sh` fetches the superproject,
+    fast-forwards a requested branch/ref, hydrates selected submodules at
+    checked-in pins by default, requires explicit `--submodule-mode remote` for
+    branch-head submodule updates, and reports root plus selected submodule
+    commits. Covered by `tests/superproject/test_remote_checkout_update.sh`
+    using local fixture repositories under `tmp/worktrees`.
+  - [ ] Use the remote checkout/update helper for the live H100 checkout: push
+    current root/submodule commits, fast-forward the remote superproject,
+    hydrate only required submodules at pinned commits, build the Bus binaries
+    needed by the worker harness, and record root plus touched submodule commit
+    ids.
   - [ ] Launch one H100 image-backed worker on a real product task, not a
     smoke-only file edit, using explicit task arguments for model, reasoning
     effort, write scope, branch, Events URL, and commit behavior. The first
