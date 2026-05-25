@@ -208,6 +208,14 @@ Periodically review recent `logs/*agent-memo.md` files and worker closeouts for:
 For each repeated pattern, either update the relevant `AGENTS.md`, improve a
 repo-local skill, or add a concrete module `PLAN.md` item.
 
+Do not wait for a pattern to become embarrassing before turning it into
+process. If a single incident is likely to recur because it comes from the
+architecture, tooling, worker launch path, credentials, checkout layout, or
+supervisor operating model, capture the lesson immediately in the current memo
+and convert it into guidance, a PLAN item, or a delegated worker task. The
+purpose of reviewing logs is to change future execution, not merely to explain
+past execution.
+
 ## Historical Verification
 
 Before making a historical claim about what changed on a given date, verify the

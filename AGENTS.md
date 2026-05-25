@@ -149,6 +149,14 @@ this root file must preserve the supervisor/worker boundary itself.
    underused, explicitly dispatch/refill unblocked work or record the concrete
    blocker; report utilization truthfully instead of implying full capacity
    when the board is idle or thinly staffed.
+8. Treat each periodic memo/task-stat review as an operating-control loop, not
+   as a retrospective note. The review must end with one of these concrete
+   outcomes: updated PLAN/tasks, new or reopened worker dispatch, promoted or
+   rejected worker output, a documented automation improvement, or a specific
+   reason why no safe parallel work can be started. If the review finds
+   underutilization, stale workers, repeated manual steps, or evidence gaps,
+   convert that finding into the next supervisor action before returning to
+   ordinary status reporting.
 
 ## Repo-Local Skills Index
 

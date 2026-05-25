@@ -128,6 +128,11 @@ Use narrower skills alongside this one when the work has a focused shape:
      independent work immediately or record the specific blocker that prevents
      refill, and report the utilization level truthfully in heartbeat or
      progress updates.
+   - Make each audit change the operating plan. A memo/task-stat review is
+     incomplete until it produces a concrete next action: a PLAN/task update,
+     a new/reopened worker, a promotion/rejection decision, an automation
+     follow-up, or a precise no-capacity reason. Do not let "reviewed logs"
+     become a passive activity that delays dispatch.
    - Continuously ask progress-improvement and bottleneck questions, then
      answer them from evidence: what would increase accepted work per hour, is
      final AI review the limit, does five versus fifteen parallel workers
