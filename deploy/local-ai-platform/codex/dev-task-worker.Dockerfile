@@ -11,7 +11,7 @@ LABEL org.opencontainers.image.description="Image-backed bus-integration-dev-tas
 LABEL org.opencontainers.image.source="https://github.com/busdk/busdk"
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates chromium curl fonts-liberation git make nodejs npm openssh-client xz-utils \
+    && apt-get install -y --no-install-recommends ca-certificates chromium curl fonts-liberation git make nodejs npm openssh-client ripgrep xz-utils \
     && (apt-get install -y --no-install-recommends docker-cli docker-compose || apt-get install -y --no-install-recommends docker.io docker-compose) \
     && rm -rf /var/lib/apt/lists/*
 
@@ -22,10 +22,7 @@ RUN npm install -g "${CODEX_NPM_PACKAGE}@${CODEX_NPM_VERSION}" \
     && codex --version
 
 RUN ln -sf /usr/local/go/bin/go /usr/local/bin/go \
-    && ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt \
-    && rg_bin="$(find /usr/local/lib/node_modules/@openai -path '*/vendor/*/path/rg' -type f | head -n 1)" \
-    && test -n "$rg_bin" \
-    && ln -sf "$rg_bin" /usr/local/bin/rg
+    && ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
 
 RUN GOBIN=/usr/local/bin go install "golang.org/x/tools/gopls@${GOPLS_VERSION}" \
     && gopls version | grep -q "${GOPLS_VERSION}" \
