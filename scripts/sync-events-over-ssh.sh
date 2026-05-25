@@ -2,9 +2,9 @@
 set -eu
 
 # Moves Bus Events history between a local supervisor and a remote SSH host
-# without requiring SSH port forwarding. This is a simple bootstrap sync helper:
-# it uses bus-events export/import NDJSON over SSH. Cursored incremental sync
-# remains product follow-up work in bus-events.
+# without requiring SSH port forwarding. It uses bounded bus-events
+# export/import NDJSON over SSH with local cursor files and metadata filters so
+# routine task syncs do not replay unrelated historical Events history.
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
@@ -18,12 +18,31 @@ LOCAL_ENV_ID=${BUS_EVENTS_SSH_SYNC_LOCAL_ENV_ID:-env_local_supervisor}
 LOCAL_ENV_NAME=${BUS_EVENTS_SSH_SYNC_LOCAL_ENV_NAME:-local-supervisor}
 REMOTE_ENV_ID=${BUS_EVENTS_SSH_SYNC_REMOTE_ENV_ID:-env_h100_ai}
 REMOTE_ENV_NAME=${BUS_EVENTS_SSH_SYNC_REMOTE_ENV_NAME:-h100-ai}
+DEFAULT_LOCAL_NAMES="bus.dev.task.open bus.dev.task.claimed bus.dev.task.running bus.dev.task.done bus.dev.task.blocked bus.dev.task.failed bus.dev.task.canceled"
+DEFAULT_REMOTE_NAMES="bus.dev.task.claimed bus.dev.task.running bus.dev.task.done bus.dev.task.blocked bus.dev.task.failed bus.dev.task.canceled"
 NAMES=${BUS_EVENTS_SSH_SYNC_NAMES:-}
+if [ -n "$NAMES" ]; then
+	LOCAL_NAMES=${BUS_EVENTS_SSH_SYNC_LOCAL_NAMES:-$NAMES}
+	REMOTE_NAMES=${BUS_EVENTS_SSH_SYNC_REMOTE_NAMES:-$NAMES}
+else
+	LOCAL_NAMES=${BUS_EVENTS_SSH_SYNC_LOCAL_NAMES:-$DEFAULT_LOCAL_NAMES}
+	REMOTE_NAMES=${BUS_EVENTS_SSH_SYNC_REMOTE_NAMES:-$DEFAULT_REMOTE_NAMES}
+fi
+CUSTOM_NAMES=false
+CUSTOM_LOCAL_NAMES=false
+CUSTOM_REMOTE_NAMES=false
 DIRECTION=${BUS_EVENTS_SSH_SYNC_DIRECTION:-both}
 KEEP_TEMP=${BUS_EVENTS_SSH_SYNC_KEEP_TEMP:-false}
 REPEAT=${BUS_EVENTS_SSH_SYNC_REPEAT:-1}
 INTERVAL_SECONDS=${BUS_EVENTS_SSH_SYNC_INTERVAL_SECONDS:-5}
 SSH_WAIT_TIMEOUT=${BUS_EVENTS_SSH_SYNC_SSH_WAIT_TIMEOUT:-300}
+LIMIT=${BUS_EVENTS_SSH_SYNC_LIMIT:-100}
+HOME_DIR=${HOME:-/tmp}
+DEFAULT_STATE_DIR="${XDG_STATE_HOME:-$HOME_DIR/.local/state}/bus/events-ssh-sync"
+STATE_DIR=${BUS_EVENTS_SSH_SYNC_STATE_DIR:-$DEFAULT_STATE_DIR}
+USE_STATE=${BUS_EVENTS_SSH_SYNC_USE_STATE:-true}
+LOCAL_AFTER_ID=${BUS_EVENTS_SSH_SYNC_LOCAL_AFTER_ID:-}
+REMOTE_AFTER_ID=${BUS_EVENTS_SSH_SYNC_REMOTE_AFTER_ID:-}
 
 LOCAL_EVENTS_BIN=${BUS_EVENTS_SSH_SYNC_LOCAL_EVENTS_BIN:-$ROOT/bus-events/bin/bus-events}
 REMOTE_TMP=${BUS_EVENTS_SSH_SYNC_REMOTE_TMP:-/tmp/bus-events-ssh-sync.ndjson}
@@ -47,8 +66,15 @@ approved command prefix.
   --local-env-name NAME          local environment display name
   --remote-env-id ID             remote environment technical id
   --remote-env-name NAME         remote environment display name
-  --name EVENT_NAME              event name filter; may be repeated
+  --name EVENT_NAME              event name filter for both directions; may be repeated
+  --local-name EVENT_NAME        local-to-remote event name filter; may be repeated
+  --remote-name EVENT_NAME       remote-to-local event name filter; may be repeated
   --direction DIR                both|local-to-remote|remote-to-local
+  --limit COUNT                  max matching events per direction per iteration
+  --state-dir DIR                cursor state directory
+  --local-after-id EVENT_ID      local-to-remote cursor override
+  --remote-after-id EVENT_ID     remote-to-local cursor override
+  --no-state                     do not read or write cursor state files
   --repeat COUNT                 bounded sync iterations
   --interval-seconds SECONDS     delay between repeated sync iterations
   --ssh-wait-timeout SECONDS     SSH command timeout
@@ -79,8 +105,44 @@ while [ "$#" -gt 0 ]; do
 		--local-env-name) need_arg "$@"; LOCAL_ENV_NAME=$2; shift 2 ;;
 		--remote-env-id) need_arg "$@"; REMOTE_ENV_ID=$2; shift 2 ;;
 		--remote-env-name) need_arg "$@"; REMOTE_ENV_NAME=$2; shift 2 ;;
-		--name) need_arg "$@"; NAMES="${NAMES:+$NAMES }$2"; shift 2 ;;
+		--name)
+			need_arg "$@"
+			if [ "$CUSTOM_NAMES" = false ]; then
+				LOCAL_NAMES=$2
+				REMOTE_NAMES=$2
+				CUSTOM_NAMES=true
+			else
+				LOCAL_NAMES="${LOCAL_NAMES:+$LOCAL_NAMES }$2"
+				REMOTE_NAMES="${REMOTE_NAMES:+$REMOTE_NAMES }$2"
+			fi
+			shift 2
+			;;
+		--local-name)
+			need_arg "$@"
+			if [ "$CUSTOM_LOCAL_NAMES" = false ]; then
+				LOCAL_NAMES=$2
+				CUSTOM_LOCAL_NAMES=true
+			else
+				LOCAL_NAMES="${LOCAL_NAMES:+$LOCAL_NAMES }$2"
+			fi
+			shift 2
+			;;
+		--remote-name)
+			need_arg "$@"
+			if [ "$CUSTOM_REMOTE_NAMES" = false ]; then
+				REMOTE_NAMES=$2
+				CUSTOM_REMOTE_NAMES=true
+			else
+				REMOTE_NAMES="${REMOTE_NAMES:+$REMOTE_NAMES }$2"
+			fi
+			shift 2
+			;;
 		--direction) need_arg "$@"; DIRECTION=$2; shift 2 ;;
+		--limit) need_arg "$@"; LIMIT=$2; shift 2 ;;
+		--state-dir) need_arg "$@"; STATE_DIR=$2; shift 2 ;;
+		--local-after-id) need_arg "$@"; LOCAL_AFTER_ID=$2; USE_STATE=false; shift 2 ;;
+		--remote-after-id) need_arg "$@"; REMOTE_AFTER_ID=$2; USE_STATE=false; shift 2 ;;
+		--no-state) USE_STATE=false; shift ;;
 		--repeat) need_arg "$@"; REPEAT=$2; shift 2 ;;
 		--interval-seconds) need_arg "$@"; INTERVAL_SECONDS=$2; shift 2 ;;
 		--ssh-wait-timeout) need_arg "$@"; SSH_WAIT_TIMEOUT=$2; shift 2 ;;
@@ -159,9 +221,69 @@ case "$SSH_WAIT_TIMEOUT" in
 		;;
 esac
 
+case "$LIMIT" in
+	''|*[!0-9]*)
+		printf 'invalid BUS_EVENTS_SSH_SYNC_LIMIT=%s; expected a positive integer\n' "$LIMIT" >&2
+		exit 2
+		;;
+	0)
+		printf 'invalid BUS_EVENTS_SSH_SYNC_LIMIT=0; use a positive integer\n' >&2
+		exit 2
+		;;
+esac
+
+case "$USE_STATE" in
+	true|1|yes|on|false|0|no|off|'') ;;
+	*)
+		printf 'invalid BUS_EVENTS_SSH_SYNC_USE_STATE=%s\n' "$USE_STATE" >&2
+		exit 2
+		;;
+esac
+
 shell_quote() {
 	printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
 }
+
+state_enabled() {
+	case "$USE_STATE" in
+		true|1|yes|on|'') return 0 ;;
+		*) return 1 ;;
+	esac
+}
+
+state_key=$(printf '%s' "$SSH_TARGET:$LOCAL_ENV_ID:$REMOTE_ENV_ID" | sed 's/[^A-Za-z0-9_.-]/_/g')
+local_cursor_file=$STATE_DIR/$state_key.local-to-remote.after-id
+remote_cursor_file=$STATE_DIR/$state_key.remote-to-local.after-id
+
+read_cursor() {
+	path=$1
+	if state_enabled && [ -s "$path" ]; then
+		sed -n '1{s/[	 ]*$//;p;q;}' "$path"
+	fi
+}
+
+write_cursor() {
+	path=$1
+	event_id=$2
+	if ! state_enabled || [ -z "$event_id" ]; then
+		return 0
+	fi
+	mkdir -p "$STATE_DIR"
+	tmp=$(mktemp "$STATE_DIR/.cursor.XXXXXX")
+	printf '%s\n' "$event_id" > "$tmp"
+	mv "$tmp" "$path"
+}
+
+last_event_id() {
+	sed -n 's/.*"id":"\([^"]*\)".*/\1/p' "$1" | tail -n 1
+}
+
+if [ -z "$LOCAL_AFTER_ID" ]; then
+	LOCAL_AFTER_ID=$(read_cursor "$local_cursor_file")
+fi
+if [ -z "$REMOTE_AFTER_ID" ]; then
+	REMOTE_AFTER_ID=$(read_cursor "$remote_cursor_file")
+fi
 
 local_to_remote=$(mktemp "${TMPDIR:-/tmp}/bus-events-local-to-remote.XXXXXX")
 remote_to_local=$(mktemp "${TMPDIR:-/tmp}/bus-events-remote-to-local.XXXXXX")
@@ -179,10 +301,18 @@ trap cleanup EXIT INT TERM
 
 local_export() {
 	set -- "$LOCAL_EVENTS_BIN" --api-url "$LOCAL_API_URL" --token-file "$LOCAL_TOKEN_FILE" -o "$local_to_remote" export
-	for name in $NAMES; do
+	for name in $LOCAL_NAMES; do
 		set -- "$@" --name "$name"
 	done
-	set -- "$@" --environment-id "$LOCAL_ENV_ID" --environment-name "$LOCAL_ENV_NAME"
+	if [ -n "$LOCAL_AFTER_ID" ]; then
+		set -- "$@" --after-id "$LOCAL_AFTER_ID"
+	fi
+	set -- "$@" \
+		--target-environment-id "$REMOTE_ENV_ID" \
+		--target-sync-state pending \
+		--limit "$LIMIT" \
+		--environment-id "$LOCAL_ENV_ID" \
+		--environment-name "$LOCAL_ENV_NAME"
 	"$@"
 }
 
@@ -268,10 +398,13 @@ if [ ! -s '$REMOTE_TOKEN_FILE' ]; then
 fi
 cd '$REMOTE_ROOT'
 set -- --api-url '$REMOTE_API_URL' --token-file '$REMOTE_TOKEN_FILE' -o '$REMOTE_TMP' export
-for name in $NAMES; do
+for name in $REMOTE_NAMES; do
 	set -- "\$@" --name "\$name"
 done
-set -- "\$@" --environment-id '$REMOTE_ENV_ID' --environment-name '$REMOTE_ENV_NAME'
+if [ -n '$REMOTE_AFTER_ID' ]; then
+	set -- "\$@" --after-id '$REMOTE_AFTER_ID'
+fi
+set -- "\$@" --origin-environment-id '$REMOTE_ENV_ID' --limit '$LIMIT' --environment-id '$REMOTE_ENV_ID' --environment-name '$REMOTE_ENV_NAME'
 if [ -x bus-events/bin/bus-events ]; then
 	./bus-events/bin/bus-events "\$@"
 elif command -v go >/dev/null 2>&1; then
@@ -304,7 +437,15 @@ sync_once() {
 		local_export
 		remote_put
 		remote_import_script | remote_run
-		printf 'local-to-remote events=%s\n' "$(wc -l < "$local_to_remote" | tr -d ' ')"
+		local_count=$(wc -l < "$local_to_remote" | tr -d ' ')
+		new_local_after=$(last_event_id "$local_to_remote")
+		write_cursor "$local_cursor_file" "$new_local_after"
+		printf 'local-to-remote events=%s' "$local_count"
+		if [ -n "$new_local_after" ]; then
+			LOCAL_AFTER_ID=$new_local_after
+			printf ' after-id=%s' "$new_local_after"
+		fi
+		printf '\n'
 		;;
 	esac
 
@@ -313,7 +454,15 @@ sync_once() {
 		remote_export_script | remote_run
 		remote_get
 		local_import
-		printf 'remote-to-local events=%s\n' "$(wc -l < "$remote_to_local" | tr -d ' ')"
+		remote_count=$(wc -l < "$remote_to_local" | tr -d ' ')
+		new_remote_after=$(last_event_id "$remote_to_local")
+		write_cursor "$remote_cursor_file" "$new_remote_after"
+		printf 'remote-to-local events=%s' "$remote_count"
+		if [ -n "$new_remote_after" ]; then
+			REMOTE_AFTER_ID=$new_remote_after
+			printf ' after-id=%s' "$new_remote_after"
+		fi
+		printf '\n'
 		;;
 	esac
 }
