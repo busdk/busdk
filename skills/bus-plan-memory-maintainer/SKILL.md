@@ -202,6 +202,7 @@ Periodically review recent `logs/*agent-memo.md` files and worker closeouts for:
 - missing test/evidence expectations
 - write-scope confusion
 - missed parallelism opportunities
+- underused worker capacity compared with the active goal
 - product-layer mismatch
 
 For each repeated pattern, either update the relevant `AGENTS.md`, improve a

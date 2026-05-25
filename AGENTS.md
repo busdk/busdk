@@ -144,6 +144,11 @@ this root file must preserve the supervisor/worker boundary itself.
    hourly memo, including why worker delegation was unavailable, what exact
    infrastructure path was restored, what verification was run, and which tasks
    should be reopened or dispatched afterward.
+7. Periodically compare recent hourly memos, task statistics, and active-worker
+   evidence against the active goal. If independent parallel capacity is
+   underused, explicitly dispatch/refill unblocked work or record the concrete
+   blocker; report utilization truthfully instead of implying full capacity
+   when the board is idle or thinly staffed.
 
 ## Repo-Local Skills Index
 

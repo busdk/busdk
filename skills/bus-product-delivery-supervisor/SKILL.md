@@ -123,6 +123,11 @@ Use narrower skills alongside this one when the work has a focused shape:
      work per hour. Look for safe scaling improvements: more independent
      workers, narrower shards, faster review/pin/reopen routing, stronger
      automation, or removal of the current bottleneck.
+   - Periodically audit recent hourly memos and task statistics against the
+     active goal. If safe parallel capacity is underused, dispatch/refill
+     independent work immediately or record the specific blocker that prevents
+     refill, and report the utilization level truthfully in heartbeat or
+     progress updates.
    - Continuously ask progress-improvement and bottleneck questions, then
      answer them from evidence: what would increase accepted work per hour, is
      final AI review the limit, does five versus fifteen parallel workers
