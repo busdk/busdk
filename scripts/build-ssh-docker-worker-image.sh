@@ -11,6 +11,7 @@ PLATFORM=${BUS_SSH_DOCKER_BUILD_PLATFORM:-linux/amd64}
 GOOS=${BUS_SSH_DOCKER_BUILD_GOOS:-linux}
 GOARCH=${BUS_SSH_DOCKER_BUILD_GOARCH:-amd64}
 GO_VERSION=${BUS_SSH_DOCKER_BUILD_GO_VERSION:-1.26.3}
+CODEX_NPM_VERSION=${BUS_SSH_DOCKER_BUILD_CODEX_NPM_VERSION:-0.133.0}
 MODULES=${BUS_SSH_DOCKER_BUILD_MODULES:-bus bus-dev bus-integration-dev-task bus-lint bus-notes bus-operator-token}
 DEPENDENCY_MODULES=${BUS_SSH_DOCKER_BUILD_DEPENDENCY_MODULES:-bus-agent bus-events bus-help bus-integration bus-preferences bus-remote bus-secrets bus-update}
 BUILD_MODE=${BUS_SSH_DOCKER_BUILD_MODE:-docker}
@@ -71,6 +72,7 @@ done
 docker build \
 	--platform "$PLATFORM" \
 	--build-arg "GO_VERSION=$GO_VERSION" \
+	--build-arg "CODEX_NPM_VERSION=$CODEX_NPM_VERSION" \
 	-t "$IMAGE" \
 	-f "$ROOT/deploy/local-ai-platform/codex/dev-task-worker.Dockerfile" \
 	"$ROOT"
