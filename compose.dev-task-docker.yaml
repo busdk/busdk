@@ -151,7 +151,7 @@ services:
       BUS_EVENTS_API_URL: http://bus-events:8081
       BUS_DOCKER_PROVIDER: docker
       BUS_DOCKER_EVENT_PREFIX: bus.docker
-      DOCKER_HOST: unix:///var/run/docker.sock
+      DOCKER_HOST: ${BUS_DOCKER_HOST:-unix:///var/run/docker.sock}
       DOCKER_CONTAINER_CODEX_IMAGE: ${DOCKER_CONTAINER_CODEX_IMAGE:-bus-local-codex:dev}
       BUS_DOCKER_CODEX_HOME_HOST: ${BUS_DOCKER_CODEX_HOME_HOST:-${BUS_CODEX_HOME:-${HOME}/.codex}}
       BUS_DOCKER_CODEX_HOME_WRITABLE: ${BUS_DOCKER_CODEX_HOME_WRITABLE:-false}
@@ -290,7 +290,7 @@ services:
       BUS_DEV_TASK_ONCE: ${BUS_DEV_TASK_ONCE:-false}
       BUS_DEV_TASK_IDLE_TIMEOUT: ${BUS_DEV_TASK_IDLE_TIMEOUT:-0}
       BUS_DEV_TASK_TRACE: ${BUS_DEV_TASK_TRACE:-false}
-      DOCKER_HOST: unix:///var/run/docker.sock
+      DOCKER_HOST: ${BUS_DOCKER_HOST:-unix:///var/run/docker.sock}
       BUS_E2E_DOCKER_HOST: ${BUS_E2E_DOCKER_HOST:-host.docker.internal}
       GOCACHE: ${BUS_DEV_TASK_GOCACHE:-/tmp/bus-go-build-cache}
       GOMODCACHE: ${BUS_DEV_TASK_GOMODCACHE:-/go/pkg/mod}
