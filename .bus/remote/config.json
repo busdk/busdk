@@ -40,7 +40,7 @@
         "model": "gpt-oss:120b",
         "reasoning_effort": "high",
         "backend": "container",
-        "profile": "h100"
+        "profile": "codex"
       }
     }
   ],
@@ -64,7 +64,7 @@
         "model": "gpt-oss:120b",
         "reasoning_effort": "high",
         "backend": "container",
-        "profile": "h100"
+        "profile": "codex"
       }
     },
     {
@@ -79,7 +79,7 @@
         "model": "gpt-5.5",
         "reasoning_effort": "high",
         "backend": "codex-appserver",
-        "profile": "cloud-codex"
+        "profile": "codex"
       }
     }
   ]
