@@ -170,6 +170,26 @@ this root file must preserve the supervisor/worker boundary itself.
     when a worker lane failed because of platform friction, and what guidance,
     PLAN item, automation task, or worker dispatch was created to prevent the
     same stall from recurring.
+11. For broad goals, use delegated supervisor agents as the normal scaling
+    unit. The lead supervisor should own global priority, acceptance, pinning,
+    and operator communication, while sub-supervisors own work lines such as
+    remote freshness/proof, parallel lane refill, review/promote triage, or a
+    specific module family. A sub-supervisor should not merely write a one-shot
+    report: it should start safe workers, monitor them, refill the lane when a
+    worker exits, and leave accept/reopen guidance with evidence.
+12. Lead supervisors and delegated sub-supervisors must read and apply
+    `skills/bus-product-delivery-supervisor/SKILL.md` and
+    `skills/bus-dev-task-worker-ops/SKILL.md` before running broad supervisor
+    loops, dispatching workers, or reporting progress on multi-worker goals.
+    Sub-supervisor prompts must include these skill paths so the scaling loop
+    is not lost when work is delegated to another agent.
+13. After accepting and pinning changes that affect worker launch, Events sync,
+    remote credentials, worker images, model/runtime configuration, or Bus
+    developer tooling, update configured remote environments before using them
+    as proof. Verify the remote checkout commit, affected submodule SHAs, and
+    rebuilt/installed binaries or images. If a remote still runs stale software,
+    treat that as an operating issue to fix or delegate, not as product
+    evidence.
 
 ## Repo-Local Skills Index
 
@@ -191,7 +211,9 @@ Read the relevant skill before doing detailed operational work:
    commits, or durable lesson capture.
 4. `skills/bus-ui-gx-roadmap/SKILL.md`: GX and Bus UI feature-candidate
    planning, docs, implementation, semver promotion, and portal migration
-   prerequisites.
+   prerequisites. Use it before planning, dispatching, reviewing, or reporting
+   GX/UI roadmap work, feature-candidate implementation, portal migration, or
+   semver promotion.
 5. `skills/bus-docs-quality/SKILL.md`: public docs and SDD structure, Markdown
    linting, UI docs page shape, examples, links, and duplicate-content cleanup.
 6. `skills/bus-go-quality-review/SKILL.md`: Go implementation/review gates,
@@ -199,7 +221,9 @@ Read the relevant skill before doing detailed operational work:
    path/to/file.go` peer review. Use it before touching Go files.
 7. `skills/bus-generated-artifact-hygiene/SKILL.md`: generated WASM/static
    artifact tracking, ignore/clean/regenerate rules, and dirty-checkout
-   prevention.
+   prevention. Use it before touching generated browser, WASM, static, build
+   output, or other artifact files, and before deciding whether generated
+   changes should be committed, regenerated, ignored, or cleaned.
 
 ## Repository Identity
 
@@ -284,8 +308,14 @@ separate from implementation/docs/test changes.
 ## Shell And Tool Hygiene
 
 For shell scripts, Docker inspection, readiness probes, search/format commands,
-or other repeatable debugging practice, read the owning module guidance or
-relevant skill first. Root safety context: keep commands simple, portable,
+or other repeatable debugging practice, read the owning module `AGENTS.md` and
+the most relevant repo-local skill first. Use
+`skills/bus-dev-task-worker-ops/SKILL.md` for worker/Compose/App Server,
+Docker, SSH worker, or readiness debugging; use
+`skills/bus-product-delivery-supervisor/SKILL.md` for supervisor progress and
+dispatch loops; use `skills/bus-go-quality-review/SKILL.md` for Go
+format/test/lint gates; use `skills/bus-generated-artifact-hygiene/SKILL.md`
+for generated outputs. Root safety context: keep commands simple, portable,
 path-correct, and redacted.
 
 Use `./tmp/worktrees` for disposable supervisor, worker, review, and remote

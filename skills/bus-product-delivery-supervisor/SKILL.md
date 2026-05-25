@@ -71,6 +71,16 @@ Use narrower skills alongside this one when the work has a focused shape:
 4. Dispatch workers:
    - Use `bus dev work start` or `bus dev task new` with explicit recipients.
    - Give each worker non-overlapping module or file ownership.
+   - For broad goals, delegate supervision as well as implementation. Start
+     sub-supervisor agents for independent work lines such as remote
+     freshness/proof, parallel lane refill, review/promote triage, or a module
+     family. The lead supervisor keeps global priority, acceptance, pinning,
+     and operator communication; sub-supervisors keep their lanes filled and
+     produce accept/reopen guidance with evidence.
+   - Do not let sub-supervisors become one-shot reporters. Their prompt should
+     ask them to start safe workers, monitor active work, refill when workers
+     finish, record PIDs/logs/branches/tests, and state exact blockers only
+     after investigation.
    - Use the documented local development system as the default execution path
      for broad module work. Prefer automation-owned worker provisioning over
      manual container/script starts.
@@ -104,6 +114,9 @@ Use narrower skills alongside this one when the work has a focused shape:
 5. Monitor continuously:
    - While workers run, do not idle. Review returned patches, prepare next
      briefs, groom plans, inspect blockers, or start additional safe workers.
+   - Poll sub-supervisor reports as part of the board. If a sub-supervisor
+     exits after a single report while useful work remains, relaunch it with a
+     narrower lane/refill prompt or replace it with direct worker dispatch.
    - Treat memo/task-stat review as a dispatch gate. Before a progress report,
      heartbeat, or long supervisor pause on an active goal, inspect recent
      memo evidence and current worker state, then either start/reopen/promote
@@ -209,6 +222,11 @@ Use narrower skills alongside this one when the work has a focused shape:
      launched workers, first verify whether the workers are using stale
      container images, installed binaries, or dependency checkouts before
      reopening more content tasks.
+   - After accepting changes that affect worker launch, remote Events sync,
+     credentials, model/runtime defaults, worker images, or Bus developer
+     tooling, refresh and rebuild configured remote environments before using
+     them as proof. Record exact root/submodule commits and binary/image
+     identity in the memo or supervisor report.
    - If several workers can run one or two commands and then all later
      `exec_command` or `apply_patch` calls fail with process-spawn or missing
      worktree errors, stop content retries. Dispatch an infrastructure worker
