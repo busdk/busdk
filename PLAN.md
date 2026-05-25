@@ -4,6 +4,77 @@ This is the active BusDK superproject work tracker; start with the first
 unchecked priority lane, then use the nested unchecked items under that lane as
 the next owned actions before opening older context.
 
+## Current Refined Finish Line
+
+The current goal is the smallest real, repeatable H100 offload loop. A
+ChatGPT-backed supervisor on the local system can issue a real development
+task, route it to an H100/UpCloud-style environment, have environment-local Bus
+services start a worker that uses `gpt-oss:120b` or `gemma4:31b`, produce a
+real code branch/commit, sync terminal evidence back, and let the local
+supervisor review, verify, promote, and pin the result. The loop must be
+repeatable after a fresh or non-persistent H100 start without hand-shepherding
+every step. Productizing all transport/API boundaries perfectly is follow-up
+unless it blocks this loop.
+
+Minimum completion checklist:
+
+- [ ] Keep the local checkout clean and pinned after every accepted
+  worker/supervisor change.
+- [ ] Resolve the current dev-hg freshness issue: its `logs` submodule has an
+  uncommitted `20260525-15-agent-memo.md`, so the clean dev-hg checkout did
+  not refresh to root `5c6ea34`.
+- [ ] Rerun the clean local-issued read-only H100 proof from root `5c6ea34`,
+  with H100 already refreshed to that root and `bus-dev` `1645b63`.
+- [ ] Verify that the read-only proof creates an H100-tagged local task, syncs
+  it to H100, starts/claims a worker there, closes terminally, and syncs
+  evidence back locally.
+- [ ] If the proof still fails before worker creation, fix the exact remaining
+  launch/sync defect with evidence, not another manual retry.
+- [ ] Make local-to-H100 task delivery reliable enough that the worker does not
+  start before the task event is available in the H100 Events API.
+- [ ] Make H100 service readiness repeatable for fresh/non-persistent hosts:
+  verify/start `bus-events`, Docker/container integrations, model runtime, and
+  required token file.
+- [ ] Keep H100 source freshness automated enough for this goal:
+  fast-forward root, hydrate required submodules at pins, build/install needed
+  Bus binaries, and record root/submodule SHAs.
+- [ ] Launch one real product implementation task on H100, not a
+  smoke/read-only/test-file task.
+- [ ] Use explicit per-task model and reasoning settings for that task,
+  starting with `gpt-oss:120b` and retrying with `gemma4:31b` only if useful.
+- [ ] Ensure the H100 worker can edit, commit, and report a branch without
+  manual Git/worktree repair.
+- [ ] Sync the H100 task's terminal evidence, model/reasoning metadata, commit
+  hash, and worker logs back to the local supervisor.
+- [ ] Retrieve the H100 branch locally or through a clean supervisor review
+  lane.
+- [ ] Run focused verification for the H100-produced branch: module
+  tests/checks, `git diff --check`, and relevant `bus lint`.
+- [ ] Promote/pin the accepted H100-produced work into the owning submodule and
+  superproject.
+- [ ] Record the full proof in memo/task evidence: command, task ref, remote
+  id, model, reasoning, duration if available, checks, commit, and any manual
+  intervention.
+- [ ] Prove the same loop is repeatable at least once after remote
+  freshness/readiness automation, not only as a one-off success.
+- [ ] Confirm per-remote credential handling is sufficient for this loop:
+  local/controller token, remote Events token, and worker runtime credentials
+  are not confused.
+- [ ] Confirm model/reasoning selection is normal task UX for this loop, with
+  env vars only as defaults.
+- [ ] Confirm H100/offload status and stats show useful remote identity: remote
+  id/kind, model/reasoning, terminal status, and accepted/failed/blocked
+  counts.
+- [ ] Keep the temporary SSH/bootstrap scripts only as acceptable bootstrap
+  tools for this goal, while tracking product follow-up to move control-plane
+  ownership into Bus API/services and environment-local runners.
+- [ ] Package the minimum UpCloud/H100 operator path: what must exist on the
+  remote, what command refreshes it, what command launches a task, what
+  evidence proves success, and what failures mean.
+- [ ] Decide whether private image/software delivery is required for this
+  goal's first repeatable path; if not, explicitly defer it and use
+  source-checkout/remote-build for the first loop.
+
 - [ ] Current first-priority product lane: make multi-remote worker execution
   useful enough for real operator testing and daily development. Business/user
   value: Bus operators should be able to send work to `localhost`, `ai.hg.fi`,
