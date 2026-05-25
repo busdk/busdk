@@ -7,6 +7,21 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 mkdir -p "$tmp_dir"
 
+remote_config="$root_dir/.bus/remote/config.json"
+dev_hg_workdir=$(
+	awk '
+		/"id": "dev-hg"/ { in_remote = 1 }
+		in_remote && /"remote_workdir":/ {
+			gsub(/^[[:space:]]*"remote_workdir": "/, "")
+			gsub(/",?$/, "")
+			print
+			exit
+		}
+	' "$remote_config"
+)
+test "$dev_hg_workdir" = "/home/coding-agent/coding-agent/git/busdk/tmp/worktrees/busdk-main-current"
+test "$dev_hg_workdir" != "/home/coding-agent/coding-agent/git/busdk/busdk"
+
 git_config() {
 	git -c user.name='BusDK Test' -c user.email='busdk-test@example.invalid' "$@"
 }

@@ -92,6 +92,13 @@ the next owned actions before opening older context.
     branch-head submodule updates, and reports root plus selected submodule
     commits. Covered by `tests/superproject/test_remote_checkout_update.sh`
     using local fixture repositories under `tmp/worktrees`.
+  - [x] Keep the dev-hg Codex worker lane pointed at the clean authoritative
+    main/pin checkout: root remote config now routes `dev-hg` work to
+    `/home/coding-agent/coding-agent/git/busdk/tmp/worktrees/busdk-main-current`
+    instead of the dirty feature checkout at
+    `/home/coding-agent/coding-agent/git/busdk/busdk`, and
+    `tests/superproject/test_remote_checkout_update.sh` guards that
+    non-secret routing path.
   - [ ] Use the remote checkout/update helper for the live H100 checkout: push
     current root/submodule commits, fast-forward the remote superproject,
     hydrate only required submodules at pinned commits, build the Bus binaries
