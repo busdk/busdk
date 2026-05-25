@@ -22,9 +22,9 @@ if [ "$#" -gt 0 ]; then
 fi
 
 : "${BUS_DEV_TASK_AGENT_BACKEND:=codex-appserver}"
-: "${BUS_DEV_TASK_CODEX_COMMAND:=codex}"
+: "${BUS_DEV_TASK_CODEX_COMMAND:=codex-appserver-stdio}"
 if [ -z "${BUS_DEV_TASK_CODEX_ARGS+x}" ]; then
-  BUS_DEV_TASK_CODEX_ARGS='["app-server","-c","approval_policy=\"never\"","-c","shell_environment_policy.inherit=all","-c","sandbox_mode=\"workspace-write\"","-c","sandbox_workspace_write.network_access=true"]'
+  BUS_DEV_TASK_CODEX_ARGS='["app-server","-c","approval_policy=\"never\"","-c","shell_environment_policy.inherit=all","-c","sandbox_mode=\"workspace-write\"","-c","sandbox_workspace_write.network_access=true","proxy"]'
 fi
 : "${BUS_DEV_TASK_CODEX_APPROVAL_POLICY:=never}"
 : "${BUS_DEV_TASK_CODEX_SANDBOX:=workspace-write}"
@@ -75,6 +75,9 @@ export BUS_DEV_TASK_IDLE_TIMEOUT
 
 if [ -z "${BUS_NOTES_API_TOKEN:-}" ] && [ -n "${BUS_API_TOKEN:-}" ]; then
   export BUS_NOTES_API_TOKEN=$BUS_API_TOKEN
+fi
+if [ -z "${BUS_DEV_TASK_CODEX_SOURCE_HOME:-}" ] && [ -d /root/.codex-shared ]; then
+  export BUS_DEV_TASK_CODEX_SOURCE_HOME=/root/.codex-shared
 fi
 
 set -- bus-integration-dev-task

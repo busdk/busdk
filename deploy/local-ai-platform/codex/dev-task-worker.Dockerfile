@@ -51,7 +51,8 @@ RUN set -eu; \
     test -s /usr/local/share/bus-integration-dev-task-help.txt
 
 COPY deploy/local-ai-platform/codex/dev-task-worker-entrypoint.sh /usr/local/bin/busdk-dev-task-entrypoint
-RUN chmod 0755 /usr/local/bin/busdk-dev-task-entrypoint
+COPY deploy/local-ai-platform/codex/codex-appserver-stdio.sh /usr/local/bin/codex-appserver-stdio
+RUN chmod 0755 /usr/local/bin/busdk-dev-task-entrypoint /usr/local/bin/codex-appserver-stdio
 
 WORKDIR /workspace
 ENTRYPOINT ["busdk-dev-task-entrypoint"]
