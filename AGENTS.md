@@ -297,6 +297,17 @@ or `./sdd/docs` plus the owning module `AGENTS.md`. If stable architecture still
 exists only in agent guidance, record an SDD-recipient follow-up instead of
 rewriting public docs in this root file.
 
+## Worker Backend Policy
+
+For Bus development workers, Codex App Server is the standard backend in every
+environment, including local, dev-hg, H100, and future UpCloud systems. App
+Server preserves live task steering, approvals, progress events, structured
+closeout, task-scoped state, and model/attempt metadata. One-shot `codex exec`
+containers are a deprecated legacy path and should be removed or replaced by
+App Server based diagnostics. Do not choose or extend one-shot execution for
+normal product work, H100 proofs, scalable worker lanes, or debugging unless a
+short-lived compatibility task is explicitly removing that legacy path.
+
 ## Commit And Deletion Safety
 
 Read `skills/bus-plan-memory-maintainer/SKILL.md` before tracker-only commits
