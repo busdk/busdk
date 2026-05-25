@@ -47,10 +47,13 @@ Use narrower skills alongside this one when the work has a focused shape:
 
 2. Build a dispatch board:
    - Active workers by ref and recipient.
-   - Idle capacity.
+   - Idle capacity by environment, including H100, dev-hg, local, and any
+     configured UpCloud lanes.
    - Next unblocked tasks.
    - Dirty primary checkout risks.
    - Blockers and the owning `PLAN.md` or infrastructure module.
+   - Actual parallelism since the last memo/progress review compared with
+     available safe capacity, plus the reason for any gap.
 
 3. Choose the critical path:
    - Prefer framework and infrastructure tasks that unblock many modules.
@@ -101,6 +104,10 @@ Use narrower skills alongside this one when the work has a focused shape:
 5. Monitor continuously:
    - While workers run, do not idle. Review returned patches, prepare next
      briefs, groom plans, inspect blockers, or start additional safe workers.
+   - Treat memo/task-stat review as a dispatch gate. Before a progress report,
+     heartbeat, or long supervisor pause on an active goal, inspect recent
+     memo evidence and current worker state, then either start/reopen/promote
+     work or record the concrete blocker that prevents it.
    - Prefer short service-backed status/snapshot calls over long-lived local
      `wait`/`watch` exec streams when a snapshot gives enough evidence. If
      missing non-streaming observability forces active supervisor tool streams,
@@ -133,6 +140,11 @@ Use narrower skills alongside this one when the work has a focused shape:
      a new/reopened worker, a promotion/rejection decision, an automation
      follow-up, or a precise no-capacity reason. Do not let "reviewed logs"
      become a passive activity that delays dispatch.
+   - If actual parallelism falls well below available safe capacity, write the
+     reason as an operational finding in the current memo and immediately turn
+     it into one of: narrower worker scopes, additional worker launches, a
+     reviewer lane, an infrastructure repair task, or an explicit blocker for
+     the operator.
    - Continuously ask progress-improvement and bottleneck questions, then
      answer them from evidence: what would increase accepted work per hour, is
      final AI review the limit, does five versus fifteen parallel workers
@@ -228,6 +240,11 @@ Use narrower skills alongside this one when the work has a focused shape:
      recurring lesson should not be repeated.
    - Add unresolved implementation work to the owning module `PLAN.md`; do not
      rely on final-answer promises.
+   - When the operator asks what was accomplished or why capacity was
+     underused, answer from memo/task/commit evidence and include the process
+     correction already made. Do not rely on memory alone, and do not report
+     "we should use more workers" without also dispatching, reopening, or
+     writing the exact blocker that stopped dispatch.
 
 ## Supervisor Implementation Boundary
 

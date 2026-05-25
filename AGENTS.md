@@ -157,6 +157,19 @@ this root file must preserve the supervisor/worker boundary itself.
    underutilization, stale workers, repeated manual steps, or evidence gaps,
    convert that finding into the next supervisor action before returning to
    ordinary status reporting.
+9. For every substantial supervisor session and every progress report on an
+   active multi-worker goal, do a compact goal-health review before answering:
+   recent memo evidence, active workers per environment, independent unblocked
+   work topics, accepted/promoted output since the previous review, current
+   bottleneck, and the next dispatch/reopen/promote action. If the review shows
+   idle capacity on H100, dev-hg, local, or other configured environments, fill
+   it with scoped work unless a concrete blocker prevents it.
+10. Measure the supervisor process by accepted work and learning rate, not by
+    activity. Record when actual parallelism is materially below available
+    capacity, when the supervisor absorbed work that should have been delegated,
+    when a worker lane failed because of platform friction, and what guidance,
+    PLAN item, automation task, or worker dispatch was created to prevent the
+    same stall from recurring.
 
 ## Repo-Local Skills Index
 

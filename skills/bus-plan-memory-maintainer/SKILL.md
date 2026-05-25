@@ -216,6 +216,14 @@ and convert it into guidance, a PLAN item, or a delegated worker task. The
 purpose of reviewing logs is to change future execution, not merely to explain
 past execution.
 
+For active goals that depend on parallel workers, every log review should
+include a compact utilization check: how many worker lanes were actually active,
+which environments were idle, which independent work topics were available, and
+what prevented dispatch if capacity remained unused. The review is not complete
+until it creates or updates at least one concrete artifact: a worker task, a
+PLAN item, a promotion/reopen decision, an automation improvement, or a clearly
+named blocker with the owner and next verification step.
+
 ## Historical Verification
 
 Before making a historical claim about what changed on a given date, verify the
