@@ -14,6 +14,12 @@ ensure_services=false
 compose_file=compose.dev-task-docker.yaml
 services="bus-events bus-integration-docker bus-integration-containers"
 docker_socket=auto
+refresh_token=auto
+remote_token_file=.config/bus/auth/api-token
+token_subject=00000000-0000-4000-8000-000000000001
+token_audience=ai.hg.fi/api
+token_scope="events:send events:listen dev:task:send dev:task:read dev:task:reply dev:task:claim container:read container:run container:delete container:admin notes.write notes.read notes.search notes.import.task_summary notes.import.session_summary"
+token_ttl=12h
 
 usage() {
 	cat <<USAGE
@@ -36,6 +42,13 @@ Options:
   --services "A B ..."     Compose services for --ensure-services
   --docker-socket PATH|auto
                            Docker socket for --ensure-services (default: auto)
+  --refresh-token          Refresh remote local-development token file
+  --no-refresh-token       Do not refresh remote token file
+  --remote-token-file FILE Remote token file path (default: $remote_token_file)
+  --token-subject ID       Local token subject (default: $token_subject)
+  --token-audience AUD     Local token audience (default: $token_audience)
+  --token-scope SCOPES     Local token scopes
+  --token-ttl DURATION     Local token TTL (default: $token_ttl)
   -h, --help               show this help
 USAGE
 }
@@ -66,6 +79,13 @@ while [ "$#" -gt 0 ]; do
 		--compose-file) need_arg "$@"; compose_file=$2; shift 2 ;;
 		--services) need_arg "$@"; services=$2; shift 2 ;;
 		--docker-socket) need_arg "$@"; docker_socket=$2; shift 2 ;;
+		--refresh-token) refresh_token=true; shift ;;
+		--no-refresh-token) refresh_token=false; shift ;;
+		--remote-token-file) need_arg "$@"; remote_token_file=$2; shift 2 ;;
+		--token-subject) need_arg "$@"; token_subject=$2; shift 2 ;;
+		--token-audience) need_arg "$@"; token_audience=$2; shift 2 ;;
+		--token-scope) need_arg "$@"; token_scope=$2; shift 2 ;;
+		--token-ttl) need_arg "$@"; token_ttl=$2; shift 2 ;;
 		-h|--help) usage; exit 0 ;;
 		*) die "unknown option: $1" ;;
 	esac
@@ -83,6 +103,22 @@ case "$reasoning_effort" in
 	none|minimal|low|medium|high|xhigh|hard) ;;
 	*) die "invalid --reasoning-effort: $reasoning_effort" ;;
 esac
+case "$refresh_token" in
+	auto|true|false) ;;
+	*) die "--refresh-token state must be auto, true, or false" ;;
+esac
+[ -n "$remote_token_file" ] || die "--remote-token-file must not be empty"
+[ -n "$token_subject" ] || die "--token-subject must not be empty"
+[ -n "$token_audience" ] || die "--token-audience must not be empty"
+[ -n "$token_scope" ] || die "--token-scope must not be empty"
+[ -n "$token_ttl" ] || die "--token-ttl must not be empty"
+if [ "$refresh_token" = auto ]; then
+	if [ "$ensure_services" = true ]; then
+		refresh_token=true
+	else
+		refresh_token=false
+	fi
+fi
 command -v ssh >/dev/null 2>&1 || die "ssh is required"
 
 shell_quote() {
@@ -104,19 +140,117 @@ remote_preflight_script() {
 	model_pattern_q=$(shell_quote "\"name\":\"$model\"")
 	image_q=$(shell_quote "$image")
 	events_q=$(shell_quote "$events_url")
-	timeout_q=$(shell_quote "$timeout")
-	ensure_q=$(shell_quote "$ensure_services")
+	token_file_q=$(shell_quote "$remote_token_file")
+	token_subject_q=$(shell_quote "$token_subject")
+	token_audience_q=$(shell_quote "$token_audience")
+	token_scope_q=$(shell_quote "$token_scope")
+	token_ttl_q=$(shell_quote "$token_ttl")
 	compose_q=$(shell_quote "$compose_file")
 	docker_socket_q=$(shell_quote "$docker_socket")
-	services_q=
+	set_services=
 	for service in $services; do
-		services_q="$services_q $(shell_quote "$service")"
+		set_services="$set_services
+set -- \"\$@\" $(shell_quote "$service")"
 	done
-	printf '%s' "set -eu; command -v timeout >/dev/null 2>&1 || { echo 'missing timeout' >&2; exit 19; }; cd $root_q; dirty=\$(timeout $timeout_q git status --porcelain); if [ -n \"\$dirty\" ]; then printf 'dirty remote checkout at %s\n' $root_q >&2; git status --short | sed -n '1,80p' >&2; exit 20; fi; command -v docker >/dev/null 2>&1 || { echo 'missing docker' >&2; exit 21; }; timeout $timeout_q docker image inspect $image_q >/dev/null 2>&1 || { echo 'missing worker image: '$image_q >&2; exit 22; }; if [ $ensure_q = true ]; then docker_socket=$docker_socket_q; if [ \"\$docker_socket\" = auto ]; then case \"\${DOCKER_HOST:-}\" in unix://*) docker_socket=\${DOCKER_HOST#unix://} ;; esac; fi; if [ \"\$docker_socket\" = auto ] || [ -z \"\$docker_socket\" ]; then uid=\$(id -u); if [ -S \"/run/user/\$uid/docker.sock\" ]; then docker_socket=/run/user/\$uid/docker.sock; elif [ -S /var/run/docker.sock ]; then docker_socket=/var/run/docker.sock; else echo 'could not locate Docker socket for --ensure-services' >&2; exit 26; fi; fi; BUS_DOCKER_SOCKET_HOST=\"\$docker_socket\" timeout $timeout_q docker compose -f $compose_q up -d --no-deps$services_q >/dev/null; fi; command -v curl >/dev/null 2>&1 || { echo 'missing curl' >&2; exit 23; }; events_ready=false; events_waited=0; while [ \"\$events_waited\" -lt $timeout_q ]; do if curl -fsS --max-time 2 $events_q/api/v1/events/capabilities >/dev/null 2>&1; then events_ready=true; break; fi; sleep 1; events_waited=\$((events_waited + 1)); done; if [ \"\$events_ready\" != true ]; then echo 'missing Events capabilities at '$events_q >&2; exit 24; fi; timeout $timeout_q curl -fsS --max-time $timeout_q http://127.0.0.1:11434/api/tags | grep -F $model_pattern_q >/dev/null || { echo 'missing Ollama model: '$model_q >&2; exit 25; }; printf 'preflight ok: root=%s image=%s model=%s events=%s\n' $root_q $image_q $model_q $events_q"
+	cat <<REMOTE
+set -eu
+command -v timeout >/dev/null 2>&1 || { echo 'missing timeout' >&2; exit 19; }
+root=$root_q
+model=$model_q
+model_pattern=$model_pattern_q
+image=$image_q
+events_url=$events_q
+timeout_seconds=$timeout
+ensure_services=$ensure_services
+compose_file=$compose_q
+docker_socket=$docker_socket_q
+refresh_token=$refresh_token
+token_file=$token_file_q
+token_subject=$token_subject_q
+token_audience=$token_audience_q
+token_scope=$token_scope_q
+token_ttl=$token_ttl_q
+cd "\$root"
+dirty=\$(timeout "\$timeout_seconds" git status --porcelain)
+if [ -n "\$dirty" ]; then
+	printf 'dirty remote checkout at %s\n' "\$root" >&2
+	git status --short | sed -n '1,80p' >&2
+	exit 20
+fi
+command -v docker >/dev/null 2>&1 || { echo 'missing docker' >&2; exit 21; }
+timeout "\$timeout_seconds" docker image inspect "\$image" >/dev/null 2>&1 || { echo "missing worker image: \$image" >&2; exit 22; }
+if [ "\$ensure_services" = true ]; then
+	if [ "\$docker_socket" = auto ]; then
+		case "\${DOCKER_HOST:-}" in
+			unix://*) docker_socket=\${DOCKER_HOST#unix://} ;;
+		esac
+	fi
+	if [ "\$docker_socket" = auto ] || [ -z "\$docker_socket" ]; then
+		uid=\$(id -u)
+		if [ -S "/run/user/\$uid/docker.sock" ]; then
+			docker_socket=/run/user/\$uid/docker.sock
+		elif [ -S /var/run/docker.sock ]; then
+			docker_socket=/var/run/docker.sock
+		else
+			echo 'could not locate Docker socket for --ensure-services' >&2
+			exit 26
+		fi
+	fi
+	set --
+$set_services
+	BUS_DOCKER_SOCKET_HOST="\$docker_socket" timeout "\$timeout_seconds" docker compose -f "\$compose_file" up -d --no-deps "\$@" >/dev/null
+fi
+token_refreshed=false
+if [ "\$refresh_token" = true ]; then
+	case "\$token_file" in
+		/*) ;;
+		*) token_file="\$HOME/\$token_file" ;;
+	esac
+	token_dir=\$(dirname "\$token_file")
+	mkdir -p "\$token_dir"
+	tmp_token=\$(mktemp "\$token_dir/.api-token.XXXXXX")
+	rm_token() { rm -f "\$tmp_token"; }
+	trap rm_token EXIT INT TERM
+	local_jwt_secret=\${BUS_AUTH_HS256_SECRET:-not-a-secret-local-development-hs256-key}
+	if [ -x bus-operator-token/bin/bus-operator-token ]; then
+		BUS_AUTH_HS256_SECRET="\$local_jwt_secret" timeout "\$timeout_seconds" ./bus-operator-token/bin/bus-operator-token --format token issue --local --subject "\$token_subject" --audience "\$token_audience" --scope "\$token_scope" --ttl "\$token_ttl" >"\$tmp_token"
+	elif command -v go >/dev/null 2>&1 && [ -d bus-operator-token ]; then
+		(cd bus-operator-token && BUS_AUTH_HS256_SECRET="\$local_jwt_secret" timeout "\$timeout_seconds" go run ./cmd/bus-operator-token --format token issue --local --subject "\$token_subject" --audience "\$token_audience" --scope "\$token_scope" --ttl "\$token_ttl") >"\$tmp_token"
+	else
+		echo 'remote host needs bus-operator-token/bin/bus-operator-token or go for token refresh' >&2
+		exit 27
+	fi
+	if [ ! -s "\$tmp_token" ]; then
+		echo 'remote token refresh produced an empty token file' >&2
+		exit 28
+	fi
+	chmod 600 "\$tmp_token"
+	mv "\$tmp_token" "\$token_file"
+	trap - EXIT INT TERM
+	token_refreshed=true
+fi
+command -v curl >/dev/null 2>&1 || { echo 'missing curl' >&2; exit 23; }
+events_ready=false
+events_waited=0
+while [ "\$events_waited" -lt "\$timeout_seconds" ]; do
+	if curl -fsS --max-time 2 "\$events_url/api/v1/events/capabilities" >/dev/null 2>&1; then
+		events_ready=true
+		break
+	fi
+	sleep 1
+	events_waited=\$((events_waited + 1))
+done
+if [ "\$events_ready" != true ]; then
+	echo "missing Events capabilities at \$events_url" >&2
+	exit 24
+fi
+timeout "\$timeout_seconds" curl -fsS --max-time "\$timeout_seconds" http://127.0.0.1:11434/api/tags | grep -F "\$model_pattern" >/dev/null || { echo "missing Ollama model: \$model" >&2; exit 25; }
+printf 'preflight ok: root=%s image=%s model=%s events=%s token_refreshed=%s token_file=%s\n' "\$root" "\$image" "\$model" "\$events_url" "\$token_refreshed" "\$token_file"
+REMOTE
 }
 
 run_preflight() {
-	printf 'h100-offload-runner: preflight target=%s root=%s model=%s image=%s ensure_services=%s\n' "$ssh_target" "$remote_root" "$model" "$image" "$ensure_services" >&2
+	printf 'h100-offload-runner: preflight target=%s root=%s model=%s image=%s ensure_services=%s refresh_token=%s\n' "$ssh_target" "$remote_root" "$model" "$image" "$ensure_services" "$refresh_token" >&2
 	if ! output=$(bounded_ssh "$(remote_preflight_script)"); then
 		printf '%s\n' "$output" >&2
 		return 1

@@ -43,10 +43,15 @@ STATE_DIR=${BUS_EVENTS_SSH_SYNC_STATE_DIR:-$DEFAULT_STATE_DIR}
 USE_STATE=${BUS_EVENTS_SSH_SYNC_USE_STATE:-true}
 LOCAL_AFTER_ID=${BUS_EVENTS_SSH_SYNC_LOCAL_AFTER_ID:-}
 REMOTE_AFTER_ID=${BUS_EVENTS_SSH_SYNC_REMOTE_AFTER_ID:-}
+ENSURE_H100_READINESS=${BUS_EVENTS_SSH_SYNC_ENSURE_H100_READINESS:-auto}
 
 LOCAL_EVENTS_BIN=${BUS_EVENTS_SSH_SYNC_LOCAL_EVENTS_BIN:-$ROOT/bus-events/bin/bus-events}
 REMOTE_TMP=${BUS_EVENTS_SSH_SYNC_REMOTE_TMP:-/tmp/bus-events-ssh-sync.ndjson}
 REMOTE_GO_IMAGE=${BUS_EVENTS_SSH_SYNC_REMOTE_GO_IMAGE:-golang:1.26.3}
+H100_RUNNER=${BUS_EVENTS_SSH_SYNC_H100_RUNNER:-$ROOT/scripts/h100-offload-runner.sh}
+H100_COMPOSE_FILE=${BUS_EVENTS_SSH_SYNC_H100_COMPOSE_FILE:-compose.dev-task-docker.yaml}
+H100_SERVICES=${BUS_EVENTS_SSH_SYNC_H100_SERVICES:-bus-events bus-integration-docker bus-integration-containers}
+H100_DOCKER_SOCKET=${BUS_EVENTS_SSH_SYNC_H100_DOCKER_SOCKET:-auto}
 
 usage() {
 	cat >&2 <<'USAGE'
@@ -78,9 +83,16 @@ approved command prefix.
   --repeat COUNT                 bounded sync iterations
   --interval-seconds SECONDS     delay between repeated sync iterations
   --ssh-wait-timeout SECONDS     SSH command timeout
+  --ensure-h100-readiness[=BOOL] start H100 control-plane services and refresh
+                                the remote token file before sync; auto by default
+  --no-ensure-h100-readiness     disable H100 readiness automation
   --local-events-bin PATH        local bus-events binary
   --remote-tmp FILE              remote temporary NDJSON path
   --remote-go-image IMAGE        Go image fallback for remote export/import
+  --h100-runner FILE             H100 readiness runner
+  --h100-compose-file FILE       remote Compose file for H100 readiness
+  --h100-services "A B ..."      remote services for H100 readiness
+  --h100-docker-socket PATH|auto remote Docker socket for H100 readiness
   --keep-temp[=BOOL]             keep local temporary NDJSON files
 USAGE
 }
@@ -146,9 +158,16 @@ while [ "$#" -gt 0 ]; do
 		--repeat) need_arg "$@"; REPEAT=$2; shift 2 ;;
 		--interval-seconds) need_arg "$@"; INTERVAL_SECONDS=$2; shift 2 ;;
 		--ssh-wait-timeout) need_arg "$@"; SSH_WAIT_TIMEOUT=$2; shift 2 ;;
+		--ensure-h100-readiness) ENSURE_H100_READINESS=true; shift ;;
+		--ensure-h100-readiness=*) ENSURE_H100_READINESS=${1#*=}; shift ;;
+		--no-ensure-h100-readiness) ENSURE_H100_READINESS=false; shift ;;
 		--local-events-bin) need_arg "$@"; LOCAL_EVENTS_BIN=$2; shift 2 ;;
 		--remote-tmp) need_arg "$@"; REMOTE_TMP=$2; shift 2 ;;
 		--remote-go-image) need_arg "$@"; REMOTE_GO_IMAGE=$2; shift 2 ;;
+		--h100-runner) need_arg "$@"; H100_RUNNER=$2; shift 2 ;;
+		--h100-compose-file) need_arg "$@"; H100_COMPOSE_FILE=$2; shift 2 ;;
+		--h100-services) need_arg "$@"; H100_SERVICES=$2; shift 2 ;;
+		--h100-docker-socket) need_arg "$@"; H100_DOCKER_SOCKET=$2; shift 2 ;;
 		--keep-temp) KEEP_TEMP=true; shift ;;
 		--keep-temp=*) KEEP_TEMP=${1#*=}; shift ;;
 		--no-keep-temp) KEEP_TEMP=false; shift ;;
@@ -188,6 +207,14 @@ case "$KEEP_TEMP" in
 	true|1|yes|on|false|0|no|off|'') ;;
 	*)
 		printf 'invalid BUS_EVENTS_SSH_SYNC_KEEP_TEMP=%s\n' "$KEEP_TEMP" >&2
+		exit 2
+		;;
+esac
+
+case "$ENSURE_H100_READINESS" in
+	auto|true|1|yes|on|false|0|no|off) ;;
+	*)
+		printf 'invalid BUS_EVENTS_SSH_SYNC_ENSURE_H100_READINESS=%s\n' "$ENSURE_H100_READINESS" >&2
 		exit 2
 		;;
 esac
@@ -251,6 +278,17 @@ state_enabled() {
 	esac
 }
 
+should_ensure_h100_readiness() {
+	case "$ENSURE_H100_READINESS" in
+		true|1|yes|on) return 0 ;;
+		false|0|no|off) return 1 ;;
+	esac
+	case "$SSH_TARGET $REMOTE_ROOT $REMOTE_ENV_ID $REMOTE_ENV_NAME" in
+		*[Hh]100*|*ai.hg.fi*) return 0 ;;
+		*) return 1 ;;
+	esac
+}
+
 state_key=$(printf '%s' "$SSH_TARGET:$LOCAL_ENV_ID:$REMOTE_ENV_ID" | sed 's/[^A-Za-z0-9_.-]/_/g')
 local_cursor_file=$STATE_DIR/$state_key.local-to-remote.after-id
 remote_cursor_file=$STATE_DIR/$state_key.remote-to-local.after-id
@@ -284,6 +322,31 @@ fi
 if [ -z "$REMOTE_AFTER_ID" ]; then
 	REMOTE_AFTER_ID=$(read_cursor "$remote_cursor_file")
 fi
+
+ensure_h100_readiness() {
+	if ! should_ensure_h100_readiness; then
+		return 0
+	fi
+	if [ ! -x "$H100_RUNNER" ]; then
+		printf 'H100 readiness runner is not executable: %s\n' "$H100_RUNNER" >&2
+		exit 2
+	fi
+	"$H100_RUNNER" \
+		--mode preflight \
+		--ssh-target "$SSH_TARGET" \
+		--remote-root "$REMOTE_ROOT" \
+		--events-url "$REMOTE_API_URL" \
+		--timeout "$SSH_WAIT_TIMEOUT" \
+		--ensure-services \
+		--refresh-token \
+		--remote-token-file "$REMOTE_TOKEN_FILE" \
+		--compose-file "$H100_COMPOSE_FILE" \
+		--services "$H100_SERVICES" \
+		--docker-socket "$H100_DOCKER_SOCKET" >/dev/null
+	printf 'h100-readiness ok: target=%s remote_token_file=%s services=%s\n' "$SSH_TARGET" "$REMOTE_TOKEN_FILE" "$H100_SERVICES" >&2
+}
+
+ensure_h100_readiness
 
 local_to_remote=$(mktemp "${TMPDIR:-/tmp}/bus-events-local-to-remote.XXXXXX")
 remote_to_local=$(mktemp "${TMPDIR:-/tmp}/bus-events-remote-to-local.XXXXXX")
