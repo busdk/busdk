@@ -21,7 +21,12 @@
       "ssh_user": "dev",
       "ssh_port": 22,
       "remote_workdir": "/home/dev/workspace/busdk/busdk",
+      "controller_events_url": "http://127.0.0.1:8081",
       "worker_events_url": "http://bus-events:8081",
+      "credential_source": {
+        "kind": "token-file",
+        "ref": "/home/dev/.config/bus/auth/api-token"
+      },
       "worker_defaults": {
         "model": "gpt-oss:120b",
         "reasoning_effort": "high",
@@ -36,11 +41,12 @@
       "name": "h100",
       "display_name": "H100 Local",
       "remote_id": "ai-hg-h100",
+      "local_environment_id": "local-events",
       "sync_target_ids": [
-        "local-events"
+        "env-ai-hg-h100"
       ],
       "sync_state": {
-        "local-events": "manual"
+        "env-ai-hg-h100": "pending"
       },
       "worker_styles": [
         "ssh-docker"
