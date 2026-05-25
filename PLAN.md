@@ -61,6 +61,18 @@ the next owned actions before opening older context.
   the H100 worker claim, complete, sync evidence back, and expose promotion
   metadata without manually running the whole smoke on the remote host.
   H100 real-work verification checklist:
+  - [ ] Fix the local-supervisor/H100 sync scale defect found on 2026-05-25:
+    the SSH transport reached H100 and the remote Events service after
+    `--ensure-services` plus token refresh, but replayed thousands of historical
+    events and killed the local `bus-dev` proof process. Make the sync path
+    cursored, target-state-filtered, or otherwise bounded before treating
+    `--sync-now` as a daily operator path.
+  - [ ] Automate H100 control-plane readiness for local-issued work: when a
+    fresh/non-persistent H100 host is selected, the flow should start or verify
+    `bus-events`, `bus-integration-docker`, and
+    `bus-integration-containers`, refresh the per-remote token file with the
+    configured local-development signing path, and then run the bounded sync
+    without requiring supervisor hand steps.
   - [ ] Prepare the H100 checkout from authoritative Git source: push current
     root/submodule commits, fast-forward the remote superproject, hydrate only
     required submodules at pinned commits, build the Bus binaries needed by the
