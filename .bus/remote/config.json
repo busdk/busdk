@@ -44,7 +44,7 @@
       "worker_defaults": {
         "model": "gpt-oss:120b",
         "reasoning_effort": "high",
-        "backend": "container",
+        "backend": "codex-appserver",
         "profile": "codex"
       }
     }
@@ -68,7 +68,7 @@
       "worker_defaults": {
         "model": "gpt-oss:120b",
         "reasoning_effort": "high",
-        "backend": "container",
+        "backend": "codex-appserver",
         "profile": "codex"
       }
     },
