@@ -128,7 +128,23 @@ shell_quote() {
 bounded_ssh() {
 	tmp=$(mktemp "${TMPDIR:-/tmp}/h100-offload-ssh.XXXXXX")
 	status=0
-	ssh -A -o BatchMode=yes -o ConnectTimeout=10 "$ssh_target" "$1" >"$tmp" 2>&1 || status=$?
+	ssh -A -o BatchMode=yes -o ConnectTimeout=10 "$ssh_target" "$1" >"$tmp" 2>&1 &
+	pid=$!
+	elapsed=0
+	while kill -0 "$pid" 2>/dev/null; do
+		if [ "$elapsed" -ge "$timeout" ]; then
+			kill "$pid" 2>/dev/null || true
+			sleep 1
+			kill -9 "$pid" 2>/dev/null || true
+			sed -n '1,120p' "$tmp"
+			rm -f "$tmp"
+			printf 'h100-offload-runner: timed out after %s seconds waiting for ssh target %s\n' "$timeout" "$ssh_target" >&2
+			return 124
+		fi
+		sleep 1
+		elapsed=$((elapsed + 1))
+	done
+	wait "$pid" || status=$?
 	sed -n '1,120p' "$tmp"
 	rm -f "$tmp"
 	return "$status"
@@ -251,9 +267,14 @@ REMOTE
 
 run_preflight() {
 	printf 'h100-offload-runner: preflight target=%s root=%s model=%s image=%s ensure_services=%s refresh_token=%s\n' "$ssh_target" "$remote_root" "$model" "$image" "$ensure_services" "$refresh_token" >&2
-	if ! output=$(bounded_ssh "$(remote_preflight_script)"); then
-		printf '%s\n' "$output" >&2
-		return 1
+	set +e
+	output=$(bounded_ssh "$(remote_preflight_script)" 2>&1)
+	status=$?
+	set -e
+	if [ "$status" -ne 0 ]; then
+		printf 'h100-offload-runner: preflight failed target=%s root=%s timeout=%s status=%s ensure_services=%s refresh_token=%s\n' "$ssh_target" "$remote_root" "$timeout" "$status" "$ensure_services" "$refresh_token" >&2
+		printf '%s\n' "$output" | sed 's/^/h100-offload-runner: remote: /' >&2
+		return "$status"
 	fi
 	printf '%s\n' "$output"
 }

@@ -36,6 +36,7 @@ KEEP_TEMP=${BUS_EVENTS_SSH_SYNC_KEEP_TEMP:-false}
 REPEAT=${BUS_EVENTS_SSH_SYNC_REPEAT:-1}
 INTERVAL_SECONDS=${BUS_EVENTS_SSH_SYNC_INTERVAL_SECONDS:-5}
 SSH_WAIT_TIMEOUT=${BUS_EVENTS_SSH_SYNC_SSH_WAIT_TIMEOUT:-300}
+H100_READINESS_TIMEOUT=${BUS_EVENTS_SSH_SYNC_H100_READINESS_TIMEOUT:-60}
 LIMIT=${BUS_EVENTS_SSH_SYNC_LIMIT:-100}
 HOME_DIR=${HOME:-/tmp}
 DEFAULT_STATE_DIR="${XDG_STATE_HOME:-$HOME_DIR/.local/state}/bus/events-ssh-sync"
@@ -43,7 +44,7 @@ STATE_DIR=${BUS_EVENTS_SSH_SYNC_STATE_DIR:-$DEFAULT_STATE_DIR}
 USE_STATE=${BUS_EVENTS_SSH_SYNC_USE_STATE:-true}
 LOCAL_AFTER_ID=${BUS_EVENTS_SSH_SYNC_LOCAL_AFTER_ID:-}
 REMOTE_AFTER_ID=${BUS_EVENTS_SSH_SYNC_REMOTE_AFTER_ID:-}
-ENSURE_H100_READINESS=${BUS_EVENTS_SSH_SYNC_ENSURE_H100_READINESS:-auto}
+ENSURE_H100_READINESS=${BUS_EVENTS_SSH_SYNC_ENSURE_H100_READINESS:-false}
 
 LOCAL_EVENTS_BIN=${BUS_EVENTS_SSH_SYNC_LOCAL_EVENTS_BIN:-$ROOT/bus-events/bin/bus-events}
 REMOTE_TMP=${BUS_EVENTS_SSH_SYNC_REMOTE_TMP:-/tmp/bus-events-ssh-sync.ndjson}
@@ -84,8 +85,9 @@ approved command prefix.
   --interval-seconds SECONDS     delay between repeated sync iterations
   --ssh-wait-timeout SECONDS     SSH command timeout
   --ensure-h100-readiness[=BOOL] start H100 control-plane services and refresh
-                                the remote token file before sync; auto by default
+                                the remote token file before sync; false by default
   --no-ensure-h100-readiness     disable H100 readiness automation
+  --h100-readiness-timeout SEC   timeout for the H100 readiness preflight
   --local-events-bin PATH        local bus-events binary
   --remote-tmp FILE              remote temporary NDJSON path
   --remote-go-image IMAGE        Go image fallback for remote export/import
@@ -161,6 +163,7 @@ while [ "$#" -gt 0 ]; do
 		--ensure-h100-readiness) ENSURE_H100_READINESS=true; shift ;;
 		--ensure-h100-readiness=*) ENSURE_H100_READINESS=${1#*=}; shift ;;
 		--no-ensure-h100-readiness) ENSURE_H100_READINESS=false; shift ;;
+		--h100-readiness-timeout) need_arg "$@"; H100_READINESS_TIMEOUT=$2; shift 2 ;;
 		--local-events-bin) need_arg "$@"; LOCAL_EVENTS_BIN=$2; shift 2 ;;
 		--remote-tmp) need_arg "$@"; REMOTE_TMP=$2; shift 2 ;;
 		--remote-go-image) need_arg "$@"; REMOTE_GO_IMAGE=$2; shift 2 ;;
@@ -215,6 +218,17 @@ case "$ENSURE_H100_READINESS" in
 	auto|true|1|yes|on|false|0|no|off) ;;
 	*)
 		printf 'invalid BUS_EVENTS_SSH_SYNC_ENSURE_H100_READINESS=%s\n' "$ENSURE_H100_READINESS" >&2
+		exit 2
+		;;
+esac
+
+case "$H100_READINESS_TIMEOUT" in
+	''|*[!0-9]*)
+		printf 'invalid BUS_EVENTS_SSH_SYNC_H100_READINESS_TIMEOUT=%s; expected a positive integer\n' "$H100_READINESS_TIMEOUT" >&2
+		exit 2
+		;;
+	0)
+		printf 'invalid BUS_EVENTS_SSH_SYNC_H100_READINESS_TIMEOUT=0; use a positive integer\n' >&2
 		exit 2
 		;;
 esac
@@ -289,6 +303,13 @@ should_ensure_h100_readiness() {
 	esac
 }
 
+looks_like_h100_target() {
+	case "$SSH_TARGET $REMOTE_ROOT $REMOTE_ENV_ID $REMOTE_ENV_NAME" in
+		*[Hh]100*|*ai.hg.fi*) return 0 ;;
+		*) return 1 ;;
+	esac
+}
+
 state_key=$(printf '%s' "$SSH_TARGET:$LOCAL_ENV_ID:$REMOTE_ENV_ID" | sed 's/[^A-Za-z0-9_.-]/_/g')
 local_cursor_file=$STATE_DIR/$state_key.local-to-remote.after-id
 remote_cursor_file=$STATE_DIR/$state_key.remote-to-local.after-id
@@ -325,25 +346,37 @@ fi
 
 ensure_h100_readiness() {
 	if ! should_ensure_h100_readiness; then
+		if looks_like_h100_target; then
+			printf 'h100-readiness skipped: target=%s mode=%s; use --ensure-h100-readiness to run bounded preflight\n' "$SSH_TARGET" "$ENSURE_H100_READINESS" >&2
+		fi
 		return 0
 	fi
 	if [ ! -x "$H100_RUNNER" ]; then
 		printf 'H100 readiness runner is not executable: %s\n' "$H100_RUNNER" >&2
 		exit 2
 	fi
-	"$H100_RUNNER" \
+	set +e
+	h100_readiness_output=$("$H100_RUNNER" \
 		--mode preflight \
 		--ssh-target "$SSH_TARGET" \
 		--remote-root "$REMOTE_ROOT" \
 		--events-url "$REMOTE_API_URL" \
-		--timeout "$SSH_WAIT_TIMEOUT" \
+		--timeout "$H100_READINESS_TIMEOUT" \
 		--ensure-services \
 		--refresh-token \
 		--remote-token-file "$REMOTE_TOKEN_FILE" \
 		--compose-file "$H100_COMPOSE_FILE" \
 		--services "$H100_SERVICES" \
-		--docker-socket "$H100_DOCKER_SOCKET" >/dev/null
-	printf 'h100-readiness ok: target=%s remote_token_file=%s services=%s\n' "$SSH_TARGET" "$REMOTE_TOKEN_FILE" "$H100_SERVICES" >&2
+		--docker-socket "$H100_DOCKER_SOCKET" 2>&1)
+	h100_readiness_status=$?
+	set -e
+	if [ "$h100_readiness_status" -ne 0 ]; then
+		printf 'h100-readiness failed: target=%s runner=%s timeout=%s status=%s remote_token_file=%s services=%s\n' "$SSH_TARGET" "$H100_RUNNER" "$H100_READINESS_TIMEOUT" "$h100_readiness_status" "$REMOTE_TOKEN_FILE" "$H100_SERVICES" >&2
+		printf '%s\n' "$h100_readiness_output" | sed 's/^/h100-readiness: /' >&2
+		printf 'h100-readiness hint: use --no-ensure-h100-readiness when services are already running, or --h100-readiness-timeout SECONDS to change the readiness bound.\n' >&2
+		exit "$h100_readiness_status"
+	fi
+	printf 'h100-readiness ok: target=%s timeout=%s remote_token_file=%s services=%s\n' "$SSH_TARGET" "$H100_READINESS_TIMEOUT" "$REMOTE_TOKEN_FILE" "$H100_SERVICES" >&2
 }
 
 ensure_h100_readiness
