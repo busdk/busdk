@@ -2,17 +2,19 @@
 set -eu
 
 usage() {
-  printf 'usage: %s <container-name> <recipient>\n' "$0" >&2
-  printf 'Starts one recipient-scoped bus-integration-dev-task worker in the active dev-task Docker Compose stack.\n' >&2
+  printf 'usage: %s <container-name> <recipient> [work-ref]\n' "$0" >&2
+  printf 'Starts one bus-integration-dev-task worker in the active dev-task Docker Compose stack.\n' >&2
+  printf 'When work-ref is provided, the worker is bound to that exact task and must refuse any other ref.\n' >&2
 }
 
-if [ "$#" -ne 2 ]; then
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
   usage
   exit 2
 fi
 
 container_name=$1
 recipient=$2
+work_ref=${3:-${BUS_DEV_TASK_WORK_REF:-}}
 
 case "$container_name" in
   ''|*[!A-Za-z0-9_.-]*)
@@ -24,6 +26,13 @@ esac
 case "$recipient" in
   ''|*[!A-Za-z0-9_.-]*)
     printf 'invalid recipient: %s\n' "$recipient" >&2
+    exit 2
+    ;;
+esac
+
+case "$work_ref" in
+  *[!A-Za-z0-9_.#:-]*)
+    printf 'invalid work ref: %s\n' "$work_ref" >&2
     exit 2
     ;;
 esac
@@ -69,6 +78,7 @@ docker compose -f "$compose_file" build bus-integration-dev-task >/dev/null
 docker compose -f "$compose_file" run --rm --no-deps -d \
   --name "$container_name" \
   -e "BUS_DEV_TASK_RECIPIENT=$recipient" \
+  -e "BUS_DEV_TASK_WORK_REF=$work_ref" \
   -e "BUS_DEV_TASK_ONCE=$once" \
   -e 'BUS_DEV_TASK_POST_COMMAND_JSON=[]' \
   -e "BUS_DEV_TASK_COMMIT=$commit" \
