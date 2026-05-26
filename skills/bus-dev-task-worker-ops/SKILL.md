@@ -22,6 +22,14 @@ Start with a compact board:
 Do not launch commit-enabled workers from dirty primary checkouts unless the
 dirty state is the deliberate supervisor work to commit first.
 
+Treat Git lock files such as `.git/index.lock` and `.git/modules/*/index.lock`
+as active coordination files by default. If a Git command reports a lock, wait
+briefly, re-run the failed Git command or status, and check whether the lock
+clears naturally before diagnosing it as stale. Manual lock-file removal is a
+last resort only after repeated checks show no owning Git operation is still
+running or making progress, and it should be recorded as a recovery action with
+the evidence that made it safe.
+
 Before starting follow-up workers that must build on newly accepted submodule
 commits, commit the corresponding superproject submodule pin first. Worker
 worktrees treat checked-in submodule SHAs as authoritative, so an uncommitted
