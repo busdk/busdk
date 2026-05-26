@@ -205,6 +205,17 @@ this root file must preserve the supervisor/worker boundary itself.
     the verification command, and the condition that lets the checkbox be
     closed. Remove or explicitly defer items that are not required for the
     current minimum goal.
+    - Do not label general remote-worker features as H100-only unless H100 has
+      a genuinely different implementation path. Use H100/dev-hg as test
+      environments for the same product feature.
+    - Treat configuration/proof work as verification for a feature, not as a
+      vague implementation item. If the implementation is really systemd
+      service install, remote freshness, credential resolution, or App Server
+      model switching, name that feature directly.
+    - Split statistics and operator-path work by the exact facts collected or
+      command made usable, such as attempt identity, requested/observed model,
+      failure reason, recovery/intervention attribution, install command,
+      refresh command, status command, or evidence command.
 16. When the operator corrects the architecture or priority, update durable
     guidance or the owning `PLAN.md` in the same work session. Do not rely on
     chat memory for repeated lessons such as single-binary/systemd deployment
