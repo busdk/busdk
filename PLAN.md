@@ -256,12 +256,17 @@ Minimum completion checklist:
   - [ ] Measure worker throughput and cost by remote, including enough event
     metadata for local Docker, UpCloud, and future remotes to compare accepted
     work per hour and operator-visible cost signals.
-  - [ ] Add a first-class `bus dev` worktree prune command for obsolete
+  - [x] Add a first-class `bus dev` worktree prune command for obsolete
     finished worker state. Acceptance: the command dry-runs and then prunes
     only terminal task worktree directories plus stale superproject and
     submodule Git worktree registry entries; it refuses active task refs,
     reports retained vs removed paths, handles nested submodule worktrees, and
     avoids ad hoc `rm -rf` cleanup.
+    Done: `bus-dev` commit `c15d709` adds `bus dev work prune`, default
+    dry-run review, explicit `--apply`, active-ref refusal, registry/candidate
+    reporting, and submodule registry discovery. Focused tests, `git diff
+    --check`, and changed-file `bus lint` passed; root pinned the accepted
+    change at `6ff981a` and local install produced a live dry-run report.
   - [ ] Smooth Go agent tooling: make `gopls` MCP and Go debugger support
     usable by Codex/dev-task workers without brittle method errors, surprise
     installs, host attach, or unclear prompt context.
