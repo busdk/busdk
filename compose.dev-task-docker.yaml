@@ -253,7 +253,10 @@ services:
       BUS_DEV_TASK_CODEX_ARGS: ${BUS_DEV_TASK_CODEX_ARGS:-["app-server","--listen","stdio://"]}
       BUS_DEV_TASK_CODEX_MODEL: ${BUS_DEV_TASK_CODEX_MODEL:-auto}
       BUS_DEV_TASK_CODEX_APPROVAL_POLICY: ${BUS_DEV_TASK_CODEX_APPROVAL_POLICY:-never}
-      BUS_DEV_TASK_CODEX_SANDBOX: ${BUS_DEV_TASK_CODEX_SANDBOX:-workspace-write}
+      # Empty by default so BUS_DEV_TASK_POLICY_FILE can select the sandbox for
+      # trusted dedicated App Server worker containers. Set explicitly to force
+      # a Compose-level override such as workspace-write.
+      BUS_DEV_TASK_CODEX_SANDBOX: ${BUS_DEV_TASK_CODEX_SANDBOX:-}
       BUS_DEV_TASK_CODEX_NETWORK_ACCESS: ${BUS_DEV_TASK_CODEX_NETWORK_ACCESS:-true}
       BUS_DEV_TASK_CODEX_SOURCE_HOME: ${BUS_DEV_TASK_CODEX_SOURCE_HOME:-/root/.codex-shared}
       BUS_DEV_TASK_CODEX_STATE_ROOT: ${BUS_DEV_TASK_CODEX_STATE_ROOT:-/workspace/tmp/bus-dev-task-codex-homes}
@@ -340,8 +343,11 @@ services:
         --codex-command "$${BUS_DEV_TASK_CODEX_COMMAND}"
         --codex-args-json "$${BUS_DEV_TASK_CODEX_ARGS}"
         --codex-model "$${BUS_DEV_TASK_CODEX_MODEL}"
-        --codex-approval-policy "$${BUS_DEV_TASK_CODEX_APPROVAL_POLICY}"
-        --codex-sandbox "$${BUS_DEV_TASK_CODEX_SANDBOX}"
+        --codex-approval-policy "$${BUS_DEV_TASK_CODEX_APPROVAL_POLICY}";
+        if [ -n "$${BUS_DEV_TASK_CODEX_SANDBOX:-}" ]; then
+        set -- "$$@" --codex-sandbox "$${BUS_DEV_TASK_CODEX_SANDBOX}";
+        fi;
+        set -- "$$@"
         --codex-network-access="$${BUS_DEV_TASK_CODEX_NETWORK_ACCESS}"
         --codex-state-root "$${BUS_DEV_TASK_CODEX_STATE_ROOT}"
         --codex-inherit-env="$${BUS_DEV_TASK_CODEX_INHERIT_ENV}"

@@ -1,8 +1,9 @@
 # PLAN.md
 
-This is the active BusDK superproject work tracker; start with the first
-unchecked priority lane, then use the nested unchecked items under that lane as
-the next owned actions before opening older context.
+This is the active BusDK superproject work tracker. For the current H100 goal,
+treat `Current Refined Finish Line` as the active priority lane; complete its
+minimum checklist in order, using nested unchecked items under the labeled
+product lane for scoped worker actions before opening older context.
 
 ## Current Refined Finish Line
 
@@ -22,9 +23,16 @@ Minimum completion checklist:
   worker/supervisor change.
 - [ ] Resolve the current dev-hg freshness issue: its `logs` submodule has an
   uncommitted `20260525-15-agent-memo.md`, so the clean dev-hg checkout did
-  not refresh to root `5c6ea34`.
-- [ ] Rerun the clean local-issued read-only H100 proof from root `5c6ea34`,
-  with H100 already refreshed to that root and `bus-dev` `1645b63`.
+  not refresh to the intended root pin.
+- [ ] Rerun the clean local-issued read-only H100 proof from the current
+  authoritative root and submodule pins recorded by `git rev-parse HEAD` and
+  `git submodule status bus-dev logs`, with H100 already refreshed to those
+  pins. This proof is blocked while H100 is paused and until bounded/cursored
+  Events sync is available for the local-to-H100 path. When unblocked, run the
+  bounded form of `scripts/h100-offload-runner.sh --mode sync
+  --ensure-services --refresh-token --timeout 300` from the local root, then
+  watch the task from the local supervisor and record the task ref, remote id,
+  model, terminal status, and synced evidence.
 - [ ] Verify that the read-only proof creates an H100-tagged local task, syncs
   it to H100, starts/claims a worker there, closes terminally, and syncs
   evidence back locally.
@@ -39,7 +47,9 @@ Minimum completion checklist:
   fast-forward root, hydrate required submodules at pins, build/install needed
   Bus binaries, and record root/submodule SHAs.
 - [ ] Launch one real product implementation task on H100, not a
-  smoke/read-only/test-file task.
+  smoke/read-only/test-file task; the current target is the
+  `bus-integration-ssh-runner` health/status slice named in the
+  `Current first-priority product lane` below.
 - [ ] Use explicit per-task model and reasoning settings for that task,
   starting with `gpt-oss:120b` and retrying with `gemma4:31b` only if useful.
 - [ ] Ensure the H100 worker can edit, commit, and report a branch without
@@ -68,9 +78,16 @@ Minimum completion checklist:
 - [ ] Keep the temporary SSH/bootstrap scripts only as acceptable bootstrap
   tools for this goal, while tracking product follow-up to move control-plane
   ownership into Bus API/services and environment-local runners.
-- [ ] Package the minimum UpCloud/H100 operator path: what must exist on the
-  remote, what command refreshes it, what command launches a task, what
-  evidence proves success, and what failures mean.
+- [ ] Package the minimum UpCloud/H100 operator path: the remote must have a
+  clean BusDK checkout, Docker, the selected model, and an Events token file;
+  use `scripts/remote-checkout-update.sh --root <remote-root> --ref
+  <current-root-ref> --submodule bus-dev --submodule bus-integration-dev-task
+  --submodule logs` on the remote to refresh pins, then use the bounded
+  `scripts/h100-offload-runner.sh --mode sync --ensure-services
+  --refresh-token --timeout 300` path locally to launch/sync. Passing evidence
+  is a terminal task event with remote id, model/reasoning metadata, branch or
+  commit when writable, and synced logs; failures must name the missing
+  prerequisite or failed command.
 - [ ] Decide whether private image/software delivery is required for this
   goal's first repeatable path; if not, explicitly defer it and use
   source-checkout/remote-build for the first loop.
@@ -170,6 +187,12 @@ Minimum completion checklist:
     `/home/coding-agent/coding-agent/git/busdk/busdk`, and
     `tests/superproject/test_remote_checkout_update.sh` guards that
     non-secret routing path.
+  - [x] Let the dev-task Docker Compose worker defer Codex sandbox selection
+    to `BUS_DEV_TASK_POLICY_FILE` for trusted dedicated App Server containers:
+    `compose.dev-task-docker.yaml` no longer defaults
+    `BUS_DEV_TASK_CODEX_SANDBOX` to `workspace-write` or passes
+    `--codex-sandbox` unless an explicit override is set, while preserving
+    isolated worktree and commit-enabled task settings.
   - [ ] Use the remote checkout/update helper for the live H100 checkout: push
     current root/submodule commits, fast-forward the remote superproject,
     hydrate only required submodules at pinned commits, build the Bus binaries
