@@ -101,6 +101,12 @@ Use narrower skills alongside this one when the work has a focused shape:
      `bus dev work` may compose user-defined workflows, but task state,
      worker replies, reopen guidance, and closeout evidence belong in the task
      stream.
+   - Treat file and artifact exchange as task communication too. Patches,
+     bundles, logs, and review evidence should flow through `bus dev task`
+     attachment/artifact support when available. Out-of-band `scp`, direct SSH
+     file copies, or shared filesystem paths are break-glass only; when used,
+     record the reason in the memo/task evidence and create or link the
+     product work that removes the workaround.
    - Keep worker-facing briefs free of supervisor-only benchmark numbers,
      throughput experiments, and worker-count comparisons. Put that context in
      supervisor notes or task metadata.

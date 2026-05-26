@@ -243,6 +243,13 @@ point of the test. Live acceptance must prove a real LLM-powered Codex session
 can answer runtime-generated questions from the task stream; hardcoded marker
 or echo responses are not evidence for the live path.
 
+Use `bus dev task` as the first-choice communication and artifact path between
+supervisors, workers, and remote environments. Small patches, bundles, logs,
+and review files should be attached to task streams and materialized through
+documented task commands once support exists. Until then, `scp` or direct SSH
+file copies are temporary break-glass operations: record the reason, the exact
+file moved, and the follow-up task that will replace the workaround.
+
 ## Auth And Remotes
 
 Dev-task worker tokens need both Events transport scopes and domain task
