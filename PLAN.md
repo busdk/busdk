@@ -193,6 +193,17 @@ Minimum completion checklist:
     `BUS_DEV_TASK_CODEX_SANDBOX` to `workspace-write` or passes
     `--codex-sandbox` unless an explicit override is set, while preserving
     isolated worktree and commit-enabled task settings.
+  - [ ] Make dev-hg/local ssh-docker launch requests service-owned instead of
+    manually dependent on an ad hoc SSH-runner process. Triggering evidence:
+    `busdk#77.1` on 2026-05-26 created and synced a dev-hg task for the
+    `bus-dev` artifact-transfer slice, but stayed false-active in
+    `awaiting bus.ssh.script.run.response` because no deterministic configured
+    service consumed the runner request before the controller timeout.
+    Acceptance: a `bus dev work --remote dev-hg start ...` launch either
+    starts from an already running configured `bus-integration-ssh-runner` or
+    same-process `bus-integration` host using token-file credentials, or
+    terminally fails with clear evidence; supervisors should not need to start
+    a one-off local runner or inject process-global `BUS_API_TOKEN`.
   - [ ] Use the remote checkout/update helper for the live H100 checkout: push
     current root/submodule commits, fast-forward the remote superproject,
     hydrate only required submodules at pinned commits, build the Bus binaries
