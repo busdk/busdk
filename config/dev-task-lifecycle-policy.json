@@ -4,6 +4,8 @@
   "worker_mode": "persistent",
   "safe_crash_retry_count": 1,
   "agent_backend": "codex-appserver",
+  "codex_sandbox": "danger-full-access",
+  "trusted_dedicated_container": true,
   "dummy_backends_allowed": false,
   "isolated_worktree": true,
   "read_only_dependency_worktrees": true,
