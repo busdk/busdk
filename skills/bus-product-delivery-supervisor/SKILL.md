@@ -142,6 +142,12 @@ Use narrower skills alongside this one when the work has a focused shape:
    - After each worker terminal event, immediately accept/promote, reopen with
      precise guidance, record a blocker, or dispatch the next unblocked item.
    - Count throughput only as verified and promoted work, not claimed work.
+   - Do not measure a remote/local-model worker by whether its first attempt
+     is perfect. Measure the whole production loop: worker attempt, supervisor
+     review, precise reopen guidance or smarter-model handoff, repair,
+     verification, promotion, pinning, and recorded model/agent intervention
+     evidence. Gemma/H100 work may be finished by GPT/dev-hg or another
+     reviewer lane when that improves accepted work per hour.
    - Treat a "running" or "claimed" worker as untrusted until task-stream
      evidence shows a real bridge claim, App Server/container progress, or
      meaningful worker output for the intended work ref. If only container
