@@ -190,6 +190,32 @@ this root file must preserve the supervisor/worker boundary itself.
     rebuilt/installed binaries or images. If a remote still runs stale software,
     treat that as an operating issue to fix or delegate, not as product
     evidence.
+14. Permission prompts are exceptional. Supervisors must first use already
+    approved commands, remote workers, and configured Bus services. Do not ask
+    the operator for permission for routine Markdown edits, worker monitoring,
+    SSH status checks, remote dispatch, or deterministic verification. If the
+    local sandbox blocks Git metadata writes or another required operation,
+    continue independent remote/worktree work where possible and request
+    permission only when that exact operation is required to finish an accepted
+    change.
+15. Do not keep broad, vague checklist items as the active operating plan.
+    Before reporting a goal checklist or dispatching workers, split fuzzy items
+    into module-owned `PLAN.md` entries with concrete DoD: the command or user
+    workflow that must work, the service/runtime owner, the required evidence,
+    the verification command, and the condition that lets the checkbox be
+    closed. Remove or explicitly defer items that are not required for the
+    current minimum goal.
+16. When the operator corrects the architecture or priority, update durable
+    guidance or the owning `PLAN.md` in the same work session. Do not rely on
+    chat memory for repeated lessons such as single-binary/systemd deployment
+    shape, per-remote credential sources instead of process-global tokens,
+    App Server as the normal worker backend, or H100/dev-hg capacity usage.
+17. For the H100/remote-worker goal, prioritize the minimum real-work loop over
+    adjacent product polish: one configured model can be enough, private image
+    delivery can be deferred when source-checkout/App Server works, and stats
+    can be improved while testing instead of blocking the first accepted loop.
+    Keep the checklist focused on work that directly makes remote workers
+    productive and repeatable.
 
 ## Repo-Local Skills Index
 
@@ -216,6 +242,8 @@ Read the relevant skill before doing detailed operational work:
    semver promotion.
 5. `skills/bus-docs-quality/SKILL.md`: public docs and SDD structure, Markdown
    linting, UI docs page shape, examples, links, and duplicate-content cleanup.
+   Use it before editing public docs, SDD docs, README-style documentation,
+   Markdown examples, docs navigation, or docs lint fixes.
 6. `skills/bus-go-quality-review/SKILL.md`: Go implementation/review gates,
    unit/e2e expectations, module Makefile checks, and final `bus lint
    path/to/file.go` peer review. Use it before touching Go files.
@@ -299,14 +327,12 @@ rewriting public docs in this root file.
 
 ## Worker Backend Policy
 
-For Bus development workers, Codex App Server is the standard backend in every
-environment, including local, dev-hg, H100, and future UpCloud systems. App
-Server preserves live task steering, approvals, progress events, structured
-closeout, task-scoped state, and model/attempt metadata. One-shot `codex exec`
-containers are a deprecated legacy path and should be removed or replaced by
-App Server based diagnostics. Do not choose or extend one-shot execution for
-normal product work, H100 proofs, scalable worker lanes, or debugging unless a
-short-lived compatibility task is explicitly removing that legacy path.
+Before choosing or changing Bus development worker backend/runtime behavior,
+read `skills/bus-dev-task-worker-ops/SKILL.md` and the owning module
+`AGENTS.md`/`PLAN.md`. Root policy: Codex App Server is the normal development
+worker backend because it supports live steering, approvals, progress events,
+structured closeout, and task attempt metadata. One-shot Codex execution is
+legacy compatibility, not the default for H100/dev-hg/local worker lanes.
 
 ## Commit And Deletion Safety
 
@@ -320,14 +346,9 @@ separate from implementation/docs/test changes.
 
 For shell scripts, Docker inspection, readiness probes, search/format commands,
 or other repeatable debugging practice, read the owning module `AGENTS.md` and
-the most relevant repo-local skill first. Use
-`skills/bus-dev-task-worker-ops/SKILL.md` for worker/Compose/App Server,
-Docker, SSH worker, or readiness debugging; use
-`skills/bus-product-delivery-supervisor/SKILL.md` for supervisor progress and
-dispatch loops; use `skills/bus-go-quality-review/SKILL.md` for Go
-format/test/lint gates; use `skills/bus-generated-artifact-hygiene/SKILL.md`
-for generated outputs. Root safety context: keep commands simple, portable,
-path-correct, and redacted.
+the most relevant repo-local skill first. Keep commands simple, portable,
+path-correct, bounded, and redacted; use the skills index above to choose the
+deeper runbook.
 
 Use `./tmp/worktrees` for disposable supervisor, worker, review, and remote
 checkout worktrees. `tmp/` is already ignored, so do not introduce separate

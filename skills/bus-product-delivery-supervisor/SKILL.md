@@ -54,9 +54,17 @@ Use narrower skills alongside this one when the work has a focused shape:
    - Blockers and the owning `PLAN.md` or infrastructure module.
    - Actual parallelism since the last memo/progress review compared with
      available safe capacity, plus the reason for any gap.
+   - Vague checklist items that need refinement before they can drive worker
+     dispatch. Convert them into module-owned `PLAN.md` items with clear DoD
+     before reporting them as active work.
 
 3. Choose the critical path:
    - Prefer framework and infrastructure tasks that unblock many modules.
+   - Prefer the smallest loop that proves real end-user/operator value over
+     broad product polish. For remote-worker goals, one working configured
+     model, one repeatable service path, and one accepted product task can be
+     enough for the current milestone; defer private-image delivery, extra
+     model switching, or richer statistics when they do not block that loop.
    - For the GX/UI roadmap, respect real prerequisites but do not treat
      feature-candidate numbers as a linear queue. FC identifiers are stable
      candidate IDs, not required implementation order. Run multiple FC workers
@@ -71,6 +79,11 @@ Use narrower skills alongside this one when the work has a focused shape:
 4. Dispatch workers:
    - Use `bus dev work start` or `bus dev task new` with explicit recipients.
    - Give each worker non-overlapping module or file ownership.
+   - Do not dispatch from a fuzzy brief. Each worker task should name the
+     exact module owner, files or command surface to inspect first, write
+     scopes, DoD, verification command, and closeout evidence. If the work is
+     too broad to describe that way, split it in the owning `PLAN.md` before
+     launch.
    - For broad goals, delegate supervision as well as implementation. Start
      sub-supervisor agents for independent work lines such as remote
      freshness/proof, parallel lane refill, review/promote triage, or a module
@@ -165,10 +178,23 @@ Use narrower skills alongside this one when the work has a focused shape:
      dominating wall time, are dirty checkouts causing most stalls, would an
      infrastructure fix unblock more work than another content worker, or is a
      shared module write scope the real constraint?
+   - Treat operator corrections as input to the operating system, not as
+     one-off chat feedback. If the operator says a checklist is too vague,
+     credentials should not be process-global, H100 should not be avoided, or
+     services should be single-runtime/systemd first, update the most specific
+     `PLAN.md`, `AGENTS.md`, or skill before the same mistake can recur.
+   - Avoid permission-driven stalls. Use already-approved commands, remote
+     workers, and configured Bus services. If one local command is blocked by
+     sandbox policy, continue independent remote work or dispatch a worker
+     while deciding whether the blocked operation is actually required.
 
 6. Fix repeated blockers:
    - If a failure repeats, stop retrying blindly.
    - Record or implement the root-cause fix in the owning module.
+   - Do not label a hiccup as a blocker until it has been investigated enough
+     to name the failing component, evidence, owner, and next verification
+     step. If the problem is likely fixable by code or configuration, create
+     or dispatch that fix instead of waiting for operator input.
    - When a proof loop is not verified yet, do not leave the status as a vague
      complaint. Investigate the exact next steps, write a short pass/fail
      checklist in the owning `PLAN.md`, then dispatch or run the first item.
