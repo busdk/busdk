@@ -4,7 +4,7 @@
     {
       "id": "dev-hg",
       "kind": "ssh-docker",
-      "compose_file": "compose.dev-task-docker.yaml",
+      "compose_file": "compose.yaml",
       "ssh_target": "coding-agent@dev.hg.fi",
       "ssh_host": "dev.hg.fi",
       "ssh_user": "coding-agent",
@@ -29,7 +29,7 @@
     {
       "id": "ai-hg-h100",
       "kind": "ssh-docker",
-      "compose_file": "compose.dev-task-docker.yaml",
+      "compose_file": "compose.yaml",
       "ssh_target": "dev@ai.hg.fi",
       "ssh_host": "ai.hg.fi",
       "ssh_user": "dev",

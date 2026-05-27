@@ -31,6 +31,13 @@ x-go-service: &go-service
     BUS_LOCAL_ACCOUNT_ID: ${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
     BUS_LOCAL_TOKEN_SCOPES: ${BUS_LOCAL_TOKEN_SCOPES:-events:send events:listen llm:proxy usage:write usage:read usage:delete billing:read billing:setup billing:entitlement:check billing:subscription:write billing:usage:export billing:provider vm:read vm:write container:read container:run container:delete container:admin ssh:run cloud:read cloud:write cloud:destroy database:read database:admin node:read node:admin inference:read inference:admin notes.read notes.read.private notes.write notes.write.draft notes.delete notes.search notes.import.memo_file notes.import.task_summary notes.import.session_summary notes.publish notes.retention.admin work:send work:reply work:claim work:read dev:task:send dev:task:reply dev:task:claim dev:task:read}
 
+x-codex-image-build: &codex-image-build
+  context: ./deploy/local-ai-platform/codex
+  args:
+    GO_VERSION: ${BUS_LOCAL_GO_VERSION:-1.26.3}
+    CODEX_NPM_PACKAGE: ${BUS_LOCAL_CODEX_NPM_PACKAGE:-@openai/codex}
+    CODEX_NPM_VERSION: ${BUS_LOCAL_CODEX_NPM_VERSION:-0.133.0}
+
 services:
   postgres:
     image: ${BUS_LOCAL_POSTGRES_IMAGE:-postgres:17-alpine}
@@ -288,17 +295,27 @@ services:
         export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
         exec go run ./cmd/bus-integration-containers --provider events --events-url http://bus-events:8081 --backend-event-prefix bus.docker --request-timeout 30m
 
+  codex-image:
+    profiles: ["dev-task"]
+    image: ${BUS_LOCAL_CODEX_IMAGE:-bus-local-codex:dev}
+    pull_policy: build
+    build: *codex-image-build
+    command:
+      - codex
+      - --version
+
   bus-integration-dev-task:
+    profiles: ["dev-task"]
     <<: *go-service
     image: ${BUS_LOCAL_CODEX_IMAGE:-bus-local-codex:dev}
-    build:
-      context: ./deploy/local-ai-platform/codex
-      args:
-        GO_VERSION: ${BUS_LOCAL_GO_VERSION:-1.26.3}
-        CODEX_NPM_PACKAGE: ${BUS_LOCAL_CODEX_NPM_PACKAGE:-@openai/codex}
-        CODEX_NPM_VERSION: ${BUS_LOCAL_CODEX_NPM_VERSION:-0.128.0}
+    pull_policy: build
+    build: *codex-image-build
     working_dir: /workspace/bus-integration-dev-task
+    group_add:
+      - ${BUS_DOCKER_SOCKET_CONTAINER_GID:-65534}
     depends_on:
+      codex-image:
+        condition: service_completed_successfully
       bus-events:
         condition: service_started
       bus-containers:
@@ -309,14 +326,22 @@ services:
         condition: service_started
     environment:
       <<: *go-env
+      BUS_NOTES_API_URL: ${BUS_NOTES_API_URL:-http://bus-notes-api:8092/local-dev/v1}
+      BUS_API_URL: ${BUS_API_URL:-http://bus-notes-api:8092/local-dev/v1}
+      BUS_DEV_TASK_POLICY_FILE: ${BUS_DEV_TASK_POLICY_FILE:-/workspace/config/dev-task-lifecycle-policy.json}
       BUS_DEV_TASK_RECIPIENT: ${BUS_DEV_TASK_RECIPIENT:-bus-dev}
+      BUS_DEV_TASK_WORK_REF: ${BUS_DEV_TASK_WORK_REF:-}
       BUS_DEV_TASK_AGENT_BACKEND: ${BUS_DEV_TASK_AGENT_BACKEND:-codex-appserver}
       BUS_DEV_TASK_CODEX_COMMAND: ${BUS_DEV_TASK_CODEX_COMMAND:-codex}
       BUS_DEV_TASK_CODEX_ARGS: ${BUS_DEV_TASK_CODEX_ARGS:-["app-server","-c","approval_policy=\"never\"","-c","shell_environment_policy.inherit=all"]}
       BUS_DEV_TASK_CODEX_MODEL: ${BUS_DEV_TASK_CODEX_MODEL:-auto}
       BUS_DEV_TASK_CODEX_APPROVAL_POLICY: ${BUS_DEV_TASK_CODEX_APPROVAL_POLICY:-never}
       BUS_DEV_TASK_CODEX_SANDBOX: ${BUS_DEV_TASK_CODEX_SANDBOX:-workspace-write}
+      BUS_DEV_TASK_CODEX_NETWORK_ACCESS: ${BUS_DEV_TASK_CODEX_NETWORK_ACCESS:-true}
       BUS_DEV_TASK_CODEX_INHERIT_ENV: ${BUS_DEV_TASK_CODEX_INHERIT_ENV:-true}
+      BUS_DEV_TASK_GO_DEBUGGER: ${BUS_DEV_TASK_GO_DEBUGGER:-auto}
+      BUS_DEV_TASK_GO_DEBUGGER_COMMAND: ${BUS_DEV_TASK_GO_DEBUGGER_COMMAND:-dlv}
+      BUS_LINT_AGENT: ${BUS_LINT_AGENT:-codex}
       BUS_DEV_TASK_CONTAINER_PROFILE: ${BUS_DEV_TASK_CONTAINER_PROFILE:-codex}
       BUS_DEV_TASK_WORKSPACE_ROOT: ${BUS_DEV_TASK_WORKSPACE_ROOT:-/workspace}
       BUS_DEV_TASK_WORKSPACE_HOST_ROOT: ${BUS_DEV_TASK_WORKSPACE_HOST_ROOT:-${PWD}}
@@ -333,6 +358,13 @@ services:
       BUS_DEV_TASK_IDLE_TIMEOUT: ${BUS_DEV_TASK_IDLE_TIMEOUT:-0}
       BUS_DEV_TASK_CODEX_SOURCE_HOME: ${BUS_DEV_TASK_CODEX_SOURCE_HOME:-/root/.codex-shared}
       BUS_DEV_TASK_CODEX_STATE_ROOT: ${BUS_DEV_TASK_CODEX_STATE_ROOT:-/workspace/tmp/bus-dev-task-codex-homes}
+      DOCKER_HOST: ${BUS_DOCKER_HOST:-unix:///var/run/docker.sock}
+      BUS_E2E_DOCKER_HOST: ${BUS_E2E_DOCKER_HOST:-host.docker.internal}
+      GOCACHE: ${BUS_DEV_TASK_GOCACHE:-/tmp/bus-go-build-cache}
+      GOMODCACHE: ${BUS_DEV_TASK_GOMODCACHE:-/go/pkg/mod}
+      GOPATH: ${BUS_DEV_TASK_GOPATH:-/go}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command:
       - sh
       - -ec
@@ -348,25 +380,68 @@ services:
             fi
           done
         fi
-        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        if [ "$${BUS_DEV_TASK_AGENT_BACKEND}" = "codex-appserver" ]; then
+          export BUS_DEV_TASK_COMMAND_JSON="[]"
+        fi
+        if [ -z "$${BUS_API_TOKEN:-}" ]; then
+          export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        fi
+        export BUS_NOTES_API_TOKEN="$${BUS_NOTES_API_TOKEN:-$${BUS_API_TOKEN}}"
         set -- go run ./cmd/bus-integration-dev-task --events-url http://bus-events:8081
         if [ -n "$${BUS_DEV_TASK_RECIPIENT}" ]; then
           set -- "$$@" --recipient "$${BUS_DEV_TASK_RECIPIENT}"
         fi
-        set -- "$$@" --agent-backend "$${BUS_DEV_TASK_AGENT_BACKEND}" --codex-command "$${BUS_DEV_TASK_CODEX_COMMAND}" --codex-args-json "$${BUS_DEV_TASK_CODEX_ARGS}" --codex-model "$${BUS_DEV_TASK_CODEX_MODEL}" --codex-approval-policy "$${BUS_DEV_TASK_CODEX_APPROVAL_POLICY}" --codex-sandbox "$${BUS_DEV_TASK_CODEX_SANDBOX}" --codex-inherit-env="$${BUS_DEV_TASK_CODEX_INHERIT_ENV}" --container-profile "$${BUS_DEV_TASK_CONTAINER_PROFILE}" --workspace-root "$${BUS_DEV_TASK_WORKSPACE_ROOT}" --workspace-host-root "$${BUS_DEV_TASK_WORKSPACE_HOST_ROOT}" --workspace-recipient "$${BUS_DEV_TASK_WORKSPACE_RECIPIENT}" --worktree="$${BUS_DEV_TASK_WORKTREE}" --worktree-root "$${BUS_DEV_TASK_WORKTREE_ROOT}" --command-json "$${BUS_DEV_TASK_COMMAND_JSON}" --pre-command-json "$${BUS_DEV_TASK_PRE_COMMAND_JSON}" --post-command-json "$${BUS_DEV_TASK_POST_COMMAND_JSON}" --commit="$${BUS_DEV_TASK_COMMIT}" --commit-message "$${BUS_DEV_TASK_COMMIT_MESSAGE}" --timeout "$${BUS_DEV_TASK_TIMEOUT}" --once="$${BUS_DEV_TASK_ONCE}" --idle-timeout "$${BUS_DEV_TASK_IDLE_TIMEOUT}"
+        if [ -n "$${BUS_DEV_TASK_POLICY_FILE:-}" ]; then
+          set -- "$$@" --policy-file "$${BUS_DEV_TASK_POLICY_FILE}"
+        fi
+        if [ -n "$${BUS_DEV_TASK_WORK_REF:-}" ]; then
+          set -- "$$@" --work-ref "$${BUS_DEV_TASK_WORK_REF}"
+        fi
+        set -- "$$@" --agent-backend "$${BUS_DEV_TASK_AGENT_BACKEND}" --codex-command "$${BUS_DEV_TASK_CODEX_COMMAND}" --codex-args-json "$${BUS_DEV_TASK_CODEX_ARGS}" --codex-model "$${BUS_DEV_TASK_CODEX_MODEL}" --codex-approval-policy "$${BUS_DEV_TASK_CODEX_APPROVAL_POLICY}" --codex-sandbox "$${BUS_DEV_TASK_CODEX_SANDBOX}" --codex-network-access="$${BUS_DEV_TASK_CODEX_NETWORK_ACCESS}" --codex-state-root "$${BUS_DEV_TASK_CODEX_STATE_ROOT}" --codex-inherit-env="$${BUS_DEV_TASK_CODEX_INHERIT_ENV}" --go-debugger "$${BUS_DEV_TASK_GO_DEBUGGER}" --go-debugger-command "$${BUS_DEV_TASK_GO_DEBUGGER_COMMAND}" --container-profile "$${BUS_DEV_TASK_CONTAINER_PROFILE}" --workspace-root "$${BUS_DEV_TASK_WORKSPACE_ROOT}" --workspace-host-root "$${BUS_DEV_TASK_WORKSPACE_HOST_ROOT}" --workspace-recipient "$${BUS_DEV_TASK_WORKSPACE_RECIPIENT}" --worktree="$${BUS_DEV_TASK_WORKTREE}" --worktree-root "$${BUS_DEV_TASK_WORKTREE_ROOT}" --command-json "$${BUS_DEV_TASK_COMMAND_JSON}" --pre-command-json "$${BUS_DEV_TASK_PRE_COMMAND_JSON}" --post-command-json "$${BUS_DEV_TASK_POST_COMMAND_JSON}" --commit="$${BUS_DEV_TASK_COMMIT}" --commit-message "$${BUS_DEV_TASK_COMMIT_MESSAGE}" --timeout "$${BUS_DEV_TASK_TIMEOUT}" --once="$${BUS_DEV_TASK_ONCE}" --idle-timeout "$${BUS_DEV_TASK_IDLE_TIMEOUT}"
         exec "$$@"
     volumes:
       - .:/workspace
       - ${BUS_CODEX_HOME:-${HOME}/.codex}:/root/.codex-shared:ro
+      - ${BUS_GO_MOD_CACHE_HOST:-${HOME}/go/pkg/mod}:/go/pkg/mod:ro
+      - ${BUS_DOCKER_SOCKET_HOST:-/var/run/docker.sock}:/var/run/docker.sock
+
+  bus-dev-supervisor:
+    profiles: ["dev-task"]
+    <<: *go-service
+    working_dir: /workspace
+    depends_on:
+      bus-events:
+        condition: service_started
+      bus-integration-dev-task:
+        condition: service_started
+    environment:
+      <<: *go-env
+      BUS_DEV_SUPERVISOR_STATE_DIR: ${BUS_DEV_SUPERVISOR_STATE_DIR:-/workspace/tmp/dev-task-supervisor}
+      BUS_DEV_SUPERVISOR_INTERVAL_SECONDS: ${BUS_DEV_SUPERVISOR_INTERVAL_SECONDS:-300}
+      BUS_DEV_SUPERVISOR_MAX_AGE_SECONDS: ${BUS_DEV_SUPERVISOR_MAX_AGE_SECONDS:-900}
+      BUS_DEV_SUPERVISOR_QUIET_AFTER: ${BUS_DEV_SUPERVISOR_QUIET_AFTER:-15m}
+      BUS_DEV_SUPERVISOR_STALE_AFTER: ${BUS_DEV_SUPERVISOR_STALE_AFTER:-1h}
+      BUS_DEV_SUPERVISOR_ONCE: ${BUS_DEV_SUPERVISOR_ONCE:-false}
+    command:
+      - sh
+      - -ec
+      - |
+        /workspace/scripts/busdk-refresh-tools.sh --refresh-only
+        mkdir -p /root/.config/bus/auth
+        export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
+        printf '%s\n' "$${BUS_API_TOKEN}" > /root/.config/bus/auth/api-token
+        exec /workspace/scripts/dev-task-supervisor-heartbeat.sh run
+    healthcheck:
+      test: ["CMD-SHELL", "/workspace/scripts/dev-task-supervisor-heartbeat.sh check"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   bus-codex:
     image: ${BUS_LOCAL_CODEX_IMAGE:-bus-local-codex:dev}
-    build:
-      context: ./deploy/local-ai-platform/codex
-      args:
-        GO_VERSION: ${BUS_LOCAL_GO_VERSION:-1.26.3}
-        CODEX_NPM_PACKAGE: ${BUS_LOCAL_CODEX_NPM_PACKAGE:-@openai/codex}
-        CODEX_NPM_VERSION: ${BUS_LOCAL_CODEX_NPM_VERSION:-0.128.0}
+    pull_policy: build
+    build: *codex-image-build
     working_dir: /workspace/bus-integration-codex
     volumes:
       - .:/workspace
@@ -469,13 +544,20 @@ services:
       - ./deploy/local-ai-platform/nginx.conf:/etc/nginx/nginx.conf:ro
 
   testing-agent:
+    profiles: ["dev-task"]
     <<: *go-service
     depends_on:
-      nginx:
+      bus-events:
+        condition: service_started
+      bus-containers:
+        condition: service_started
+      bus-integration-dev-task:
+        condition: service_started
+      bus-dev-supervisor:
         condition: service_started
     environment:
       <<: *go-env
-      BUS_AI_API_URL: http://nginx:8080
+      BUS_AI_API_URL: http://bus-containers:8086
       BUS_EVENTS_API_URL: http://bus-events:8081
     command:
       - sh

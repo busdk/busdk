@@ -11,8 +11,9 @@ events_url=http://127.0.0.1:8081
 image=bus-integration-dev-task:h100-smoke
 timeout=300
 ensure_services=false
-compose_file=compose.dev-task-docker.yaml
-services="bus-events bus-integration-docker bus-integration-containers"
+compose_file=compose.yaml
+compose_profile=dev-task
+services="bus-events bus-docker bus-container-router"
 docker_socket=auto
 refresh_token=auto
 remote_token_file=.config/bus/auth/api-token
@@ -39,6 +40,7 @@ Options:
   --timeout SECONDS        bounded command timeout (default: $timeout)
   --ensure-services        Start minimal H100 Bus services before preflight
   --compose-file FILE      Compose file for --ensure-services
+  --compose-profile NAME   Compose profile for --ensure-services
   --services "A B ..."     Compose services for --ensure-services
   --docker-socket PATH|auto
                            Docker socket for --ensure-services (default: auto)
@@ -77,6 +79,7 @@ while [ "$#" -gt 0 ]; do
 		--timeout) need_arg "$@"; timeout=$2; shift 2 ;;
 		--ensure-services) ensure_services=true; shift ;;
 		--compose-file) need_arg "$@"; compose_file=$2; shift 2 ;;
+		--compose-profile) need_arg "$@"; compose_profile=$2; shift 2 ;;
 		--services) need_arg "$@"; services=$2; shift 2 ;;
 		--docker-socket) need_arg "$@"; docker_socket=$2; shift 2 ;;
 		--refresh-token) refresh_token=true; shift ;;
@@ -162,6 +165,7 @@ remote_preflight_script() {
 	token_scope_q=$(shell_quote "$token_scope")
 	token_ttl_q=$(shell_quote "$token_ttl")
 	compose_q=$(shell_quote "$compose_file")
+	compose_profile_q=$(shell_quote "$compose_profile")
 	docker_socket_q=$(shell_quote "$docker_socket")
 	set_services=
 	for service in $services; do
@@ -179,6 +183,7 @@ events_url=$events_q
 timeout_seconds=$timeout
 ensure_services=$ensure_services
 compose_file=$compose_q
+compose_profile=$compose_profile_q
 docker_socket=$docker_socket_q
 refresh_token=$refresh_token
 token_file=$token_file_q
@@ -214,7 +219,7 @@ if [ "\$ensure_services" = true ]; then
 	fi
 	set --
 $set_services
-	BUS_DOCKER_SOCKET_HOST="\$docker_socket" timeout "\$timeout_seconds" docker compose -f "\$compose_file" up -d --no-deps "\$@" >/dev/null
+	BUS_DOCKER_SOCKET_HOST="\$docker_socket" timeout "\$timeout_seconds" docker compose -f "\$compose_file" --profile "\$compose_profile" up -d --no-deps "\$@" >/dev/null
 fi
 token_refreshed=false
 if [ "\$refresh_token" = true ]; then

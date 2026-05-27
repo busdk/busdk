@@ -18,11 +18,11 @@ if ! docker compose version >/dev/null 2>&1; then
 fi
 
 env -u BUS_LOCAL_GO_IMAGE -u BUS_LOCAL_GO_VERSION \
-  docker compose -f compose.dev-task-docker.yaml config >"$tmp_dir/compose.config"
+  docker compose -f compose.yaml --profile dev-task config >"$tmp_dir/compose.config"
 env -u BUS_LOCAL_GO_IMAGE -u BUS_LOCAL_GO_VERSION \
   docker compose -f compose.yaml config >"$tmp_dir/local-ai-platform.compose.config"
 
-if grep -Fq 'golang:1.24' compose.yaml compose.dev-task-docker.yaml; then
+if grep -Fq 'golang:1.24' compose.yaml; then
   printf 'unexpected stale golang:1.24 default in root compose files\n' >&2
   exit 1
 fi
@@ -62,18 +62,18 @@ grep -Fq 'gopls mcp -instructions' deploy/local-ai-platform/codex/Dockerfile
 grep -Fq 'ARG DELVE_VERSION=v1.25.2' deploy/local-ai-platform/codex/Dockerfile
 grep -Fq 'go install "github.com/go-delve/delve/cmd/dlv@${DELVE_VERSION}"' deploy/local-ai-platform/codex/Dockerfile
 grep -Fq 'dlv dap --help' deploy/local-ai-platform/codex/Dockerfile
-grep -Fq 'BUS_DEV_TASK_GO_DEBUGGER: ${BUS_DEV_TASK_GO_DEBUGGER:-auto}' compose.dev-task-docker.yaml
-grep -Fq 'BUS_DEV_TASK_GO_DEBUGGER_COMMAND: ${BUS_DEV_TASK_GO_DEBUGGER_COMMAND:-dlv}' compose.dev-task-docker.yaml
-grep -Fq -- '--go-debugger "$${BUS_DEV_TASK_GO_DEBUGGER}"' compose.dev-task-docker.yaml
-grep -Fq -- '--go-debugger-command "$${BUS_DEV_TASK_GO_DEBUGGER_COMMAND}"' compose.dev-task-docker.yaml
-grep -Fq 'if [ -z "$${BUS_API_TOKEN:-}" ]; then' compose.dev-task-docker.yaml
-grep -Fq 'export BUS_NOTES_API_TOKEN="$${BUS_NOTES_API_TOKEN:-$${BUS_API_TOKEN}}"' compose.dev-task-docker.yaml
-if grep -Eq 'dlv[[:space:]]+dap[[:space:]].*(--listen|--accept-multiclient|--client-addr)|attach_policy[[:space:]]*=[[:space:]]*host|--go-debugger-attach' compose.dev-task-docker.yaml; then
-  printf 'unexpected default debugger server or host-attach wiring in compose.dev-task-docker.yaml\n' >&2
+grep -Fq 'BUS_DEV_TASK_GO_DEBUGGER: ${BUS_DEV_TASK_GO_DEBUGGER:-auto}' compose.yaml
+grep -Fq 'BUS_DEV_TASK_GO_DEBUGGER_COMMAND: ${BUS_DEV_TASK_GO_DEBUGGER_COMMAND:-dlv}' compose.yaml
+grep -Fq -- '--go-debugger "$${BUS_DEV_TASK_GO_DEBUGGER}"' compose.yaml
+grep -Fq -- '--go-debugger-command "$${BUS_DEV_TASK_GO_DEBUGGER_COMMAND}"' compose.yaml
+grep -Fq 'if [ -z "$${BUS_API_TOKEN:-}" ]; then' compose.yaml
+grep -Fq 'export BUS_NOTES_API_TOKEN="$${BUS_NOTES_API_TOKEN:-$${BUS_API_TOKEN}}"' compose.yaml
+if grep -Eq 'dlv[[:space:]]+dap[[:space:]].*(--listen|--accept-multiclient|--client-addr)|attach_policy[[:space:]]*=[[:space:]]*host|--go-debugger-attach' compose.yaml; then
+  printf 'unexpected default debugger server or host-attach wiring in compose.yaml\n' >&2
   exit 1
 fi
-grep -q 'scripts/dev-task-supervisor-heartbeat.sh check' compose.dev-task-docker.yaml
-grep -q 'pull_policy: build' compose.dev-task-docker.yaml
-grep -q 'build: \*codex-image-build' compose.dev-task-docker.yaml
+grep -q 'scripts/dev-task-supervisor-heartbeat.sh check' compose.yaml
+grep -q 'pull_policy: build' compose.yaml
+grep -q 'build: \*codex-image-build' compose.yaml
 
 printf 'dev-task Docker compose config OK\n'

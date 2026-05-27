@@ -20,7 +20,7 @@ if ! docker compose version >/dev/null 2>&1; then
   exit 0
 fi
 
-compose_args=(-f compose.dev-task-docker.yaml)
+compose_args=(-f compose.yaml --profile dev-task)
 run_id="live-codex-qa-$$"
 worker_name="busdk-dev-task-${run_id}-bus-dev"
 workspace="tmp/dev-task-live-codex-qa-smoke"

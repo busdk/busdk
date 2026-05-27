@@ -70,6 +70,12 @@ Minimum completion checklist:
 - [ ] Confirm per-remote credential handling is sufficient for this loop:
   local/controller token, remote Events token, and worker runtime credentials
   are not confused.
+- [ ] Confirm Bus Notes worker evidence uses the platform architecture rather
+  than a separate Notes replication layer: Notes API mutations append/consume
+  `bus.notes.*` Events, Events sync/relay moves those operation events between
+  local/dev-hg/H100 with origin metadata and cursors, and the Notes projection
+  is materialized from Events into durable BusData/Postgres or repository-file
+  storage.
 - [ ] Confirm model/reasoning selection is normal task UX for this loop, with
   env vars only as defaults.
 - [ ] Confirm H100/offload status and stats show useful remote identity: remote
@@ -189,7 +195,7 @@ Minimum completion checklist:
     non-secret routing path.
   - [x] Let the dev-task Docker Compose worker defer Codex sandbox selection
     to `BUS_DEV_TASK_POLICY_FILE` for trusted dedicated App Server containers:
-    `compose.dev-task-docker.yaml` no longer defaults
+    `compose.yaml` no longer defaults
     `BUS_DEV_TASK_CODEX_SANDBOX` to `workspace-write` or passes
     `--codex-sandbox` unless an explicit override is set, while preserving
     isolated worktree and commit-enabled task settings.
@@ -315,7 +321,7 @@ Minimum completion checklist:
       `ghcr.io/busdk/bus-integration-dev-task` with tag, sha, and release
       `latest` tags.
     - Local static validation for this slice: Dockerfile/workflow/README
-      checks plus `docker compose -f compose.dev-task-docker.yaml config`.
+      checks plus `docker compose -f compose.yaml --profile dev-task config`.
     - Runtime image publication still requires the GitHub Actions release
       workflow to run; the external host pull and worker terminal-state smoke
       are tracked as the follow-up item below.
@@ -517,7 +523,7 @@ Minimum completion checklist:
   persist the supervisor/delegation rules in `AGENTS.md`, inspect root
   `BUGS.md`, `FEATURE_REQUESTS.md`, and module `PLAN.md` backlogs, start the
   documented Docker Compose development-task stack with
-  `docker compose -f compose.dev-task-docker.yaml up -d`, issue non-overlapping
+  `docker compose -f compose.yaml --profile dev-task up -d`, issue non-overlapping
   `bus dev task` work for active module issues, fix any blockers in the task
   system itself, and review returned task artifacts before accepting or closing
   items. Closed by the 2026-05-19/20 localhost worker batches and blocker-first
@@ -582,7 +588,7 @@ Historical context for the current first-priority worker-offload lane:
   `localhost`, `localhost:{port}`, URL remotes, and `ai.hg.fi`; `localhost` is a
   Docker Compose remote, not a special local-only shortcut. `bus-dev` resolves
   dev-task/work commands through `bus-remote`, launches Compose remotes through
-  `compose.dev-task-docker.yaml`, uses conditional append for multi-remote
+  `compose.yaml`, uses conditional append for multi-remote
   claiming/group allocation, and has no open local PLAN work. The
   `bus-integration-dev-task` module records remote metadata in worker/App
   Server closeout evidence, consumes worker-start requests, supports
@@ -726,7 +732,7 @@ Historical context for the current first-priority worker-offload lane:
         Rebuild/reinstall and rerun the smoke with these commits. Closed by
         the H100 `gemma4:31b` smoke described above. Additional fix discovered
         during the live run: rootless Docker hosts need both the image-backed
-        worker and `compose.dev-task-docker.yaml` provider service to use the
+        worker and `compose.yaml` provider service to use the
         same operator-selected Docker socket, so the compose file now supports
         `BUS_DOCKER_SOCKET_HOST` and the H100 smoke auto-detects
         `/run/user/$(id -u)/docker.sock`.
@@ -825,7 +831,7 @@ Historical context for the current first-priority worker-offload lane:
         auto-detects rootless Docker sockets for provider plus worker access.
         Verification: `sh -n scripts/test-h100-local-model-worker-smoke.sh`,
         `BUS_DOCKER_SOCKET_HOST=/run/user/1002/docker.sock docker compose -f
-        compose.dev-task-docker.yaml config --quiet`, `git diff --check`, and
+        compose.yaml config --quiet`, `git diff --check`, and
         the live H100 `gemma4:31b` smoke passed.
     - [x] `busdk#115.1` docs slice: public docs now include a no-spend
       multi-remote worker test checklist, integration navigation links,
@@ -890,7 +896,7 @@ Historical context for the current first-priority worker-offload lane:
     selftests. Closed by adding pinned Delve v1.25.2 to
     `deploy/local-ai-platform/codex/Dockerfile`, wiring explicit
     `BUS_DEV_TASK_GO_DEBUGGER=auto` / `BUS_DEV_TASK_GO_DEBUGGER_COMMAND=dlv`
-    defaults through `compose.dev-task-docker.yaml`, and extending root
+    defaults through `compose.yaml`, and extending root
     compose config/full-stack smoke coverage for `dlv dap` plus no default
     listener or host attach. Evidence: Docker image build passed the pinned
     `dlv` and `dlv dap --help` checks, focused compose config selftest passed,
@@ -906,7 +912,7 @@ Historical context for the current first-priority worker-offload lane:
   - [x] Localhost end-to-end worker execution release smoke: owner `busdk` with
     follow-up fixes in `bus-dev` or `bus-integration-dev-task` only if the smoke
     fails. From a clean root checkout, run the documented
-    `compose.dev-task-docker.yaml` stack, resolve `localhost` through
+    `compose.yaml` stack, resolve `localhost` through
     `bus-remote`, dispatch a recipient-scoped no-op or tiny PLAN-only worker
     through `bus dev work --remote localhost`, prove the controller-owned worker
     starts without manual Compose container commands, and verify claim,
@@ -915,7 +921,7 @@ Historical context for the current first-priority worker-offload lane:
     `git diff --check`, focused root smoke, and affected module gates for any
     follow-up fixes. Closed by `busdk#85.1`: `bus remote --format json resolve
     localhost` returned the built-in Compose remote with
-    `compose.dev-task-docker.yaml`; `bus dev work bootstrap --check` passed with
+    `compose.yaml`; `bus dev work bootstrap --check` passed with
     dispatcher-visible `/tmp/busdk-tools` binaries; `bus dev work --remote
     localhost start --write-scope PLAN.md @busdk ...` launched a
     controller-owned `bus-integration-dev-task` worker without a manual

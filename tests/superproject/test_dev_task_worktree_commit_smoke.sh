@@ -15,7 +15,7 @@ fi
 root_dir="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$root_dir"
 
-compose_args=(-f compose.dev-task-docker.yaml)
+compose_args=(-f compose.yaml --profile dev-task)
 smoke_root="tmp/dev-task-worktree-commit-smoke"
 smoke_repo="$smoke_root/smoke-repo"
 worker_name="busdk-dev-task-smoke-commit"

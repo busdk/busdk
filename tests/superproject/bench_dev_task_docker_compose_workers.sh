@@ -15,7 +15,7 @@ if ! docker compose version >/dev/null 2>&1; then
   exit 0
 fi
 
-compose_args=(-f compose.dev-task-docker.yaml)
+compose_args=(-f compose.yaml --profile dev-task)
 run_id="worker-bench-$$"
 workspace="tmp/dev-task-worker-bench"
 token_file="$workspace/api-token"

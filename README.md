@@ -388,7 +388,7 @@ then increase provider-router replicas in steps of two only when Docker has
 CPU, memory, and Codex quota headroom:
 
 ```bash
-docker compose -f compose.dev-task-docker.yaml up -d \
+docker compose -f compose.yaml --profile dev-task up -d \
   --scale bus-integration-docker=6 \
   --scale bus-integration-containers=6 \
   bus-integration-docker bus-integration-containers
@@ -412,7 +412,7 @@ explicit recipient only when you want a disposable batch worker that exits after
 one matching task or after a bounded idle period:
 
 ```bash
-docker compose -f compose.dev-task-docker.yaml run -d --no-deps \
+docker compose -f compose.yaml --profile dev-task run -d --no-deps \
   --name busdk-dev-task-bus-journal-1 \
   -e BUS_DEV_TASK_RECIPIENT=bus-journal \
   -e BUS_DEV_TASK_ONCE=true \
@@ -449,7 +449,7 @@ PLAN item closures per hour, review pass rate, and rework. Treat 6 or 8 as
 monitored experiments, not defaults, because more workers also create more
 review, token, memory, and Git-worktree pressure.
 
-`compose.dev-task-docker.yaml` defaults Codex App Server workers to
+`compose.yaml` defaults Codex App Server workers to
 `BUS_DEV_TASK_CODEX_SANDBOX=workspace-write` so commit-enabled tasks fail before
 claiming work if the sandbox helper is unavailable. The bridge still verifies
 the addressed isolated worktree before promotion and reports blocked instead of
@@ -473,7 +473,7 @@ workers should be removed and recreated freely when changing worker layout:
 
 ```bash
 docker stop busdk-dev-task-bus-journal-1
-docker compose -f compose.dev-task-docker.yaml down --remove-orphans
+docker compose -f compose.yaml --profile dev-task down --remove-orphans
 ```
 
 The default local task command is:
@@ -554,8 +554,8 @@ Prerequisites:
   into `bus-integration-docker`, which grants host-level Docker control.
 
 ```bash
-docker compose -f compose.dev-task-docker.yaml up -d
-docker compose -f compose.dev-task-docker.yaml exec testing-agent sh
+docker compose -f compose.yaml --profile dev-task up -d
+docker compose -f compose.yaml --profile dev-task exec testing-agent sh
 ```
 
 The same stack starts `bus-dev-supervisor`, a lightweight heartbeat service for
@@ -596,10 +596,10 @@ the same supervisor decisions.
 Check the supervisor heartbeat without opening a streaming task watch:
 
 ```bash
-docker compose -f compose.dev-task-docker.yaml ps bus-dev-supervisor
-docker compose -f compose.dev-task-docker.yaml exec bus-dev-supervisor \
+docker compose -f compose.yaml --profile dev-task ps bus-dev-supervisor
+docker compose -f compose.yaml --profile dev-task exec bus-dev-supervisor \
   /workspace/scripts/dev-task-supervisor-heartbeat.sh check
-docker compose -f compose.dev-task-docker.yaml exec bus-dev-supervisor \
+docker compose -f compose.yaml --profile dev-task exec bus-dev-supervisor \
   /workspace/scripts/dev-task-supervisor-heartbeat.sh inspect
 cat tmp/dev-task-supervisor/heartbeat-status.json
 cat tmp/dev-task-supervisor/policy-cycle.json
@@ -612,7 +612,7 @@ Regenerate only the dry-run executor plan from the latest action queue and
 action plan without contacting Events, Git, or task streams:
 
 ```bash
-docker compose -f compose.dev-task-docker.yaml exec bus-dev-supervisor \
+docker compose -f compose.yaml --profile dev-task exec bus-dev-supervisor \
   /workspace/scripts/dev-task-supervisor-heartbeat.sh plan-execute
 ```
 
@@ -631,7 +631,7 @@ Tune the local heartbeat with `BUS_DEV_SUPERVISOR_INTERVAL_SECONDS`,
 and keeps replacing the status evidence in place.
 
 The dev-task Compose file marks the local Codex image with `pull_policy:
-build`, so `docker compose -f compose.dev-task-docker.yaml up -d` rebuilds the
+build`, so `docker compose -f compose.yaml --profile dev-task up -d` rebuilds the
 checked-in Dockerfile-backed `bus-local-codex:dev` image instead of silently
 reusing a stale local tag after Docker cache cleanup or submodule promotion.
 
@@ -706,7 +706,7 @@ a fake App Server and `--write-scope PLAN.md`; the non-secret transcript showed:
 
 ```text
 bus remote --format json resolve localhost
-  id=localhost kind=compose url=http://localhost:8081 compose_file=compose.dev-task-docker.yaml
+  id=localhost kind=compose url=http://localhost:8081 compose_file=compose.yaml
 bus dev work bootstrap --check
   dispatcher fresh
 bus dev work --remote localhost start --write-scope PLAN.md @busdk ...
@@ -729,7 +729,7 @@ two local-only accommodations may be needed: forward the container's
 `127.0.0.1:8081` to the Compose `bus-events` service, and use a resolved
 Compose config whose bind mounts point at the Docker host checkout path already
 used by the `busdk` stack. On a normal host checkout, the documented
-`compose.dev-task-docker.yaml` path should be used directly.
+`compose.yaml` path should be used directly.
 
 The default task command for real local use runs `codex exec` in the addressed
 module repository, prepares the requested branch, then runs the configured
@@ -743,7 +743,7 @@ ChatGPT-backed Codex quota or push to upstream. To customize hooks:
 ```bash
 bus configure BUS_DEV_TASK_PRE_COMMAND_JSON='["git","status","--short"]'
 bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && bus dev commit && git push -u origin {branch}"]'
-docker compose -f compose.dev-task-docker.yaml up --build -d
+docker compose -f compose.yaml --profile dev-task up --build -d
 ```
 
 The same stack can test the container API directly:

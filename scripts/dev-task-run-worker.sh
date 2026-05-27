@@ -37,7 +37,8 @@ case "$work_ref" in
     ;;
 esac
 
-compose_file=${BUS_DEV_TASK_COMPOSE_FILE:-compose.dev-task-docker.yaml}
+compose_file=${BUS_DEV_TASK_COMPOSE_FILE:-compose.yaml}
+compose_profile=${BUS_DEV_TASK_COMPOSE_PROFILE:-dev-task}
 timeout=${BUS_DEV_TASK_TIMEOUT:-90m}
 commit=${BUS_DEV_TASK_COMMIT:-true}
 default_commit_message='task: {summary}
@@ -68,14 +69,14 @@ if docker ps --format '{{.Names}}' | grep -Fx "$container_name" >/dev/null 2>&1;
   exit 2
 fi
 
-if ! docker compose -f "$compose_file" ps bus-events >/dev/null 2>&1; then
+if ! docker compose -f "$compose_file" --profile "$compose_profile" ps bus-events >/dev/null 2>&1; then
   printf 'compose stack is not available through %s; start it before launching workers\n' "$compose_file" >&2
   exit 2
 fi
 
-docker compose -f "$compose_file" build bus-integration-dev-task >/dev/null
+docker compose -f "$compose_file" --profile "$compose_profile" build bus-integration-dev-task >/dev/null
 
-docker compose -f "$compose_file" run --rm --no-deps -d \
+docker compose -f "$compose_file" --profile "$compose_profile" run --rm --no-deps -d \
   --name "$container_name" \
   -e "BUS_DEV_TASK_RECIPIENT=$recipient" \
   -e "BUS_DEV_TASK_WORK_REF=$work_ref" \

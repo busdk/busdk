@@ -2,7 +2,7 @@
 set -euo pipefail
 [[ "${BUS_E2E_VERBOSE:-0}" = "1" ]] && set -x
 
-compose_args=(-f compose.dev-task-docker.yaml)
+compose_args=(-f compose.yaml --profile dev-task)
 tmp_dir=$(mktemp -d)
 export DOCKER_CONFIG="${DOCKER_CONFIG:-$tmp_dir/docker-config}"
 mkdir -p "$DOCKER_CONFIG"

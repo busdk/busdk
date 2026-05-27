@@ -31,7 +31,7 @@ RUNNER_LOG=${BUS_H100_SMOKE_RUNNER_LOG:-/tmp/bus-ssh-runner-model-smoke.log}
 WAIT_TIMEOUT=${BUS_H100_SMOKE_WAIT_TIMEOUT:-8m}
 SSH_WAIT_TIMEOUT=${BUS_H100_SMOKE_SSH_WAIT_TIMEOUT:-300}
 RUN_SSH_WAIT_TIMEOUT=${BUS_H100_SMOKE_RUN_SSH_WAIT_TIMEOUT:-900}
-COMPOSE_FILE=${BUS_H100_SMOKE_COMPOSE_FILE:-compose.dev-task-docker.yaml}
+COMPOSE_FILE=${BUS_H100_SMOKE_COMPOSE_FILE:-compose.yaml}
 SERVICES=${BUS_H100_SMOKE_SERVICES:-bus-events bus-integration-docker bus-integration-containers}
 SUBMODULES=${BUS_H100_SMOKE_SUBMODULES:-"bus bus-agent bus-api-provider-auth bus-api-provider-events bus-dev bus-events bus-help bus-integration bus-integration-dev-task bus-integration-docker bus-integration-containers bus-integration-ssh-runner bus-lint bus-notes bus-operator-token bus-preferences bus-remote bus-secrets bus-update"}
 EXTRA_SCRIPT=${BUS_H100_SMOKE_EXTRA_SCRIPT:-}
@@ -267,7 +267,7 @@ git submodule update --init --recursive$submodules_q
 printf 'Copying local smoke patches to H100 host\n' >&2
 copy_file "$ROOT/bus-dev/run/task.go" "$REMOTE_ROOT/bus-dev/run/task.go"
 copy_file "$ROOT/bus-dev/run/worker.go" "$REMOTE_ROOT/bus-dev/run/worker.go"
-copy_file "$ROOT/compose.dev-task-docker.yaml" "$REMOTE_ROOT/compose.dev-task-docker.yaml"
+copy_file "$ROOT/compose.yaml" "$REMOTE_ROOT/compose.yaml"
 copy_file "$ROOT/scripts/test-ssh-docker-image-smoke.sh" "$REMOTE_ROOT/scripts/test-ssh-docker-image-smoke.sh"
 copy_file "$ROOT/scripts/test-ssh-docker-local-model-smoke.sh" "$REMOTE_ROOT/scripts/test-ssh-docker-local-model-smoke.sh"
 if [ -n "$EXTRA_SCRIPT" ]; then

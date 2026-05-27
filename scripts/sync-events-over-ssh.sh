@@ -50,8 +50,9 @@ LOCAL_EVENTS_BIN=${BUS_EVENTS_SSH_SYNC_LOCAL_EVENTS_BIN:-$ROOT/bus-events/bin/bu
 REMOTE_TMP=${BUS_EVENTS_SSH_SYNC_REMOTE_TMP:-/tmp/bus-events-ssh-sync.ndjson}
 REMOTE_GO_IMAGE=${BUS_EVENTS_SSH_SYNC_REMOTE_GO_IMAGE:-golang:1.26.3}
 H100_RUNNER=${BUS_EVENTS_SSH_SYNC_H100_RUNNER:-$ROOT/scripts/h100-offload-runner.sh}
-H100_COMPOSE_FILE=${BUS_EVENTS_SSH_SYNC_H100_COMPOSE_FILE:-compose.dev-task-docker.yaml}
-H100_SERVICES=${BUS_EVENTS_SSH_SYNC_H100_SERVICES:-bus-events bus-integration-docker bus-integration-containers}
+H100_COMPOSE_FILE=${BUS_EVENTS_SSH_SYNC_H100_COMPOSE_FILE:-compose.yaml}
+H100_COMPOSE_PROFILE=${BUS_EVENTS_SSH_SYNC_H100_COMPOSE_PROFILE:-dev-task}
+H100_SERVICES=${BUS_EVENTS_SSH_SYNC_H100_SERVICES:-bus-events bus-docker bus-container-router}
 H100_DOCKER_SOCKET=${BUS_EVENTS_SSH_SYNC_H100_DOCKER_SOCKET:-auto}
 
 usage() {
@@ -93,6 +94,7 @@ approved command prefix.
   --remote-go-image IMAGE        Go image fallback for remote export/import
   --h100-runner FILE             H100 readiness runner
   --h100-compose-file FILE       remote Compose file for H100 readiness
+  --h100-compose-profile NAME    remote Compose profile for H100 readiness
   --h100-services "A B ..."      remote services for H100 readiness
   --h100-docker-socket PATH|auto remote Docker socket for H100 readiness
   --keep-temp[=BOOL]             keep local temporary NDJSON files
@@ -169,6 +171,7 @@ while [ "$#" -gt 0 ]; do
 		--remote-go-image) need_arg "$@"; REMOTE_GO_IMAGE=$2; shift 2 ;;
 		--h100-runner) need_arg "$@"; H100_RUNNER=$2; shift 2 ;;
 		--h100-compose-file) need_arg "$@"; H100_COMPOSE_FILE=$2; shift 2 ;;
+		--h100-compose-profile) need_arg "$@"; H100_COMPOSE_PROFILE=$2; shift 2 ;;
 		--h100-services) need_arg "$@"; H100_SERVICES=$2; shift 2 ;;
 		--h100-docker-socket) need_arg "$@"; H100_DOCKER_SOCKET=$2; shift 2 ;;
 		--keep-temp) KEEP_TEMP=true; shift ;;
@@ -366,6 +369,7 @@ ensure_h100_readiness() {
 		--refresh-token \
 		--remote-token-file "$REMOTE_TOKEN_FILE" \
 		--compose-file "$H100_COMPOSE_FILE" \
+		--compose-profile "$H100_COMPOSE_PROFILE" \
 		--services "$H100_SERVICES" \
 		--docker-socket "$H100_DOCKER_SOCKET" 2>&1)
 	h100_readiness_status=$?

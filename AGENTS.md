@@ -439,6 +439,19 @@ or `./sdd/docs` plus the owning module `AGENTS.md`. If stable architecture still
 exists only in agent guidance, record an SDD-recipient follow-up instead of
 rewriting public docs in this root file.
 
+Prefer building on existing lower-level architecture over duplicating platform
+features in product modules. Before adding any new feature or mechanism to a
+module, first check whether Bus Events, Bus Data, Auth, Bus API, worker/task
+infrastructure, or another platform layer already owns the needed primitive.
+This applies broadly: synchronization, replication, idempotency, cursoring,
+storage, credentials, task routing, audit history, metadata, validation,
+capability discovery, transport, retries, status reporting, and similar
+cross-cutting behavior should be reused from the owning layer or extended there.
+Feature modules should stay focused on their domain semantics and projections.
+For example, Bus Notes should consume and project `bus.notes.*` operations while
+Events owns append-only history, origin metadata, replay, relay, and remote
+synchronization.
+
 ## Worker Backend Policy
 
 Before choosing or changing Bus development worker backend/runtime behavior,
@@ -447,6 +460,11 @@ read `skills/bus-dev-task-worker-ops/SKILL.md` and the owning module
 worker backend because it supports live steering, approvals, progress events,
 structured closeout, and task attempt metadata. One-shot Codex execution is
 legacy compatibility, not the default for H100/dev-hg/local worker lanes.
+Development worker systems must store Bus Events task history durably, using
+PostgreSQL or an explicit repository-file-backed store. The Events `memory`
+backend is acceptable only for automated tests, self-tests, or intentionally
+disposable smokes, never for local or remote worker lanes whose conversations
+should be retained.
 
 ## Commit And Deletion Safety
 

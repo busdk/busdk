@@ -11,7 +11,8 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 SSH_TARGET=${BUS_SSH_DOCKER_PREPARE_SSH_TARGET:-${BUS_REMOTE_WORKER_BUILD_SSH_TARGET:-coding-agent@dev.hg.fi}}
 SSH_MODE=${BUS_SSH_DOCKER_PREPARE_SSH_MODE:-${BUS_REMOTE_WORKER_BUILD_SSH_MODE:-command}}
 REMOTE_ROOT=${BUS_SSH_DOCKER_PREPARE_REMOTE_ROOT:-${BUS_REMOTE_WORKER_BUILD_REMOTE_ROOT:-/home/coding-agent/coding-agent/git/busdk/busdk}}
-COMPOSE_FILE=${BUS_SSH_DOCKER_PREPARE_COMPOSE_FILE:-compose.dev-task-docker.yaml}
+COMPOSE_FILE=${BUS_SSH_DOCKER_PREPARE_COMPOSE_FILE:-compose.yaml}
+COMPOSE_PROFILE=${BUS_SSH_DOCKER_PREPARE_COMPOSE_PROFILE:-dev-task}
 IMAGE=${BUS_SSH_DOCKER_PREPARE_IMAGE:-${BUS_REMOTE_WORKER_BUILD_IMAGE:-bus-integration-dev-task:local-image-smoke}}
 SERVICES=${BUS_SSH_DOCKER_PREPARE_SERVICES:-bus-events}
 SERVICE_SUBMODULES=${BUS_SSH_DOCKER_PREPARE_SERVICE_SUBMODULES:-"bus-api-provider-auth bus-api-provider-events bus-events bus-help"}
@@ -48,6 +49,7 @@ case "$START_SERVICES" in
 	true|1|yes|on)
 		remote_root_q=$(shell_quote "$REMOTE_ROOT")
 		compose_file_q=$(shell_quote "$COMPOSE_FILE")
+		compose_profile_q=$(shell_quote "$COMPOSE_PROFILE")
 		image_q=$(shell_quote "$IMAGE")
 		refuse_root_q=$(shell_quote "$REFUSE_ROOT")
 		service_submodules_q=
@@ -70,8 +72,8 @@ case $refuse_root_q in
 esac
 cd $remote_root_q
 git submodule update --init --recursive$service_submodules_q
-docker compose -f $compose_file_q up -d$services_q
-docker compose -f $compose_file_q ps$services_q
+docker compose -f $compose_file_q --profile $compose_profile_q up -d$services_q
+docker compose -f $compose_file_q --profile $compose_profile_q ps$services_q
 docker image inspect $image_q --format '{{.Id}}'
 "
 		case "$SSH_MODE" in
