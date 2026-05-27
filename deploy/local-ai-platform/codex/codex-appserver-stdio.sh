@@ -8,7 +8,7 @@ if [ -n "${CODEX_HOME:-}" ]; then
   standalone_bin="$standalone_dir/codex"
   if [ ! -x "$standalone_bin" ]; then
     mkdir -p "$standalone_dir"
-    for candidate in /usr/local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-*/vendor/*/bin/codex; do
+    for candidate in /usr/local/bin/codex /usr/local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-*/vendor/*/bin/codex; do
       if [ -x "$candidate" ]; then
         ln -sf "$candidate" "$standalone_bin"
         break

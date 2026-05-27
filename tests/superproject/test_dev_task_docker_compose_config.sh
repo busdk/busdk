@@ -28,8 +28,16 @@ if grep -Fq 'golang:1.24' compose.yaml; then
 fi
 grep -Fq 'image: golang:1.26.3' "$tmp_dir/compose.config"
 grep -Fq 'GO_VERSION: 1.26.3' "$tmp_dir/compose.config"
+grep -Fq 'CODEX_VERSION: 0.134.0' "$tmp_dir/compose.config"
+grep -Fq 'CODEX_NPM_VERSION: ""' "$tmp_dir/compose.config"
+grep -Fq 'CODEX_LINUX_AMD64_SHA256: e54b983c3ab5ca992da8edde83bb29a545761a72c4fa39f18a165d9e792e1c71' "$tmp_dir/compose.config"
+grep -Fq 'CODEX_LINUX_ARM64_SHA256: 8e066f998111eb8b44250ac11df004daa07fadf276c5942a7183cb8e421091a3' "$tmp_dir/compose.config"
 grep -Fq 'image: golang:1.26.3' "$tmp_dir/local-ai-platform.compose.config"
 grep -Fq 'GO_VERSION: 1.26.3' "$tmp_dir/local-ai-platform.compose.config"
+grep -Fq 'CODEX_VERSION: 0.134.0' "$tmp_dir/local-ai-platform.compose.config"
+grep -Fq 'CODEX_NPM_VERSION: ""' "$tmp_dir/local-ai-platform.compose.config"
+grep -Fq 'CODEX_LINUX_AMD64_SHA256: e54b983c3ab5ca992da8edde83bb29a545761a72c4fa39f18a165d9e792e1c71' "$tmp_dir/local-ai-platform.compose.config"
+grep -Fq 'CODEX_LINUX_ARM64_SHA256: 8e066f998111eb8b44250ac11df004daa07fadf276c5942a7183cb8e421091a3' "$tmp_dir/local-ai-platform.compose.config"
 
 for service in codex-image bus-integration-dev-task bus-dev-supervisor testing-agent; do
   grep -q "^[[:space:]]*$service:" "$tmp_dir/compose.config"
@@ -56,6 +64,10 @@ awk '
 ' "$tmp_dir/compose.config"
 
 grep -q 'scripts/busdk-refresh-tools.sh' deploy/local-ai-platform/codex/Dockerfile
+grep -Fq 'ARG CODEX_VERSION=0.134.0' deploy/local-ai-platform/codex/Dockerfile
+grep -Fq 'ARG CODEX_LINUX_AMD64_SHA256=e54b983c3ab5ca992da8edde83bb29a545761a72c4fa39f18a165d9e792e1c71' deploy/local-ai-platform/codex/Dockerfile
+grep -Fq 'ARG CODEX_LINUX_ARM64_SHA256=8e066f998111eb8b44250ac11df004daa07fadf276c5942a7183cb8e421091a3' deploy/local-ai-platform/codex/Dockerfile
+grep -Fq 'codex-${codex_arch}-unknown-linux-musl.tar.gz' deploy/local-ai-platform/codex/Dockerfile
 grep -Fq 'ARG GOPLS_VERSION=v0.20.0' deploy/local-ai-platform/codex/Dockerfile
 grep -Fq 'go install "golang.org/x/tools/gopls@${GOPLS_VERSION}"' deploy/local-ai-platform/codex/Dockerfile
 grep -Fq 'gopls mcp -instructions' deploy/local-ai-platform/codex/Dockerfile
