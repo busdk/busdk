@@ -361,9 +361,10 @@ the `skills/` directory.
    changes should be committed, regenerated, ignored, or cleaned.
 8. `skills/bus-development-retrospective/SKILL.md`: evidence-based
    development retrospectives for releases, incidents, agent-worker sessions,
-   and difficult implementation periods. Use it when source changes, worker
-   performance, human orchestration, and durable guidance/test/doc updates all
-   need review.
+   difficult implementation periods, and public docs reports under
+   `docs/docs/reports/` when the retrospective should be shareable. Use it when
+   source changes, worker performance, human orchestration, and durable
+   guidance/test/doc updates all need review.
 
 ## Repository Identity
 
