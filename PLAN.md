@@ -53,7 +53,7 @@ credentials must fail before expensive worker/model startup with diagnostics
 that name the selected remote id/kind and safe source label, never token
 values.
 
-- [ ] Coordinate the credential-source contract across controller, relay, and
+- [x] Coordinate the credential-source contract across controller, relay, and
   worker-runtime modules.
   - Goal: a supervisor can keep a stale process-global `BUS_API_TOKEN` in the
     shell and still run status/start/sync/worker flows against remotes whose
@@ -83,6 +83,20 @@ values.
     task payloads, or diagnostics. Live proof must run two configured remotes
     with different token files while `BUS_API_TOKEN` is intentionally stale and
     record status/start/sync/worker evidence.
+  - Completed: controller, relay/sync, worker-runtime, remote metadata, and
+    managed SSH-runner credential paths now prefer explicit token-file or
+    configured credential sources before inherited env tokens, with safe source
+    diagnostics and locally detectable JWT-expiry failures. The final proof is
+    `TestRunWorkCredentialSourcesTwoRemoteStatusStartSyncProof`, which runs
+    `dev-hg` and `local-docker` configured remotes with different token files,
+    an intentionally expired `BUS_API_TOKEN`, controller start/status calls,
+    bounded sync routing, and no token/token-file leakage into task Events.
+  - Verification evidence: Docker and dev-hg both passed full `go test ./...`
+    for `bus-dev`, `bus-events`, and `bus-integration-dev-task`; Docker and
+    dev-hg also passed `go -C bus-remote test ./...` and
+    `go -C bus-integration-ssh-runner test ./...`. Focused Docker/dev-hg proof
+    command: `go test ./run -run
+    TestRunWorkCredentialSourcesTwoRemoteStatusStartSyncProof -count=1 -v`.
 
 ## Prompt Cache Follow-Ups
 
