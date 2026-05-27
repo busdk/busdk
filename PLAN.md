@@ -110,6 +110,9 @@ cached-token accounting.
     - `bus-integration-ollama` / dev-task policy: expose explicit non-secret
       Ollama keep-alive/cache tuning configuration for local-model workers
       without inventing unsupported cached-token metrics.
+    - `bus-reports`: reorder repeated AI-annotated account prompts so the
+      JSON contract and rules are stable prefix material and per-account dates,
+      amounts, workspace paths, and command hints are final dynamic context.
   - Acceptance: each module owns an executable PLAN item with tests/docs
     expectations, and root closeout verifies the module items are implemented,
     checked, pinned, and do not regress existing prompt contracts or worker
