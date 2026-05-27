@@ -94,7 +94,7 @@ dynamic context. Local-model infrastructure should keep Ollama runners warm and
 surface non-secret cache-related configuration without claiming unsupported
 cached-token accounting.
 
-- [ ] Coordinate prompt-cache-friendly LLM/tooling fixes across module plans.
+- [x] Coordinate prompt-cache-friendly LLM/tooling fixes across module plans.
   - Goal: repeated LLM-backed quality, worker, and local-model runs should keep
     stable instructions, contracts, schemas, and policy at the beginning of
     prompts, with changing file content, PLAN.md, task metadata, worktree paths,
@@ -117,6 +117,16 @@ cached-token accounting.
     expectations, and root closeout verifies the module items are implemented,
     checked, pinned, and do not regress existing prompt contracts or worker
     runtime behavior.
+  - Implementation: root guidance now documents stable-prefix/final-dynamic
+    prompt construction, `bus-lint` flags early dynamic prompt data in LLM tool
+    code, and the module slices in `bus-lint`, `bus-dev`,
+    `bus-integration-dev-task`, `bus-integration-ollama`,
+    `bus-integration-inference`, and `bus-reports` have implementation and
+    verification evidence in their owning plans.
+  - Evidence: module-focused tests passed for the changed prompt builders,
+    worker prompt/env projection, Ollama runtime metadata, provider-neutral
+    runtime result plumbing, and AI account prompt ordering; the final closeout
+    search verified no open prompt-cache-related PLAN items remain.
 
 ## Deterministic Task Evidence Goal
 
