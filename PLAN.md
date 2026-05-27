@@ -5,6 +5,29 @@ treat `Current Refined Finish Line` as the active priority lane; complete its
 minimum checklist in order, using nested unchecked items under the labeled
 product lane for scoped worker actions before opening older context.
 
+## Prompt Cache Follow-Ups
+
+- [ ] Coordinate prompt-cache-friendly LLM/tooling fixes across module plans.
+  - Goal: repeated LLM-backed quality, worker, and local-model runs should keep
+    stable instructions, contracts, schemas, and policy at the beginning of
+    prompts, with changing file content, PLAN.md, task metadata, worktree paths,
+    and tool results appended as final dynamic context.
+  - Module slices:
+    - `bus-lint`: make lint prompts path-neutral until the final dynamic
+      document block while keeping line/location contracts.
+    - `bus-dev`: move injected `PLAN.md`, current `AGENTS.md`, and Cursor-rule
+      bodies behind stable embedded prompt instructions.
+    - `bus-integration-dev-task`: reorder worker prompts so stable runtime,
+      closeout, and task-completion contracts precede task-specific metadata
+      and body.
+    - `bus-integration-ollama` / dev-task policy: expose explicit non-secret
+      Ollama keep-alive/cache tuning configuration for local-model workers
+      without inventing unsupported cached-token metrics.
+  - Acceptance: each module owns an executable PLAN item with tests/docs
+    expectations, and root closeout verifies the module items are implemented,
+    checked, pinned, and do not regress existing prompt contracts or worker
+    runtime behavior.
+
 ## Current Refined Finish Line
 
 The current goal is the smallest real, repeatable H100 offload loop. A

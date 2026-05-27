@@ -452,6 +452,37 @@ For example, Bus Notes should consume and project `bus.notes.*` operations while
 Events owns append-only history, origin metadata, replay, relay, and remote
 synchronization.
 
+## LLM Tool Prompt Construction
+
+When building or changing any BusDK tool that sends prompts to an LLM, keep the
+largest stable prefix first and put changing request data last. Stable prefix
+material includes role/task instructions, repository policy, output schema,
+rubrics, safety rules, examples, and deterministic completion contracts.
+Dynamic material includes timestamps, random or attempt IDs, task refs, file
+paths, line-numbered source, diffs, `PLAN.md` contents, current `AGENTS.md`
+contents, worktree paths, dependency checkout paths, command output, tool
+results, model/runtime observations, and other per-run metadata.
+
+For prompt-template code, prefer this shape:
+
+1. Stable tool identity and task.
+2. Stable policy, rubric, and output schema.
+3. Stable examples that use placeholders instead of real per-run values.
+4. A clearly labeled final dynamic context section containing all changing
+   input.
+5. The immediate instruction that applies the stable rules to that final
+   dynamic context.
+
+Do not prepend dynamic context merely because the model should read it first.
+Instead, keep it near the end and explicitly instruct the model, in the stable
+prefix, to consult the final dynamic context before acting. Avoid placing
+timestamps, task IDs, file-specific paths, command output, or generated tool
+results before reusable instructions because that can defeat prompt prefix/KV
+cache reuse for local model runners and other providers. Do not claim
+OpenAI/Anthropic-style cached-token metrics for providers such as Ollama unless
+the provider actually exposes them; use provider-supported keep-alive and cache
+configuration instead.
+
 ## Worker Backend Policy
 
 Before choosing or changing Bus development worker backend/runtime behavior,
