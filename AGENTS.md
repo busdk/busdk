@@ -359,6 +359,11 @@ the `skills/` directory.
    prevention. Use it before touching generated browser, WASM, static, build
    output, or other artifact files, and before deciding whether generated
    changes should be committed, regenerated, ignored, or cleaned.
+8. `skills/bus-development-retrospective/SKILL.md`: evidence-based
+   development retrospectives for releases, incidents, agent-worker sessions,
+   and difficult implementation periods. Use it when source changes, worker
+   performance, human orchestration, and durable guidance/test/doc updates all
+   need review.
 
 ## Repository Identity
 
