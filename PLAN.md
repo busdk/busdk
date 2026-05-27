@@ -86,7 +86,8 @@ values.
   - Completed: controller, relay/sync, worker-runtime, remote metadata, and
     managed SSH-runner credential paths now prefer explicit token-file or
     configured credential sources before inherited env tokens, with safe source
-    diagnostics and locally detectable JWT-expiry failures. The final proof is
+    diagnostics, locally detectable JWT-expiry failures, and worker/supervisor
+    startup failure when no Events token is resolved. The final proof is
     `TestRunWorkCredentialSourcesTwoRemoteStatusStartSyncProof`, which runs
     `dev-hg` and `local-docker` configured remotes with different token files,
     an intentionally expired `BUS_API_TOKEN`, controller start/status calls,
