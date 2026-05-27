@@ -16,4 +16,4 @@ fi
 sleep 3
 ./scripts/create-submodule-feature-issue.sh "$NAME"
 sleep 3
-./scripts/init-submodule.sh "$NAME"
+./scripts/init-submodule-golang.sh "$NAME"

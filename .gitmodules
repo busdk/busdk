@@ -474,3 +474,7 @@
 	path = bus-remote
 	url = git@github.com:busdk/bus-remote.git
 	branch = 1-bus-remote
+[submodule "skills"]
+	path = skills
+	url = git@github.com:busdk/skills.git
+	branch = 1-skills

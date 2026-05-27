@@ -227,6 +227,33 @@ this root file must preserve the supervisor/worker boundary itself.
     can be improved while testing instead of blocking the first accepted loop.
     Keep the checklist focused on work that directly makes remote workers
     productive and repeatable.
+18. Use precise acceptance vocabulary. A worker that is `created`, `claimed`,
+    `running`, `done`, or even promoted inside an isolated/remote checkout is
+    not accepted project progress until supervisor-side review verifies the
+    diff, required checks pass, the owning branch is promoted or repaired, and
+    the superproject pin is updated when applicable. Reports and memos must
+    distinguish: task created, worker claimed, worker produced a diff, worker
+    branch promoted, supervisor accepted, root pinned, pushed, and released.
+19. When a worker result is partly useful but fails review, prefer the normal
+    iterative production loop: reopen with exact findings, hand the repair to a
+    stronger model or reviewer lane when useful, or make the smallest
+    supervisor acceptance repair only when delegation is blocked. Do not
+    describe a first-attempt failure as H100/model failure when the overall
+    attempt-review-repair-promote loop is still producing accepted work.
+20. Treat pause/release mode as a hard drain-and-collect workflow. When the
+    operator pauses new development or asks for a release, stop scheduling new
+    work; inspect local, dev-hg, H100, and other configured environments for
+    queued/claimed/running tasks; cancel stale queued or false-active streams
+    with evidence; collect useful remote patches/logs before stopping
+    services; verify no environment has commits ahead of its upstream that need
+    retrieval; verify the root checkout is clean; then run the requested
+    release command.
+21. Treat worktree cleanup as review-first. Prefer first-class Bus prune
+    commands and dry-run reports over manual deletion. Do not run destructive
+    cleanup while task refs are active or while Git locks may still represent
+    live work; use `--apply`-style cleanup only after reviewing the dry-run
+    candidates, active-task refusal evidence, and submodule worktree registry
+    behavior.
 
 ## Parallel Supervisor Operating Standard
 
@@ -258,6 +285,11 @@ and then fall back to one-worker-at-a-time execution.
    only useful capacity when they emit meaningful task-stream progress, produce
    reviewable diffs, or create actionable failure evidence. False-active lanes
    must be routed quickly while other lanes keep moving.
+   A queued task, SSH-runner request, container-status event, or stale remote
+   process alone is not an active lane. Count it separately as queued,
+   request-only, launched-only, stale, or false-active until task Events show
+   claim, App Server/model progress, terminal evidence, a commit, or an exact
+   failure.
 7. When H100 is paused for cost, immediately compensate with local and dev-hg
    worker lanes for work that does not require the GPU. When H100 is approved
    for use, keep it fed with real scoped work and scheduler/backlog tasks
@@ -273,10 +305,28 @@ and then fall back to one-worker-at-a-time execution.
     include completed task count, active task count, queued/refill candidates,
     environments in use, and blockers with owner tasks. If the numbers are weak,
     say so plainly and change the operating plan before the next report.
+11. Compare each hour to the best recent proven throughput, not to a low-effort
+    baseline. Memo evidence showed this project can sustain many parallel
+    workers when scopes are independent and review is asynchronous; later
+    one-lane operation must be justified by concrete constraints such as paused
+    H100 cost, dirty checkout, blocked worker substrate, or lack of scoped work.
+12. Keep remote proof and product work separate in reports. Testing on H100,
+    dev-hg, or another environment is verification of the same product flow
+    unless the environment truly needs different implementation. Avoid vague
+    "prove H100" checklist items; name the product feature being verified, such
+    as scheduler claiming, service readiness, credential resolution, relay
+    sync, App Server model switching, or terminal evidence collection.
 
 ## Repo-Local Skills Index
 
 Read the relevant skill before doing detailed operational work:
+
+Keep this index current. Whenever adding a new repo-local skill, deleting a
+skill, renaming a skill, moving a skill file, or materially changing a skill's
+purpose, trigger conditions, or operating scope, update this root index in the
+same change set with the skill path, basic purpose, and when agents should read
+it. Do not leave skill discovery dependent on memory, chat history, or scanning
+the `skills/` directory.
 
 1. `skills/bus-product-delivery-supervisor/SKILL.md`: broad multi-module
    supervision, worker dispatch, monitoring, review, process improvement,
