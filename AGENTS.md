@@ -363,8 +363,9 @@ the `skills/` directory.
    development retrospectives for releases, incidents, agent-worker sessions,
    difficult implementation periods, and public docs reports under
    `docs/docs/reports/` when the retrospective should be shareable. Use it when
-   source changes, worker performance, human orchestration, and durable
-   guidance/test/doc updates all need review.
+   source changes, worker performance, `bus dev task` conversations/events,
+   human orchestration, stale next-step claims, and durable guidance/test/doc
+   updates all need review.
 
 ## Repository Identity
 
@@ -373,10 +374,9 @@ the `skills/` directory.
 3. Keep BusDK modules as Git submodules at repository root (`bus`, `bus-*`).
 4. Treat checked-in submodule commit SHAs as authoritative pins. Do not add
    lockfiles.
-5. Keep orchestration in exactly one root `Makefile` using POSIX shell, `git`,
-   and POSIX `make`.
-6. Do not add alternative build systems, package-manager integrations, network
-   features, or CLI binaries in this superproject.
+5. Before editing the root `Makefile` or adding root orchestration, read the
+   `Root Makefile Contract` below.
+6. Do not add root CLI binaries or network features to this superproject.
 7. The `.bus/` directory is a tracked project directory. Never add `.bus` or
    `.bus/` ignore rules. Runtime lock artifacts such as `.bus-dev.lock` may be
    ignored.
@@ -385,12 +385,13 @@ the `skills/` directory.
 
 ## Root Makefile Contract
 
-When editing the root `Makefile`, preserve superproject-only orchestration:
-deterministic discovery of `bus` and `bus-*` module Makefiles, delegation via
-`make -C`, POSIX shell/make, required lifecycle targets, module-local `./bin`
-outputs, `PREFIX`/`BINDIR`/`DESTDIR`, Go variable pass-through, and
-changed-module-scoped root test/e2e defaults. Do not add lockfiles or reimplement
-module internals.
+When editing the root `Makefile` or adding root orchestration, preserve
+superproject-only orchestration: exactly one root `Makefile`, POSIX shell,
+`git`, POSIX `make`, deterministic discovery of `bus` and `bus-*` module
+Makefiles, delegation via `make -C`, required lifecycle targets, module-local
+`./bin` outputs, `PREFIX`/`BINDIR`/`DESTDIR`, Go variable pass-through, and
+changed-module-scoped root test/e2e defaults. Do not add lockfiles, alternative
+build systems, package-manager integrations, or reimplemented module internals.
 
 ## Repository Visibility And Secrets
 
@@ -458,10 +459,11 @@ separate from implementation/docs/test changes.
 ## Shell And Tool Hygiene
 
 For shell scripts, Docker inspection, readiness probes, search/format commands,
-or other repeatable debugging practice, read the owning module `AGENTS.md` and
-the most relevant repo-local skill first. Keep commands simple, portable,
-path-correct, bounded, and redacted; use the skills index above to choose the
-deeper runbook.
+or other repeatable debugging practice, read the owning module `AGENTS.md`
+first, then the relevant runbook: `skills/bus-dev-task-worker-ops/SKILL.md`
+for worker/remote/container readiness, `skills/bus-docs-quality/SKILL.md` for
+docs commands, and `skills/bus-go-quality-review/SKILL.md` for Go test/lint
+commands. Keep commands simple, portable, path-correct, bounded, and redacted.
 
 Use `./tmp/worktrees` for disposable supervisor, worker, review, and remote
 checkout worktrees. `tmp/` is already ignored, so do not introduce separate
