@@ -5,7 +5,94 @@ treat `Current Refined Finish Line` as the active priority lane; complete its
 minimum checklist in order, using nested unchecked items under the labeled
 product lane for scoped worker actions before opening older context.
 
+## High-Priority Service-Owned Events Relay Goal
+
+Priority: high. Treat service-owned Events relay as a gating prerequisite for
+the trustworthy remote worker lane and for routine H100/dev-hg task routing,
+not as medium-priority transport polish.
+
+Goal definition: normal local-to-remote development work must not require a
+supervisor to run manual `bus events export`/`import`, SSH sync loops, or
+`bus-dev --sync-now` as the daily path. Each configured worker environment
+should run a bounded Events relay service that forwards target-marked local
+task and Notes operation events to the remote Events API, imports remote-origin
+claim/progress/terminal/lifecycle evidence back, persists checkpoints, and
+reports enough status for `bus-dev` and supervisors to know whether routing is
+healthy.
+
+Minimum completion checklist:
+
+- [ ] Add the owning `bus-events` implementation follow-up for a deployed relay
+  service path over the existing local/testable `bus events relay` command.
+- [ ] Define route configuration from `bus-remote`/environment metadata:
+  local/destination Events URLs, stable environment IDs, token-file or
+  credential-source references, event filters, and durable state-file paths.
+- [ ] Install/run the relay through the normal service surface for local,
+  dev-hg, and H100-style environments, with manual one-shot sync kept only as
+  recovery/debug tooling.
+- [ ] Expose script-friendly relay status: current cursors, last successful
+  iteration, forwarded/imported/skipped/pending counters, pending truncation,
+  route IDs, credential-source labels, and last error without token values.
+- [ ] Teach `bus-dev` remote status/start paths to prefer relay-service health
+  and checkpoints over supervisor-triggered `--sync-now` for normal work.
+- [ ] Prove restart/resume and no replay storm: stopping and restarting the
+  relay resumes from persisted cursors and does not replay old unrelated task
+  history or loop imported remote-origin events back to their origin.
+- [ ] Prove one live dev-hg or H100 route end to end: local task creation,
+  service relay to remote, remote claim/progress/terminal evidence, relay back
+  to local, and local `bus dev work status`/`stats` showing the result without a
+  manual import/export loop.
+
+## Remote Credential Source Selection Goal
+
+Goal definition: remote worker operations must select controller, remote
+Events, and worker-runtime credentials from explicit remote configuration or
+token files as the normal path. `BUS_API_TOKEN` remains only a compatibility
+fallback after configured sources. Expired, unreadable, unsupported, or missing
+credentials must fail before expensive worker/model startup with diagnostics
+that name the selected remote id/kind and safe source label, never token
+values.
+
+- [ ] Coordinate the credential-source contract across controller, relay, and
+  worker-runtime modules.
+  - Goal: a supervisor can keep a stale process-global `BUS_API_TOKEN` in the
+    shell and still run status/start/sync/worker flows against remotes whose
+    explicit token-file or configured credential source is valid.
+  - Module slices:
+    - `bus-remote`: define the non-secret remote credential-source schema and
+      resolved source labels consumed by callers, including which references
+      are controller-local versus remote-side only.
+    - `bus-dev`: enforce controller precedence for `work/task`
+      status/monitor/stats/start/reopen/drain and sync construction:
+      explicit token-file, selected controller-local remote source,
+      local compose/config/user token files, then inherited `BUS_API_TOKEN`.
+    - `bus-events`: keep sync/relay local and destination credentials separate,
+      pass token-file/source labels rather than token values, persist/report
+      relay auth errors, and expose safe credential-source labels in status.
+    - `bus-integration-dev-task`: ensure worker launch, App Server child
+      environments, closeout, promotion, and status helper commands use the
+      selected worker Events token source before inherited env tokens.
+    - `bus-integration-ssh-runner`: keep managed SSH runner services on
+      token-file credentials and treat inherited `BUS_API_TOKEN` as fallback
+      only.
+  - Acceptance: hermetic coverage proves stale inherited `BUS_API_TOKEN` does
+    not override valid configured sources; explicit expired token files still
+    fail; ssh-docker remote-side token-file references are not opened by the
+    local controller; local/destination relay token files stay distinct; worker
+    runtime token projection does not leak token values into Events, logs,
+    task payloads, or diagnostics. Live proof must run two configured remotes
+    with different token files while `BUS_API_TOKEN` is intentionally stale and
+    record status/start/sync/worker evidence.
+
 ## Prompt Cache Follow-Ups
+
+Goal definition: Bus LLM-facing tools should be structured so repeated runs can
+reuse the largest possible stable prompt prefix. Stable policy, role, rubric,
+schema, and examples must come first; per-run files, paths, task metadata,
+tool results, timestamps, and runtime observations must be appended as final
+dynamic context. Local-model infrastructure should keep Ollama runners warm and
+surface non-secret cache-related configuration without claiming unsupported
+cached-token accounting.
 
 - [ ] Coordinate prompt-cache-friendly LLM/tooling fixes across module plans.
   - Goal: repeated LLM-backed quality, worker, and local-model runs should keep
@@ -28,6 +115,84 @@ product lane for scoped worker actions before opening older context.
     checked, pinned, and do not regress existing prompt contracts or worker
     runtime behavior.
 
+## Deterministic Task Evidence Goal
+
+Goal definition: every development-task worker attempt must produce a
+machine-readable evidence bundle that is complete enough for a supervisor to
+review, retry, promote, and compare work without inspecting remote shells,
+container logs, or prose-only closeout. The required bundle is terminal status,
+remote id/kind, requested and observed model/reasoning/profile, attempt id and
+sequence, worker id, durable worker log pointer, task branch/worktree identity,
+commit or explicit no-change state, validation commands with pass/fail/skip
+state, structured closeout state, Bus Notes ids or query metadata, and
+non-secret timing/failure classification.
+
+- [ ] Coordinate deterministic task evidence across `bus-dev` and
+  `bus-integration-dev-task`.
+  - Goal: task replay, status, stats, closeout, and promotion should all use the
+    same attempt evidence contract instead of reconstructing partial truth from
+    worker prose, raw Events, local logs, or environment-specific conventions.
+  - Module slices:
+    - `bus-integration-dev-task`: emit the complete attempt evidence envelope on
+      claim, running/heartbeat, terminal success, terminal failure, blocked,
+      no-change, App Server startup failure, timeout/no-output, and exact-ref
+      refusal paths.
+    - `bus-dev`: preserve requested versus observed model/profile/reasoning
+      metadata across creation, reopen, live guidance, replay, status, monitor,
+      stats, and review surfaces; expose missing required evidence as explicit
+      incomplete evidence rather than silently treating the task as done.
+  - Required fields: terminal status/classification, remote id/kind,
+    requested/observed model and reasoning metadata, attempt id/sequence,
+    worker id, durable worker log pointer or task attachment id, branch,
+    worktree id, commit hash or structured no-change reason, validation command
+    records, structured closeout state, Bus Notes ids/query, start/end
+    timestamps, and redacted failure/block reason when applicable.
+  - Acceptance: fixture tests cover successful commit, verification-only
+    no-change, failed worker, blocked closeout, App Server startup failure,
+    timeout/no-output, stale/unintended task refusal, and remote launch failure
+    before worker claim. `bus dev task show --format json`, `task monitor`,
+    `work status`, and `work stats --all` expose the evidence consistently, and
+    review/promotion paths refuse or flag terminal work that lacks required
+    evidence fields.
+
+## Durable Task And Notes Evidence Goal
+
+Goal definition: normal local, dev-hg, H100, and future remote development
+services must preserve task and Notes evidence across restarts and remote sync.
+Visible `bus.dev.task.*` Events must be exported before any memory-backed
+service restart can discard them; normal development services must run Events
+with PostgreSQL or an explicit repository-file-backed store rather than process
+memory; and worker Notes must be written through `bus.notes.*` Events, synced by
+the Events relay, projected into durable Notes storage, and queryable by module,
+task, session, tag, source, and origin environment/system.
+
+- [ ] Coordinate durable task and Notes evidence across module plans.
+  - Goal: remove memory-backed or direct-only evidence paths from the normal
+    worker lane while keeping explicit test/disposable smokes possible.
+  - Module slices:
+    - `bus-events`: add the durable Events backend/service contract plus a
+      memory-backed restart export guard for visible task and Notes operation
+      Events.
+    - `bus-api`: require normal development service startup to inject or
+      configure a durable EventBus backend instead of silently constructing an
+      in-memory bus.
+    - `bus-operator-deploy`: make user-systemd install/update/restart paths
+      detect memory-backed Events services and export/refuse before restart.
+    - `bus-api-provider-notes`: route Notes API mutations through `bus.notes.*`
+      operation Events with idempotency and source/origin metadata instead of
+      direct-only projection writes.
+    - `bus-integration-notes`: run the concrete Notes projection worker over
+      Events sync/relay and materialize durable projections, including origin
+      environment/system fields.
+    - `bus-notes`: expose CLI/API query filters for module, task, session, tag,
+      source kind/ref, and origin so worker notes remain discoverable after
+      remote sync.
+  - Acceptance: a local-to-remote fixture or live dev-hg/H100 smoke creates a
+    task and worker note, syncs out and back, restarts the relevant Events and
+    Notes services, and then proves task Events and Notes can still be queried
+    locally by module, task, session, tag, source, and origin without token or
+    private body leakage in Events payloads.
+
 ## Current Refined Finish Line
 
 The current goal is the smallest real, repeatable H100 offload loop. A
@@ -39,6 +204,52 @@ supervisor review, verify, promote, and pin the result. The loop must be
 repeatable after a fresh or non-persistent H100 start without hand-shepherding
 every step. Productizing all transport/API boundaries perfectly is follow-up
 unless it blocks this loop.
+
+Goal definition: a trustworthy remote worker lane is a configured local,
+dev-hg, H100, or UpCloud-style environment where normal Bus services, not a
+supervisor's ad hoc shell, launch Codex App Server workers for queued
+`bus.dev.task.*` work, bind each launch to the intended task ref, use explicit
+token-file or credential-source boundaries, preserve durable Events/Notes
+evidence, and return enough task, artifact, model, commit, and status evidence
+for local review without environment-specific correction. Manual SSH, `scp`,
+process-global token export, one-shot `codex exec` fallback, stale replay claim
+cleanup, Git metadata repair, and remote-specific start recipes are break-glass
+only; any use must be recorded as a defect or follow-up.
+
+Systemd user deployment goal: the normal readiness path for a local or remote
+worker environment is one named `systemd --user` service profile that can start
+the required Bus infrastructure as one or a few services. The default target
+shape is `bus-events`, one combined `bus-integration` runtime for selected
+integration/provider handlers, and optionally one `bus-api` runtime for selected
+API providers. Unit files must reference explicit config files and token-file or
+credential-source paths, never raw secret values or a process-global
+`BUS_API_TOKEN` as the normal credential path. Separate-process and
+container-backed handlers remain administrator choices, but dev-hg/H100
+readiness must not depend on manually launching each handler.
+
+Execution plan by owner:
+
+- `bus-integration-dev-task`: finish the service-owned App Server scheduler,
+  exact work-ref launch binding, stale-claim replay safety, App Server-only
+  worker lane, model/profile retry semantics, and structured closeout/status
+  evidence.
+- `bus-dev`: submit work and display scheduler-owned state without becoming the
+  scheduler; status/monitor must distinguish queued, launch-pending,
+  request-only, launched-only, meaningful running, stale, false-active,
+  terminal, and drain-blocked work.
+- `bus-events`: provide bounded relay/sync with durable cursor state and normal
+  durable storage for development worker Events; memory-backed services are
+  test/disposable only and must export visible task evidence before restart.
+- `bus-operator-deploy` plus root scripts: make remote readiness and source
+  freshness repeatable by installing/updating user services, refreshing root
+  and submodule pins, building required binaries/images, and reporting exact
+  non-secret service, token-file, model, and checkout evidence.
+- `bus-remote`: keep remote metadata non-secret but complete enough to select
+  worker environment, tool paths, credential-source references, capacity, model
+  defaults, and service status endpoints.
+- `bus-notes` / `bus-integration-notes` / `bus-api-provider-notes`: ensure
+  worker Notes flow through `bus.notes.*` Events and remain queryable after
+  remote sync by module, task, session, tag, and origin.
 
 Minimum completion checklist:
 
@@ -63,12 +274,23 @@ Minimum completion checklist:
   launch/sync defect with evidence, not another manual retry.
 - [ ] Make local-to-H100 task delivery reliable enough that the worker does not
   start before the task event is available in the H100 Events API.
-- [ ] Make H100 service readiness repeatable for fresh/non-persistent hosts:
-  verify/start `bus-events`, Docker/container integrations, model runtime, and
-  required token file.
+- [ ] Make H100/dev-hg service readiness repeatable for fresh/non-persistent
+  hosts through a user-systemd service profile: render/install/update/status the
+  required `bus-events`, combined `bus-integration`, optional `bus-api`,
+  rootless Docker dependency, model runtime, and token/config file checks
+  without manually launching each handler.
 - [ ] Keep H100 source freshness automated enough for this goal:
   fast-forward root, hydrate required submodules at pins, build/install needed
   Bus binaries, and record root/submodule SHAs.
+  - Owning product goal: `bus-operator-deploy` should provide the remote
+    freshness command that updates root/submodules, builds or installs changed
+    tools, rebuilds or reloads worker images only when needed, restarts affected
+    worker services only when inputs changed, and records source/tool/image
+    identity evidence before worker dispatch.
+  - Near-term bootstrap compatibility: `scripts/remote-checkout-update.sh` may
+    remain the explicit Git freshness helper until the Bus command composes it,
+    but H100/dev-hg proof should record the same identity facts the final
+    command will report.
 - [ ] Launch one real product implementation task on H100, not a
   smoke/read-only/test-file task; the current target is the
   `bus-integration-ssh-runner` health/status slice named in the
@@ -81,6 +303,10 @@ Minimum completion checklist:
   hash, and worker logs back to the local supervisor.
 - [ ] Retrieve the H100 branch locally or through a clean supervisor review
   lane.
+- [ ] Confirm first-class task artifact transfer is the normal remote review
+  path: the worker attaches patch/log/evidence files through `bus dev task`, the
+  local supervisor extracts them with `bus dev task extract`, and review or
+  `git am --3way` happens without `scp` or ad hoc shared paths.
 - [ ] Run focused verification for the H100-produced branch: module
   tests/checks, `git diff --check`, and relevant `bus lint`.
 - [ ] Promote/pin the accepted H100-produced work into the owning submodule and
