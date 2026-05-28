@@ -110,8 +110,8 @@ a stable approved command prefix.
   --tunnel[=BOOL]                use local SSH tunnel to Events
   --remote-events-host HOST      tunnel target host on remote side
   --remote-events-port PORT      tunnel target port on remote side
-  --start-timeout DURATION       bus-dev work start timeout
-  --wait-timeout DURATION        bus-dev work wait timeout
+  --start-timeout DURATION       bus task start timeout
+  --wait-timeout DURATION        bus task wait timeout
   --runner-log FILE             local runner log path
   --evidence-dir DIR            write status/stats JSON evidence here
   --recipient NAME               task recipient
@@ -363,6 +363,14 @@ task_event_row_present() {
 	' "$file_name"
 }
 
+print_image_pull_hint() {
+	file_name=$1
+	if grep -F 'pull access denied for ' "$file_name" >/dev/null 2>&1 ||
+		grep -F 'ghcr.io/' "$file_name" >/dev/null 2>&1 && grep -F 'denied' "$file_name" >/dev/null 2>&1; then
+		printf '%s\n' "hint: the remote Docker host could not pull the worker image. Rerun with --install-image (and optionally --build-image) to transfer a local worker image first, or provide a pullable --image plus any required remote registry credentials." >&2
+	fi
+}
+
 case "$USE_TUNNEL" in
 	true|1|yes|on)
 		ssh -A -N -o BatchMode=yes -o ConnectTimeout=15 -o ExitOnForwardFailure=yes -L "127.0.0.1:${TUNNEL_PORT}:${REMOTE_EVENTS_HOST}:${REMOTE_EVENTS_PORT}" "$SSH_TARGET" &
@@ -413,36 +421,36 @@ run_start() {
 	BUS_DEV_SSH_DOCKER_WORKER_CODEX_HOME="$WORKER_CODEX_HOME" \
 	BUS_DEV_SSH_DOCKER_WORKER_DOCKER_SOCKET="$WORKER_DOCKER_SOCKET" \
 	BUS_DEV_SSH_DOCKER_WORKER_KEEP_CONTAINER="$WORKER_KEEP_CONTAINER" \
-	BUS_DEV_TASK_AGENT_BACKEND="$WORKER_AGENT_BACKEND" \
-	BUS_DEV_TASK_CONTAINER_IMAGE="$WORKER_CONTAINER_IMAGE" \
-	BUS_DEV_TASK_CONTAINER_PROFILE="$WORKER_CONTAINER_PROFILE" \
-	BUS_DEV_TASK_WORKER_PROFILE="$WORKER_PROFILE" \
-	BUS_DEV_TASK_CODEX_MODEL="$WORKER_CODEX_MODEL" \
-	BUS_DEV_TASK_CODEX_ARGS="$WORKER_CODEX_ARGS_JSON" \
-	BUS_DEV_TASK_WORKER_SANDBOX="$WORKER_SANDBOX" \
-	BUS_DEV_TASK_CODEX_SANDBOX="$WORKER_CODEX_SANDBOX" \
-	BUS_DEV_TASK_CODEX_NETWORK_ACCESS="$WORKER_CODEX_NETWORK_ACCESS" \
-	BUS_DEV_TASK_AUTH_MODE="$WORKER_AUTH_MODE" \
-	BUS_DEV_TASK_CREDENTIAL_SOURCE_KIND="$WORKER_CREDENTIAL_SOURCE_KIND" \
-	BUS_DEV_TASK_CREDENTIAL_SOURCE_REF="$WORKER_CREDENTIAL_SOURCE_REF" \
-	BUS_DEV_TASK_COMMAND_JSON="$WORKER_COMMAND_JSON" \
-	BUS_DEV_TASK_PRE_COMMAND_JSON="$WORKER_PRE_COMMAND_JSON" \
-	BUS_DEV_TASK_POST_COMMAND_JSON="$WORKER_POST_COMMAND_JSON" \
-	BUS_DEV_TASK_WORKTREE="$WORKER_WORKTREE" \
-	BUS_DEV_TASK_COMMIT="$WORKER_COMMIT" \
-	BUS_DEV_TASK_COMMIT_MESSAGE="$WORKER_COMMIT_MESSAGE" \
+	BUS_TASK_AGENT_BACKEND="$WORKER_AGENT_BACKEND" \
+	BUS_TASK_CONTAINER_IMAGE="$WORKER_CONTAINER_IMAGE" \
+	BUS_TASK_CONTAINER_PROFILE="$WORKER_CONTAINER_PROFILE" \
+	BUS_TASK_WORKER_PROFILE="$WORKER_PROFILE" \
+	BUS_TASK_CODEX_MODEL="$WORKER_CODEX_MODEL" \
+	BUS_TASK_CODEX_ARGS="$WORKER_CODEX_ARGS_JSON" \
+	BUS_TASK_WORKER_SANDBOX="$WORKER_SANDBOX" \
+	BUS_TASK_CODEX_SANDBOX="$WORKER_CODEX_SANDBOX" \
+	BUS_TASK_CODEX_NETWORK_ACCESS="$WORKER_CODEX_NETWORK_ACCESS" \
+	BUS_TASK_AUTH_MODE="$WORKER_AUTH_MODE" \
+	BUS_TASK_CREDENTIAL_SOURCE_KIND="$WORKER_CREDENTIAL_SOURCE_KIND" \
+	BUS_TASK_CREDENTIAL_SOURCE_REF="$WORKER_CREDENTIAL_SOURCE_REF" \
+	BUS_TASK_COMMAND_JSON="$WORKER_COMMAND_JSON" \
+	BUS_TASK_PRE_COMMAND_JSON="$WORKER_PRE_COMMAND_JSON" \
+	BUS_TASK_POST_COMMAND_JSON="$WORKER_POST_COMMAND_JSON" \
+	BUS_TASK_WORKTREE="$WORKER_WORKTREE" \
+	BUS_TASK_COMMIT="$WORKER_COMMIT" \
+	BUS_TASK_COMMIT_MESSAGE="$WORKER_COMMIT_MESSAGE" \
 	"$@"
 }
 
-set -- "$ROOT/bus-dev/bin/bus-dev" -C "$SMOKE_DIR" work --remote "$REMOTE_ID" start
+set -- "$ROOT/bus-task/bin/bus-task" -C "$SMOKE_DIR" --remote "$REMOTE_ID" start
 if [ -n "$WORKER_CODEX_MODEL" ]; then
-	set -- "$@" --codex-model "$WORKER_CODEX_MODEL"
+	set -- "$@" --model "$WORKER_CODEX_MODEL"
 fi
 if [ -n "$WORKER_REASONING_EFFORT" ]; then
 	set -- "$@" --reasoning-effort "$WORKER_REASONING_EFFORT"
 fi
 if [ -n "$WORKER_CODEX_ARGS_JSON" ]; then
-	set -- "$@" --codex-args-json "$WORKER_CODEX_ARGS_JSON"
+	set -- "$@" --args-json "$WORKER_CODEX_ARGS_JSON"
 fi
 if [ -n "$BRANCH" ]; then
 	set -- "$@" --branch "$BRANCH"
@@ -459,11 +467,12 @@ fi
 set -- "$@" "@${RECIPIENT}" "$PROMPT"
 start_output=$(mktemp "${TMPDIR:-/tmp}/bus-ssh-docker-smoke-start.XXXXXX")
 set +e
-run_with_timeout 'bus-dev work start' "$START_TIMEOUT" run_start "$@" >"$start_output" 2>&1
+run_with_timeout 'bus task start' "$START_TIMEOUT" run_start "$@" >"$start_output" 2>&1
 start_status=$?
 set -e
 cat "$start_output"
 if [ "$start_status" -ne 0 ]; then
+	print_image_pull_hint "$start_output"
 	rm -f "$start_output"
 	exit "$start_status"
 fi
@@ -476,18 +485,20 @@ rm -f "$start_output"
 wait_output=$(mktemp "${TMPDIR:-/tmp}/bus-ssh-docker-smoke-wait.XXXXXX")
 set +e
 if [ -n "$work_ref" ]; then
-	BUS_API_TOKEN="$TOKEN" "$ROOT/bus-dev/bin/bus-dev" -C "$SMOKE_DIR" work --remote "$REMOTE_ID" wait "$work_ref" --timeout "$WAIT_TIMEOUT" >"$wait_output" 2>&1
+	BUS_API_TOKEN="$TOKEN" "$ROOT/bus-task/bin/bus-task" -C "$SMOKE_DIR" --remote "$REMOTE_ID" wait "$work_ref" --timeout "$WAIT_TIMEOUT" >"$wait_output" 2>&1
 else
-	BUS_API_TOKEN="$TOKEN" "$ROOT/bus-dev/bin/bus-dev" -C "$SMOKE_DIR" work --remote "$REMOTE_ID" wait --timeout "$WAIT_TIMEOUT" >"$wait_output" 2>&1
+	BUS_API_TOKEN="$TOKEN" "$ROOT/bus-task/bin/bus-task" -C "$SMOKE_DIR" --remote "$REMOTE_ID" wait --timeout "$WAIT_TIMEOUT" >"$wait_output" 2>&1
 fi
 wait_status=$?
 set -e
 cat "$wait_output"
-if task_event_row_present 'bus.dev.task.failed' "$wait_output"; then
+if task_event_row_present 'bus.task.failed' "$wait_output"; then
+	print_image_pull_hint "$wait_output"
 	rm -f "$wait_output"
 	exit 1
 fi
-if ! task_event_row_present 'bus.dev.task.done' "$wait_output"; then
+if ! task_event_row_present 'bus.task.done' "$wait_output"; then
+	print_image_pull_hint "$wait_output"
 	rm -f "$wait_output"
 	exit 1
 fi
@@ -499,8 +510,8 @@ fi
 mkdir -p "$EVIDENCE_DIR"
 status_json="$EVIDENCE_DIR/status.json"
 stats_json="$EVIDENCE_DIR/stats.json"
-BUS_API_TOKEN="$TOKEN" "$ROOT/bus-dev/bin/bus-dev" -C "$SMOKE_DIR" work --remote "$REMOTE_ID" --format json status >"$status_json"
-BUS_API_TOKEN="$TOKEN" "$ROOT/bus-dev/bin/bus-dev" -C "$SMOKE_DIR" work --remote "$REMOTE_ID" --format json stats --all >"$stats_json"
+BUS_API_TOKEN="$TOKEN" "$ROOT/bus-task/bin/bus-task" -C "$SMOKE_DIR" --remote "$REMOTE_ID" --format json status >"$status_json"
+BUS_API_TOKEN="$TOKEN" "$ROOT/bus-task/bin/bus-task" -C "$SMOKE_DIR" --remote "$REMOTE_ID" --format json stats --all >"$stats_json"
 printf 'wrote smoke evidence: %s %s\n' "$status_json" "$stats_json"
 if [ -n "$WORKER_CODEX_MODEL" ] && ! grep -F "$WORKER_CODEX_MODEL" "$stats_json" "$status_json" >/dev/null 2>&1; then
 	printf 'requested model %s was not visible in status/stats evidence\n' "$WORKER_CODEX_MODEL" >&2

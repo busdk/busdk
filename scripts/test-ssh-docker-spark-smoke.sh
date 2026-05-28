@@ -14,6 +14,9 @@ MODEL=${BUS_SSH_DOCKER_SPARK_SMOKE_MODEL:-GPT-5.3-Codex-Spark}
 REASONING_EFFORT=${BUS_SSH_DOCKER_SPARK_SMOKE_REASONING_EFFORT:-}
 SANDBOX=${BUS_SSH_DOCKER_SPARK_SMOKE_SANDBOX:-read}
 AUTH_MODE=${BUS_SSH_DOCKER_SPARK_SMOKE_AUTH_MODE:-chatgpt-subscription}
+WORKER_IMAGE=${BUS_SSH_DOCKER_SPARK_SMOKE_IMAGE:-ghcr.io/busdk/bus-integration-task:latest}
+INSTALL_IMAGE=${BUS_SSH_DOCKER_SPARK_SMOKE_INSTALL_IMAGE:-false}
+BUILD_IMAGE=${BUS_SSH_DOCKER_SPARK_SMOKE_BUILD_IMAGE:-false}
 CREDENTIAL_SOURCE_KIND=${BUS_SSH_DOCKER_SPARK_SMOKE_CREDENTIAL_SOURCE_KIND:-}
 CREDENTIAL_SOURCE_REF=${BUS_SSH_DOCKER_SPARK_SMOKE_CREDENTIAL_SOURCE_REF:-}
 PROMPT=${BUS_SSH_DOCKER_SPARK_SMOKE_PROMPT:-SSH-Docker Spark smoke: do not edit files. Inspect /workspace/bus-dev/go.mod, report the module path in one sentence, and finish with app_server_closeout JSON where task_complete=true, changed_files=[], plan_closed=false, no_matching_plan_item=true, no_matching_plan_reason explains this is a read-only Spark smoke, required_checks includes the go.mod inspection, and remaining_blockers=[]. Do not run bus task close; the bridge will publish the terminal event. If Bus Notes are unavailable, state that as non-blocking evidence, not as a blocker.}
@@ -36,6 +39,9 @@ Options:
   --reasoning-effort VALUE       Requested worker reasoning effort
   --sandbox MODE                 Worker sandbox mode: read, write, or full
   --auth-mode MODE               Worker auth mode label (default: chatgpt-subscription)
+  --image IMAGE                  Worker launcher image (default: ghcr.io/busdk/bus-integration-task:latest)
+  --install-image[=BOOL]         Install the local worker image onto the remote first
+  --build-image[=BOOL]           Build the local worker image before install/run
   --credential-source-kind KIND  Non-secret credential source kind label
   --credential-source-ref REF    Non-secret credential source ref label
   --prompt TEXT                  Read-only smoke prompt
@@ -73,6 +79,13 @@ while [ "$#" -gt 0 ]; do
 		--reasoning-effort) need_arg "$@"; REASONING_EFFORT=$2; shift 2 ;;
 		--sandbox) need_arg "$@"; SANDBOX=$2; shift 2 ;;
 		--auth-mode) need_arg "$@"; AUTH_MODE=$2; shift 2 ;;
+		--image|--worker-image) need_arg "$@"; WORKER_IMAGE=$2; shift 2 ;;
+		--install-image) INSTALL_IMAGE=true; shift ;;
+		--install-image=*) INSTALL_IMAGE=${1#*=}; shift ;;
+		--no-install-image) INSTALL_IMAGE=false; shift ;;
+		--build-image) BUILD_IMAGE=true; shift ;;
+		--build-image=*) BUILD_IMAGE=${1#*=}; shift ;;
+		--no-build-image) BUILD_IMAGE=false; shift ;;
 		--credential-source-kind) need_arg "$@"; CREDENTIAL_SOURCE_KIND=$2; shift 2 ;;
 		--credential-source-ref) need_arg "$@"; CREDENTIAL_SOURCE_REF=$2; shift 2 ;;
 		--prompt) need_arg "$@"; PROMPT=$2; shift 2 ;;
@@ -113,6 +126,9 @@ BUS_SSH_DOCKER_CODEX_SMOKE_MODEL=$MODEL \
 BUS_SSH_DOCKER_CODEX_SMOKE_REASONING_EFFORT=$REASONING_EFFORT \
 BUS_SSH_DOCKER_CODEX_SMOKE_WORKER_SANDBOX=$SANDBOX \
 BUS_SSH_DOCKER_CODEX_SMOKE_AUTH_MODE=$AUTH_MODE \
+BUS_SSH_DOCKER_SMOKE_IMAGE=$WORKER_IMAGE \
+BUS_SSH_DOCKER_SMOKE_INSTALL_IMAGE=$INSTALL_IMAGE \
+BUS_SSH_DOCKER_SMOKE_BUILD_IMAGE=$BUILD_IMAGE \
 BUS_SSH_DOCKER_CODEX_SMOKE_CREDENTIAL_SOURCE_KIND=$CREDENTIAL_SOURCE_KIND \
 BUS_SSH_DOCKER_CODEX_SMOKE_CREDENTIAL_SOURCE_REF=$CREDENTIAL_SOURCE_REF \
 BUS_SSH_DOCKER_CODEX_SMOKE_PROMPT=$PROMPT \
