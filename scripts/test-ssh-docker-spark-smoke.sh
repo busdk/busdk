@@ -15,6 +15,7 @@ REASONING_EFFORT=${BUS_SSH_DOCKER_SPARK_SMOKE_REASONING_EFFORT:-}
 SANDBOX=${BUS_SSH_DOCKER_SPARK_SMOKE_SANDBOX:-read}
 AUTH_MODE=${BUS_SSH_DOCKER_SPARK_SMOKE_AUTH_MODE:-chatgpt-subscription}
 WORKER_IMAGE=${BUS_SSH_DOCKER_SPARK_SMOKE_IMAGE:-ghcr.io/busdk/bus-integration-task:latest}
+LOCAL_TAG=${BUS_SSH_DOCKER_SPARK_SMOKE_LOCAL_TAG:-bus-integration-task:local-image-smoke}
 INSTALL_IMAGE=${BUS_SSH_DOCKER_SPARK_SMOKE_INSTALL_IMAGE:-false}
 BUILD_IMAGE=${BUS_SSH_DOCKER_SPARK_SMOKE_BUILD_IMAGE:-false}
 CREDENTIAL_SOURCE_KIND=${BUS_SSH_DOCKER_SPARK_SMOKE_CREDENTIAL_SOURCE_KIND:-}
@@ -40,6 +41,7 @@ Options:
   --sandbox MODE                 Worker sandbox mode: read, write, or full
   --auth-mode MODE               Worker auth mode label (default: chatgpt-subscription)
   --image IMAGE                  Worker launcher image (default: ghcr.io/busdk/bus-integration-task:latest)
+  --local-tag TAG                Local source tag for build/install (default: bus-integration-task:local-image-smoke)
   --install-image[=BOOL]         Install the local worker image onto the remote first
   --build-image[=BOOL]           Build the local worker image before install/run
   --credential-source-kind KIND  Non-secret credential source kind label
@@ -80,6 +82,7 @@ while [ "$#" -gt 0 ]; do
 		--sandbox) need_arg "$@"; SANDBOX=$2; shift 2 ;;
 		--auth-mode) need_arg "$@"; AUTH_MODE=$2; shift 2 ;;
 		--image|--worker-image) need_arg "$@"; WORKER_IMAGE=$2; shift 2 ;;
+		--local-tag) need_arg "$@"; LOCAL_TAG=$2; shift 2 ;;
 		--install-image) INSTALL_IMAGE=true; shift ;;
 		--install-image=*) INSTALL_IMAGE=${1#*=}; shift ;;
 		--no-install-image) INSTALL_IMAGE=false; shift ;;
@@ -127,6 +130,7 @@ BUS_SSH_DOCKER_CODEX_SMOKE_REASONING_EFFORT=$REASONING_EFFORT \
 BUS_SSH_DOCKER_CODEX_SMOKE_WORKER_SANDBOX=$SANDBOX \
 BUS_SSH_DOCKER_CODEX_SMOKE_AUTH_MODE=$AUTH_MODE \
 BUS_SSH_DOCKER_SMOKE_IMAGE=$WORKER_IMAGE \
+BUS_SSH_DOCKER_SMOKE_LOCAL_TAG=$LOCAL_TAG \
 BUS_SSH_DOCKER_SMOKE_INSTALL_IMAGE=$INSTALL_IMAGE \
 BUS_SSH_DOCKER_SMOKE_BUILD_IMAGE=$BUILD_IMAGE \
 BUS_SSH_DOCKER_CODEX_SMOKE_CREDENTIAL_SOURCE_KIND=$CREDENTIAL_SOURCE_KIND \

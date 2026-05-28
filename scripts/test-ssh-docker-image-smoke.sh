@@ -22,6 +22,7 @@ REMOTE_EVENTS_HOST=${BUS_SSH_DOCKER_SMOKE_REMOTE_EVENTS_HOST:-127.0.0.1}
 REMOTE_EVENTS_PORT=${BUS_SSH_DOCKER_SMOKE_REMOTE_EVENTS_PORT:-8081}
 WORKER_EVENTS_URL=${BUS_SSH_DOCKER_SMOKE_WORKER_EVENTS_URL:-http://bus-events:8081}
 WORKER_IMAGE=${BUS_SSH_DOCKER_SMOKE_IMAGE:-bus-integration-task:local-image-smoke}
+LOCAL_IMAGE_TAG=${BUS_SSH_DOCKER_SMOKE_LOCAL_TAG:-$WORKER_IMAGE}
 WORKER_NETWORK=${BUS_SSH_DOCKER_SMOKE_NETWORK:-busdk_default}
 WORKER_CODEX_HOME=${BUS_SSH_DOCKER_SMOKE_CODEX_HOME:-/home/coding-agent/coding-agent/.codex}
 WORKER_DOCKER_SOCKET=${BUS_SSH_DOCKER_SMOKE_DOCKER_SOCKET:-}
@@ -82,6 +83,7 @@ a stable approved command prefix.
   --controller-url URL           Controller Events URL
   --worker-events-url URL        Worker Events URL
   --image IMAGE                  Worker launcher image
+  --local-tag TAG               Local image tag used for build/install
   --network NETWORK              Worker Docker network
   --codex-home DIR               Codex home mounted in worker containers
   --docker-socket PATH           Docker socket mounted in worker containers
@@ -147,6 +149,7 @@ while [ "$#" -gt 0 ]; do
 		--controller-url) need_arg "$@"; CONTROLLER_URL=$2; shift 2 ;;
 		--worker-events-url) need_arg "$@"; WORKER_EVENTS_URL=$2; shift 2 ;;
 		--image|--worker-image) need_arg "$@"; WORKER_IMAGE=$2; shift 2 ;;
+		--local-tag) need_arg "$@"; LOCAL_IMAGE_TAG=$2; shift 2 ;;
 		--network) need_arg "$@"; WORKER_NETWORK=$2; shift 2 ;;
 		--codex-home) need_arg "$@"; WORKER_CODEX_HOME=$2; shift 2 ;;
 		--docker-socket) need_arg "$@"; WORKER_DOCKER_SOCKET=$2; shift 2 ;;
@@ -230,7 +233,7 @@ fi
 
 case "$BUILD_IMAGE" in
 	true|1|yes|on)
-		BUS_SSH_DOCKER_BUILD_IMAGE="$WORKER_IMAGE" "$ROOT/scripts/build-ssh-docker-worker-image.sh" >/dev/null
+		BUS_SSH_DOCKER_BUILD_IMAGE="$LOCAL_IMAGE_TAG" "$ROOT/scripts/build-ssh-docker-worker-image.sh" >/dev/null
 		;;
 	false|0|no|off|'')
 		;;
@@ -244,7 +247,7 @@ case "$INSTALL_IMAGE" in
 	true|1|yes|on)
 		BUS_SSH_DOCKER_INSTALL_REMOTE_ID="$REMOTE_ID" \
 		BUS_SSH_DOCKER_INSTALL_SSH_TARGET="$SSH_TARGET" \
-		BUS_SSH_DOCKER_INSTALL_LOCAL_TAG="$WORKER_IMAGE" \
+		BUS_SSH_DOCKER_INSTALL_LOCAL_TAG="$LOCAL_IMAGE_TAG" \
 		BUS_SSH_DOCKER_INSTALL_IMAGE="$WORKER_IMAGE" \
 		"$ROOT/scripts/install-ssh-docker-worker-image.sh" >/dev/null
 		;;
