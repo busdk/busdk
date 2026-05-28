@@ -1,0 +1,122 @@
+#!/bin/sh
+set -eu
+
+# Runs the real SSH-Docker Codex App Server smoke with defaults tuned for the
+# Spark-quota worker lane on dev-hg. This is the reusable operator path for
+# verifying that a hosted subscription-backed Spark worker can claim a task,
+# report through Bus Events, and finish without editing files.
+
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+
+REMOTE_ID=${BUS_SSH_DOCKER_SPARK_SMOKE_REMOTE_ID:-dev-hg}
+PROFILE=${BUS_SSH_DOCKER_SPARK_SMOKE_PROFILE:-codex-spark}
+MODEL=${BUS_SSH_DOCKER_SPARK_SMOKE_MODEL:-GPT-5.3-Codex-Spark}
+REASONING_EFFORT=${BUS_SSH_DOCKER_SPARK_SMOKE_REASONING_EFFORT:-}
+SANDBOX=${BUS_SSH_DOCKER_SPARK_SMOKE_SANDBOX:-read}
+AUTH_MODE=${BUS_SSH_DOCKER_SPARK_SMOKE_AUTH_MODE:-chatgpt-subscription}
+CREDENTIAL_SOURCE_KIND=${BUS_SSH_DOCKER_SPARK_SMOKE_CREDENTIAL_SOURCE_KIND:-}
+CREDENTIAL_SOURCE_REF=${BUS_SSH_DOCKER_SPARK_SMOKE_CREDENTIAL_SOURCE_REF:-}
+PROMPT=${BUS_SSH_DOCKER_SPARK_SMOKE_PROMPT:-SSH-Docker Spark smoke: do not edit files. Inspect /workspace/bus-dev/go.mod, report the module path in one sentence, and finish with app_server_closeout JSON where task_complete=true, changed_files=[], plan_closed=false, no_matching_plan_item=true, no_matching_plan_reason explains this is a read-only Spark smoke, required_checks includes the go.mod inspection, and remaining_blockers=[]. Do not run bus task close; the bridge will publish the terminal event. If Bus Notes are unavailable, state that as non-blocking evidence, not as a blocker.}
+START_TIMEOUT=${BUS_SSH_DOCKER_SPARK_SMOKE_START_TIMEOUT:-5m}
+WAIT_TIMEOUT=${BUS_SSH_DOCKER_SPARK_SMOKE_WAIT_TIMEOUT:-15m}
+EVIDENCE_DIR=${BUS_SSH_DOCKER_SPARK_SMOKE_EVIDENCE_DIR:-}
+
+usage() {
+	cat >&2 <<'USAGE'
+usage: test-ssh-docker-spark-smoke.sh [options] [-- lower-level-smoke-options...]
+
+Runs the SSH-Docker read-only Spark smoke with dev-hg-oriented defaults.
+Unknown lower-level options can be passed after -- and are forwarded to
+test-ssh-docker-codex-smoke.sh.
+
+Options:
+  --remote-id ID                 Bus remote id (default: dev-hg)
+  --profile NAME                 Worker profile label (default: codex-spark)
+  --model MODEL                  Requested worker model (default: GPT-5.3-Codex-Spark)
+  --reasoning-effort VALUE       Requested worker reasoning effort
+  --sandbox MODE                 Worker sandbox mode: read, write, or full
+  --auth-mode MODE               Worker auth mode label (default: chatgpt-subscription)
+  --credential-source-kind KIND  Non-secret credential source kind label
+  --credential-source-ref REF    Non-secret credential source ref label
+  --prompt TEXT                  Read-only smoke prompt
+  --start-timeout DURATION       Start timeout passed to the lower-level smoke
+  --wait-timeout DURATION        Wait timeout passed to the lower-level smoke
+  --evidence-dir DIR             Write JSON evidence under DIR
+  -h, --help                     Show this help text and exit
+USAGE
+}
+
+need_arg() {
+	if [ "$#" -lt 2 ]; then
+		printf 'missing value for %s\n' "$1" >&2
+		usage
+		exit 2
+	fi
+}
+
+forwarded_args=
+
+append_forwarded_arg() {
+	if [ -z "$forwarded_args" ]; then
+		forwarded_args=$1
+	else
+		forwarded_args="$forwarded_args
+$1"
+	fi
+}
+
+while [ "$#" -gt 0 ]; do
+	case "$1" in
+		--remote-id) need_arg "$@"; REMOTE_ID=$2; shift 2 ;;
+		--profile) need_arg "$@"; PROFILE=$2; shift 2 ;;
+		--model) need_arg "$@"; MODEL=$2; shift 2 ;;
+		--reasoning-effort) need_arg "$@"; REASONING_EFFORT=$2; shift 2 ;;
+		--sandbox) need_arg "$@"; SANDBOX=$2; shift 2 ;;
+		--auth-mode) need_arg "$@"; AUTH_MODE=$2; shift 2 ;;
+		--credential-source-kind) need_arg "$@"; CREDENTIAL_SOURCE_KIND=$2; shift 2 ;;
+		--credential-source-ref) need_arg "$@"; CREDENTIAL_SOURCE_REF=$2; shift 2 ;;
+		--prompt) need_arg "$@"; PROMPT=$2; shift 2 ;;
+		--start-timeout) need_arg "$@"; START_TIMEOUT=$2; shift 2 ;;
+		--wait-timeout) need_arg "$@"; WAIT_TIMEOUT=$2; shift 2 ;;
+		--evidence-dir) need_arg "$@"; EVIDENCE_DIR=$2; shift 2 ;;
+		--help|-h) usage; exit 0 ;;
+		--)
+			shift
+			while [ "$#" -gt 0 ]; do
+				append_forwarded_arg "$1"
+				shift
+			done
+			break
+			;;
+		*)
+			printf 'unknown option: %s\n' "$1" >&2
+			usage
+			exit 2
+			;;
+	esac
+done
+
+set --
+if [ -n "$forwarded_args" ]; then
+	OLD_IFS=$IFS
+	IFS='
+'
+	for arg in $forwarded_args; do
+		set -- "$@" "$arg"
+	done
+	IFS=$OLD_IFS
+fi
+
+BUS_SSH_DOCKER_CODEX_SMOKE_REMOTE_ID=$REMOTE_ID \
+BUS_SSH_DOCKER_CODEX_SMOKE_WORKER_PROFILE=$PROFILE \
+BUS_SSH_DOCKER_CODEX_SMOKE_MODEL=$MODEL \
+BUS_SSH_DOCKER_CODEX_SMOKE_REASONING_EFFORT=$REASONING_EFFORT \
+BUS_SSH_DOCKER_CODEX_SMOKE_WORKER_SANDBOX=$SANDBOX \
+BUS_SSH_DOCKER_CODEX_SMOKE_AUTH_MODE=$AUTH_MODE \
+BUS_SSH_DOCKER_CODEX_SMOKE_CREDENTIAL_SOURCE_KIND=$CREDENTIAL_SOURCE_KIND \
+BUS_SSH_DOCKER_CODEX_SMOKE_CREDENTIAL_SOURCE_REF=$CREDENTIAL_SOURCE_REF \
+BUS_SSH_DOCKER_CODEX_SMOKE_PROMPT=$PROMPT \
+BUS_SSH_DOCKER_CODEX_SMOKE_START_TIMEOUT=$START_TIMEOUT \
+BUS_SSH_DOCKER_CODEX_SMOKE_WAIT_TIMEOUT=$WAIT_TIMEOUT \
+BUS_SSH_DOCKER_CODEX_SMOKE_EVIDENCE_DIR=$EVIDENCE_DIR \
+"$ROOT/scripts/test-ssh-docker-codex-smoke.sh" "$@"
