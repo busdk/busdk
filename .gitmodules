@@ -494,3 +494,15 @@
 	path = bus-api-provider-worker
 	url = git@github.com:busdk/bus-api-provider-worker.git
 	branch = main
+[submodule "bus-repos"]
+	path = bus-repos
+	url = git@github.com:busdk/bus-repos.git
+	branch = main
+[submodule "bus-integration-repos"]
+	path = bus-integration-repos
+	url = git@github.com:busdk/bus-integration-repos.git
+	branch = main
+[submodule "bus-api-provider-repos"]
+	path = bus-api-provider-repos
+	url = git@github.com:busdk/bus-api-provider-repos.git
+	branch = main
