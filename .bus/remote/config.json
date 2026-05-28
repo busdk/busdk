@@ -16,6 +16,26 @@
         "kind": "token-file",
         "ref": "/home/coding-agent/coding-agent/.config/bus/auth/api-token"
       },
+      "worker_defaults": {
+        "agent_backend": "codex-appserver",
+        "container_profile": "codex",
+        "model": "gpt-5.4",
+        "reasoning_effort": "high",
+        "auth_mode": "chatgpt-subscription"
+      },
+      "worker_profiles": {
+        "codex-spark": {
+          "agent_backend": "codex-appserver",
+          "container_profile": "codex",
+          "model": "GPT-5.3-Codex-Spark",
+          "reasoning_effort": "high",
+          "auth_mode": "chatgpt-subscription",
+          "credential_source": {
+            "kind": "os-credential-label",
+            "ref": "codex-chatgpt-subscription"
+          }
+        }
+      },
       "worker_environment": {
         "path_additions": [
           "/home/coding-agent/coding-agent/.nvm/versions/node/v22.19.0/bin"
@@ -42,10 +62,11 @@
         "ref": "/home/dev/.config/bus/auth/api-token"
       },
       "worker_defaults": {
+        "agent_backend": "codex-appserver",
+        "container_profile": "codex",
         "model": "gpt-oss:120b",
         "reasoning_effort": "high",
-        "backend": "codex-appserver",
-        "profile": "codex"
+        "auth_mode": "local-provider"
       }
     }
   ],
@@ -66,10 +87,11 @@
         "ssh-docker"
       ],
       "worker_defaults": {
+        "agent_backend": "codex-appserver",
+        "container_profile": "codex",
         "model": "gpt-oss:120b",
         "reasoning_effort": "high",
-        "backend": "codex-appserver",
-        "profile": "codex"
+        "auth_mode": "local-provider"
       }
     },
     {
@@ -77,14 +99,12 @@
       "name": "dev-hg",
       "display_name": "dev.hg.fi Codex",
       "remote_id": "dev-hg",
+      "default_worker_profile": "codex-spark",
       "worker_styles": [
         "ssh-docker"
       ],
       "worker_defaults": {
-        "model": "gpt-5.4",
-        "reasoning_effort": "high",
-        "backend": "codex-appserver",
-        "profile": "codex"
+        "reasoning_effort": "high"
       }
     }
   ]
