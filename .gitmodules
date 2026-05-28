@@ -418,10 +418,10 @@
 	path = bus-integration-docker
 	url = git@github.com:busdk/bus-integration-docker.git
 	branch = 1-bus-integration-docker
-[submodule "bus-integration-dev-task"]
-	path = bus-integration-dev-task
-	url = git@github.com:busdk/bus-integration-dev-task.git
-	branch = 1-bus-integration-dev-task
+[submodule "bus-integration-task"]
+	path = bus-integration-task
+	url = git@github.com:busdk/bus-integration-task.git
+	branch = 1-bus-integration-task
 [submodule "bus-integration-codex"]
 	path = bus-integration-codex
 	url = git@github.com:busdk/bus-integration-codex.git
@@ -481,4 +481,16 @@
 [submodule "bus-task"]
 	path = bus-task
 	url = git@github.com:busdk/bus-task.git
+	branch = main
+[submodule "bus-worker"]
+	path = bus-worker
+	url = git@github.com:busdk/bus-worker.git
+	branch = main
+[submodule "bus-integration-worker"]
+	path = bus-integration-worker
+	url = git@github.com:busdk/bus-integration-worker.git
+	branch = main
+[submodule "bus-api-provider-worker"]
+	path = bus-api-provider-worker
+	url = git@github.com:busdk/bus-api-provider-worker.git
 	branch = main

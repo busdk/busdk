@@ -61,6 +61,12 @@ run() {
   fi
 }
 
+relpath() {
+  from_dir=$1
+  to_path=$2
+  perl -MFile::Spec -e 'print File::Spec->abs2rel($ARGV[1], $ARGV[0])' "$from_dir" "$to_path"
+}
+
 find_submodule_section_by_path() {
   target_path=$1
   git config -f .gitmodules --get-regexp '^submodule\..*\.path$' |
@@ -115,10 +121,18 @@ apply_local_rename() {
   new_path=$4
   new_url=$5
   remote_name=$6
+  old_admin_dir=
+  new_admin_dir=
+  new_gitfile_target=
+  new_worktree_rel=
+  admin_gitconfig=
 
   if [ ! -e "$old_path" ] && [ ! -e "$new_path" ]; then
     die "neither old nor new submodule path exists: $old_path, $new_path"
   fi
+
+  old_admin_dir=$(git rev-parse --git-path "modules/$section")
+  new_admin_dir=$(git rev-parse --git-path "modules/$new_section")
 
   if [ "$old_path" != "$new_path" ]; then
     if [ -e "$new_path" ]; then
@@ -142,8 +156,33 @@ apply_local_rename() {
     run git config --remove-section "submodule.$section"
   fi
 
-  if [ -d "$new_path/.git" ] || [ -f "$new_path/.git" ]; then
+  if [ "$old_admin_dir" != "$new_admin_dir" ] && [ -e "$old_admin_dir" ]; then
+    if [ -e "$new_admin_dir" ]; then
+      die "new submodule admin dir already exists: $new_admin_dir"
+    fi
+    run mkdir -p "$(dirname "$new_admin_dir")"
+    run mv "$old_admin_dir" "$new_admin_dir"
+  fi
+
+  if [ "$apply" -eq 0 ] || [ -e "$new_admin_dir" ]; then
+    new_gitfile_target=$(relpath "$repo_root/$new_path" "$new_admin_dir")
+    new_worktree_rel=$(relpath "$new_admin_dir" "$repo_root/$new_path")
+    admin_gitconfig=$new_admin_dir/config
+
+    if [ "$apply" -eq 0 ] || [ -f "$new_path/.git" ]; then
+      if [ "$apply" -eq 1 ]; then
+        printf 'gitdir: %s\n' "$new_gitfile_target" >"$new_path/.git"
+      else
+        printf "dry-run: rewrite %s/.git -> gitdir: %s\n" "$(quote "$new_path")" "$(quote "$new_gitfile_target")"
+      fi
+    fi
+
+    run git config -f "$admin_gitconfig" core.worktree "$new_worktree_rel"
+  fi
+
+  if [ "$apply" -eq 0 ] || [ -d "$new_path/.git" ] || [ -f "$new_path/.git" ]; then
     run git -C "$new_path" remote set-url "$remote_name" "$new_url"
+    run git -C "$new_path" rev-parse --git-dir
   fi
 
   run git submodule sync -- "$new_path"

@@ -81,7 +81,7 @@
         "ssh-docker"
       ],
       "worker_defaults": {
-        "model": "gpt-5.5",
+        "model": "gpt-5.4",
         "reasoning_effort": "high",
         "backend": "codex-appserver",
         "profile": "codex"
