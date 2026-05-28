@@ -11,7 +11,7 @@ ARG GOPLS_VERSION=v0.20.0
 ARG DELVE_VERSION=v1.25.2
 
 LABEL org.opencontainers.image.title="BusDK dev-task worker"
-LABEL org.opencontainers.image.description="Image-backed bus-integration-dev-task worker runtime without a mounted BusDK source checkout"
+LABEL org.opencontainers.image.description="Image-backed bus-integration-task worker runtime without a mounted BusDK source checkout"
 LABEL org.opencontainers.image.source="https://github.com/busdk/busdk"
 
 RUN apt-get update \
@@ -66,11 +66,11 @@ RUN set -eu; \
       [ -e "$bin" ] || continue; \
       chmod 0755 "$bin"; \
     done; \
-    for bin in bus bus-dev bus-integration-dev-task bus-lint bus-notes bus-operator-token; do \
+    for bin in bus bus-dev bus-integration-task bus-lint bus-notes bus-operator-token; do \
       command -v "$bin" >/dev/null; \
     done; \
-    bus-integration-dev-task --help >/usr/local/share/bus-integration-dev-task-help.txt; \
-    test -s /usr/local/share/bus-integration-dev-task-help.txt
+    bus-integration-task --help >/usr/local/share/bus-integration-task-help.txt; \
+    test -s /usr/local/share/bus-integration-task-help.txt
 
 COPY deploy/local-ai-platform/codex/dev-task-worker-entrypoint.sh /usr/local/bin/busdk-dev-task-entrypoint
 COPY deploy/local-ai-platform/codex/codex-appserver-stdio.sh /usr/local/bin/codex-appserver-stdio

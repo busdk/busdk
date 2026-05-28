@@ -21,7 +21,7 @@ workspace="tmp/dev-task-worker-bench"
 token_file="$workspace/api-token"
 fake_codex_args_json='["run","/workspace/tests/superproject/fake_codex_appserver.go"]'
 counts="${BUS_DEV_TASK_WORKER_BENCH_COUNTS:-1 2 3 4 6}"
-recipients=(bus-dev bus-events bus-filing bus-data bus-integration-dev-task bus-integration-docker bus-journal bus-reconcile)
+recipients=(bus-dev bus-events bus-filing bus-data bus-integration-task bus-integration-docker bus-journal bus-reconcile)
 worker_names=()
 
 now_ms() {
@@ -111,7 +111,7 @@ for worker_count in $counts; do
       -e BUS_DEV_TASK_COMMIT_MESSAGE='bench: worker count {work_ref}' \
       -e BUS_DEV_TASK_ONCE=false \
       -e BUS_DEV_TASK_IDLE_TIMEOUT=0 \
-      bus-integration-dev-task
+      bus-integration-task
   done
 
   running="$(docker ps --filter "name=busdk-dev-task-${run_id}-${worker_count}" --format '{{.Names}}' | wc -l | tr -d ' ')"

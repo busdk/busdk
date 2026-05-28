@@ -153,13 +153,13 @@ docker compose "${compose_args[@]}" exec -T testing-agent sh -ec '
   go run ./cmd/bus-containers run --profile codex -- sh -ec "bus-dev -C /workspace/bus-containers context | grep -q MODULE_NAME=bus-containers"
 ' | grep -q '"exit_code": 0'
 
-docker compose "${compose_args[@]}" exec -T bus-integration-dev-task sh -ec '
+docker compose "${compose_args[@]}" exec -T bus-integration-task sh -ec '
   test "$(command -v gopls)" = /usr/local/bin/gopls
   gopls version | grep -q "v0.20.0"
   gopls mcp -instructions | grep -qi "gopls MCP server"
 '
 
-docker compose "${compose_args[@]}" exec -T bus-integration-dev-task sh -ec '
+docker compose "${compose_args[@]}" exec -T bus-integration-task sh -ec '
   test "${BUS_DEV_TASK_GO_DEBUGGER:-}" = auto
   test "${BUS_DEV_TASK_GO_DEBUGGER_COMMAND:-}" = dlv
   test "$(command -v dlv)" = /usr/local/bin/dlv
@@ -167,7 +167,7 @@ docker compose "${compose_args[@]}" exec -T bus-integration-dev-task sh -ec '
   dlv dap --help | grep -qi dap
 '
 
-docker compose "${compose_args[@]}" exec -T bus-integration-dev-task sh -ec '
+docker compose "${compose_args[@]}" exec -T bus-integration-task sh -ec '
   export BUS_API_TOKEN="$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$BUS_LOCAL_ACCOUNT_ID" --audience ai.hg.fi/api --scope "notes.write notes.read notes.search" --ttl 2h)"
   bus notes --api-url "$BUS_NOTES_API_URL" --format json add \
     --title "dev-task smoke note" \

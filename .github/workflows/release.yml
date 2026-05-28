@@ -384,7 +384,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  publish-bus-integration-dev-task-image:
+  publish-bus-integration-task-image:
     needs: build
     runs-on: ubuntu-latest
     defaults:
@@ -419,7 +419,7 @@ jobs:
           rm -rf dist-bin
           mkdir -p dist-bin
           tar -xzf "$ARCHIVE" -C dist-bin
-          for bin in bus bus-dev bus-integration-dev-task bus-lint bus-notes bus-operator-token; do
+          for bin in bus bus-dev bus-integration-task bus-lint bus-notes bus-operator-token; do
             if [ ! -x "dist-bin/$bin" ]; then
               printf 'release artifact is missing executable %s required by the dev-task worker image\n' "$bin" >&2
               exit 1
@@ -439,7 +439,7 @@ jobs:
       - name: Compute image name
         id: image
         run: |
-          echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/bus-integration-dev-task" >>"$GITHUB_OUTPUT"
+          echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/bus-integration-task" >>"$GITHUB_OUTPUT"
 
       - name: Derive Docker metadata
         id: meta
@@ -456,10 +456,10 @@ jobs:
           set -euo pipefail
           docker build \
             -f deploy/local-ai-platform/codex/dev-task-worker.Dockerfile \
-            -t bus-integration-dev-task:ci-smoke \
+            -t bus-integration-task:ci-smoke \
             .
-          docker run --rm --entrypoint sh bus-integration-dev-task:ci-smoke -ec '
-            bus-integration-dev-task --help >/dev/null
+          docker run --rm --entrypoint sh bus-integration-task:ci-smoke -ec '
+            bus-integration-task --help >/dev/null
             bus dev work --help >/dev/null
             bus lint --help >/dev/null
             bus notes --help >/dev/null
@@ -467,7 +467,7 @@ jobs:
             gopls version | grep -q "v0.20.0"
             dlv version | grep -q "Version: 1.25.2"
           '
-          docker run --rm bus-integration-dev-task:ci-smoke --help >/dev/null
+          docker run --rm bus-integration-task:ci-smoke --help >/dev/null
           docker run --rm \
             -e BUS_DEV_TASK_IMAGE_DRY_RUN=true \
             -e BUS_EVENTS_API_URL=http://127.0.0.1:8081 \
@@ -475,8 +475,8 @@ jobs:
             -e BUS_DEV_TASK_RECIPIENT=busdk \
             -e BUS_DEV_TASK_WORK_REF=busdk#workflow-smoke \
             -e BUS_DEV_TASK_WRITE_SCOPES=PLAN.md,README.md \
-            bus-integration-dev-task:ci-smoke > image-worker-dry-run.txt
-          grep -Fq 'command: bus-integration-dev-task' image-worker-dry-run.txt
+            bus-integration-task:ci-smoke > image-worker-dry-run.txt
+          grep -Fq 'command: bus-integration-task' image-worker-dry-run.txt
           grep -Fq -- '--events-url http://127.0.0.1:8081' image-worker-dry-run.txt
           grep -Fq -- '--recipient busdk' image-worker-dry-run.txt
           grep -Fq -- '--work-ref busdk#workflow-smoke' image-worker-dry-run.txt
@@ -490,7 +490,7 @@ jobs:
             exit 1
           fi
 
-      - name: Publish bus-integration-dev-task image
+      - name: Publish bus-integration-task image
         uses: docker/build-push-action@v6
         with:
           context: .

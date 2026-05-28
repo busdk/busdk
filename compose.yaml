@@ -307,13 +307,13 @@ services:
       - codex
       - --version
 
-  bus-integration-dev-task:
+  bus-integration-task:
     profiles: ["dev-task"]
     <<: *go-service
     image: ${BUS_LOCAL_CODEX_IMAGE:-bus-local-codex:dev}
     pull_policy: build
     build: *codex-image-build
-    working_dir: /workspace/bus-integration-dev-task
+    working_dir: /workspace/bus-integration-task
     group_add:
       - ${BUS_DOCKER_SOCKET_CONTAINER_GID:-65534}
     depends_on:
@@ -390,7 +390,7 @@ services:
           export BUS_API_TOKEN="$$(cd /workspace/bus-operator-token && go run ./cmd/bus-operator-token --format token issue --local --subject "$${BUS_LOCAL_ACCOUNT_ID}" --audience ai.hg.fi/api --scope "$${BUS_LOCAL_TOKEN_SCOPES}" --ttl 12h)"
         fi
         export BUS_NOTES_API_TOKEN="$${BUS_NOTES_API_TOKEN:-$${BUS_API_TOKEN}}"
-        set -- go run ./cmd/bus-integration-dev-task --events-url http://bus-events:8081
+        set -- go run ./cmd/bus-integration-task --events-url http://bus-events:8081
         if [ -n "$${BUS_DEV_TASK_RECIPIENT}" ]; then
           set -- "$$@" --recipient "$${BUS_DEV_TASK_RECIPIENT}"
         fi
@@ -415,7 +415,7 @@ services:
     depends_on:
       bus-events:
         condition: service_started
-      bus-integration-dev-task:
+      bus-integration-task:
         condition: service_started
     environment:
       <<: *go-env
@@ -554,7 +554,7 @@ services:
         condition: service_started
       bus-containers:
         condition: service_started
-      bus-integration-dev-task:
+      bus-integration-task:
         condition: service_started
       bus-dev-supervisor:
         condition: service_started

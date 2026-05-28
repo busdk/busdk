@@ -92,7 +92,7 @@ docker compose "${compose_args[@]}" run -d --no-deps \
   -e BUS_DEV_TASK_ONCE=false \
   -e BUS_DEV_TASK_IDLE_TIMEOUT=0 \
   -e BUS_DEV_TASK_TRACE=true \
-  bus-integration-dev-task
+  bus-integration-task
 
 printf 'Started live Codex worker container:\n'
 docker ps --filter "name=$worker_name" --format '  {{.Names}}	{{.Status}}'
@@ -155,7 +155,7 @@ if [ -s "$watch_error" ]; then
   exit 1
 fi
 
-awk -F '\t' '$1 == "bus.dev.task.message" && $0 ~ /source=bus-integration-dev-task/ {print}' "$watch_output" > "$answer_output"
+awk -F '\t' '$1 == "bus.dev.task.message" && $0 ~ /source=bus-integration-task/ {print}' "$watch_output" > "$answer_output"
 
 if ! grep 'live guidance delivered to Codex app-server session' "$watch_output" ||
   ! grep 'removed isolated worktree without promotion' "$watch_output" ||

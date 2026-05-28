@@ -16,7 +16,7 @@ printf '%s\n' "$*" >>"$DOCKER_STUB_LOG"
 case "$*" in
   "ps --format {{.Names}}"*) exit 0 ;;
   "compose -f compose.yaml --profile dev-task ps bus-events"*) exit 0 ;;
-  "compose -f compose.yaml --profile dev-task build bus-integration-dev-task"*) exit 0 ;;
+  "compose -f compose.yaml --profile dev-task build bus-integration-task"*) exit 0 ;;
   "compose -f compose.yaml --profile dev-task run "* ) exit 0 ;;
   * )
     printf 'unexpected docker invocation: %s\n' "$*" >&2
@@ -38,7 +38,7 @@ chmod +x "$tmp_dir/bin/docker"
 )
 
 run_line="$(grep 'compose -f compose.yaml --profile dev-task run ' "$tmp_dir/docker.log")"
-grep -q 'compose -f compose.yaml --profile dev-task build bus-integration-dev-task' "$tmp_dir/docker.log"
+grep -q 'compose -f compose.yaml --profile dev-task build bus-integration-task' "$tmp_dir/docker.log"
 case "$run_line" in
   *" run --rm --no-deps -d "* ) ;;
   * )

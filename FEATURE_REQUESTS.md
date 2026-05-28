@@ -57,7 +57,7 @@ Why this matters:
 - add Bus-native deployment automation for installing and operating Bus cloud platform components: `bus operator deploy`, provider-neutral cloud/database/node/inference operators and API providers, integration workers, direct bootstrap paths, UpCloud/PostgreSQL/SSH-runner/billing/Stripe/Ollama integrations, docs, and module coverage are tracked as completed in the owning module plans
 - delivered the main local Docker Compose Bus platform stack as a complete
   development task test environment: the portal-enabled stack runs
-  `bus-integration-dev-task`, routes `bus dev task` events through the
+  `bus-integration-task`, routes `bus dev task` events through the
   PostgreSQL-backed Events API, executes the task through provider-neutral
   containers and local Docker, and verifies the result through `bus dev task
   watch` from the testing agent

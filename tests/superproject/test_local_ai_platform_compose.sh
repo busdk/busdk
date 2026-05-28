@@ -20,7 +20,7 @@ fi
 
 docker compose --env-file .env.example -f compose.yaml config > "$tmp_dir/compose.config"
 
-for service in postgres mailhog bus-events bus-auth bus-usage-api bus-usage-worker bus-billing-api bus-billing-worker bus-notes-api bus-stripe bus-vm bus-containers bus-docker bus-integration-dev-task bus-codex bus-llm nginx testing-agent; do
+for service in postgres mailhog bus-events bus-auth bus-usage-api bus-usage-worker bus-billing-api bus-billing-worker bus-notes-api bus-stripe bus-vm bus-containers bus-docker bus-integration-task bus-codex bus-llm nginx testing-agent; do
     grep -q "^[[:space:]]*$service:" "$tmp_dir/compose.config"
 done
 

@@ -69,7 +69,7 @@ values.
     - `bus-events`: keep sync/relay local and destination credentials separate,
       pass token-file/source labels rather than token values, persist/report
       relay auth errors, and expose safe credential-source labels in status.
-    - `bus-integration-dev-task`: ensure worker launch, App Server child
+    - `bus-integration-task`: ensure worker launch, App Server child
       environments, closeout, promotion, and status helper commands use the
       selected worker Events token source before inherited env tokens.
     - `bus-integration-ssh-runner`: keep managed SSH runner services on
@@ -93,7 +93,7 @@ values.
     an intentionally expired `BUS_API_TOKEN`, controller start/status calls,
     bounded sync routing, and no token/token-file leakage into task Events.
   - Verification evidence: Docker and dev-hg both passed full `go test ./...`
-    for `bus-dev`, `bus-events`, and `bus-integration-dev-task`; Docker and
+    for `bus-dev`, `bus-events`, and `bus-integration-task`; Docker and
     dev-hg also passed `go -C bus-remote test ./...` and
     `go -C bus-integration-ssh-runner test ./...`. Focused Docker/dev-hg proof
     command: `go test ./run -run
@@ -119,7 +119,7 @@ cached-token accounting.
       document block while keeping line/location contracts.
     - `bus-dev`: move injected `PLAN.md`, current `AGENTS.md`, and Cursor-rule
       bodies behind stable embedded prompt instructions.
-    - `bus-integration-dev-task`: reorder worker prompts so stable runtime,
+    - `bus-integration-task`: reorder worker prompts so stable runtime,
       closeout, and task-completion contracts precede task-specific metadata
       and body.
     - `bus-integration-ollama` / dev-task policy: expose explicit non-secret
@@ -135,7 +135,7 @@ cached-token accounting.
   - Implementation: root guidance now documents stable-prefix/final-dynamic
     prompt construction, `bus-lint` flags early dynamic prompt data in LLM tool
     code, and the module slices in `bus-lint`, `bus-dev`,
-    `bus-integration-dev-task`, `bus-integration-ollama`,
+    `bus-integration-task`, `bus-integration-ollama`,
     `bus-integration-inference`, and `bus-reports` have implementation and
     verification evidence in their owning plans.
   - Evidence: module-focused tests passed for the changed prompt builders,
@@ -156,12 +156,12 @@ state, structured closeout state, Bus Notes ids or query metadata, and
 non-secret timing/failure classification.
 
 - [ ] Coordinate deterministic task evidence across `bus-dev` and
-  `bus-integration-dev-task`.
+  `bus-integration-task`.
   - Goal: task replay, status, stats, closeout, and promotion should all use the
     same attempt evidence contract instead of reconstructing partial truth from
     worker prose, raw Events, local logs, or environment-specific conventions.
   - Module slices:
-    - `bus-integration-dev-task`: emit the complete attempt evidence envelope on
+    - `bus-integration-task`: emit the complete attempt evidence envelope on
       claim, running/heartbeat, terminal success, terminal failure, blocked,
       no-change, App Server startup failure, timeout/no-output, and exact-ref
       refusal paths.
@@ -257,7 +257,7 @@ readiness must not depend on manually launching each handler.
 
 Execution plan by owner:
 
-- `bus-integration-dev-task`: finish the service-owned App Server scheduler,
+- `bus-integration-task`: finish the service-owned App Server scheduler,
   exact work-ref launch binding, stale-claim replay safety, App Server-only
   worker lane, model/profile retry semantics, and structured closeout/status
   evidence.
@@ -364,7 +364,7 @@ Minimum completion checklist:
 - [ ] Package the minimum UpCloud/H100 operator path: the remote must have a
   clean BusDK checkout, Docker, the selected model, and an Events token file;
   use `scripts/remote-checkout-update.sh --root <remote-root> --ref
-  <current-root-ref> --submodule bus-dev --submodule bus-integration-dev-task
+  <current-root-ref> --submodule bus-dev --submodule bus-integration-task
   --submodule logs` on the remote to refresh pins, then use the bounded
   `scripts/h100-offload-runner.sh --mode sync --ensure-services
   --refresh-token --timeout 300` path locally to launch/sync. Passing evidence
@@ -384,7 +384,7 @@ Minimum completion checklist:
   Current action: turn the now-proven H100 worker path into local-supervisor
   routing. The H100 writable model-backed worker proof passed on
   `dev@ai.hg.fi`: `scripts/test-h100-local-model-write-smoke.sh` built
-  `bus-integration-dev-task:h100-smoke`, launched
+  `bus-integration-task:h100-smoke`, launched
   `bus-h100-write-smoke-20260524061759#1.1`, claimed the task, prepared an
   isolated `bus-dev` worktree, reserved
   `testdata/h100-local-model-write-smoke.txt`, ran an H100-local
@@ -572,16 +572,16 @@ Minimum completion checklist:
     after `bus remote add lab-host ssh://lab-host` when the host has SSH,
     Docker, and access to the published worker image.
   - Triggering evidence: `coding-agent@dev.hg.fi` can SSH and run Docker, but
-    `docker pull ghcr.io/busdk/bus-integration-dev-task:latest` returned
+    `docker pull ghcr.io/busdk/bus-integration-task:latest` returned
     `denied`, and the existing local `bus-local-codex:dev` image relies on the
     superproject being mounted at `/workspace`.
   - Scope:
     - Add or refine a release/build workflow that publishes the default
-      `ghcr.io/busdk/bus-integration-dev-task:latest` image, or define the
+      `ghcr.io/busdk/bus-integration-task:latest` image, or define the
       correct public/private package name and tags if `latest` is not the right
       contract.
     - Ensure the image contains the runtime/tooling needed by
-      `bus-integration-dev-task` in image-backed mode, rather than depending on
+      `bus-integration-task` in image-backed mode, rather than depending on
       a mounted checkout.
     - Keep private source/access boundaries explicit; do not make private
       module source public accidentally through a public image.
@@ -590,12 +590,12 @@ Minimum completion checklist:
       Docker itself.
   - Verification:
     - CI release workflow now builds the worker image from the Linux release
-      artifact binaries, smoke-runs `bus-integration-dev-task --help`, `bus dev
+      artifact binaries, smoke-runs `bus-integration-task --help`, `bus dev
       work --help`, `bus notes --help`, `codex --version`, `gopls version`, and
       `dlv version`, verifies the bare image invocation dry-runs to a
-      worker-shaped `bus-integration-dev-task` command with token redaction
+      worker-shaped `bus-integration-task` command with token redaction
       rather than defaulting to help, then publishes
-      `ghcr.io/busdk/bus-integration-dev-task` with tag, sha, and release
+      `ghcr.io/busdk/bus-integration-task` with tag, sha, and release
       `latest` tags.
     - Local static validation for this slice: Dockerfile/workflow/README
       checks plus `docker compose -f compose.yaml --profile dev-task config`.
@@ -610,7 +610,7 @@ Minimum completion checklist:
     `ssh -A`, mounted the remote rootless Docker socket into the worker stack,
     and ran a Docker child task through the remote container backend.
   - Evidence: final task evidence reported
-    `REMOTE_SMOKE_PWD=/workspace/bus-integration-dev-task`,
+    `REMOTE_SMOKE_PWD=/workspace/bus-integration-task`,
     `REMOTE_SMOKE_HOST=ddfcc6a156a1`, `REMOTE_SMOKE_HEAD=e1d6022`, followed
     by `bus.dev.task.done` for run
     `ddfcc6a156a1f9e6ac871e346f58aaa088e62274003e4ced7815fd05739a266f`.
@@ -625,7 +625,7 @@ Minimum completion checklist:
   `coding-agent@dev.hg.fi`.
   - Done: pushed the current root and touched submodules, updated the remote
     checkout without requiring GHCR visibility, built
-    `bus-integration-dev-task:local-image-smoke` directly on the SSH host, and
+    `bus-integration-task:local-image-smoke` directly on the SSH host, and
     ran `scripts/test-ssh-docker-image-smoke.sh` from the local controller.
   - Evidence: remote image id
     `sha256:6a63b42945d7fe14ba40b5ef0ee37e64a86b6c8db50c87caeb7c1d164a950302`;
@@ -675,7 +675,7 @@ Minimum completion checklist:
     `bus-balances`, `bus-bank`, `bus-bfl`, `bus-books`, `bus-budget`,
     `bus-config`, `bus-configure`, `bus-data`, `bus-dev`, `bus-faq`,
     `bus-filing`, `bus-filing-prh`, `bus-filing-vero`, `bus-gateway`,
-    `bus-gx`, `bus-help`, `bus-init`, `bus-integration-dev-task`,
+    `bus-gx`, `bus-help`, `bus-init`, `bus-integration-task`,
     `bus-inventory`, `bus-invoices`, `bus-journal`, `bus-ledger`, `bus-loans`,
     `bus-payroll`, `bus-pdf`, `bus-period`, `bus-preferences`,
     `bus-reconcile`, `bus-replay`, `bus-reports`, `bus-run`, `bus-sheets`,
@@ -691,7 +691,7 @@ Minimum completion checklist:
     module's `AGENTS.md`, or public docs unless the write scopes name those
     paths.
   - Batching priority: start with the highest worker-context and dispatch-risk
-    surfaces: `bus-dev`, `bus-integration-dev-task`, `bus-agent`, `bus-api`,
+    surfaces: `bus-dev`, `bus-integration-task`, `bus-agent`, `bus-api`,
     `bus-gx`, `bus-ui`, `docs`, `busdk.com`, and root-facing command modules
     such as `bus-configure`, `bus-help`, `bus-run`, and `bus-validate`. Next
     batch private/commercial business-domain modules by shared accounting
@@ -817,7 +817,7 @@ Minimum completion checklist:
     performs review-worker dispatch, precise reopen/refill decisions, and root
     pin handling with dry-run evidence and operator approval gates where
     required. Closed by accepted `bus-dev` commits `c5164b8` and `3c9437f`.
-  - [x] Cross-module request for `bus-integration-dev-task`: expose
+  - [x] Cross-module request for `bus-integration-task`: expose
     controller-owned worker startup/refill mechanics so the supervisor service
     can request recipient-scoped workers deterministically instead of relying
     on manual Compose worker starts.
@@ -867,7 +867,7 @@ Historical context for the current first-priority worker-offload lane:
   dev-task/work commands through `bus-remote`, launches Compose remotes through
   `compose.yaml`, uses conditional append for multi-remote
   claiming/group allocation, and has no open local PLAN work. The
-  `bus-integration-dev-task` module records remote metadata in worker/App
+  `bus-integration-task` module records remote metadata in worker/App
   Server closeout evidence, consumes worker-start requests, supports
   task-scoped `gopls` MCP context, and supports safe no-install `dlv dap`
   debugger context. `bus-integration-upcloud` supports no-spend
@@ -936,7 +936,7 @@ Historical context for the current first-priority worker-offload lane:
       Verification: `sh -n scripts/test-upcloud-worker-offload-dry-run.sh`
       passed, and the script completed with `OK no-spend Upcloud worker offload
       dry-run`; the worker plan reported `launch_mode=image`,
-      `worker_events_api_url_status=ok`, `worker_image=bus-integration-dev-task:local-image-smoke`,
+      `worker_events_api_url_status=ok`, `worker_image=bus-integration-task:local-image-smoke`,
       and `no task streams created; no workers launched; no provisioning requested`.
     - [x] Local-model command profile slice: image-mode SSH-Docker workers now
       pass `BUS_DEV_TASK_CONTAINER_IMAGE` and `BUS_DEV_TASK_CONTAINER_PROFILE`
@@ -965,7 +965,7 @@ Historical context for the current first-priority worker-offload lane:
       against Ollama `gemma4:31b` on `127.0.0.1:11434`, recorded the model
       response `"The Bus remote model worker can reach local inference."`, and
       reached `bus.dev.task.done`. The smoke rebuilt
-      `bus-integration-dev-task:h100-smoke` on the remote host with Go
+      `bus-integration-task:h100-smoke` on the remote host with Go
       `1.26.3`, used the detected rootless Docker socket
       `/run/user/1002/docker.sock`, and ran without hosted Codex credentials.
       Remaining product gaps for the broader offload lane are local-supervisor
@@ -1002,7 +1002,7 @@ Historical context for the current first-priority worker-offload lane:
         The first rerun reached the nested local-model container but failed
         DNS for `bus-ollama-mock` because provider-neutral container requests
         had no child-container network field and Docker defaulted to `bridge`.
-        Local fixes now carry `network` through `bus-integration-dev-task`,
+        Local fixes now carry `network` through `bus-integration-task`,
         `bus-integration-containers`, and `bus-integration-docker`, with the
         dev-task CLI defaulting child container network from
         `BUS_DEV_SSH_DOCKER_WORKER_NETWORK` for image-backed SSH-Docker workers.
@@ -1074,9 +1074,9 @@ Historical context for the current first-priority worker-offload lane:
         and Compose `v5.1.4`, and sees an NVIDIA H100 80GB GPU. The remote
         checkout was updated from pushed GitHub source at root commit
         `8ccc546`, required private submodules were initialized through the
-        forwarded agent, and `bus-integration-dev-task:h100-smoke` was built
+        forwarded agent, and `bus-integration-task:h100-smoke` was built
         on the H100 host with Go `1.26.3`. Build-script self-tests passed
-        inside the image, including `bus-integration-dev-task --help` and
+        inside the image, including `bus-integration-task --help` and
         local-model dry-run tool checks for `curl`, `git`, and `make`. Image
         ID: `sha256:6b73ddf055a15a9bec6a1ea81e5dc4f253621ce593d23f6236215379cfe40`.
         Normal non-interactive `ssh dev@ai.hg.fi <command>` was later enabled
@@ -1089,7 +1089,7 @@ Historical context for the current first-priority worker-offload lane:
         `scripts/test-ssh-docker-image-smoke.sh` ran on the host with
         `BUS_SSH_DOCKER_SMOKE_TUNNEL=false`, remote `bus-events`,
         SSH target `dev@localhost`, and image
-        `bus-integration-dev-task:h100-smoke`. Evidence:
+        `bus-integration-task:h100-smoke`. Evidence:
         `bus-ssh-docker-smoke#2.1` launched the image worker, claimed the task,
         prepared an isolated worktree, reached the self-test backend, and
         published `bus.dev.task.done`. Remaining gaps: local-supervisor access
@@ -1119,10 +1119,10 @@ Historical context for the current first-priority worker-offload lane:
   - [x] Local Codex worker image slice: provision pinned `gopls` v0.20.0 in
     `deploy/local-ai-platform/codex/Dockerfile`, verify MCP instructions at
     image build time, and extend dev-task Docker compose config/smoke coverage
-    so the Codex profile image and `bus-integration-dev-task` worker service
+    so the Codex profile image and `bus-integration-task` worker service
     assert `gopls` availability.
   - [x] Remaining Go-aware worker context slice: closed by
-    `bus-integration-dev-task` commit `958dbeb`, now pinned at `78277ac`,
+    `bus-integration-task` commit `958dbeb`, now pinned at `78277ac`,
     which wires detached `gopls mcp` and `gopls mcp -instructions` into
     task-scoped Codex context, exposes `--gopls-mcp` and lifecycle-policy
     auto/off/require configuration for Go workers, records App Server gopls
@@ -1139,7 +1139,7 @@ Historical context for the current first-priority worker-offload lane:
     `abc8fcc`, `2fbee6e`, `de8af8f`, `d242dc9`, `bbaad41`, `604d5a8`,
     `17621ce`, and `4985a50`.
   - [x] Provider-neutral worker-start and remote metadata slice: closed by
-    `bus-integration-dev-task` commits `b5ab8f7` and `61d2135`, which propagate
+    `bus-integration-task` commits `b5ab8f7` and `61d2135`, which propagate
     resolved remote metadata, reject credential-bearing endpoints, and consume
     `bus.dev.work.worker.start.request` events into
     `bus.containers.run.request` without host-local mounts. Evidence: focused
@@ -1157,16 +1157,16 @@ Historical context for the current first-priority worker-offload lane:
     `make BINARY=bus-integration-upcloud check` passed; real UpCloud e2e
     remained opt-in and no live UpCloud provisioning or deletion was attempted.
   - [x] Safe Go debugger context slice: closed by
-    `bus-integration-dev-task` commit `217226d`, pinned by superproject commit
+    `bus-integration-task` commit `217226d`, pinned by superproject commit
     `55bf63f`, which mirrors the `gopls` policy/config pattern for optional
     no-install `dlv dap` detection, App Server metadata, prompt guidance, and
     no host attach/default debug server. Evidence: focused debugger/lifecycle
     tests, help schema tests, `git diff --check`, and
-    `make BINARY=bus-integration-dev-task check` passed.
+    `make BINARY=bus-integration-task check` passed.
   - [x] Root local worker image debugger provisioning slice: owner `busdk`.
     Add a pinned Delve install to the local Codex worker image and root
     compose/smoke coverage that proves `dlv dap` is available when the
-    `bus-integration-dev-task` debugger policy is enabled, while preserving the
+    `bus-integration-task` debugger policy is enabled, while preserving the
     no-host-attach/no-server-start default. Acceptance evidence: Dockerfile or
     image-build check for the pinned `dlv`, focused compose smoke, `git diff
     --check`, `bus lint PLAN.md README.md` if docs change, and relevant root
@@ -1187,7 +1187,7 @@ Historical context for the current first-priority worker-offload lane:
     extend focused compose config coverage so stale `golang:1.24` defaults are
     caught before local worker runs.
   - [x] Localhost end-to-end worker execution release smoke: owner `busdk` with
-    follow-up fixes in `bus-dev` or `bus-integration-dev-task` only if the smoke
+    follow-up fixes in `bus-dev` or `bus-integration-task` only if the smoke
     fails. From a clean root checkout, run the documented
     `compose.yaml` stack, resolve `localhost` through
     `bus-remote`, dispatch a recipient-scoped no-op or tiny PLAN-only worker
@@ -1201,7 +1201,7 @@ Historical context for the current first-priority worker-offload lane:
     `compose.yaml`; `bus dev work bootstrap --check` passed with
     dispatcher-visible `/tmp/busdk-tools` binaries; `bus dev work --remote
     localhost start --write-scope PLAN.md @busdk ...` launched a
-    controller-owned `bus-integration-dev-task` worker without a manual
+    controller-owned `bus-integration-task` worker without a manual
     `docker compose run`; `watch` showed `worker launched`,
     `bus.dev.task.claimed`, isolated root worktree branch
     `bus-dev-task/busdk-3-1`, fake App Server process/thread/turn start,
@@ -1217,7 +1217,7 @@ Historical context for the current first-priority worker-offload lane:
     accepted smoke.
   - [x] UpCloud existing-runner worker execution smoke: owner
     `bus-integration-upcloud` for provider behavior, with `bus-dev` /
-    `bus-integration-dev-task` follow-ups only if routing or worker-start
+    `bus-integration-task` follow-ups only if routing or worker-start
     contracts fail. Use static-provider coverage by default and a real
     manually installed UpCloud VPS only with explicit operator approval and
     `existing-only` or `adopt-existing`; do not create, resize, delete, or
@@ -1239,7 +1239,7 @@ Historical context for the current first-priority worker-offload lane:
 
 - [x] Fix local Codex task-image Bus toolchain availability end to end: reproduce the worker-container failure where module `make lint` cannot find `bus-dev`, provide a deterministic `bus-dev` command on `PATH` inside the local Codex task image without host installs, document the behavior in the dev-task workflow, add a focused smoke check, and verify that module lint can run from a Codex task container.
 
-- [x] Complete the full local compose stack `bus dev task` path end to end: wire `bus-integration-dev-task` into the main `compose.yaml` stack that already exposes nginx and `bus-portal`, make the Docker codex profile use the locally built Codex CLI image, support optional Codex home/workspace mounts for live task execution, extend the full local compose smoke to create/watch a `bus dev task` while still verifying portal modules, update README guidance if command behavior changes, and verify with Docker-backed compose e2e.
+- [x] Complete the full local compose stack `bus dev task` path end to end: wire `bus-integration-task` into the main `compose.yaml` stack that already exposes nginx and `bus-portal`, make the Docker codex profile use the locally built Codex CLI image, support optional Codex home/workspace mounts for live task execution, extend the full local compose smoke to create/watch a `bus dev task` while still verifying portal modules, update README guidance if command behavior changes, and verify with Docker-backed compose e2e.
 
 - [x] Verify and fix local Docker Compose `bus dev task` Codex-container execution end to end: run the actual local Compose stack with Docker-backed container execution and the `bus dev task` interface, prove a task can be created, executed in the configured Codex/container profile, and observed through `watch`, fix any integration/config/test issues found, update docs if operator-facing behavior changes, and verify focused module plus root changed-module gates.
 - [x] Refine `bus configure` top-level get/set syntax end to end: document `bus configure KEY=VALUE [KEY2=VALUE2]` as the primary write form and `bus configure KEY [KEY2]` as the read-only lookup form, keep previous `edit` and `--set` compatibility, update root/module README examples, and verify module/root checks.
@@ -1301,7 +1301,7 @@ Historical context for the current first-priority worker-offload lane:
     `bus-integration-billing` help; `bus-integration-cloud`
     documentation/help; `bus-integration-codex` help;
     `bus-integration-containers` documentation/help;
-    `bus-integration-database` help; `bus-integration-dev-task` help;
+    `bus-integration-database` help; `bus-integration-task` help;
     `bus-integration-docker` documentation/help;
     `bus-integration-inference` documentation/help;
     `bus-integration-node` documentation/help; `bus-integration-notes`

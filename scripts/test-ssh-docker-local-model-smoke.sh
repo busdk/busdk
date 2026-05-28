@@ -9,7 +9,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
 MODEL=${BUS_SSH_DOCKER_MODEL_SMOKE_MODEL:-${BUS_UPCLOUD_OFFLOAD_MODEL:-gemma4:31b}}
 MODEL_ENDPOINT=${BUS_SSH_DOCKER_MODEL_SMOKE_ENDPOINT:-${BUS_UPCLOUD_OFFLOAD_MODEL_ENDPOINT:-http://ollama:11434}}
-WORKER_IMAGE=${BUS_SSH_DOCKER_MODEL_SMOKE_IMAGE:-${BUS_SSH_DOCKER_SMOKE_IMAGE:-bus-integration-dev-task:local-image-smoke}}
+WORKER_IMAGE=${BUS_SSH_DOCKER_MODEL_SMOKE_IMAGE:-${BUS_SSH_DOCKER_SMOKE_IMAGE:-bus-integration-task:local-image-smoke}}
 PROMPT=${BUS_SSH_DOCKER_MODEL_SMOKE_PROMPT:-Reply with one short sentence confirming the Bus remote model worker can reach local inference.}
 TASK_PROMPT=${BUS_SSH_DOCKER_MODEL_SMOKE_TASK_PROMPT:-}
 TOOL_PROFILE=${BUS_SSH_DOCKER_MODEL_SMOKE_TOOL_PROFILE:-shell-only}

@@ -75,7 +75,7 @@ docker compose "${compose_args[@]}" run -d --no-deps --name "$worker_name" \
   -e BUS_DEV_TASK_COMMIT_MESSAGE='test: smoke {work_ref}' \
   -e BUS_DEV_TASK_ONCE=true \
   -e BUS_DEV_TASK_IDLE_TIMEOUT=2m \
-  bus-integration-dev-task >/dev/null
+  bus-integration-task >/dev/null
 
 task_output="$(
   docker compose "${compose_args[@]}" exec -T testing-agent sh -ec "

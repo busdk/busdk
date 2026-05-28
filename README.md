@@ -126,7 +126,7 @@ Integration adapters:
 - `bus-integration-codex`: Codex-backed execution integration.
 - `bus-integration-containers`: container execution integration.
 - `bus-integration-database`: database integration contracts.
-- `bus-integration-dev-task`: development-task worker integration.
+- `bus-integration-task`: development-task worker integration.
 - `bus-integration-docker`: Docker integration.
 - `bus-integration-inference`: inference integration contracts.
 - `bus-integration-node`: node integration.
@@ -366,7 +366,7 @@ as `@bus-integration-docker` runs in `/workspace/bus-integration-docker`.
 
 ### Parallel development tasks
 
-Use one `bus-integration-dev-task` worker per module recipient. Do not run
+Use one `bus-integration-task` worker per module recipient. Do not run
 generic recipient-less workers: independent module work should be claimed by a
 worker addressed to exactly that module.
 
@@ -417,7 +417,7 @@ docker compose -f compose.yaml --profile dev-task run -d --no-deps \
   -e BUS_TASK_RECIPIENT=bus-journal \
   -e BUS_TASK_ONCE=true \
   -e BUS_TASK_IDLE_TIMEOUT=10m \
-  bus-integration-dev-task
+  bus-integration-task
 ```
 
 Then create a targeted task:
@@ -642,14 +642,14 @@ checked-in Dockerfile-backed `bus-local-codex:dev` image instead of silently
 reusing a stale local tag after Docker cache cleanup or submodule promotion.
 
 The release workflow also publishes an image-backed SSH-Docker worker image at
-`ghcr.io/busdk/bus-integration-dev-task:latest` for tagged releases. That image
+`ghcr.io/busdk/bus-integration-task:latest` for tagged releases. That image
 is built from the Linux release artifact binaries and the checked-in
 `deploy/local-ai-platform/codex/dev-task-worker.Dockerfile`, so the final image
-contains `bus-integration-dev-task`, the `bus` dispatcher, worker helper CLIs,
+contains `bus-integration-task`, the `bus` dispatcher, worker helper CLIs,
 Codex, Go, Docker CLI/Compose, `gopls`, and `dlv` without copying a BusDK source
 checkout or private module source into the runtime layer. A bare
-`docker run ghcr.io/busdk/bus-integration-dev-task:<tag>` starts
-`bus-integration-dev-task` as a worker; it does not default to `--help`. Use
+`docker run ghcr.io/busdk/bus-integration-task:<tag>` starts
+`bus-integration-task` as a worker; it does not default to `--help`. Use
 the immutable `sha-*` tag for repeatable external-host tests; `latest` advances
 only on release tags.
 
@@ -659,9 +659,9 @@ image access separately from worker routing:
 ```bash
 ssh coding-agent@dev.hg.fi 'docker version'
 ssh coding-agent@dev.hg.fi \
-  'docker pull ghcr.io/busdk/bus-integration-dev-task:latest'
+  'docker pull ghcr.io/busdk/bus-integration-task:latest'
 ssh coding-agent@dev.hg.fi \
-  'docker run --rm ghcr.io/busdk/bus-integration-dev-task:latest bus-integration-dev-task --help'
+  'docker run --rm ghcr.io/busdk/bus-integration-task:latest bus-integration-task --help'
 ssh coding-agent@dev.hg.fi \
   'docker run --rm \
     -e BUS_TASK_IMAGE_DRY_RUN=true \
@@ -670,7 +670,7 @@ ssh coding-agent@dev.hg.fi \
     -e BUS_TASK_RECIPIENT=busdk \
     -e BUS_TASK_WORK_REF=busdk#example \
     -e BUS_TASK_WRITE_SCOPES=PLAN.md \
-    ghcr.io/busdk/bus-integration-dev-task:latest'
+    ghcr.io/busdk/bus-integration-task:latest'
 ```
 
 `docker version` failures mean the remote host cannot run Docker yet. `docker
@@ -707,7 +707,7 @@ when that exact value appears in the command output.
 
 For the controller-owned localhost remote path, run `bus task --remote
 localhost start ...` from the root checkout instead of starting
-`bus-integration-dev-task` manually. A release smoke for the root recipient used
+`bus-integration-task` manually. A release smoke for the root recipient used
 a fake App Server and `--write-scope PLAN.md`; the non-secret transcript showed:
 
 ```text

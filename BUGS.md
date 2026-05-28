@@ -33,12 +33,12 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
     `bus-dev#3.1` task still started a later `bus-events` Codex container
     because the container run request had already been queued behind another
     long-running module task.
-  - Fixed: `bus-integration-dev-task` tags container run requests with the
+  - Fixed: `bus-integration-task` tags container run requests with the
     source task ref and treats downstream canceled responses as cancellation;
     `bus-integration-containers` rejects queued run requests before backend
     dispatch when task replay shows the source task is canceled.
   - Verified: `go test`, `make test`, `make e2e`, and `make lint` in
-    `bus-integration-dev-task` and `bus-integration-containers`.
+    `bus-integration-task` and `bus-integration-containers`.
 
 - [x] Cross-module `bus dev task new` inherited the sender branch and made
   workers fail before execution.
@@ -100,12 +100,12 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
     Codex home writable for trusted live Codex sessions, local compose runs
     Codex with full access inside the already isolated task container, and
     post-commands are opt-in so a smoke task cannot stage or commit files.
-    `bus-integration-dev-task` now uses `sh -c` instead of login shell mode so
+    `bus-integration-task` now uses `sh -c` instead of login shell mode so
     the container image `PATH` is preserved.
   - Verified: rebuilt `bus-dev` created and watched `bus-dev#17.1`, which ran
     in `/workspace/bus-dev` and reported `codex-cli 0.128.0`; `bus lint
     README.md`; `make test` in `bus-dev`; `make test` in
-    `bus-integration-dev-task`; `bash
+    `bus-integration-task`; `bash
     tests/superproject/test_local_ai_platform_compose_smoke.sh`; `bash
     tests/superproject/test_dev_task_docker_compose_smoke.sh`; root `make
     test`; root `make e2e`.

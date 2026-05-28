@@ -99,7 +99,7 @@ for recipient in $recipients; do
   docker compose "${compose_args[@]}" run -d --no-deps \
     --name "$name" \
     "${worker_env[@]}" \
-    bus-integration-dev-task
+    bus-integration-task
 done
 
 printf 'Started worker containers:\n'

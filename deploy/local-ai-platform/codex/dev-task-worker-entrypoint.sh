@@ -16,7 +16,7 @@ fi
 
 if [ "$#" -gt 0 ]; then
   case "$1" in
-    -*) set -- bus-integration-dev-task "$@" ;;
+    -*) set -- bus-integration-task "$@" ;;
   esac
   exec "$@"
 fi
@@ -80,7 +80,7 @@ if [ -z "${BUS_DEV_TASK_CODEX_SOURCE_HOME:-}" ] && [ -d /root/.codex-shared ]; t
   export BUS_DEV_TASK_CODEX_SOURCE_HOME=/root/.codex-shared
 fi
 
-set -- bus-integration-dev-task
+set -- bus-integration-task
 
 if is_true "${BUS_DEV_TASK_WORKER_START_REQUEST_CONSUMER:-}"; then
   set -- "$@" --worker-start-request-consumer

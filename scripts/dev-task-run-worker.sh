@@ -3,7 +3,7 @@ set -eu
 
 usage() {
   printf 'usage: %s <container-name> <recipient> [work-ref]\n' "$0" >&2
-  printf 'Starts one bus-integration-dev-task worker in the active dev-task Docker Compose stack.\n' >&2
+  printf 'Starts one bus-integration-task worker in the active dev-task Docker Compose stack.\n' >&2
   printf 'When work-ref is provided, the worker is bound to that exact task and must refuse any other ref.\n' >&2
 }
 
@@ -74,7 +74,7 @@ if ! docker compose -f "$compose_file" --profile "$compose_profile" ps bus-event
   exit 2
 fi
 
-docker compose -f "$compose_file" --profile "$compose_profile" build bus-integration-dev-task >/dev/null
+docker compose -f "$compose_file" --profile "$compose_profile" build bus-integration-task >/dev/null
 
 docker compose -f "$compose_file" --profile "$compose_profile" run --rm --no-deps -d \
   --name "$container_name" \
@@ -86,4 +86,4 @@ docker compose -f "$compose_file" --profile "$compose_profile" run --rm --no-dep
   -e "BUS_DEV_TASK_COMMIT_MESSAGE=$commit_message" \
   -e "BUS_DEV_TASK_CODEX_SANDBOX=$sandbox" \
   -e "BUS_DEV_TASK_TIMEOUT=$timeout" \
-  bus-integration-dev-task
+  bus-integration-task

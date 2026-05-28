@@ -6,7 +6,7 @@ set -eu
 # private source checkout at runtime.
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-IMAGE=${BUS_SSH_DOCKER_BUILD_IMAGE:-${BUS_SSH_DOCKER_SMOKE_IMAGE:-bus-integration-dev-task:local-image-smoke}}
+IMAGE=${BUS_SSH_DOCKER_BUILD_IMAGE:-${BUS_SSH_DOCKER_SMOKE_IMAGE:-bus-integration-task:local-image-smoke}}
 PLATFORM=${BUS_SSH_DOCKER_BUILD_PLATFORM:-linux/amd64}
 GOOS=${BUS_SSH_DOCKER_BUILD_GOOS:-linux}
 GOARCH=${BUS_SSH_DOCKER_BUILD_GOARCH:-amd64}
@@ -16,7 +16,7 @@ CODEX_NPM_PACKAGE=${BUS_SSH_DOCKER_BUILD_CODEX_NPM_PACKAGE:-@openai/codex}
 CODEX_NPM_VERSION=${BUS_SSH_DOCKER_BUILD_CODEX_NPM_VERSION:-}
 CODEX_LINUX_AMD64_SHA256=${BUS_SSH_DOCKER_BUILD_CODEX_LINUX_AMD64_SHA256:-e54b983c3ab5ca992da8edde83bb29a545761a72c4fa39f18a165d9e792e1c71}
 CODEX_LINUX_ARM64_SHA256=${BUS_SSH_DOCKER_BUILD_CODEX_LINUX_ARM64_SHA256:-8e066f998111eb8b44250ac11df004daa07fadf276c5942a7183cb8e421091a3}
-MODULES=${BUS_SSH_DOCKER_BUILD_MODULES:-bus bus-dev bus-integration-dev-task bus-lint bus-notes bus-operator-token}
+MODULES=${BUS_SSH_DOCKER_BUILD_MODULES:-bus bus-dev bus-integration-task bus-lint bus-notes bus-operator-token}
 DEPENDENCY_MODULES=${BUS_SSH_DOCKER_BUILD_DEPENDENCY_MODULES:-bus-agent bus-events bus-help bus-integration bus-preferences bus-remote bus-secrets bus-update}
 BUILD_MODE=${BUS_SSH_DOCKER_BUILD_MODE:-docker}
 
@@ -85,7 +85,7 @@ docker build \
 	-f "$ROOT/deploy/local-ai-platform/codex/dev-task-worker.Dockerfile" \
 	"$ROOT"
 
-docker run --rm --platform "$PLATFORM" "$IMAGE" bus-integration-dev-task --help >/dev/null
+docker run --rm --platform "$PLATFORM" "$IMAGE" bus-integration-task --help >/dev/null
 docker run --rm --platform "$PLATFORM" \
 	-e BUS_DEV_TASK_IMAGE_DRY_RUN=true \
 	-e BUS_EVENTS_API_URL=http://worker-reachable-events.example.invalid \

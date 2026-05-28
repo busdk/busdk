@@ -39,15 +39,15 @@ grep -Fq 'CODEX_NPM_VERSION: ""' "$tmp_dir/local-ai-platform.compose.config"
 grep -Fq 'CODEX_LINUX_AMD64_SHA256: e54b983c3ab5ca992da8edde83bb29a545761a72c4fa39f18a165d9e792e1c71' "$tmp_dir/local-ai-platform.compose.config"
 grep -Fq 'CODEX_LINUX_ARM64_SHA256: 8e066f998111eb8b44250ac11df004daa07fadf276c5942a7183cb8e421091a3' "$tmp_dir/local-ai-platform.compose.config"
 
-for service in codex-image bus-integration-dev-task bus-dev-supervisor testing-agent; do
+for service in codex-image bus-integration-task bus-dev-supervisor testing-agent; do
   grep -q "^[[:space:]]*$service:" "$tmp_dir/compose.config"
 done
 
 awk '
   /^  codex-image:/ { in_codex = 1; in_worker = 0; in_supervisor = 0 }
-  /^  bus-integration-dev-task:/ { in_codex = 0; in_worker = 1; in_supervisor = 0 }
+  /^  bus-integration-task:/ { in_codex = 0; in_worker = 1; in_supervisor = 0 }
   /^  bus-dev-supervisor:/ { in_codex = 0; in_worker = 0; in_supervisor = 1 }
-  /^  [A-Za-z0-9_-]+:/ && $1 != "codex-image:" && $1 != "bus-integration-dev-task:" && $1 != "bus-dev-supervisor:" { in_codex = 0; in_worker = 0; in_supervisor = 0 }
+  /^  [A-Za-z0-9_-]+:/ && $1 != "codex-image:" && $1 != "bus-integration-task:" && $1 != "bus-dev-supervisor:" { in_codex = 0; in_worker = 0; in_supervisor = 0 }
   in_codex && /pull_policy:[[:space:]]+build/ { codex_pull = 1 }
   in_codex && /context: .*deploy\/local-ai-platform\/codex/ { codex_build = 1 }
   in_worker && /pull_policy:[[:space:]]+build/ { worker_pull = 1 }
