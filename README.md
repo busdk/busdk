@@ -344,8 +344,8 @@ bus configure BUS_DOCKER_CODEX_HOME_WRITABLE=true
 docker compose up --build -d
 bus configure BUS_API_TOKEN="$(cat tmp/local-ai-platform/bus-config/auth/api-token)"
 bus configure BUS_EVENTS_API_URL=http://127.0.0.1:8080
-bus dev -C ./bus-dev work start "Show the Codex CLI version."
-bus dev -C ./bus-dev work watch <task-ref-from-work-start-output> --timeout 5m
+bus task -C ./bus-dev start "Show the Codex CLI version."
+bus task -C ./bus-dev watch <task-ref-from-work-start-output> --timeout 5m
 ```
 
 `docker compose up --build -d` writes a non-secret local development token under
@@ -354,7 +354,7 @@ local Events API URL with `bus configure` so they are managed in `.env` instead
 of shell exports. `BUS_DOCKER_CODEX_HOME_WRITABLE` is enabled for this trusted
 local Docker stack because live `codex exec` needs to create session state
 under the mounted Codex home. When no explicit `BUS_API_TOKEN`, `--token-file`,
-or `BUS_CONFIG_DIR` token is configured, `bus dev work <controller-command>` and `bus dev task` can still use that
+or `BUS_CONFIG_DIR` token is configured, `bus task` can still use that
 source-checkout token automatically before falling back to
 `~/.config/bus/auth/api-token`. The Events API default is `http://127.0.0.1:8080`,
 matching the local nginx route.
@@ -372,13 +372,13 @@ worker addressed to exactly that module.
 
 The standard local stack starts one `bus-dev` task worker by default so local
 smokes and control-plane tasks have an autonomous worker without manual startup.
-Set `BUS_DEV_TASK_RECIPIENT` when you want that managed worker to listen for a
+Set `BUS_TASK_RECIPIENT` when you want that managed worker to listen for a
 different single module recipient.
 
 Task containers use isolated Git worktrees by default in the local Docker
 stack. The mounted workspace is the read-only dependency view, and only the
 recipient's task worktree is mounted writable. For this BusDK superproject,
-Compose sets `BUS_DEV_TASK_WORKSPACE_RECIPIENT=busdk`; use recipient `busdk`
+Compose sets `BUS_TASK_WORKSPACE_RECIPIENT=busdk`; use recipient `busdk`
 only for work that intentionally edits the superproject root. Other projects
 can choose their own workspace-recipient name without changing worker code.
 
@@ -402,8 +402,8 @@ recipient-owned Git worktree and promoted commit path, not in container-local
 state.
 
 If review finds that a terminal task stopped at investigation, missed tests, or
-otherwise needs correction, use `bus dev work reopen <ref> <message...>`.
-Reopen publishes `bus.dev.task.reopened` with status `open` and preserves any
+otherwise needs correction, use `bus task reopen <ref> <message...>`.
+Reopen publishes `bus.task.reopened` with status `open` and preserves any
 stored Codex App Server thread metadata so the next matching worker can resume
 the same conversation instead of starting from a blank session.
 
@@ -414,16 +414,16 @@ one matching task or after a bounded idle period:
 ```bash
 docker compose -f compose.yaml --profile dev-task run -d --no-deps \
   --name busdk-dev-task-bus-journal-1 \
-  -e BUS_DEV_TASK_RECIPIENT=bus-journal \
-  -e BUS_DEV_TASK_ONCE=true \
-  -e BUS_DEV_TASK_IDLE_TIMEOUT=10m \
+  -e BUS_TASK_RECIPIENT=bus-journal \
+  -e BUS_TASK_ONCE=true \
+  -e BUS_TASK_IDLE_TIMEOUT=10m \
   bus-integration-dev-task
 ```
 
 Then create a targeted task:
 
 ```bash
-bus dev -C ./bus-dev task new @bus-journal "Implement the next PLAN.md item."
+bus task -C ./bus-dev new @bus-journal "Implement the next PLAN.md item."
 ```
 
 Measured local plumbing settings from
@@ -443,22 +443,23 @@ prove claim/start/steer/done throughput; they do not measure completed
 
 Use 4 parallel module workers as the default routine setting until real work
 data says otherwise. For real Codex-backed work, increase only when
-`bus dev work stats --all` shows workers spend most wall time waiting on
+`bus task stats --all` shows workers spend most wall time waiting on
 external LLM turns and human review can keep up. Real productivity is accepted
 PLAN item closures per hour, review pass rate, and rework. Treat 6 or 8 as
 monitored experiments, not defaults, because more workers also create more
 review, token, memory, and Git-worktree pressure.
 
-`compose.yaml` defaults Codex App Server workers to
-`BUS_DEV_TASK_CODEX_SANDBOX=workspace-write` so commit-enabled tasks fail before
-claiming work if the sandbox helper is unavailable. The bridge still verifies
-the addressed isolated worktree before promotion and reports blocked instead of
-done when a worker produces no diff or self-reports incomplete evidence.
+`bus task` exposes sandbox policy through the Bus-level `--sandbox` flag. The
+`write` sandbox maps to Codex App Server `workspace-write` for the Codex
+adapter, so commit-enabled tasks keep filesystem writes constrained to the
+addressed isolated worktree. The bridge still verifies that worktree before
+promotion and reports blocked instead of done when a worker produces no diff or
+self-reports incomplete evidence.
 
 Watch task state and container pressure while scaling:
 
 ```bash
-bus dev -C ./bus-dev task list --all
+bus task -C ./bus-dev list --all
 docker ps
 docker stats --no-stream
 scripts/docker-safe-inspect.sh container busdk-bus-events-1
@@ -495,7 +496,7 @@ explicitly needs a trusted post-command push hook, use `bus dev commit` after
 staging and before pushing:
 
 ```bash
-bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && bus dev commit && git push -u origin {branch}"]'
+bus configure BUS_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && bus dev commit && git push -u origin {branch}"]'
 ```
 
 The push is a trusted worker post-command, not normal `bus-dev` behavior.
@@ -536,7 +537,7 @@ port.
 
 ## Local dev-task Docker stack
 
-For live testing of `bus dev work` / `bus dev task` with local Docker-backed container runs,
+For live testing of `bus task` with local Docker-backed container runs,
 start the root Compose stack. The stack builds a local Codex CLI image for the
 `codex` container profile. The API emits public `bus.containers.*` events,
 `bus-integration-containers` routes them to `bus.docker.*`, and
@@ -567,7 +568,7 @@ The same stack starts `bus-dev-supervisor`, a lightweight heartbeat service for
 the AI Product Delivery Supervisor lane. It does not launch, reopen, approve,
 or pin work by itself yet. On each heartbeat it runs one bounded policy cycle:
 the non-streaming
-`bus dev work monitor --format json --quiet-after 15m --stale-after 1h`
+`bus task monitor --format json --quiet-after 15m --stale-after 1h`
 snapshot, writes the raw monitor output to
 `tmp/dev-task-supervisor/work-monitor.json`, classifies active and terminal
 tasks in `tmp/dev-task-supervisor/policy-cycle.json`, writes a non-mutating
@@ -663,12 +664,12 @@ ssh coding-agent@dev.hg.fi \
   'docker run --rm ghcr.io/busdk/bus-integration-dev-task:latest bus-integration-dev-task --help'
 ssh coding-agent@dev.hg.fi \
   'docker run --rm \
-    -e BUS_DEV_TASK_IMAGE_DRY_RUN=true \
+    -e BUS_TASK_IMAGE_DRY_RUN=true \
     -e BUS_EVENTS_API_URL=http://worker-reachable-events.example.invalid \
     -e BUS_API_TOKEN=redacted-placeholder \
-    -e BUS_DEV_TASK_RECIPIENT=busdk \
-    -e BUS_DEV_TASK_WORK_REF=busdk#example \
-    -e BUS_DEV_TASK_WRITE_SCOPES=PLAN.md \
+    -e BUS_TASK_RECIPIENT=busdk \
+    -e BUS_TASK_WORK_REF=busdk#example \
+    -e BUS_TASK_WRITE_SCOPES=PLAN.md \
     ghcr.io/busdk/bus-integration-dev-task:latest'
 ```
 
@@ -681,8 +682,8 @@ the launched worker environment. The dry-run token above is a placeholder, not
 a real credential. The dry-run command is only for diagnostics: it prints the
 worker command and redacts token presence. Real image mode should launch the
 same image with deployment-owned environment injection for
-`BUS_EVENTS_API_URL`, `BUS_API_TOKEN`, `BUS_DEV_TASK_RECIPIENT`,
-`BUS_DEV_TASK_WORK_REF`, `BUS_DEV_TASK_WRITE_SCOPES`, optional remote metadata,
+`BUS_EVENTS_API_URL`, `BUS_API_TOKEN`, `BUS_TASK_RECIPIENT`,
+`BUS_TASK_WORK_REF`, `BUS_TASK_WRITE_SCOPES`, optional remote metadata,
 and any workspace/worktree overrides.
 
 Inside the testing shell, the stack has generated a local development JWT at
@@ -697,14 +698,14 @@ Create a task and watch the Docker-backed bridge process it:
 
 ```bash
 cd /workspace/bus-dev
-go run ./cmd/bus-dev work start --new-branch work/docker-smoke @bus-dev "Reply hello from Docker."
-go run ./cmd/bus-dev work watch <task-ref-from-work-start-output> --timeout 5m
+go run ../bus-task/cmd/bus-task start --new-branch work/docker-smoke @bus-dev "Reply hello from Docker."
+go run ../bus-task/cmd/bus-task watch <task-ref-from-work-start-output> --timeout 5m
 ```
 
-Use the task reference printed by `work start`, for example `task_01example`
+Use the task reference printed by `bus task start`, for example `task_01example`
 when that exact value appears in the command output.
 
-For the controller-owned localhost remote path, run `bus dev work --remote
+For the controller-owned localhost remote path, run `bus task --remote
 localhost start ...` from the root checkout instead of starting
 `bus-integration-dev-task` manually. A release smoke for the root recipient used
 a fake App Server and `--write-scope PLAN.md`; the non-secret transcript showed:
@@ -712,20 +713,20 @@ a fake App Server and `--write-scope PLAN.md`; the non-secret transcript showed:
 ```text
 bus remote --format json resolve localhost
   id=localhost kind=compose url=http://localhost:8081 compose_file=compose.yaml
-bus dev work bootstrap --check
-  dispatcher fresh
-bus dev work --remote localhost start --write-scope PLAN.md @busdk ...
+bus task --remote localhost check
+  remote check passed
+bus task --remote localhost start --write-scope PLAN.md @busdk ...
   created <root>#3.1 -> busdk (branch bus-dev-task/busdk-3-1; scopes PLAN.md)
-bus dev work --remote localhost watch <root>#3.1 --timeout 4m
+bus task --remote localhost watch <root>#3.1 --timeout 4m
   worker launched
-  bus.dev.task.claimed
+  bus.task.claimed
   prepared isolated worktree ... branch=bus-dev-task/busdk-3-1
   Codex app-server process started
   Codex app-server thread started thread_id=thread-smoke
   Codex app-server turn started turn_id=turn-smoke
   removed isolated worktree without promotion
-  bus.dev.task.done
-bus dev work --remote localhost monitor --format json
+  bus.task.done
+bus task --remote localhost monitor --format json
   terminal transition for the smoke plus current active supervisor state
 ```
 
@@ -739,15 +740,15 @@ used by the `busdk` stack. On a normal host checkout, the documented
 The default task command for real local use runs `codex exec` in the addressed
 module repository, prepares the requested branch, then runs the configured
 post-command. A task without branch flags defaults to the current branch of the
-repository where `bus dev work start` or `bus dev task new` is run. Use `--branch NAME` to use an
+repository where `bus task start` or `bus task new` is run. Use `--branch NAME` to use an
 existing branch, or `--new-branch NAME --base-branch main` to create a
 disposable work branch from `main`. The smoke scripts override the command to
 `codex --version` and the post-command to `[]` so they do not consume
 ChatGPT-backed Codex quota or push to upstream. To customize hooks:
 
 ```bash
-bus configure BUS_DEV_TASK_PRE_COMMAND_JSON='["git","status","--short"]'
-bus configure BUS_DEV_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && bus dev commit && git push -u origin {branch}"]'
+bus configure BUS_TASK_PRE_COMMAND_JSON='["git","status","--short"]'
+bus configure BUS_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && bus dev commit && git push -u origin {branch}"]'
 docker compose -f compose.yaml --profile dev-task up --build -d
 ```
 
