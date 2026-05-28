@@ -478,3 +478,6 @@
 	path = skills
 	url = git@github.com:busdk/skills.git
 	branch = 1-skills
+[submodule "bus-task"]
+	path = bus-task
+	url = git@github.com:busdk/bus-task.git
