@@ -442,10 +442,6 @@
 	path = bus-integration-containers
 	url = git@github.com:busdk/bus-integration-containers.git
 	branch = 1-bus-integration-containers
-[submodule "logs"]
-	path = logs
-	url = git@github.com:busdk/logs.git
-	branch = 1-logs
 [submodule "bus-notes"]
 	path = bus-notes
 	url = git@github.com:busdk/bus-notes.git
@@ -474,10 +470,6 @@
 	path = bus-remote
 	url = git@github.com:busdk/bus-remote.git
 	branch = 1-bus-remote
-[submodule "skills"]
-	path = skills
-	url = git@github.com:busdk/skills.git
-	branch = 1-skills
 [submodule "bus-task"]
 	path = bus-task
 	url = git@github.com:busdk/bus-task.git
