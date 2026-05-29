@@ -63,6 +63,7 @@ ACCOUNT_ID=${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
 CONTROLLER_URL=${BUS_SSH_DOCKER_SMOKE_CONTROLLER_URL:-http://127.0.0.1:${TUNNEL_PORT}}
 RUNNER_LOG=${BUS_SSH_DOCKER_SMOKE_RUNNER_LOG:-${TMPDIR:-/tmp}/bus-ssh-runner-smoke.log}
 EVIDENCE_DIR=${BUS_SSH_DOCKER_SMOKE_EVIDENCE_DIR:-}
+START_ONLY=${BUS_SSH_DOCKER_SMOKE_START_ONLY:-false}
 
 usage() {
 	cat >&2 <<'USAGE'
@@ -116,6 +117,7 @@ a stable approved command prefix.
   --wait-timeout DURATION        bus task wait timeout
   --runner-log FILE             local runner log path
   --evidence-dir DIR            write status/stats JSON evidence here
+  --start-only[=BOOL]           start the worker task and skip wait/evidence checks
   --recipient NAME               task recipient
   --write-scope PATH             task write scope
   --branch BRANCH                task branch
@@ -193,6 +195,9 @@ while [ "$#" -gt 0 ]; do
 		--wait-timeout) need_arg "$@"; WAIT_TIMEOUT=$2; shift 2 ;;
 		--runner-log) need_arg "$@"; RUNNER_LOG=$2; shift 2 ;;
 		--evidence-dir) need_arg "$@"; EVIDENCE_DIR=$2; shift 2 ;;
+		--start-only) START_ONLY=true; shift ;;
+		--start-only=*) START_ONLY=${1#*=}; shift ;;
+		--no-start-only) START_ONLY=false; shift ;;
 		--recipient) need_arg "$@"; RECIPIENT=$2; shift 2 ;;
 		--write-scope) need_arg "$@"; WRITE_SCOPE=$2; shift 2 ;;
 		--branch) need_arg "$@"; BRANCH=$2; shift 2 ;;
@@ -484,6 +489,22 @@ work_ref=$(awk '
 	END { print ref }
 ' "$start_output")
 rm -f "$start_output"
+
+case "$START_ONLY" in
+	true|1|yes|on)
+		if [ -n "$work_ref" ]; then
+			printf 'started %s\n' "$work_ref"
+		fi
+		printf 'start-only: skipped wait/status evidence checks\n'
+		exit 0
+		;;
+	false|0|no|off|'')
+		;;
+	*)
+		printf 'invalid BUS_SSH_DOCKER_SMOKE_START_ONLY=%s\n' "$START_ONLY" >&2
+		exit 2
+		;;
+esac
 
 wait_output=$(mktemp "${TMPDIR:-/tmp}/bus-ssh-docker-smoke-wait.XXXXXX")
 set +e

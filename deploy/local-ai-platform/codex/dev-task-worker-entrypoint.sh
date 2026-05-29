@@ -21,6 +21,38 @@ if [ "$#" -gt 0 ]; then
   exec "$@"
 fi
 
+default_from_task_env() {
+  dev_key=$1
+  task_key=$2
+  eval "dev_set=\${$dev_key+x}"
+  eval "task_set=\${$task_key+x}"
+  if [ -z "$dev_set" ] && [ -n "$task_set" ]; then
+    eval "$dev_key=\${$task_key}"
+    export "$dev_key"
+  fi
+}
+
+default_from_task_env BUS_DEV_TASK_RECIPIENT BUS_TASK_RECIPIENT
+default_from_task_env BUS_DEV_TASK_WORK_REF BUS_TASK_WORK_REF
+default_from_task_env BUS_DEV_TASK_WRITE_SCOPES BUS_TASK_WRITE_SCOPES
+default_from_task_env BUS_DEV_TASK_REMOTE_ID BUS_TASK_REMOTE_ID
+default_from_task_env BUS_DEV_TASK_REMOTE_KIND BUS_TASK_REMOTE_KIND
+default_from_task_env BUS_DEV_TASK_CONTAINER_IMAGE BUS_TASK_CONTAINER_IMAGE
+default_from_task_env BUS_DEV_TASK_CONTAINER_PROFILE BUS_TASK_CONTAINER_PROFILE
+default_from_task_env BUS_DEV_TASK_AGENT_BACKEND BUS_TASK_AGENT_BACKEND
+default_from_task_env BUS_DEV_TASK_CODEX_ARGS BUS_TASK_CODEX_ARGS
+default_from_task_env BUS_DEV_TASK_CODEX_MODEL BUS_TASK_CODEX_MODEL
+default_from_task_env BUS_DEV_TASK_CODEX_SANDBOX BUS_TASK_CODEX_SANDBOX
+default_from_task_env BUS_DEV_TASK_CODEX_NETWORK_ACCESS BUS_TASK_CODEX_NETWORK_ACCESS
+default_from_task_env BUS_DEV_TASK_WORKSPACE_HOST_ROOT BUS_TASK_WORKSPACE_HOST_ROOT
+default_from_task_env BUS_DEV_TASK_WORKTREE BUS_TASK_WORKTREE
+default_from_task_env BUS_DEV_TASK_COMMAND_JSON BUS_TASK_COMMAND_JSON
+default_from_task_env BUS_DEV_TASK_PRE_COMMAND_JSON BUS_TASK_PRE_COMMAND_JSON
+default_from_task_env BUS_DEV_TASK_POST_COMMAND_JSON BUS_TASK_POST_COMMAND_JSON
+default_from_task_env BUS_DEV_TASK_COMMIT BUS_TASK_COMMIT
+default_from_task_env BUS_DEV_TASK_COMMIT_MESSAGE BUS_TASK_COMMIT_MESSAGE
+default_from_task_env BUS_DEV_TASK_TIMEOUT BUS_TASK_TIMEOUT
+
 : "${BUS_DEV_TASK_AGENT_BACKEND:=codex-appserver}"
 : "${BUS_DEV_TASK_CODEX_COMMAND:=codex}"
 if [ -z "${BUS_DEV_TASK_CODEX_ARGS+x}" ]; then
@@ -117,7 +149,7 @@ if [ -n "${BUS_DEV_TASK_CONTAINER_IMAGE:-}" ]; then
   set -- "$@" --container-image "$BUS_DEV_TASK_CONTAINER_IMAGE"
 fi
 if [ -n "${BUS_DEV_TASK_CODEX_MODEL:-}" ]; then
-  set -- "$@" --codex-model "$BUS_DEV_TASK_CODEX_MODEL"
+  set -- "$@" --model "$BUS_DEV_TASK_CODEX_MODEL"
 fi
 if [ -n "${BUS_DEV_TASK_POLICY_FILE:-}" ]; then
   set -- "$@" --policy-file "$BUS_DEV_TASK_POLICY_FILE"
@@ -135,9 +167,9 @@ fi
 set -- "$@" \
   --agent-backend "$BUS_DEV_TASK_AGENT_BACKEND" \
   --codex-command "$BUS_DEV_TASK_CODEX_COMMAND" \
-  --codex-args-json "$BUS_DEV_TASK_CODEX_ARGS" \
+  --args-json "$BUS_DEV_TASK_CODEX_ARGS" \
   --codex-approval-policy "$BUS_DEV_TASK_CODEX_APPROVAL_POLICY" \
-  --codex-sandbox "$BUS_DEV_TASK_CODEX_SANDBOX" \
+  --sandbox "$BUS_DEV_TASK_CODEX_SANDBOX" \
   --codex-network-access="$BUS_DEV_TASK_CODEX_NETWORK_ACCESS" \
   --codex-inherit-env="$BUS_DEV_TASK_CODEX_INHERIT_ENV" \
   --codex-state-root "$BUS_DEV_TASK_CODEX_STATE_ROOT" \

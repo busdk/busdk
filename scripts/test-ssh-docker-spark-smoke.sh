@@ -10,7 +10,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
 REMOTE_ID=${BUS_SSH_DOCKER_SPARK_SMOKE_REMOTE_ID:-dev-hg}
 PROFILE=${BUS_SSH_DOCKER_SPARK_SMOKE_PROFILE:-codex-spark}
-MODEL=${BUS_SSH_DOCKER_SPARK_SMOKE_MODEL:-GPT-5.3-Codex-Spark}
+MODEL=${BUS_SSH_DOCKER_SPARK_SMOKE_MODEL:-gpt-5.3-codex-spark}
 REASONING_EFFORT=${BUS_SSH_DOCKER_SPARK_SMOKE_REASONING_EFFORT:-}
 SANDBOX=${BUS_SSH_DOCKER_SPARK_SMOKE_SANDBOX:-read}
 AUTH_MODE=${BUS_SSH_DOCKER_SPARK_SMOKE_AUTH_MODE:-chatgpt-subscription}
@@ -36,7 +36,7 @@ test-ssh-docker-codex-smoke.sh.
 Options:
   --remote-id ID                 Bus remote id (default: dev-hg)
   --profile NAME                 Worker profile label (default: codex-spark)
-  --model MODEL                  Requested worker model (default: GPT-5.3-Codex-Spark)
+  --model MODEL                  Requested worker model (default: gpt-5.3-codex-spark)
   --reasoning-effort VALUE       Requested worker reasoning effort
   --sandbox MODE                 Worker sandbox mode: read, write, or full
   --auth-mode MODE               Worker auth mode label (default: chatgpt-subscription)
