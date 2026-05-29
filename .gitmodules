@@ -506,3 +506,6 @@
 	path = bus-api-provider-repos
 	url = git@github.com:busdk/bus-api-provider-repos.git
 	branch = 1-bus-api-provider-repos
+[submodule "agents/supervisor"]
+	path = agents/supervisor
+	url = git@github.com:busdk/agent-supervisor.git
