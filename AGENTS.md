@@ -261,6 +261,23 @@ this root file must preserve the supervisor/worker boundary itself.
     candidates, active-task refusal evidence, and submodule worktree registry
     behavior.
 
+## Recipient-Scoped Worker Focus
+
+1. Recipient-scoped implementation workers are not supervisors. They should
+   follow the recipient-local `AGENTS.md` and the explicit task brief first,
+   and should not inherit broad supervisor habits such as repo-wide memo,
+   PLAN, README, or throughput review unless the task explicitly asks for
+   those.
+2. For minimal implementation or proof lanes, start with the exact failing
+   command, named files, stale text, or acceptance surface given in the task.
+   Do not spend quota reading root hourly memos, unrelated `README.md` files,
+   unrelated `PLAN.md` files, or broad repo guidance unless the named surface
+   is insufficient to complete the task honestly.
+3. Root supervisor guidance about dispatch boards, throughput reviews, memo
+   operating loops, broad plan grooming, and cross-module coordination applies
+   to supervisors and sub-supervisors. It is not default required work for a
+   recipient-local implementation worker turn.
+
 ## Parallel Supervisor Operating Standard
 
 This section is core operating memory for broad BusDK goals. Do not compact it
@@ -562,7 +579,17 @@ writing the claim. For progress, heartbeat, review, and closeout reports, follow
    deleted, deferred, narrowed, or moved out of the critical path. Engineers
    often overbuild by default; this rule exists to make simplification a
    deliberate first move instead of an afterthought.
-8. For worker infrastructure specifically, prioritize getting one smallest
+8. Before building a new mechanism, explicitly ask whether the goal can be met
+   by removing a requirement, narrowing the problem, reusing a smaller
+   existing primitive, or accepting a temporary manual step. Prefer less
+   system over more system when both would honestly solve the current need.
+9. Prefer a minimal core with optional overlays. Project-specific rituals such
+   as Bus Notes usage, PLAN-driven closeout rules, reporting formats, or other
+   workflow conventions should be opt-in project policy unless the active proof
+   shows they are truly required by the substrate itself. Do not hard-wire
+   project process into the core worker/task/event machinery unless that
+   dependency is intentional, explicit, and source-backed.
+10. For worker infrastructure specifically, prioritize getting one smallest
    useful worker lane running end to end before expanding registry UX, remote
    parity, generalized orchestration, or product polish. Once that lane works,
    use it to help build the fuller system.
