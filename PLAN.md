@@ -20,6 +20,12 @@ claim/progress/terminal/lifecycle evidence back, persists checkpoints, and
 reports enough status for `bus-dev` and supervisors to know whether routing is
 healthy.
 
+Current supervisor-host topology: this macOS supervisor checkout should run the
+local Bus control/Event infrastructure used for task submission, status, and
+review. Docker-backed worker execution for this goal should happen on
+`coding-agent@dev.hg.fi`; local starts should relay task Events to that remote
+worker Events service and relay remote worker evidence back for local review.
+
 Minimum completion checklist:
 
 - [ ] Add the owning `bus-events` implementation follow-up for a deployed relay

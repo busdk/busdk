@@ -475,6 +475,22 @@ For example, Bus Notes should consume and project `bus.notes.*` operations while
 Events owns append-only history, origin metadata, replay, relay, and remote
 synchronization.
 
+Keep Bus product families consistent. `bus-{name}` owns the user-facing product
+and CLI, `bus-api-provider-{name}` owns API/controller integration with
+`bus-api`, and `bus-integration-{name}` owns event/integration-provider runtime
+behavior for the `bus-integration` runner. For the workers refactor, the target
+family is plural: `bus-workers` provides `bus workers`, local control flows
+through `bus-api-provider-workers`, and remote worker/container management
+flows through `bus-integration-workers`.
+
+Canonical task lifecycle Events use `bus.task.*`. Canonical worker
+lifecycle/control Events use `bus.workers.*`. Treat `bus.dev.task.*`,
+`bus.work.*`, and singular `bus.worker.*` names as legacy, compatibility, or
+bootstrap surfaces unless the owning module explicitly documents otherwise.
+Do not present singular `bus-worker`, `bus-api-provider-worker`, or
+`bus-integration-worker` scaffolding as the final workers product path without
+migrating or wrapping it behind the plural API/provider/integration family.
+
 ## LLM Tool Prompt Construction
 
 When building or changing any BusDK tool that sends prompts to an LLM, keep the
@@ -519,6 +535,33 @@ PostgreSQL or an explicit repository-file-backed store. The Events `memory`
 backend is acceptable only for automated tests, self-tests, or intentionally
 disposable smokes, never for local or remote worker lanes whose conversations
 should be retained.
+
+## Supervisor Host And Remote Environment
+
+The BusDK superproject is checked out under the supervisor root at
+`projects/busdk`. Keep BusDK-specific architecture, command, release, worker,
+and module policy in this file or the most specific nested module
+`AGENTS.md`; keep supervisor identity and role memory in the parent
+`/Users/jhh/git/busdk/agent-supervisor/AGENTS.md`.
+
+The local supervisor host is a macOS virtual server without supported nested
+virtualization. Do not plan or diagnose BusDK Docker/container work as if
+Docker should run locally here. Container and Docker-specific build,
+inspection, smoke, and worker proof should run on the configured remote
+environment `coding-agent@dev.hg.fi` unless the operator provides a newer
+remote target for that task.
+
+For the current task/worker refactor, the intended operating topology is a
+local Bus control plane on the supervisor host for Events/task submission and
+review, with Docker/App Server worker execution on `coding-agent@dev.hg.fi`.
+Starting work locally should route task Events to the remote worker-side Events
+service and import remote claim/progress/terminal evidence back locally; do not
+replace this with a local Docker worker attempt on the macOS supervisor host.
+
+When Docker-related proof moves to `dev.hg.fi`, record the remote environment,
+checkout commit, relevant submodule SHAs, rebuilt binaries or images, and the
+exact verification command or worker evidence. A local Docker failure on this
+host is an environment-boundary fact, not by itself a BusDK product failure.
 
 For local ChatGPT/Codex subscription Spark workers, use the exact raw model id
 `gpt-5.3-codex-spark`. Do not substitute display-style names such as

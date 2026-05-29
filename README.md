@@ -542,7 +542,7 @@ start the root Compose stack. The stack builds a local Codex CLI image for the
 `codex` container profile. The API emits public `bus.containers.*` events,
 `bus-integration-containers` routes them to `bus.docker.*`, and
 `bus-integration-docker` performs the local Docker work.
-By default the image installs Codex CLI `0.134.0` from the checksummed GitHub
+By default the image installs Codex CLI `0.135.0` from the checksummed GitHub
 release archives. Set `BUS_LOCAL_CODEX_VERSION` to use another release archive,
 with matching `BUS_LOCAL_CODEX_LINUX_AMD64_SHA256` and
 `BUS_LOCAL_CODEX_LINUX_ARM64_SHA256` values, or set
