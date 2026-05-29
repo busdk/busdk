@@ -221,26 +221,32 @@ this root file must preserve the supervisor/worker boundary itself.
     chat memory for repeated lessons such as single-binary/systemd deployment
     shape, per-remote credential sources instead of process-global tokens,
     App Server as the normal worker backend, or H100/dev-hg capacity usage.
-17. For the H100/remote-worker goal, prioritize the minimum real-work loop over
+17. Treat important operator corrections, focus reminders, naming lessons, and
+    repeated “don’t do that” guidance as durable memory work, not just chat.
+    When the lesson is expected to matter again, write it into the most
+    specific relevant `AGENTS.md` in the same session, and update the current
+    hourly memo to record why it mattered. Use `PLAN.md` alongside `AGENTS.md`
+    when the lesson also changes execution order or acceptance criteria.
+18. For the H100/remote-worker goal, prioritize the minimum real-work loop over
     adjacent product polish: one configured model can be enough, private image
     delivery can be deferred when source-checkout/App Server works, and stats
     can be improved while testing instead of blocking the first accepted loop.
     Keep the checklist focused on work that directly makes remote workers
     productive and repeatable.
-18. Use precise acceptance vocabulary. A worker that is `created`, `claimed`,
+19. Use precise acceptance vocabulary. A worker that is `created`, `claimed`,
     `running`, `done`, or even promoted inside an isolated/remote checkout is
     not accepted project progress until supervisor-side review verifies the
     diff, required checks pass, the owning branch is promoted or repaired, and
     the superproject pin is updated when applicable. Reports and memos must
     distinguish: task created, worker claimed, worker produced a diff, worker
     branch promoted, supervisor accepted, root pinned, pushed, and released.
-19. When a worker result is partly useful but fails review, prefer the normal
+20. When a worker result is partly useful but fails review, prefer the normal
     iterative production loop: reopen with exact findings, hand the repair to a
     stronger model or reviewer lane when useful, or make the smallest
     supervisor acceptance repair only when delegation is blocked. Do not
     describe a first-attempt failure as H100/model failure when the overall
     attempt-review-repair-promote loop is still producing accepted work.
-20. Treat pause/release mode as a hard drain-and-collect workflow. When the
+21. Treat pause/release mode as a hard drain-and-collect workflow. When the
     operator pauses new development or asks for a release, stop scheduling new
     work; inspect local, dev-hg, H100, and other configured environments for
     queued/claimed/running tasks; cancel stale queued or false-active streams
@@ -248,7 +254,7 @@ this root file must preserve the supervisor/worker boundary itself.
     services; verify no environment has commits ahead of its upstream that need
     retrieval; verify the root checkout is clean; then run the requested
     release command.
-21. Treat worktree cleanup as review-first. Prefer first-class Bus prune
+22. Treat worktree cleanup as review-first. Prefer first-class Bus prune
     commands and dry-run reports over manual deletion. Do not run destructive
     cleanup while task refs are active or while Git locks may still represent
     live work; use `--apply`-style cleanup only after reviewing the dry-run
@@ -496,6 +502,12 @@ PostgreSQL or an explicit repository-file-backed store. The Events `memory`
 backend is acceptable only for automated tests, self-tests, or intentionally
 disposable smokes, never for local or remote worker lanes whose conversations
 should be retained.
+
+For local ChatGPT/Codex subscription Spark workers, use the exact raw model id
+`gpt-5.3-codex-spark`. Do not substitute display-style names such as
+`GPT-5.3-Codex-Spark`, and do not add automatic model-name normalization as
+part of the current refactor. Prefer exact pass-through of configured model ids
+until an explicit later feature adds optional aliasing.
 
 ## Commit And Deletion Safety
 

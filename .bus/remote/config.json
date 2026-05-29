@@ -27,7 +27,7 @@
         "codex-spark": {
           "agent_backend": "codex-appserver",
           "container_profile": "codex",
-          "model": "GPT-5.3-Codex-Spark",
+          "model": "gpt-5.3-codex-spark",
           "reasoning_effort": "high",
           "auth_mode": "chatgpt-subscription",
           "credential_source": {
