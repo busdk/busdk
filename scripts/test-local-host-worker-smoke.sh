@@ -31,6 +31,8 @@ ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 ADDR=${BUS_LOCAL_HOST_WORKER_SMOKE_ADDR:-127.0.0.1:8081}
 API_URL="http://$ADDR"
 TOKEN_FILE=${BUS_LOCAL_HOST_WORKER_SMOKE_TOKEN_FILE:-$ROOT/tmp/local-ai-platform/bus-config/auth/api-token}
+MINT_TOKEN=${BUS_LOCAL_HOST_WORKER_SMOKE_MINT_TOKEN:-true}
+LOCAL_JWT_SECRET=${BUS_LOCAL_HOST_WORKER_SMOKE_LOCAL_JWT_SECRET:-${BUS_AUTH_HS256_SECRET:-not-a-secret-local-development-hs256-key}}
 EVENTS_JWT_SECRET=${BUS_LOCAL_HOST_WORKER_SMOKE_EVENTS_JWT_SECRET:-not-a-secret-local-development-hs256-key}
 RECIPIENT=${BUS_LOCAL_HOST_WORKER_SMOKE_RECIPIENT:-bus-worker}
 TASK_TEXT=${BUS_LOCAL_HOST_WORKER_SMOKE_TEXT:-Local host worker smoke}
@@ -41,6 +43,7 @@ WORKTREE=${BUS_LOCAL_HOST_WORKER_SMOKE_WORKTREE:-false}
 COMMIT=${BUS_LOCAL_HOST_WORKER_SMOKE_COMMIT:-false}
 CODEX_NETWORK_ACCESS=${BUS_LOCAL_HOST_WORKER_SMOKE_CODEX_NETWORK_ACCESS:-true}
 EVENTS_TRACE=${BUS_LOCAL_HOST_WORKER_SMOKE_EVENTS_TRACE:-true}
+TASK_PROMPT_PROFILE=${BUS_LOCAL_HOST_WORKER_SMOKE_TASK_PROMPT_PROFILE:-minimal-smoke}
 
 cleanup_config_dir=false
 if [ -n "${BUS_LOCAL_HOST_WORKER_SMOKE_CONFIG_DIR:-}" ]; then
@@ -51,19 +54,18 @@ else
 fi
 export BUS_CONFIG_DIR
 
-if [ ! -f "$TOKEN_FILE" ]; then
-  printf 'token file not found: %s\n' "$TOKEN_FILE" >&2
-  exit 1
-fi
-
 PROOF_DIR=$(mktemp -d "${TMPDIR:-/tmp}/bus-local-host-worker-smoke.XXXXXX")
 EVENTS_LOG="$PROOF_DIR/events.log"
 EVENTS_PID=
+cleanup_token_file=false
 
 cleanup() {
   if [ -n "${EVENTS_PID:-}" ]; then
     kill "$EVENTS_PID" >/dev/null 2>&1 || true
     wait "$EVENTS_PID" >/dev/null 2>&1 || true
+  fi
+  if [ "$cleanup_token_file" = true ]; then
+    rm -f "$TOKEN_FILE"
   fi
   if [ "$cleanup_config_dir" = true ]; then
     rm -rf "$BUS_CONFIG_DIR"
@@ -82,6 +84,38 @@ run_bus_task() {
     go run ./cmd/bus-task "$@"
   )
 }
+
+mint_local_token() {
+  if [ -x "$ROOT/bus-operator-token/bin/bus-operator-token" ]; then
+    BUS_AUTH_HS256_SECRET=$LOCAL_JWT_SECRET \
+      "$ROOT/bus-operator-token/bin/bus-operator-token" \
+      --format token issue --local \
+      --subject acct_local_spark \
+      --audience ai.hg.fi/api \
+      --scope 'events:send events:listen dev:task:send dev:task:read dev:task:reply dev:task:claim notes.write notes.read notes.search' \
+      --ttl 2h
+    return
+  fi
+  (
+    cd "$ROOT/bus-operator-token"
+    BUS_AUTH_HS256_SECRET=$LOCAL_JWT_SECRET \
+      go run ./cmd/bus-operator-token \
+      --format token issue --local \
+      --subject acct_local_spark \
+      --audience ai.hg.fi/api \
+      --scope 'events:send events:listen dev:task:send dev:task:read dev:task:reply dev:task:claim notes.write notes.read notes.search' \
+      --ttl 2h
+  )
+}
+
+if [ "$MINT_TOKEN" = true ]; then
+  TOKEN_FILE=$(mktemp "${TMPDIR:-/tmp}/bus-local-host-worker-token.XXXXXX")
+  cleanup_token_file=true
+  mint_local_token >"$TOKEN_FILE"
+elif [ ! -f "$TOKEN_FILE" ]; then
+  printf 'token file not found: %s\n' "$TOKEN_FILE" >&2
+  exit 1
+fi
 
 (
   cd "$ROOT/bus-api-provider-events"
@@ -140,6 +174,7 @@ worker_token=$(
   BUS_TASK_CODEX_STATE_ROOT=$ROOT/tmp/bus-dev-task-codex-homes \
   BUS_TASK_WORKTREE_ROOT=$ROOT/tmp/bus-dev-task-worktrees \
   BUS_TASK_CODEX_MODEL=$MODEL \
+  BUS_TASK_PROMPT_PROFILE=$TASK_PROMPT_PROFILE \
   "$ROOT/scripts/local-task-host-worker-launcher.sh"
 )
 printf 'launched worker %s for %s\n' "$worker_token" "$work_ref"

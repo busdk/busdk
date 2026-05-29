@@ -534,6 +534,39 @@ For historical delivery or behavior claims, verify the relevant Git diff before
 writing the claim. For progress, heartbeat, review, and closeout reports, follow
 `skills/bus-product-delivery-supervisor/SKILL.md`.
 
+## Simplify Before Building
+
+1. Before implementing a feature, abstraction, workflow, or infrastructure
+   change, pause and ask whether the current complexity is actually required.
+   Review the real goal first, then choose the smallest shape that would still
+   solve it. Prefer removing constraints, assumptions, or moving parts over
+   building new machinery around them.
+2. When a goal is blocked, find the smallest path that can already do real
+   work and use that first. Prefer a narrow working slice over a broader design
+   that is still theoretical.
+3. Treat temporary/manual supports as acceptable when they unlock immediate
+   productive work. A temporary path is good if it is explicit, reversible,
+   and keeps the architecture honest; do not wait for full automation when a
+   simpler support can get useful work moving now.
+4. Only automate what the team has already proven necessary. If a manual step,
+   reduced feature set, or simplified runtime is enough to unblock real work,
+   defer the generalized version until the simpler path is producing value.
+5. When choosing between fixing the whole platform and fixing the next missing
+   dependency on the active path, prefer the active path. Record what was
+   intentionally deferred so later automation can replace the temporary
+   support without pretending it was never temporary.
+6. Apply this rule broadly, not only to worker infrastructure. The fastest way
+   to finish often is to simplify away unneeded flexibility or complexity so
+   there is less to build, less to debug, and less to maintain.
+7. During design and implementation, actively look for complexity that can be
+   deleted, deferred, narrowed, or moved out of the critical path. Engineers
+   often overbuild by default; this rule exists to make simplification a
+   deliberate first move instead of an afterthought.
+8. For worker infrastructure specifically, prioritize getting one smallest
+   useful worker lane running end to end before expanding registry UX, remote
+   parity, generalized orchestration, or product polish. Once that lane works,
+   use it to help build the fuller system.
+
 ## Troubleshooting And Evidence Discipline
 
 1. When troubleshooting infrastructure, worker, runtime, API, sync, or
