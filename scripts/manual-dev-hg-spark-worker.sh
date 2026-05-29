@@ -122,6 +122,24 @@ if [ ! -d "$remote_repo/.git" ]; then
 	exit 1
 fi
 
+init_module_checkout() {
+	init_module=$1
+	if [ -z "$init_module" ]; then
+		return 0
+	fi
+	if [ ! -d "$worktree/$init_module/.git" ] && [ ! -f "$worktree/$init_module/.git" ]; then
+		pinned_commit=$(git -C "$worktree" rev-parse "HEAD:$init_module" 2>/dev/null || true)
+		if [ -d "$remote_repo/$init_module" ]; then
+			git clone "$remote_repo/$init_module" "$worktree/$init_module"
+			if [ -n "$pinned_commit" ]; then
+				git -C "$worktree/$init_module" checkout "$pinned_commit"
+			fi
+		else
+			git -C "$worktree" submodule update --init "$init_module"
+		fi
+	fi
+}
+
 while ! mkdir "$lockdir" 2>/dev/null; do
 	sleep 1
 done
@@ -169,17 +187,7 @@ while ss -ltn | awk '{print $4}' | grep -Eq "[:.]$port$"; do
 done
 
 if [ -f "$worktree/.gitmodules" ]; then
-	if [ ! -d "$worktree/$module/.git" ] && [ ! -f "$worktree/$module/.git" ]; then
-		pinned_commit=$(git -C "$worktree" rev-parse "HEAD:$module" 2>/dev/null || true)
-		if [ -d "$remote_repo/$module" ]; then
-			git clone "$remote_repo/$module" "$worktree/$module"
-			if [ -n "$pinned_commit" ]; then
-				git -C "$worktree/$module" checkout "$pinned_commit"
-			fi
-		else
-			git -C "$worktree" submodule update --init "$module"
-		fi
-	fi
+	init_module_checkout "$module"
 fi
 if [ -d "$worktree/$module/.git" ] || [ -f "$worktree/$module/.git" ]; then
 	if git -C "$worktree/$module" show-ref --verify --quiet "refs/heads/$branch"; then
@@ -187,6 +195,18 @@ if [ -d "$worktree/$module/.git" ] || [ -f "$worktree/$module/.git" ]; then
 	else
 		git -C "$worktree/$module" checkout -b "$branch"
 	fi
+fi
+if [ -f "$worktree/$module/go.mod" ]; then
+	sed -n 's/^[[:space:]]*replace[[:space:]][^=]*=>[[:space:]]*..\/\([^[:space:]]*\).*/\1/p' "$worktree/$module/go.mod" | while IFS= read -r dep_module; do
+		case "$dep_module" in
+			''|*/*|.*)
+				continue
+				;;
+		esac
+		if [ "$dep_module" != "$module" ]; then
+			init_module_checkout "$dep_module"
+		fi
+	done
 fi
 
 docker rm -f "$container" >/dev/null 2>&1 || true
