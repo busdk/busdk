@@ -2,6 +2,13 @@
   "default": "localhost",
   "remotes": [
     {
+      "id": "localhost",
+      "kind": "compose",
+      "url": "http://localhost:8081",
+      "compose_file": "compose.yaml",
+      "compose_project": "bus-local-ai-platform"
+    },
+    {
       "id": "dev-hg",
       "kind": "ssh-docker",
       "compose_file": "compose.yaml",
