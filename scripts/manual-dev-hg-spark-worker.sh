@@ -12,6 +12,7 @@ MODEL=${BUS_MANUAL_SPARK_MODEL:-gpt-5.3-codex-spark}
 SANDBOX=${BUS_MANUAL_SPARK_SANDBOX:-danger-full-access}
 AUTH_HOME=${BUS_MANUAL_SPARK_AUTH_HOME:-/home/coding-agent/coding-agent/.codex}
 PORT_START=${BUS_MANUAL_SPARK_PORT_START:-19100}
+BASE_REF=${BUS_MANUAL_SPARK_BASE_REF:-HEAD}
 
 usage() {
 	cat >&2 <<'USAGE'
@@ -39,6 +40,7 @@ Environment overrides:
   BUS_MANUAL_SPARK_SANDBOX      default danger-full-access
   BUS_MANUAL_SPARK_AUTH_HOME    default /home/coding-agent/coding-agent/.codex
   BUS_MANUAL_SPARK_PORT_START   default 19100
+  BUS_MANUAL_SPARK_BASE_REF     default HEAD
 USAGE
 	exit 2
 }
@@ -99,6 +101,7 @@ model=$7
 sandbox=$8
 auth_home=$9
 port_start=${10}
+base_ref=${11}
 
 dir="$remote_root/$name"
 worktree="$dir/worktree"
@@ -124,12 +127,14 @@ while ! mkdir "$lockdir" 2>/dev/null; do
 done
 trap 'rmdir "$lockdir" 2>/dev/null || true' EXIT INT TERM
 
-git -C "$remote_repo" fetch origin main >/dev/null 2>&1 || true
+if [ "$base_ref" = "origin/main" ]; then
+	git -C "$remote_repo" fetch origin main >/dev/null 2>&1 || true
+fi
 if [ ! -d "$worktree/.git" ] && [ ! -f "$worktree/.git" ]; then
 	if git -C "$remote_repo" show-ref --verify --quiet "refs/heads/$branch"; then
 		git -C "$remote_repo" worktree add "$worktree" "$branch"
 	else
-		git -C "$remote_repo" worktree add -b "$branch" "$worktree" origin/main
+		git -C "$remote_repo" worktree add -b "$branch" "$worktree" "$base_ref"
 	fi
 fi
 
@@ -164,7 +169,17 @@ while ss -ltn | awk '{print $4}' | grep -Eq "[:.]$port$"; do
 done
 
 if [ -f "$worktree/.gitmodules" ]; then
-	git -C "$worktree" submodule update --init "$module"
+	if [ ! -d "$worktree/$module/.git" ] && [ ! -f "$worktree/$module/.git" ]; then
+		pinned_commit=$(git -C "$worktree" rev-parse "HEAD:$module" 2>/dev/null || true)
+		if [ -d "$remote_repo/$module" ]; then
+			git clone "$remote_repo/$module" "$worktree/$module"
+			if [ -n "$pinned_commit" ]; then
+				git -C "$worktree/$module" checkout "$pinned_commit"
+			fi
+		else
+			git -C "$worktree" submodule update --init "$module"
+		fi
+	fi
 fi
 if [ -d "$worktree/$module/.git" ] || [ -f "$worktree/$module/.git" ]; then
 	if git -C "$worktree/$module" show-ref --verify --quiet "refs/heads/$branch"; then
@@ -222,7 +237,7 @@ printf 'worker=%s\ncontainer=%s\nworktree=%s\nmodule=%s\nbranch=%s\nport=%s\nmod
 	"$name" "$container" "$worktree" "$module" "$branch" "$port" "$model" "$prompt_file"
 REMOTE_SCRIPT
 
-	ssh "$REMOTE" "sh -s -- $(shell_quote "$name") $(shell_quote "$module") $(shell_quote "$branch") $(shell_quote "$REMOTE_REPO") $(shell_quote "$REMOTE_ROOT") $(shell_quote "$IMAGE") $(shell_quote "$MODEL") $(shell_quote "$SANDBOX") $(shell_quote "$AUTH_HOME") $(shell_quote "$PORT_START")" <"$remote_script"
+	ssh "$REMOTE" "sh -s -- $(shell_quote "$name") $(shell_quote "$module") $(shell_quote "$branch") $(shell_quote "$REMOTE_REPO") $(shell_quote "$REMOTE_ROOT") $(shell_quote "$IMAGE") $(shell_quote "$MODEL") $(shell_quote "$SANDBOX") $(shell_quote "$AUTH_HOME") $(shell_quote "$PORT_START") $(shell_quote "$BASE_REF")" <"$remote_script"
 	printf '\nAttach with:\n  %s attach %s\n' "$0" "$name"
 	printf '\nStart the live guided task with:\n  %s prompt %s\n' "$0" "$name"
 	printf '\nPrompt is stored on the remote host and mounted at /workspace/task.md:\n  %s\n' "$prompt_remote"
