@@ -39,6 +39,7 @@ esac
 
 compose_file=${BUS_DEV_TASK_COMPOSE_FILE:-compose.yaml}
 compose_profile=${BUS_DEV_TASK_COMPOSE_PROFILE:-dev-task}
+compose_project=${BUS_DEV_TASK_COMPOSE_PROJECT:-bus-local-ai-platform}
 timeout=${BUS_DEV_TASK_TIMEOUT:-90m}
 commit=${BUS_DEV_TASK_COMMIT:-true}
 default_commit_message='task: {summary}
@@ -69,14 +70,26 @@ if docker ps --format '{{.Names}}' | grep -Fx "$container_name" >/dev/null 2>&1;
   exit 2
 fi
 
-if ! docker compose -f "$compose_file" --profile "$compose_profile" ps bus-events >/dev/null 2>&1; then
+legacy_stack_names=$(
+  docker ps -a \
+    --filter 'label=com.docker.compose.project=busdk' \
+    --format '{{.Names}}' 2>/dev/null || true
+)
+if [ -n "$legacy_stack_names" ] && [ ! -f compose.dev-task-docker.yaml ]; then
+  printf 'warning: stale legacy dev-task containers from removed compose.dev-task-docker.yaml are present under project "busdk"\n' >&2
+  printf 'warning: current local worker platform uses compose project "%s" from %s\n' "$compose_project" "$compose_file" >&2
+  printf 'warning: legacy containers do not prove the current local Events/task worker substrate is healthy\n' >&2
+fi
+
+if ! docker compose --project-name "$compose_project" -f "$compose_file" --profile "$compose_profile" ps bus-events >/dev/null 2>&1; then
   printf 'compose stack is not available through %s; start it before launching workers\n' "$compose_file" >&2
+  printf 'current expected compose project: %s\n' "$compose_project" >&2
   exit 2
 fi
 
-docker compose -f "$compose_file" --profile "$compose_profile" build bus-integration-task >/dev/null
+docker compose --project-name "$compose_project" -f "$compose_file" --profile "$compose_profile" build bus-integration-task >/dev/null
 
-docker compose -f "$compose_file" --profile "$compose_profile" run --rm --no-deps -d \
+docker compose --project-name "$compose_project" -f "$compose_file" --profile "$compose_profile" run --rm --no-deps -d \
   --name "$container_name" \
   -e "BUS_DEV_TASK_RECIPIENT=$recipient" \
   -e "BUS_DEV_TASK_WORK_REF=$work_ref" \
