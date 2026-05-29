@@ -533,3 +533,35 @@ local-only worktree directories such as `./worktrees`.
 For historical delivery or behavior claims, verify the relevant Git diff before
 writing the claim. For progress, heartbeat, review, and closeout reports, follow
 `skills/bus-product-delivery-supervisor/SKILL.md`.
+
+## Troubleshooting And Evidence Discipline
+
+1. When troubleshooting infrastructure, worker, runtime, API, sync, or
+   cross-module integration issues, turn the lights on first. Enable existing
+   verbose logging before guessing, and if current logs do not explain the
+   failure, add the smallest useful DEBUG/TRACE instrumentation in the owning
+   module before attempting broad behavioral changes.
+2. Keep useful observability hooks durable. If a service, CLI, worker, or
+   provider needs deeper logs to be supportable, add a real way to enable those
+   logs through flags, environment variables, or config instead of relying on
+   ad hoc local patches that disappear after the session.
+3. DEBUG/TRACE logs should make decisions legible: input identity, event name,
+   work ref, recipient, worker lane, backend, remote/environment, chosen code
+   path, retry/conflict result, and important external call outcomes. Prefer
+   structured logs or stable key/value text that can be searched and compared.
+4. Trace the whole failing path, not only one process. For multi-service
+   failures, collect or improve logs at each boundary that matters: caller,
+   client SDK, API/provider, worker/supervisor, container/runtime, and remote
+   transport when present.
+5. Verify with proof instead of assuming from symptoms. Reproduce the failure,
+   gather direct evidence, and prefer source-level or protocol-level facts over
+   impressions from partial output. Do not report a cause as established until
+   logs, tests, replay evidence, or code-path inspection support it.
+6. Aim for root cause, not just the first visible error. When a problem is
+   only understandable after adding logs or collecting better proof, record the
+   underlying cause, the evidence that proved it, and the change that prevents
+   the same stall from recurring.
+7. Never log secrets, raw tokens, passwords, private keys, full `.env`
+   contents, or customer-sensitive payloads. When richer logging is needed,
+   log source kinds, file paths, presence/absence, IDs, sizes, counts, and
+   redacted summaries instead of secret values.
