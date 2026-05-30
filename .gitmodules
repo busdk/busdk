@@ -502,3 +502,6 @@
 	path = bus-api-provider-task
 	url = git@github.com:busdk/bus-api-provider-task.git
 	branch = 1-bus-api-provider-task
+[submodule "agents/worker"]
+	path = agents/worker
+	url = git@github.com:busdk/agent-worker.git
