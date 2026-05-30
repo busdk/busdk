@@ -498,3 +498,7 @@
 	path = bus-api-provider-repos
 	url = git@github.com:busdk/bus-api-provider-repos.git
 	branch = 1-bus-api-provider-repos
+[submodule "bus-api-provider-task"]
+	path = bus-api-provider-task
+	url = git@github.com:busdk/bus-api-provider-task.git
+	branch = 1-bus-api-provider-task
