@@ -505,3 +505,4 @@
 [submodule "agents/worker"]
 	path = agents/worker
 	url = git@github.com:busdk/agent-worker.git
+	branch = main
