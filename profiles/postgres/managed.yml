@@ -1,4 +1,6 @@
-id: postgres-managed
+id: postgres/managed
+aliases:
+  - postgres-managed
 name: PostgreSQL managed service
 description: PostgreSQL database server managed by a Bus PostgreSQL provider.
 service_kind: database.postgres

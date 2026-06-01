@@ -1,5 +1,6 @@
 {
-  "id": "postgres-system",
+  "id": "postgres/system",
+  "aliases": ["postgres-system"],
   "name": "PostgreSQL system service",
   "description": "PostgreSQL database server controlled through a host service manager such as launchd or systemd.",
   "service_kind": "database.postgres",

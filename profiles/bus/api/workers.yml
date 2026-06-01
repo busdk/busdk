@@ -1,4 +1,6 @@
-id: bus-api-workers
+id: bus/api/workers
+aliases:
+  - bus-api-workers
 name: Bus API Workers gateway
 description: Bus API gateway with the Workers provider mounted.
 service_kind: bus.api

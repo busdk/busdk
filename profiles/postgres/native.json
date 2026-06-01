@@ -1,6 +1,6 @@
 {
-  "id": "postgres-native",
-  "aliases": ["postgres"],
+  "id": "postgres/native",
+  "aliases": ["postgres", "postgres-native"],
   "name": "PostgreSQL native process",
   "description": "PostgreSQL database server using installed PostgreSQL binaries and a native local process.",
   "service_kind": "database.postgres",

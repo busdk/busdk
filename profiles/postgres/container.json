@@ -1,5 +1,6 @@
 {
-  "id": "postgres-container",
+  "id": "postgres/container",
+  "aliases": ["postgres-container"],
   "name": "PostgreSQL container",
   "description": "PostgreSQL database server backed by a container runtime provider.",
   "service_kind": "database.postgres",

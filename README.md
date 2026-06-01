@@ -215,10 +215,12 @@ not require the BusDK source submodules to exist in the current directory. A
 project only needs `services.yml`, a local `.env`, and the relevant runtime
 binaries on the machine.
 
-Runtime profiles are loaded from `services/profiles` next to `services.yml`.
+Runtime profiles are loaded from `profiles` next to `services.yml`.
 That directory is public stack configuration, so a deployed project can carry
-profiles such as `postgres-native` and `bus-events-api-postgres` without
-needing the BusDK source repositories locally.
+profiles such as `postgres/native` and `bus/events-api/postgres` without
+needing the BusDK source repositories locally. With `profile_dirs: [profiles]`,
+`profile: postgres/native` resolves to `profiles/postgres/native.yml` or
+`profiles/postgres/native.json`.
 Profiles own the runtime recipe: command, arguments, environment references,
 ports, healthchecks, and deterministic init actions. `services.yml` should stay
 small and describe the stack composition: which service ids exist, which
