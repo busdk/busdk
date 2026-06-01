@@ -1,0 +1,41 @@
+id: bus-integration-repos-local
+name: Bus Repos local integration
+description: Bus Repos integration backed by preconfigured local Git repositories.
+service_kind: bus.integration.repos
+runtime:
+  kind: native
+  provider: bus
+  command:
+    - bus-integration-repos
+  env:
+    - name: BUS_EVENTS_API_URL
+      value_from: env:BUS_EVENTS_API_URL
+      default: http://127.0.0.1:8081
+    - name: BUS_API_TOKEN
+      value_from: env:BUS_API_TOKEN
+    - name: BUS_REPOS_ENVIRONMENT_ID
+      value_from: env:BUS_WORKERS_ENVIRONMENT_ID
+      default: local-dev
+    - name: BUS_REPOS_CONFIG
+      value_from: env:BUS_REPOS_CONFIG
+      default: .bus/services/repos/repositories.json
+    - name: BUS_WORKERS_DIRECT_REPO_ROOT
+      value_from: env:BUS_WORKERS_DIRECT_REPO_ROOT
+    - name: BUS_WORKERS_DIRECT_BASE_REF
+      value_from: env:BUS_WORKERS_DIRECT_BASE_REF
+      default: HEAD
+    - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
+      value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
+    - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF
+      value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF
+      default: HEAD
+  options:
+    init:
+      command:
+        - /bin/sh
+      args:
+        - -c
+        - >-
+          mkdir -p "$(dirname "{env:BUS_REPOS_CONFIG}")" &&
+          printf '%s\n' '{"repositories":[{"id":"product","path":"{env:BUS_WORKERS_DIRECT_REPO_ROOT}","default_base_ref":"{env:BUS_WORKERS_DIRECT_BASE_REF}"},{"id":"worker-identity","path":"{env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO}","default_base_ref":"{env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF}"}]}' > "{env:BUS_REPOS_CONFIG}"
+      creates: "{env:BUS_REPOS_CONFIG}"

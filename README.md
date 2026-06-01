@@ -219,6 +219,10 @@ Runtime profiles are loaded from `services/profiles` next to `services.yml`.
 That directory is public stack configuration, so a deployed project can carry
 profiles such as `postgres-native` and `bus-events-api-postgres` without
 needing the BusDK source repositories locally.
+Profiles own the runtime recipe: command, arguments, environment references,
+ports, healthchecks, and deterministic init actions. `services.yml` should stay
+small and describe the stack composition: which service ids exist, which
+profile each service uses, and what depends on what.
 
 The checked-in `services.yml` is public configuration. Keep secrets and local
 paths out of it. Store local values in `.env` with `bus configure`, which

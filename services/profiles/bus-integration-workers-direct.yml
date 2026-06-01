@@ -1,0 +1,58 @@
+id: bus-integration-workers-direct
+name: Bus Workers direct Codex integration
+description: Bus Workers integration running local direct Codex App Server workers.
+service_kind: bus.integration.workers
+runtime:
+  kind: native
+  provider: bus
+  command:
+    - bus-integration-workers
+  args:
+    - --lifecycle
+    - direct-exec
+  env:
+    - name: BUS_EVENTS_API_URL
+      value_from: env:BUS_EVENTS_API_URL
+      default: http://127.0.0.1:8081
+    - name: BUS_API_TOKEN
+      value_from: env:BUS_API_TOKEN
+    - name: BUS_WORKERS_ENVIRONMENT_ID
+      value_from: env:BUS_WORKERS_ENVIRONMENT_ID
+      default: local-dev
+    - name: BUS_WORKERS_ENVIRONMENT_NAME
+      value_from: env:BUS_WORKERS_ENVIRONMENT_NAME
+      default: Local dev
+    - name: BUS_WORKERS_DIRECT_REPO_ROOT
+      value_from: env:BUS_WORKERS_DIRECT_REPO_ROOT
+    - name: BUS_WORKERS_DIRECT_WORKER_ROOT
+      value_from: env:BUS_WORKERS_DIRECT_WORKER_ROOT
+      default: .bus/services/workers/runtime
+    - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
+      value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
+    - name: BUS_WORKERS_DIRECT_MODEL
+      value_from: env:BUS_WORKERS_DIRECT_MODEL
+      default: gpt-5.3-codex-spark
+    - name: BUS_WORKERS_DIRECT_SANDBOX
+      value_from: env:BUS_WORKERS_DIRECT_SANDBOX
+      default: workspace-write
+    - name: BUS_WORKERS_DIRECT_CODEX_COMMAND
+      value_from: env:BUS_WORKERS_DIRECT_CODEX_COMMAND
+      default: codex
+    - name: BUS_WORKERS_DIRECT_BASE_REF
+      value_from: env:BUS_WORKERS_DIRECT_BASE_REF
+      default: HEAD
+    - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF
+      value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF
+      default: HEAD
+    - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_BRANCH_PREFIX
+      value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_BRANCH_PREFIX
+      default: worker/
+    - name: BUS_WORKERS_DIRECT_WORKSPACE_MATERIALIZER
+      value_from: env:BUS_WORKERS_DIRECT_WORKSPACE_MATERIALIZER
+      default: repos-events
+    - name: BUS_WORKERS_DIRECT_REPOS_ENSURE_TIMEOUT
+      value_from: env:BUS_WORKERS_DIRECT_REPOS_ENSURE_TIMEOUT
+      default: 30s
+    - name: BUS_WORKERS_DIRECT_MESSAGE_EVIDENCE_TIMEOUT
+      value_from: env:BUS_WORKERS_DIRECT_MESSAGE_EVIDENCE_TIMEOUT
+      default: 3m
