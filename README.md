@@ -226,18 +226,60 @@ bus configure BUS_EVENTS_POSTGRES_DSN='postgres://bus_service@127.0.0.1:5432/pos
 ```
 
 `bus services up` auto-starts `bus-integration-services`, which then starts the
-services declared in `services.yml`. The default stack starts a native
-PostgreSQL process and the Bus Events API provider using PostgreSQL as its
-durable backend. The PostgreSQL profile initializes `PGDATA` automatically on
-first start and skips initialization after the `PG_VERSION` marker exists.
-When not configured, the PostgreSQL profile defaults to
-`.bus/services/postgres/data` for `PGDATA` and `5432` for the PostgreSQL port.
-Override them only when the local machine needs different values:
+services declared in `services.yml`. The default stack is enough to run local
+Codex Spark workers:
+
+- native PostgreSQL for durable Events storage
+- Bus Events API backed by PostgreSQL
+- `bus-integration-repos` for Git worktree and branch materialization
+- `bus-integration-workers` using the local direct Codex runner
+- `bus-api` with the Workers provider mounted for `bus workers ...`
+
+Configure the worker product repository and worker identity repository as local
+paths. In this superproject checkout, the product repository is the root and the
+worker identity repository is `agents/worker`:
+
+```bash
+bus configure BUS_WORKERS_DIRECT_REPO_ROOT="$PWD"
+bus configure BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO="$PWD/agents/worker"
+```
+
+Create a Bus API token that can be used by the local services. Use the same
+HS256 secret value for `BUS_AUTH_HS256_SECRET` that you configured as
+`BUS_EVENTS_JWT_SECRET`:
+
+```bash
+BUS_AUTH_HS256_SECRET=change-this-local-secret \
+  bus configure BUS_API_TOKEN="$(bus operator token --format token issue --local \
+    --subject local-workers \
+    --audience ai.hg.fi/api \
+    --scope 'events:send events:listen workers:read workers:write workers:control' \
+    --ttl 12h)"
+```
+
+The Workers API is served through the local Bus API gateway. Its capability
+token and port default to `local` and `8090`, so the default API URL for the
+worker CLI is `http://127.0.0.1:8090/local/v1`:
+
+```bash
+bus workers --api-url http://127.0.0.1:8090/local/v1 list --environment local-dev
+```
+
+The PostgreSQL profile initializes `PGDATA` automatically on first start and
+skips initialization after the `PG_VERSION` marker exists. When not configured,
+the PostgreSQL profile defaults to `.bus/services/postgres/data` for `PGDATA`
+and `5432` for the PostgreSQL port. Override them only when the local machine
+needs different values:
 
 ```bash
 bus configure BUS_POSTGRES_PGDATA="$PWD/.bus/services/postgres/data"
 bus configure BUS_POSTGRES_PORT=5432
 ```
+
+`bus-integration-repos` writes its generated repository configuration to
+`.bus/services/repos/repositories.json` on first start. If you intentionally
+change the product or worker identity repository paths, remove that generated
+file before starting the stack again.
 
 The service supervisor state, logs, and PostgreSQL data live under `.bus/` by
 default. Stop the stack with:
