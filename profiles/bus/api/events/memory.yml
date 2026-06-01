@@ -1,8 +1,10 @@
-id: bus/events-api/postgres
+id: bus/api/events/memory
 aliases:
-  - bus-events-api-postgres
-name: Bus Events API PostgreSQL backend
-description: Bus Events API provider using PostgreSQL as the durable Events backend.
+  - bus-events-api-memory
+  - bus-events-api
+  - bus/events-api/memory
+name: Bus Events API memory backend
+description: Bus Events API provider using the in-memory backend for local development.
 service_kind: bus.api.events
 runtime:
   kind: native
@@ -13,12 +15,10 @@ runtime:
     - --addr
     - 127.0.0.1:8081
     - --events-backend
-    - postgres
+    - memory
   env:
     - name: BUS_EVENTS_JWT_SECRET
       value_from: env:BUS_EVENTS_JWT_SECRET
-    - name: BUS_EVENTS_POSTGRES_DSN
-      value_from: env:BUS_EVENTS_POSTGRES_DSN
   ports:
     - name: events-api
       protocol: tcp

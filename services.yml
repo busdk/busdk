@@ -7,15 +7,15 @@ services:
   postgres:
     profile: postgres/native
   events-api:
-    profile: bus/events-api/postgres
+    profile: bus/api/events/postgres
     depends_on:
       - postgres
   repos-integration:
-    profile: bus/integration-repos/local
+    profile: bus/integration/repos/local
     depends_on:
       - events-api
   workers-integration:
-    profile: bus/integration-workers/direct
+    profile: bus/integration/workers/direct
     depends_on:
       - events-api
       - repos-integration
