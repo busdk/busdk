@@ -1,266 +1,94 @@
-# BusDK (Business Development Kit)
+# BusDK
 
 [![License](https://img.shields.io/github/license/busdk/busdk)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/busdk/busdk)](https://github.com/busdk/busdk/releases)
 
-BusDK is a modular, CLI-first toolkit for running a business with Git-native, auditable data. It stores business datasets as UTF-8 CSV backed by Frictionless Table Schema (JSON), favoring simple primitives, deterministic behavior, and workflows that work well for both humans and automation. This repository is the one-command entrypoint to install the full BusDK toolchain.
+BusDK is a modular, CLI-first toolkit for running Bus services and workflows.
+This superproject is the public entrypoint for installing the `bus` dispatcher,
+starting the local Services stack, and running local Codex Spark workers.
 
-## Quick install
+## Simplest Local Worker Setup
 
-Use this on Linux or macOS with `bash`, `curl`, and permission to write the
-install directory. The default install path is `$(HOME)/.local/bin`; add that
-directory to `PATH` before running `bus`.
+This is the shortest path for the current local worker use case:
+
+1. Install BusDK.
+2. Configure local `.env` values with `bus configure`.
+3. Start the Services stack with `bus services up`.
+4. Create and guide a local Codex Spark worker with `bus workers ...`.
+
+You need PostgreSQL binaries available locally and a working `codex` command
+with local Codex authentication already configured.
+
+The checked-in `services.yml` starts the services needed for local workers:
+
+- native PostgreSQL for durable Events storage;
+- Bus Events API backed by PostgreSQL;
+- Bus Repos integration for Git branch and worktree materialization;
+- Bus Workers integration using the local direct Codex runner;
+- Bus API gateway with the Workers provider mounted.
+
+### 1. Install
+
+Use the release installer on Linux or macOS:
 
 ```bash
 curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh | bash
 ```
 
-## Status
-
-Pre-release and actively maintained. Interfaces, schemas, and file conventions may still evolve.
-
-## Features
-
-- One command to install a consistent set of BusDK CLI tools
-- Modular subcommands for accounts, journal, invoices, VAT, reports, and more
-- Git-friendly, schema-validated CSV datasets with deterministic outputs
-- Reproducible builds with consistent output and install paths
-
-## Submodule index
-
-Use this index to find the module that owns a feature area. The superproject
-pins and orchestrates these repositories; implementation work belongs in the
-owning module.
-
-Core entrypoints and documentation:
-
-- `bus`: command dispatcher for `bus <module> ...`.
-- `bus-help`: shared command help and metadata support.
-- `bus-init`: project and dataset initialization flows.
-- `bus-update`: update helper for installed BusDK tools.
-- `docs`: public user documentation.
-- `sdd`: system design documentation.
-- `busdk.com`: project website.
-
-Data, validation, files, and shared primitives:
-
-- `bus-data`: CSV/table-schema data primitives and dataset operations.
-- `bus-validate`: validation rules and schema checks.
-- `bus-config`: configuration contracts and helpers.
-- `bus-configure`: CLI for managing local Bus configuration.
-- `bus-files`: file and workspace helpers.
-- `bus-assets`: static asset handling.
-- `bus-attachments`: attachment metadata and storage flows.
-- `bus-period`: accounting period/date helpers.
-- `bus-bfl`: Bus formula/language utilities.
-- `bus-pdf`: PDF rendering/export support.
-
-Accounting and business records:
-
-- `bus-accounts`: chart of accounts.
-- `bus-journal`: journal entries.
-- `bus-ledger`: ledger projections and balances from journals.
-- `bus-balances`: balance reports and checks.
-- `bus-bank`: bank account/import support.
-- `bus-reconcile`: reconciliation workflows.
-- `bus-vat`: VAT calculations and reports.
-- `bus-books`: bookkeeping package and book-level workflows.
-- `bus-reports`: financial and operational reports.
-- `bus-sheets`: spreadsheet-style exports/imports.
-- `bus-replay`: deterministic replay of recorded business events.
-
-Commercial operations and filings:
-
-- `bus-entities`: legal/business entity records.
-- `bus-customers`: customer records.
-- `bus-vendors`: vendor records.
-- `bus-inventory`: inventory records.
-- `bus-invoices`: invoice workflows.
-- `bus-payroll`: payroll records and calculations.
-- `bus-loans`: loan schedules and records.
-- `bus-debts`: debt tracking.
-- `bus-budget`: budgets and planning records.
-- `bus-billing`: Bus platform billing domain.
-- `bus-filing`: filing workflow contracts.
-- `bus-filing-prh`: Finnish PRH filing integration.
-- `bus-filing-vero`: Finnish Vero filing integration.
-
-API, auth, events, and platform services:
-
-- `bus-api`: HTTP API gateway and shared API runtime.
-- `bus-auth`: authentication, tokens, and authorization helpers.
-- `bus-events`: event transport and event API.
-- `bus-gateway`: edge/gateway routing support.
-- `bus-mcp`: Model Context Protocol support.
-- `bus-secrets`: secret handling contracts.
-- `bus-preferences`: user and workspace preferences.
-- `bus-status`: status and health reporting.
-- `bus-vm`: virtual-machine platform CLI/domain.
-- `bus-containers`: container execution platform CLI/domain.
-
-API providers:
-
-- `bus-api-provider-auth`: Auth API provider.
-- `bus-api-provider-billing`: Billing API provider.
-- `bus-api-provider-books`: Books API provider.
-- `bus-api-provider-cloud`: Cloud API provider.
-- `bus-api-provider-containers`: Containers API provider.
-- `bus-api-provider-data`: Data API provider.
-- `bus-api-provider-database`: Database API provider.
-- `bus-api-provider-events`: Events API provider.
-- `bus-api-provider-inference`: Inference API provider.
-- `bus-api-provider-llm`: LLM-compatible API provider.
-- `bus-api-provider-mcp`: MCP API provider.
-- `bus-api-provider-node`: Node API provider.
-- `bus-api-provider-notes`: Notes API provider.
-- `bus-api-provider-session`: Session API provider.
-- `bus-api-provider-terminal`: Terminal API provider.
-- `bus-api-provider-usage`: Usage API provider.
-- `bus-api-provider-vm`: VM API provider.
-
-Integration adapters:
-
-- `bus-integration`: shared integration framework.
-- `bus-integration-billing`: billing integration workflows.
-- `bus-integration-cloud`: cloud integration contracts.
-- `bus-integration-codex`: Codex-backed execution integration.
-- `bus-integration-containers`: container execution integration.
-- `bus-integration-database`: database integration contracts.
-- `bus-integration-task`: development-task worker integration.
-- `bus-integration-docker`: Docker integration.
-- `bus-integration-inference`: inference integration contracts.
-- `bus-integration-node`: node integration.
-- `bus-integration-notes`: Notes business workflow integration.
-- `bus-integration-ollama`: Ollama integration.
-- `bus-integration-podman`: Podman integration.
-- `bus-integration-postgres`: PostgreSQL integration.
-- `bus-integration-ssh-runner`: SSH command runner integration.
-- `bus-integration-stripe`: Stripe integration.
-- `bus-integration-upcloud`: UpCloud integration.
-- `bus-integration-usage`: usage metering integration.
-
-Operators:
-
-- `bus-operator`: shared operator framework.
-- `bus-operator-auth`: Auth operator.
-- `bus-operator-billing`: Billing operator.
-- `bus-operator-cloud`: Cloud operator.
-- `bus-operator-database`: Database operator.
-- `bus-operator-deploy`: deployment operator.
-- `bus-operator-inference`: inference operator.
-- `bus-operator-node`: node operator.
-- `bus-operator-stripe`: Stripe operator.
-- `bus-operator-token`: token operator.
-
-UI and browser-facing modules:
-
-- `bus-gx`: GX Go/HTML-like UI template language and compiler.
-- `bus-ui`: reusable UI libraries and components.
-- `bus-portal`: browser portal host.
-- `bus-portal-accounting`: accounting portal module.
-- `bus-portal-ai`: AI portal module.
-- `bus-portal-auth`: auth portal module.
-- `bus-portal-notes`: Notes portal module.
-- `bus-chat`: chat UI/application module.
-- `bus-factory`: assistant/factory UI module.
-
-Developer, AI, and automation tools:
-
-- `bus-agent`: agent-facing workflows.
-- `bus-dev`: development task and worker tooling.
-- `bus-work`: work coordination helpers.
-- `bus-run`: command execution helpers.
-- `bus-shell`: shell/workspace helpers.
-- `bus-lint`: AI-assisted documentation and source review.
-- `bus-inspection`: inspection and diagnostics.
-- `bus-memo`: durable work memo support.
-- `bus-notes`: Bus Notes CLI and shared note contracts.
-- `bus-faq`: FAQ content and retrieval support.
-
-## Usage
-
-After installation, ensure `$(PREFIX)/bin` is on your `PATH`, then run:
+The default install path is `$HOME/.local/bin`. Add it to `PATH` if needed:
 
 ```bash
+export PATH="$HOME/.local/bin:$PATH"
 bus --help
 ```
 
-Expected output includes the dispatcher help header and a list of available subcommands.
+### 2. Configure
 
-Use modules through the dispatcher, for example:
+Run these commands from the project directory that contains `services.yml`.
+The file stores local values in `.env`; `services.yml` remains public and
+should not contain secrets or machine-specific paths.
 
-```bash
-bus journal --help
-```
-
-Each module also installs a standalone binary for direct/debug use, but the
-intended user-facing command form remains `bus <module> ...`:
-
-```bash
-bus-journal --help
-```
-
-## Local Services stack
-
-BusDK can start local runtime services from a public `services.yml` file in the
-superproject root:
-
-```bash
-bus services up
-bus services down
-```
-
-This path uses the installed BusDK tools through the `bus` dispatcher. It does
-not require the BusDK source submodules to exist in the current directory. A
-project only needs `services.yml`, a local `.env`, and the relevant runtime
-binaries on the machine.
-
-Runtime profiles are loaded from `profiles` next to `services.yml`.
-That directory is public stack configuration, so a deployed project can carry
-profiles such as `postgres/native` and `bus/api/events/postgres` without
-needing the BusDK source repositories locally. With `profile_dirs: [profiles]`,
-`profile: postgres/native` resolves to `profiles/postgres/native.yml` or
-`profiles/postgres/native.json`.
-Profiles own the runtime recipe: command, arguments, environment references,
-ports, healthchecks, and deterministic init actions. `services.yml` should stay
-small and describe the stack composition: which service ids exist, which
-profile each service uses, and what depends on what.
-
-The checked-in `services.yml` is public configuration. Keep secrets and local
-paths out of it. Store local values in `.env` with `bus configure`, which
-creates or updates `.env` in the current directory:
+Configure PostgreSQL. `BUS_POSTGRES_BIN` must point at the directory that
+contains the `postgres` and `initdb` binaries. On macOS with Homebrew
+PostgreSQL 18:
 
 ```bash
 bus configure BUS_POSTGRES_BIN=/opt/homebrew/opt/postgresql@18/bin
-bus configure BUS_EVENTS_JWT_SECRET=change-this-local-secret
+bus configure BUS_POSTGRES_PGDATA="$PWD/.bus/services/postgres/data"
+bus configure BUS_POSTGRES_PORT=5432
+```
+
+On a Linux package install, the path is often similar to:
+
+```bash
+bus configure BUS_POSTGRES_BIN=/usr/lib/postgresql/18/bin
+```
+
+Configure Events API auth and PostgreSQL storage. Generate a unique local
+secret and keep using the same value when issuing the local API token:
+
+```bash
+BUS_LOCAL_SECRET="$(openssl rand -hex 32)"
+bus configure BUS_EVENTS_JWT_SECRET="$BUS_LOCAL_SECRET"
 bus configure BUS_EVENTS_POSTGRES_DSN='postgres://bus_service@127.0.0.1:5432/postgres?sslmode=disable'
 ```
 
-`bus services up` auto-starts `bus-integration-services`, which then starts the
-services declared in `services.yml`. The default stack is enough to run local
-Codex Spark workers:
-
-- native PostgreSQL for durable Events storage
-- Bus Events API backed by PostgreSQL
-- `bus-integration-repos` for Git worktree and branch materialization
-- `bus-integration-workers` using the local direct Codex runner
-- `bus-api` with the Workers provider mounted for `bus workers ...`
-
-Configure the worker product repository and worker identity repository as local
-paths. In this superproject checkout, the product repository is the root and the
-worker identity repository is `agents/worker`:
+Configure worker repositories. In this superproject checkout, the product
+repository is the current directory and the worker identity repository is
+`agents/worker`:
 
 ```bash
 bus configure BUS_WORKERS_DIRECT_REPO_ROOT="$PWD"
 bus configure BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO="$PWD/agents/worker"
 ```
 
-Create a Bus API token that can be used by the local services. Use the same
-HS256 secret value for `BUS_AUTH_HS256_SECRET` that you configured as
-`BUS_EVENTS_JWT_SECRET`:
+Create a local API token for the services. Run this in the same shell where
+`BUS_LOCAL_SECRET` is set, or replace it with the same unique value configured
+as `BUS_EVENTS_JWT_SECRET`. The default local auth audience is `ai.hg.fi/api`;
+keep it unless you have changed the local API/Event auth configuration.
 
 ```bash
-BUS_AUTH_HS256_SECRET=change-this-local-secret \
+BUS_AUTH_HS256_SECRET="$BUS_LOCAL_SECRET" \
   bus configure BUS_API_TOKEN="$(bus operator token --format token issue --local \
     --subject local-workers \
     --audience ai.hg.fi/api \
@@ -268,930 +96,172 @@ BUS_AUTH_HS256_SECRET=change-this-local-secret \
     --ttl 12h)"
 ```
 
-The Workers API is served through the local Bus API gateway. Its capability
-token and port default to `local` and `8090`, so the default API URL for the
-worker CLI is `http://127.0.0.1:8090/local/v1`:
+### 3. Start Services
+
+Start the local stack:
 
 ```bash
-bus workers --api-url http://127.0.0.1:8090/local/v1 list --environment local-dev
+bus services up
 ```
 
-The PostgreSQL profile initializes `PGDATA` automatically on first start and
-skips initialization after the `PG_VERSION` marker exists. When not configured,
-the PostgreSQL profile defaults to `.bus/services/postgres/data` for `PGDATA`
-and `5432` for the PostgreSQL port. Override them only when the local machine
-needs different values:
-
-```bash
-bus configure BUS_POSTGRES_PGDATA="$PWD/.bus/services/postgres/data"
-bus configure BUS_POSTGRES_PORT=5432
-```
-
-`bus-integration-repos` writes its generated repository configuration to
-`.bus/services/repos/repositories.json` on first start. If you intentionally
-change the product or worker identity repository paths, remove that generated
-file before starting the stack again.
-
-The service supervisor state, logs, and PostgreSQL data live under `.bus/` by
-default. Stop the stack with:
+Stop it when finished:
 
 ```bash
 bus services down
 ```
 
-## Local Bus cloud platform stack
+Service runtime state, logs, generated repository configuration, and PostgreSQL
+data live under `.bus/` by default. The PostgreSQL profile initializes `PGDATA`
+on first start and skips initialization when `PG_VERSION` already exists.
 
-For local validation of the Bus cloud platform flow described by the
-UpCloud/Stripe deployment tutorial, start the root Compose stack.
+### 4. Create And Guide A Worker
 
-Prerequisites:
-
-- Docker Desktop or Docker Engine with Compose support.
-- This superproject as the current working directory.
-- Submodules initialized so the `bus` and `bus-*` module directories exist.
-- `bus` installed and on `PATH` for `bus configure`, or use the equivalent
-  source-tree command `go run ./bus-configure/cmd/bus-configure`.
-- A trusted local development machine. The stack mounts `/var/run/docker.sock`
-  into `bus-integration-docker` and real Codex dev-task workers, which grants
-  host-level Docker control so module e2e suites can run Docker-backed checks.
-- Optional live Codex auth in `${BUS_CODEX_HOME:-$HOME/.codex}` when running
-  the live chat smoke with `BUS_LOCAL_AI_PLATFORM_LIVE_CODEX=1`; the default
-  smoke does not require Codex credentials.
-
-```bash
-bus configure LOCAL_AI_PLATFORM_PORT=8080
-bus configure LOCAL_AI_PLATFORM_POSTGRES_PORT=15432
-bus configure LOCAL_AI_PLATFORM_MAILHOG_PORT=8025
-bus configure BUS_CODEX_MODEL=auto
-bus configure BUS_PORTAL_TOKEN=local-dev
-docker compose up --build -d
-docker compose exec testing-agent sh
-```
-
-The stack reads configuration from `.env` automatically and uses non-secret
-development defaults for values that are not present. Use `bus configure KEY=VALUE`
-for local overrides instead of hand-editing `.env`; it creates the file when it
-does not exist and preserves existing comments and unknown values. Use
-`.env.example` only as a checked-in reference for the local defaults.
-
-The stack starts PostgreSQL, MailHog, nginx, Events, Auth, LLM, Usage, Billing,
-Stripe webhook ingress, VM, Containers, Bus Notes, the Bus portal, a local
-Docker container execution worker, a development-task-to-container bridge, and
-a Codex-backed LLM execution worker. Bus Notes is mounted through `bus-api` and
-`bus-api-provider-notes`, backed by `bus-integration-notes` and Bus data tables
-stored in the stack PostgreSQL database. It does not provision UpCloud
-resources, public DNS, TLS certificates, or systemd units.
-
-Useful configuration commands:
-
-```bash
-bus configure list
-bus configure --module portal list
-bus configure --module portal doctor
-bus configure --module integration-docker list
-bus configure --module integration-docker doctor
-bus configure --module integration-codex list
-bus configure --module integration-codex doctor
-```
-
-To move the local HTTP port or MailHog UI port, update the dotenv file through
-`bus configure` and restart Compose:
-
-```bash
-bus configure LOCAL_AI_PLATFORM_PORT=8081
-bus configure LOCAL_AI_PLATFORM_MAILHOG_PORT=18025
-docker compose up --build -d
-```
-
-To point the Codex worker at a non-default local Codex config directory:
-
-```bash
-bus configure BUS_CODEX_HOME=/path/to/codex-home
-docker compose up --build -d bus-codex bus-llm
-```
-
-The public local base URL is:
-
-```bash
-http://127.0.0.1:8080
-```
-
-If `LOCAL_AI_PLATFORM_PORT` is changed, replace `8080` with the configured
-port.
-
-nginx exposes the same local route families used by the production tutorial:
+The Workers API is served through the local Bus API gateway. The default local
+URL is:
 
 ```text
-/v1/*
-/api/v1/auth/*
-/api/v1/events*
-/api/v1/billing/*
-/api/v1/vm/*
-/api/v1/containers/*
-/api/v1/notes*
-/api/internal/auth/*
-/api/internal/billing/*
-/api/internal/usage-events*
-/api/internal/containers/*
-/api/internal/stripe/webhook
-/portal/local-dev/*
+http://127.0.0.1:8090/local/v1
 ```
 
-The local portal is available at:
+List workers:
 
 ```bash
-http://127.0.0.1:8080/portal/local-dev/
+bus workers --api-url http://127.0.0.1:8090/local/v1 list --environment local-dev
 ```
 
-If `LOCAL_AI_PLATFORM_PORT` is changed, replace `8080` with the configured
-port.
+Create a local Codex Spark worker. Omit `--id`; the Workers API provider
+generates a UUID and the worker identity branch defaults to
+`worker/{worker_uuid}`:
 
-It runs `bus-portal` with `bus-portal-auth`, `bus-portal-ai`, and experimental
-`bus-portal-accounting` mounted. Portal modules remain frontend-only; auth,
-billing, LLM, container, and accounting business operations stay behind the
-same API-provider routes listed above.
+```bash
+bus workers --api-url http://127.0.0.1:8090/local/v1 create \
+  --label "Spark 1" \
+  --type agent \
+  --profile codex-spark \
+  --model gpt-5.3-codex-spark \
+  --runner-kind direct \
+  --runner-provider codex-direct \
+  --environment local-dev \
+  --sandbox workspace-write
+```
 
-Inside `testing-agent`, generated local JWTs are available at:
+Use the returned worker id for guidance:
+
+```bash
+bus workers --api-url http://127.0.0.1:8090/local/v1 message <worker-id> \
+  --environment local-dev \
+  --text "Inspect the task details and wait for guidance before editing."
+```
+
+Read worker responses and status:
+
+```bash
+bus workers --api-url http://127.0.0.1:8090/local/v1 messages <worker-id> --environment local-dev
+bus workers --api-url http://127.0.0.1:8090/local/v1 status <worker-id> --environment local-dev
+bus workers --api-url http://127.0.0.1:8090/local/v1 logs <worker-id> --environment local-dev
+bus workers --api-url http://127.0.0.1:8090/local/v1 attach <worker-id> --environment local-dev
+```
+
+Stop the worker:
+
+```bash
+bus workers --api-url http://127.0.0.1:8090/local/v1 stop <worker-id> \
+  --environment local-dev \
+  --reason "done"
+```
+
+## Services Configuration
+
+The root `services.yml` is intentionally small. It points at runtime profiles
+stored under `profiles/`:
 
 ```text
-~/.config/bus/auth/api-token
-~/.config/bus/auth/auth-token
+profiles/
+- postgres/native.json
+- bus/api/events/postgres.yml
+- bus/api/workers.yml
+- bus/integration/repos/local.yml
+- bus/integration/workers/direct.yml
 ```
 
-Smoke-check the local OpenAI-compatible route:
+Profiles define commands, arguments, environment references, healthchecks, and
+deterministic initialization steps. The stack file chooses which services run
+and how they depend on each other.
+
+If you change `BUS_WORKERS_DIRECT_REPO_ROOT` or
+`BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO`, remove
+`.bus/services/repos/repositories.json` before starting again so the repos
+integration regenerates its local repository configuration.
+
+## Install From Source
+
+Clone the superproject and initialize submodules:
 
 ```bash
-TOKEN="$(cat ~/.config/bus/auth/api-token)"
-wget -qO- --header="Authorization: Bearer $TOKEN" http://nginx:8080/v1/models
-```
-
-Smoke-check the local Notes API from inside the stack:
-
-```bash
-TOKEN="$(cat ~/.config/bus/auth/api-token)"
-cd /workspace/bus-notes
-BUS_NOTES_API_URL=http://nginx:8080/api BUS_API_TOKEN="$TOKEN" \
-  go run ./cmd/bus-notes add --title "Local stack note" --body "Notes API is reachable." --author-id local-agent --module bus-dev --task local-smoke --tags agent-work-log
-BUS_NOTES_API_URL=http://nginx:8080/api BUS_API_TOKEN="$TOKEN" \
-  go run ./cmd/bus-notes search local-smoke
-```
-
-Start the full local stack and create a Docker-backed Codex task from the host:
-
-```bash
-bus configure BUS_DOCKER_CODEX_HOME_WRITABLE=true
-docker compose up --build -d
-bus configure BUS_API_TOKEN="$(cat tmp/local-ai-platform/bus-config/auth/api-token)"
-bus configure BUS_EVENTS_API_URL=http://127.0.0.1:8080
-bus task -C ./bus-dev start "Show the Codex CLI version."
-bus task -C ./bus-dev watch <task-ref-from-work-start-output> --timeout 5m
-```
-
-`docker compose up --build -d` writes a non-secret local development token under
-`tmp/local-ai-platform/bus-config/auth/api-token`. Store that token and the
-local Events API URL with `bus configure` so they are managed in `.env` instead
-of shell exports. `BUS_DOCKER_CODEX_HOME_WRITABLE` is enabled for this trusted
-local Docker stack because live `codex exec` needs to create session state
-under the mounted Codex home. When no explicit `BUS_API_TOKEN`, `--token-file`,
-or `BUS_CONFIG_DIR` token is configured, `bus task` can still use that
-source-checkout token automatically before falling back to
-`~/.config/bus/auth/api-token`. The Events API default is `http://127.0.0.1:8080`,
-matching the local nginx route.
-
-By default the task bridge runs Codex in the addressed module repository. A
-task created from `bus-dev`, or explicitly addressed as `@bus-dev`, runs in
-`/workspace/bus-dev` inside the Docker-created Codex container. A task addressed
-as `@bus-integration-docker` runs in `/workspace/bus-integration-docker`.
-
-### Parallel development tasks
-
-Use one `bus-integration-task` worker per module recipient. Do not run
-generic recipient-less workers: independent module work should be claimed by a
-worker addressed to exactly that module.
-
-The standard local stack starts one `bus-dev` task worker by default so local
-smokes and control-plane tasks have an autonomous worker without manual startup.
-Set `BUS_TASK_RECIPIENT` when you want that managed worker to listen for a
-different single module recipient.
-
-Task containers use isolated Git worktrees by default in the local Docker
-stack. The mounted workspace is the read-only dependency view, and only the
-recipient's task worktree is mounted writable. For this BusDK superproject,
-Compose sets `BUS_TASK_WORKSPACE_RECIPIENT=busdk`; use recipient `busdk`
-only for work that intentionally edits the superproject root. Other projects
-can choose their own workspace-recipient name without changing worker code.
-
-The local task stack provider routers can be scaled while the stack is running.
-Start with the default single managed task worker plus four provider routers,
-then increase provider-router replicas in steps of two only when Docker has
-CPU, memory, and Codex quota headroom:
-
-```bash
-docker compose -f compose.yaml --profile dev-task up -d \
-  --scale bus-integration-docker=6 \
-  --scale bus-integration-containers=6 \
-  bus-integration-docker bus-integration-containers
-```
-
-Stack-managed module workers are autonomous by default: after completing one
-task they keep listening for the next matching task for the same recipient.
-They are still disposable containers. You can remove and recreate them at any
-time because durable coordination is in Bus Events and task changes are in the
-recipient-owned Git worktree and promoted commit path, not in container-local
-state.
-
-If review finds that a terminal task stopped at investigation, missed tests, or
-otherwise needs correction, use `bus task reopen <ref> <message...>`.
-Reopen publishes `bus.task.reopened` with status `open` and preserves any
-stored Codex App Server thread metadata so the next matching worker can resume
-the same conversation instead of starting from a blank session.
-
-Add a one-shot module worker dynamically with a unique container name and
-explicit recipient only when you want a disposable batch worker that exits after
-one matching task or after a bounded idle period:
-
-```bash
-docker compose -f compose.yaml --profile dev-task run -d --no-deps \
-  --name busdk-dev-task-bus-journal-1 \
-  -e BUS_TASK_RECIPIENT=bus-journal \
-  -e BUS_TASK_ONCE=true \
-  -e BUS_TASK_IDLE_TIMEOUT=10m \
-  bus-integration-task
-```
-
-Then create a targeted task:
-
-```bash
-bus task -C ./bus-dev new @bus-journal "Implement the next PLAN.md item."
-```
-
-Measured local plumbing settings from
-`tests/superproject/bench_dev_task_docker_compose_workers.sh` on the
-provider-neutral fake App Server path. These are synthetic smoke tasks that
-prove claim/start/steer/done throughput; they do not measure completed
-`PLAN.md` backlog work and should not be used as the productivity metric.
-
-| Workers | Smoke tasks/min |
-|---------|-----------------|
-| 1       | 12.81           |
-| 2       | 18.73           |
-| 3       | 24.28           |
-| 4       | 27.90           |
-| 6       | 29.64           |
-| 8       | 31.31           |
-
-Use 4 parallel module workers as the default routine setting until real work
-data says otherwise. For real Codex-backed work, increase only when
-`bus task stats --all` shows workers spend most wall time waiting on
-external LLM turns and human review can keep up. Real productivity is accepted
-PLAN item closures per hour, review pass rate, and rework. Treat 6 or 8 as
-monitored experiments, not defaults, because more workers also create more
-review, token, memory, and Git-worktree pressure.
-
-`bus task` exposes sandbox policy through the Bus-level `--sandbox` flag. The
-`write` sandbox maps to Codex App Server `workspace-write` for the Codex
-adapter, so commit-enabled tasks keep filesystem writes constrained to the
-addressed isolated worktree. The bridge still verifies that worktree before
-promotion and reports blocked instead of done when a worker produces no diff or
-self-reports incomplete evidence.
-
-Watch task state and container pressure while scaling:
-
-```bash
-bus task -C ./bus-dev list --all
-docker ps
-docker stats --no-stream
-scripts/docker-safe-inspect.sh container busdk-bus-events-1
-```
-
-Use `scripts/docker-safe-inspect.sh` instead of ad hoc `docker inspect`
-pipelines when sharing or approving container diagnostics. It emits a compact
-JSON view and redacts secret-like environment and label values.
-
-One-shot per-recipient workers should exit by themselves. Persistent stack
-workers should be removed and recreated freely when changing worker layout:
-
-```bash
-docker stop busdk-dev-task-bus-journal-1
-docker compose -f compose.yaml --profile dev-task down --remove-orphans
-```
-
-The default local task command is:
-
-```json
-["codex","exec","--skip-git-repo-check","--sandbox","workspace-write","{prompt}"]
-```
-
-The Codex process already runs inside a Docker-created task container, so the
-local stack still keeps writable access scoped to the addressed task worktree.
-Use a less restrictive sandbox only as an explicit trusted-machine break-glass
-override when diagnosing local sandbox-helper failures. The default
-production-like bridge commits successful isolated-worktree changes outside the
-task container. Feature commits should normally go through `bus dev commit`, so
-the configured agent runtime and embedded commit prompt produce the message from
-the staged diff. Do not use ref-only messages such as
-`chore:dev-task-{work_ref}` for promoted worker commits. If an operator
-explicitly needs a trusted post-command push hook, use `bus dev commit` after
-staging and before pushing:
-
-```bash
-bus configure BUS_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && bus dev commit && git push -u origin {branch}"]'
-```
-
-The push is a trusted worker post-command, not normal `bus-dev` behavior.
-Smoke tests override this post-command to `[]` so they never contact a real
-upstream.
-
-The LLM route uses `bus-api-provider-llm --execution-backend events` and
-`bus-integration-codex`; it no longer uses a local echo/stub model service.
-The `bus-codex` service builds a local image with the Codex CLI and mounts
-`${BUS_CODEX_HOME:-$HOME/.codex}` at `/root/.codex`. Docker-created task
-containers also use `${BUS_DOCKER_CODEX_HOME_HOST:-$BUS_CODEX_HOME or
-$HOME/.codex}` and mount the current superproject as `/workspace` by default.
-For branch pushes, configure trusted local SSH access with
-`BUS_DOCKER_CODEX_SSH_HOST=$HOME/.ssh`, optional
-`BUS_DOCKER_CODEX_SSH_AGENT_HOST=$SSH_AUTH_SOCK`, and
-`BUS_DOCKER_CODEX_GIT_SSH_COMMAND`.
-The default smoke script overrides the task command to `codex --version` so it
-can prove the container path without consuming quota. Live chat execution is
-opt-in because it consumes real ChatGPT-backed Codex quota:
-
-```bash
-BUS_LOCAL_AI_PLATFORM_LIVE_CODEX=1 \
-bash tests/superproject/test_local_ai_platform_compose_smoke.sh
-```
-
-Run the full local smoke script from the superproject root:
-
-```bash
-bash tests/superproject/test_local_ai_platform_compose_smoke.sh
-```
-
-Set `BUS_LOCAL_AI_PLATFORM_KEEP=1` to leave the stack running after that smoke
-script exits.
-
-MailHog is exposed on `http://127.0.0.1:8025`; if
-`LOCAL_AI_PLATFORM_MAILHOG_PORT` is changed, replace `8025` with the configured
-port.
-
-## Local dev-task Docker stack
-
-For live testing of `bus task` with local Docker-backed container runs,
-start the root Compose stack. The stack builds a local Codex CLI image for the
-`codex` container profile. The API emits public `bus.containers.*` events,
-`bus-integration-containers` routes them to `bus.docker.*`, and
-`bus-integration-docker` performs the local Docker work.
-By default the image installs Codex CLI `0.135.0` from the checksummed GitHub
-release archives. Set `BUS_LOCAL_CODEX_VERSION` to use another release archive,
-with matching `BUS_LOCAL_CODEX_LINUX_AMD64_SHA256` and
-`BUS_LOCAL_CODEX_LINUX_ARM64_SHA256` values, or set
-`BUS_LOCAL_CODEX_NPM_VERSION` to opt into the npm package install path.
-
-Prerequisites:
-
-- Docker Desktop or Docker Engine with Compose support.
-- This superproject as the current working directory.
-- Submodules initialized so the `bus` and `bus-*` module directories exist.
-- `bus` on `PATH` for `bus configure`; from an uninstalled source checkout,
-  use `go run ./bus-configure/cmd/bus-configure` for the same configuration
-  updates.
-- A trusted local development machine. The stack mounts `/var/run/docker.sock`
-  into `bus-integration-docker`, which grants host-level Docker control.
-
-```bash
-docker compose -f compose.yaml --profile dev-task up -d
-docker compose -f compose.yaml --profile dev-task exec testing-agent sh
-```
-
-The same stack starts `bus-dev-supervisor`, a lightweight heartbeat service for
-the AI Product Delivery Supervisor lane. It does not launch, reopen, approve,
-or pin work by itself yet. On each heartbeat it runs one bounded policy cycle:
-the non-streaming
-`bus task monitor --format json --quiet-after 15m --stale-after 1h`
-snapshot, writes the raw monitor output to
-`tmp/dev-task-supervisor/work-monitor.json`, classifies active and terminal
-tasks in `tmp/dev-task-supervisor/policy-cycle.json`, writes a non-mutating
-mechanical next-action plan to `tmp/dev-task-supervisor/action-plan.json`,
-writes per-terminal route evidence to
-`tmp/dev-task-supervisor/action-queue.json`, and writes health evidence to
-`tmp/dev-task-supervisor/heartbeat-status.json`. It also consumes the
-action-plan/action-queue evidence into a dry-run executor plan at
-`tmp/dev-task-supervisor/executor-plan.json`. The action plan counts
-terminal closeouts that are ready for review and root pin handling, terminal
-closeouts that should be reopened with a correction brief, terminal blockers
-that should be recorded before refill, and whether worker refill is
-mechanically eligible. The action queue lists the terminal work refs that feed
-those counts and assigns each one an evidence-only route such as
-`review_pin_candidate`, `reopen_candidate`, or `record_blocker`. It is evidence
-only: the heartbeat still does not run Git, dispatch workers, reopen tasks,
-approve work, or change product, security, cost, destructive, or
-hard-to-reverse decisions by itself. The executor plan turns those routes into
-the exact dry-run operations the next executor would attempt, including
-review-worker dispatch, accepted-review root pin handling, precise task reopen,
-blocker recording, and refill-worker dispatch. Every planned operation has
-`execute_action: false`, task-stream and worker-dispatch operations are marked
-dry-run only, and Git/product/security/cost/destructive/hard-to-reverse gates
-remain operator-required. When the
-snapshot has no active or terminal tasks, the policy cycle records an explicit
-no-op event in `tmp/dev-task-supervisor/supervisor-events.jsonl` and no-op
-evidence in `tmp/dev-task-supervisor/noop-evidence.json`. The policy evidence
-is provider-neutral so later local Bus workers and cloud Bus workers can use
-the same supervisor decisions.
-
-Check the supervisor heartbeat without opening a streaming task watch:
-
-```bash
-docker compose -f compose.yaml --profile dev-task ps bus-dev-supervisor
-docker compose -f compose.yaml --profile dev-task exec bus-dev-supervisor \
-  /workspace/scripts/dev-task-supervisor-heartbeat.sh check
-docker compose -f compose.yaml --profile dev-task exec bus-dev-supervisor \
-  /workspace/scripts/dev-task-supervisor-heartbeat.sh inspect
-cat tmp/dev-task-supervisor/heartbeat-status.json
-cat tmp/dev-task-supervisor/policy-cycle.json
-cat tmp/dev-task-supervisor/action-plan.json
-cat tmp/dev-task-supervisor/action-queue.json
-cat tmp/dev-task-supervisor/executor-plan.json
-```
-
-Regenerate only the dry-run executor plan from the latest action queue and
-action plan without contacting Events, Git, or task streams:
-
-```bash
-docker compose -f compose.yaml --profile dev-task exec bus-dev-supervisor \
-  /workspace/scripts/dev-task-supervisor-heartbeat.sh plan-execute
-```
-
-The `inspect` command is the concise root-stack dispatch check. It verifies the
-heartbeat freshness, prints the current policy counts, shows the evidence-only
-action queue, dry-run executor plan, and refill decision, and reports
-root/module `PLAN.md` backlog counts from the mounted superproject checkout. It
-is intentionally read-only; actual worker dispatch, reopen execution, and
-promotion pinning still belong to the `bus-dev` workflow surface and the
-dev-task worker infrastructure.
-
-Tune the local heartbeat with `BUS_DEV_SUPERVISOR_INTERVAL_SECONDS`,
-`BUS_DEV_SUPERVISOR_MAX_AGE_SECONDS`, `BUS_DEV_SUPERVISOR_QUIET_AFTER`, and
-`BUS_DEV_SUPERVISOR_STALE_AFTER` before starting Compose. Use
-`BUS_DEV_SUPERVISOR_ONCE=true` only for smoke tests; the normal service loops
-and keeps replacing the status evidence in place.
-
-The dev-task Compose file marks the local Codex image with `pull_policy:
-build`, so `docker compose -f compose.yaml --profile dev-task up -d` rebuilds the
-checked-in Dockerfile-backed `bus-local-codex:dev` image instead of silently
-reusing a stale local tag after Docker cache cleanup or submodule promotion.
-
-The release workflow also publishes an image-backed SSH-Docker worker image at
-`ghcr.io/busdk/bus-integration-task:latest` for tagged releases. That image
-is built from the Linux release artifact binaries and the checked-in
-`deploy/local-ai-platform/codex/dev-task-worker.Dockerfile`, so the final image
-contains `bus-integration-task`, the `bus` dispatcher, worker helper CLIs,
-Codex, Go, Docker CLI/Compose, `gopls`, and `dlv` without copying a BusDK source
-checkout or private module source into the runtime layer. A bare
-`docker run ghcr.io/busdk/bus-integration-task:<tag>` starts
-`bus-integration-task` as a worker; it does not default to `--help`. Use
-the immutable `sha-*` tag for repeatable external-host tests; `latest` advances
-only on release tags.
-
-Before running an image-backed SSH-Docker smoke on a remote Docker host, check
-image access separately from worker routing:
-
-```bash
-ssh coding-agent@dev.hg.fi 'docker version'
-ssh coding-agent@dev.hg.fi \
-  'docker pull ghcr.io/busdk/bus-integration-task:latest'
-ssh coding-agent@dev.hg.fi \
-  'docker run --rm ghcr.io/busdk/bus-integration-task:latest bus-integration-task --help'
-ssh coding-agent@dev.hg.fi \
-  'docker run --rm \
-    -e BUS_TASK_IMAGE_DRY_RUN=true \
-    -e BUS_EVENTS_API_URL=http://worker-reachable-events.example.invalid \
-    -e BUS_API_TOKEN=redacted-placeholder \
-    -e BUS_TASK_RECIPIENT=busdk \
-    -e BUS_TASK_WORK_REF=busdk#example \
-    -e BUS_TASK_WRITE_SCOPES=PLAN.md \
-    ghcr.io/busdk/bus-integration-task:latest'
-```
-
-`docker version` failures mean the remote host cannot run Docker yet. `docker
-pull` failures with `denied`, `unauthorized`, or `not found` mean the GHCR
-package has not been published with the expected tag or the host needs `docker
-login ghcr.io` with package read access. Do not pass Bus API tokens on the SSH
-command line; runner-owned deployment secrets should inject runtime tokens into
-the launched worker environment. The dry-run token above is a placeholder, not
-a real credential. The dry-run command is only for diagnostics: it prints the
-worker command and redacts token presence. Real image mode should launch the
-same image with deployment-owned environment injection for
-`BUS_EVENTS_API_URL`, `BUS_API_TOKEN`, `BUS_TASK_RECIPIENT`,
-`BUS_TASK_WORK_REF`, `BUS_TASK_WRITE_SCOPES`, optional remote metadata,
-and any workspace/worktree overrides.
-
-Inside the testing shell, the stack has generated a local development JWT at
-`~/.config/bus/auth/api-token` and exposes:
-
-```bash
-export BUS_EVENTS_API_URL=http://bus-events:8081
-export BUS_AI_API_URL=http://bus-api-provider-containers:8080
-```
-
-Create a task and watch the Docker-backed bridge process it:
-
-```bash
-cd /workspace/bus-dev
-go run ../bus-task/cmd/bus-task start --new-branch work/docker-smoke @bus-dev "Reply hello from Docker."
-go run ../bus-task/cmd/bus-task watch <task-ref-from-work-start-output> --timeout 5m
-```
-
-Use the task reference printed by `bus task start`, for example `task_01example`
-when that exact value appears in the command output.
-
-For the controller-owned localhost remote path, run `bus task --remote
-localhost start ...` from the root checkout instead of starting
-`bus-integration-task` manually. A release smoke for the root recipient used
-a fake App Server and `--write-scope PLAN.md`; the non-secret transcript showed:
-
-```text
-bus remote --format json resolve localhost
-  id=localhost kind=compose url=http://localhost:8081 compose_file=compose.yaml
-bus task --remote localhost check
-  remote check passed
-bus task --remote localhost start --write-scope PLAN.md @busdk ...
-  created <root>#3.1 -> busdk (branch bus-dev-task/busdk-3-1; scopes PLAN.md)
-bus task --remote localhost watch <root>#3.1 --timeout 4m
-  worker launched
-  bus.task.claimed
-  prepared isolated worktree ... branch=bus-dev-task/busdk-3-1
-  Codex app-server process started
-  Codex app-server thread started thread_id=thread-smoke
-  Codex app-server turn started turn_id=turn-smoke
-  removed isolated worktree without promotion
-  bus.task.done
-bus task --remote localhost monitor --format json
-  terminal transition for the smoke plus current active supervisor state
-```
-
-When running this smoke from inside a worker container against Docker Desktop,
-two local-only accommodations may be needed: forward the container's
-`127.0.0.1:8081` to the Compose `bus-events` service, and use a resolved
-Compose config whose bind mounts point at the Docker host checkout path already
-used by the `busdk` stack. On a normal host checkout, the documented
-`compose.yaml` path should be used directly.
-
-The default task command for real local use runs `codex exec` in the addressed
-module repository, prepares the requested branch, then runs the configured
-post-command. A task without branch flags defaults to the current branch of the
-repository where `bus task start` or `bus task new` is run. Use `--branch NAME` to use an
-existing branch, or `--new-branch NAME --base-branch main` to create a
-disposable work branch from `main`. The smoke scripts override the command to
-`codex --version` and the post-command to `[]` so they do not consume
-ChatGPT-backed Codex quota or push to upstream. To customize hooks:
-
-```bash
-bus configure BUS_TASK_PRE_COMMAND_JSON='["git","status","--short"]'
-bus configure BUS_TASK_POST_COMMAND_JSON='["sh","-c","cd {repo_path} && git add . && bus dev commit && git push -u origin {branch}"]'
-docker compose -f compose.yaml --profile dev-task up --build -d
-```
-
-The same stack can test the container API directly:
-
-```bash
-cd /workspace/bus-containers
-go run ./cmd/bus-containers run --profile codex -- codex --version
-```
-
-Worker and Codex containers refresh source-backed BusDK command wrappers on
-startup through `scripts/busdk-refresh-tools.sh`. The refresh scans mounted
-`/workspace/bus` and `/workspace/bus-*` modules that provide
-`cmd/<module>/main.go`, writes wrappers such as `bus`, `bus-dev`, `bus-lint`,
-`bus-notes`, and `bus-gx` onto `PATH`, and builds runtime-local binaries from
-the mounted source when a wrapper is invoked. It never symlinks or executes
-host-built `./bin` artifacts, so Linux containers do not inherit host-architecture
-binaries after submodule promotions. To refresh wrappers manually in a shell:
-
-```bash
-make refresh-tools
-```
-
-The stack mounts `/var/run/docker.sock` into `bus-integration-docker` and live
-Codex dev-task workers; use it only on trusted local development machines. The
-local stack defaults Go service containers and local Codex image builds to Go
-1.26.3. Override with `BUS_LOCAL_GO_IMAGE` for prebuilt Go service containers
-or `BUS_LOCAL_GO_VERSION` for the local Codex image build when intentionally
-testing another toolchain. The local worker image includes the current Go
-toolchain, Docker CLI/Compose, and compression tools needed by Docker-backed
-module e2e gates. It also pins
-`gopls` for detached saved-file MCP context and `dlv` for optional Delve DAP
-debugger context. The debugger policy defaults to detection only: the bridge
-does not start `dlv dap`, open a listener, or grant host process attach
-privileges unless a task agent explicitly starts a debugger inside its scoped
-worktree.
-
-## Install from source
-
-Prerequisites:
-
-- `git` with submodule support
-- read access to the private `bus-*` submodule repositories, or credentials
-  configured for the pinned submodule remotes
-- POSIX `make`
-- Go toolchain available as `go`
-
-Windows notes:
-- Use Git for Windows with **Git Bash** (or MSYS2 with GNU `make` + `bash`).
-- Run all `make` commands from that POSIX shell.
-- On Windows, prefer POSIX-style paths for overrides (for example `/c/busdk/bin`).
-
-Clone the repository and run the bootstrap target. This initializes modules, builds all tools, and installs them.
-
-```bash
-git clone https://github.com/busdk/busdk
+git clone https://github.com/busdk/busdk.git
 cd busdk
-make bootstrap
+git submodule update --init --recursive
 ```
 
-Step-by-step (equivalent to bootstrap):
-
-```bash
-make init
-make build
-make install
-```
-
-Defaults:
-
-- Builds into `./bin`
-- Installs into `$(HOME)/.local/bin` (or `$(USERPROFILE)/.local/bin` when `HOME` is unset)
-
-To install into a different prefix:
-
-```bash
-make bootstrap PREFIX=/opt/busdk
-```
-
-Windows example:
-
-```bash
-make bootstrap PREFIX=/c/busdk BINDIR=/c/busdk/bin
-```
-
-To build without installing:
-
-```bash
-make build
-```
-
-## Documentation and resources
-
-- Specifications and documentation: `https://docs.busdk.com`
-- Project website: `https://busdk.com`
-- GitHub organization and modules: `https://github.com/busdk`
-
-## Repository layout
-
-This repository focuses on building and installing the BusDK toolchain. Module development happens in the individual `bus-*` repositories; they are included here as pinned Git submodules at the repository root. The root `Makefile` discovers modules automatically and delegates build and install to each module.
-
-## Workflows
-
-- **Release pipeline (GitHub Actions)**:
-
-Create a secret named `BUSDK_SUBMODULES_TOKEN` in the BusDK GitHub repository settings at `Settings → Secrets and variables → Actions`. Use a **personal access token** (PAT), either classic or fine-grained, with read access to this repository and all private `bus-*` submodule repositories so the release workflow can fetch submodules.
-
-Required token permissions:
-
-- **Classic PAT**: `repo` scope (read access to private repositories).
-- **Fine-grained PAT**: Repository access to this repo **and** every private `bus-*` repo, with **Contents: Read** permission.
-
-Tags like `v0.1.0` trigger a release build and publish.
-
-- **Install script (curl | bash)**:
-
-The release assets include an `install.sh` that supports install, upgrade (rerun), and uninstall. GitHub also provides auto-generated source archives (`.tar.gz`/`.zip`) for each release. Release assets are public for this repository, so a token is not required. If assets are ever marked private, provide `GITHUB_TOKEN` (a PAT with read access) when using the script.
-
-Install a specific tag:
-
-```bash
-curl -fsSL https://github.com/busdk/busdk/releases/download/v0.1.0/install.sh | bash
-```
-
-Uninstall:
-
-```bash
-curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh | bash -s -- --uninstall
-```
-
-Install location overrides (also respected for uninstall):
-
-```bash
-curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh |
-  PREFIX=/opt/busdk BINDIR=/opt/busdk/bin bash
-```
-
-Packaging with `DESTDIR`:
-
-```bash
-curl -fsSL https://github.com/busdk/busdk/releases/latest/download/install.sh |
-  DESTDIR=/tmp/pkg PREFIX=/usr bash
-```
-
-- **Initialize modules** (fresh clone):
-
-```bash
-make init
-```
-
-- **Sync modules to the pinned commits** (does not advance pins):
-
-```bash
-make update
-```
-
-- **Show pinned module SHAs**:
-
-```bash
-make status
-```
-
-- **Build all tools into `./bin`**:
-
-```bash
-make build
-```
-
-- **Run tests for changed modules only** (default for root `test` and `e2e`):
-
-```bash
-make test
-make e2e
-```
-
-Root `make e2e` does not run the superproject agent-container Docker selftest
-by default. Use `ROOT_E2E_SELFTEST=1 make e2e` when explicitly validating that
-developer container path.
-
-- **Run Go source quality checks for changed modules only** (default for root `quality`):
-
-```bash
-make quality
-```
-
-- **Force full test/e2e/source-quality sweeps across all modules**:
-
-```bash
-make test TEST_SCOPE=all
-make e2e TEST_SCOPE=all
-make quality QUALITY_SCOPE=all
-```
-
-- **Run the complete slow quality sweep**:
-
-```bash
-make quality-complete
-```
-
-This runs the all-module source/static quality sweep, then uses `bus lint` to
-check each module's published end-user documentation page and each available
-module binary's `--help` output.
-
-- **Manually choose the module subset**:
-
-```bash
-make test CHANGED_MODULES="bus-reports bus-bank"
-make e2e CHANGED_MODULES="bus-reports bus-bank"
-make quality CHANGED_MODULES="bus-reports bus-bank"
-```
-
-- **Skip selected modules** (space-separated shell globs):
-
-```bash
-make build SKIP_MODULES="bus-filing*"
-```
-
-- **Install tools into `$(BINDIR)`**:
+Build and install all module tools:
 
 ```bash
 make install
 ```
 
-- **Maintainership: intentionally move pins to latest remotes**:
+The default install prefix is `$HOME/.local`. Override it with `PREFIX`:
 
 ```bash
-make upgrade
-git status
-git commit
+make install PREFIX=/opt/busdk
 ```
 
-- **Clean local build artifacts**:
+Build without installing:
 
 ```bash
-make clean
+make build
 ```
 
-- **Return to a “fresh clone” state** (cleans + deinitializes modules):
+Run repository checks:
 
 ```bash
-make distclean
+make check
 ```
 
-### Variables
+## Repository Layout
 
-- `PREFIX`: install prefix (default: `$(HOME)/.local`, or `$(USERPROFILE)/.local` when `HOME` is unset)
-- `BINDIR`: install directory (default: `$(PREFIX)/bin`)
-- Module-local build outputs are written to each module's literal `./bin`
-  directory.
-- `GO`: Go tool to use (default: `go`)
-- `SKIP_MODULES`: space-separated module names or shell globs to skip in root targets (default skips `bus-filing`, `bus-filing-prh`, `bus-filing-vero`)
-- `TEST_SCOPE`: `changed` (default) or `all` for root `make test` / `make e2e`
-- `CHANGED_MODULES`: explicit whitespace-separated module list overriding auto-detected changed modules for root `make test`, `make e2e`, or focused `make quality` runs
-- `ROOT_E2E_SELFTEST`: set to `1` to include the superproject agent-container Docker selftest in root `make e2e`
-- `QUALITY_SCOPE`: `changed` (default) or `all` for root `make quality`; setting `CHANGED_MODULES` narrows quality to those modules unless `QUALITY_SCOPE=all` is also set
-- `QUALITY_TARGETS`: whitespace-separated source/static-analysis module Makefile targets for `make quality` to run after the required direct `bus-dev quality lint` custom AST pass (default: `lint security`; missing module targets are skipped)
-- `QUALITY_DEEP`: set to `1` to append `QUALITY_DEEP_TARGETS` to the normal quality run; by default no deep targets are configured because root quality is not a test runner
-- `QUALITY_DEEP_TARGETS`: extra source/static-analysis targets appended when `QUALITY_DEEP=1` (default: empty)
-- `QUALITY_ALLOW_TEST_TARGETS`: set to `1` only for temporary compatibility if an operator deliberately puts test-style targets in `QUALITY_TARGETS`; normal root quality rejects `test*`, `e2e`, `bench`, and Docker targets
-- `QUALITY_PROFILE`: default `bus-dev quality lint` profile for root `make quality` (default: `cli`)
-- `QUALITY_HTTP_MODULES`: module names or shell globs that should use the `http-service` quality profile
-- `QUALITY_LIBRARY_MODULES`: module names or shell globs that should use the `library` quality profile
-- `QUALITY_KEEP_GOING`: set to `1` to continue across modules and report all failed steps instead of stopping at the first failure
-- `QUALITY_PROGRESS`: set to `1` to print module/target progress during `make quality`; by default successful steps stay quiet
-- `QUALITY_COMPLETE_SCOPE`: module scope for `make quality-complete`; defaults to `all`
-- `QUALITY_COMPLETE_BUILD`: set to `0` only for harnesses that provide prebuilt module binaries; default `1`
-- `QUALITY_COMPLETE_SOURCE`: set to `0` to skip the source/static quality phase; default `1`
-- `QUALITY_COMPLETE_PROGRESS`: set to `1` to print module-level progress during `make quality-complete`
-- `QUALITY_DOCS_MODULE_DIR`: module documentation directory for `make quality-complete`; default `docs/docs/modules`
+BusDK is a superproject of smaller `bus-*` modules. The root repository pins
+module versions and provides shared installation, service-stack, and release
+workflows. Feature implementation belongs in the owning module repository.
 
-## Tests
+Useful top-level paths:
 
-The root repository provides orchestration checks plus changed-module runners.
-By default, `make test` and `make e2e` only run modules that Git currently
-shows as changed. Use `TEST_SCOPE=all` when you explicitly want a full
-cross-module test/e2e sweep. You can still run an individual module directly,
-for example:
+- `bus/`: the `bus <command> ...` dispatcher;
+- `bus-services/`: Services CLI;
+- `bus-integration-services/`: local Services runtime supervisor;
+- `bus-worker/`: Workers CLI, installed as `bus-workers`;
+- `bus-api/`: local API gateway;
+- `bus-api-provider-events/`: Events API provider;
+- `bus-api-provider-worker/`: Workers API provider;
+- `bus-integration-worker/`: Workers integration runtime;
+- `bus-integration-repos/`: repository/worktree integration;
+- `docs/`: public documentation;
+- `services.yml`: default local Services stack;
+- `profiles/`: runtime profiles used by `services.yml`.
 
-```bash
-make -C bus-journal test
-```
+## Advanced Development
 
-For AI-assisted cleanup loops, use the root quality sweep before running tests
-so source-code findings are reported module by module in deterministic order.
-By default, `make quality` uses the same changed-module scope as root
-`make test` and `make e2e`; use `QUALITY_SCOPE=all` when you explicitly want
-the slower full-fleet static sweep. Root quality always runs the core Bus custom
-AST checks directly through `bus-dev quality lint` for every selected Go module;
-these checks are not hidden inside Go tests or module test targets. The default
-additional source-quality target set is `lint security`. Root quality is
-intentionally not a test runner: unit tests, race tests, fuzzing, benchmarks,
-Docker validation, and e2e checks belong under `make test`, `make e2e`, or
-module-specific test targets.
+Docker-backed development-task stacks, container runners, remote environments,
+and broader module development workflows are available for maintainers, but
+they are not required for the local Codex Spark worker setup above.
 
-Use `make quality-complete` when the slower reader-facing lint surface matters.
-It defaults to `QUALITY_COMPLETE_SCOPE=all`, builds the local dispatcher and
-`bus-lint`, builds selected module binaries, and checks
-`docs/docs/modules/<module>.md` plus captured `--help` output through `bus lint`.
-A clean run prints only the summary unless progress is enabled.
+For module development, work in the owning `bus-*` repository and use that
+module's `README.md`, `AGENTS.md`, `Makefile`, and tests. The root `make`
+targets are for building, installing, and checking the pinned superproject as a
+whole.
 
-Module-local `make lint` targets also run `bus-dev quality lint`, so the same
-custom AST bad-pattern checks are available when working inside an individual
-module. In the superproject, root `make quality` passes the freshly built local
-`bus-dev` binary into those module targets; standalone module checkouts should
-have `bus-dev` available on `PATH` or pass `BUS_DEV=/path/to/bus-dev`.
+## Documentation And Support
 
-Successful module target output and progress lines are hidden; failed
-lint/security steps print their diagnostics. A full collection run can continue
-after failures:
-
-```bash
-make quality QUALITY_KEEP_GOING=1
-make quality QUALITY_SCOPE=all QUALITY_KEEP_GOING=1
-```
-
-During tighter repair loops, narrow the target set:
-
-```bash
-make quality CHANGED_MODULES="bus-ledger" QUALITY_TARGETS="lint"
-make quality QUALITY_SCOPE=changed QUALITY_TARGETS="lint"
-make quality QUALITY_PROGRESS=1
-```
-
-## Roadmap
-
-- Improve contributor guidance for coordinated module pin updates
-- Add a release checklist for multi-module releases
-
-## Support
-
-Use the GitHub issue tracker for questions and bug reports: `https://github.com/busdk/busdk/issues`.
-
-## Contributing
-
-Contributions to this repository are welcome (build orchestration, documentation, pin updates). For module behavior changes, please contribute to the relevant `bus-*` repository instead.
-
-## Authors and credits
-
-Maintained by the BusDK maintainers. Module authors and contributors are credited in their respective repositories.
-
-## License
-
-See [LICENSE.md](LICENSE.md).
-
-## Commercial licensing
-
-Pre-built BusDK CLI tools are freeware and free to use. Full source code access and use is available under FSL-1.1-MIT (Functional Source License 1.1, MIT Future License). For source licensing, contact `info@hg.fi`.
+- Public docs: `docs/`
+- System design docs: `sdd/`
+- Website: `busdk.com/`
+- License: see [LICENSE](LICENSE)
