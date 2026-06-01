@@ -200,6 +200,52 @@ intended user-facing command form remains `bus <module> ...`:
 bus-journal --help
 ```
 
+## Local Services stack
+
+BusDK can start local runtime services from a public `services.yml` file in the
+superproject root:
+
+```bash
+bus services up
+bus services down
+```
+
+This path uses the installed BusDK tools through the `bus` dispatcher. It does
+not require the BusDK source submodules to exist in the current directory. A
+project only needs `services.yml`, a local `.env`, and the relevant runtime
+binaries on the machine.
+
+The checked-in `services.yml` is public configuration. Keep secrets and local
+paths out of it. Store local values in `.env` with `bus configure`, which
+creates or updates `.env` in the current directory:
+
+```bash
+bus configure BUS_POSTGRES_BIN=/opt/homebrew/opt/postgresql@18/bin
+bus configure BUS_EVENTS_JWT_SECRET=change-this-local-secret
+bus configure BUS_EVENTS_POSTGRES_DSN='postgres://bus_service@127.0.0.1:5432/postgres?sslmode=disable'
+```
+
+`bus services up` auto-starts `bus-integration-services`, which then starts the
+services declared in `services.yml`. The default stack starts a native
+PostgreSQL process and the Bus Events API provider using PostgreSQL as its
+durable backend. The PostgreSQL profile initializes `PGDATA` automatically on
+first start and skips initialization after the `PG_VERSION` marker exists.
+When not configured, the PostgreSQL profile defaults to
+`.bus/services/postgres/data` for `PGDATA` and `5432` for the PostgreSQL port.
+Override them only when the local machine needs different values:
+
+```bash
+bus configure BUS_POSTGRES_PGDATA="$PWD/.bus/services/postgres/data"
+bus configure BUS_POSTGRES_PORT=5432
+```
+
+The service supervisor state, logs, and PostgreSQL data live under `.bus/` by
+default. Stop the stack with:
+
+```bash
+bus services down
+```
+
 ## Local Bus cloud platform stack
 
 For local validation of the Bus cloud platform flow described by the

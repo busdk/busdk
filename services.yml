@@ -1,0 +1,10 @@
+version: "1"
+env_files:
+  - .env
+services:
+  postgres:
+    profile: postgres-native
+  events-api:
+    profile: bus-events-api-postgres
+    depends_on:
+      - postgres
