@@ -215,6 +215,11 @@ not require the BusDK source submodules to exist in the current directory. A
 project only needs `services.yml`, a local `.env`, and the relevant runtime
 binaries on the machine.
 
+Runtime profiles are loaded from `services/profiles` next to `services.yml`.
+That directory is public stack configuration, so a deployed project can carry
+profiles such as `postgres-native` and `bus-events-api-postgres` without
+needing the BusDK source repositories locally.
+
 The checked-in `services.yml` is public configuration. Keep secrets and local
 paths out of it. Store local values in `.env` with `bus configure`, which
 creates or updates `.env` in the current directory:

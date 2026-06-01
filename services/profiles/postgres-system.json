@@ -1,0 +1,17 @@
+{
+  "id": "postgres-system",
+  "name": "PostgreSQL system service",
+  "description": "PostgreSQL database server controlled through a host service manager such as launchd or systemd.",
+  "service_kind": "database.postgres",
+  "runtime": {
+    "kind": "system",
+    "provider": "launchd",
+    "ports": [
+      {
+        "name": "postgres",
+        "protocol": "tcp",
+        "target": 5432
+      }
+    ]
+  }
+}

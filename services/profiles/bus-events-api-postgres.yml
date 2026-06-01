@@ -1,0 +1,28 @@
+id: bus-events-api-postgres
+name: Bus Events API PostgreSQL backend
+description: Bus Events API provider using PostgreSQL as the durable Events backend.
+service_kind: bus.api.events
+runtime:
+  kind: native
+  provider: bus
+  command:
+    - bus-api-provider-events
+  args:
+    - --addr
+    - 127.0.0.1:8081
+    - --events-backend
+    - postgres
+  env:
+    - name: BUS_EVENTS_JWT_SECRET
+      value_from: env:BUS_EVENTS_JWT_SECRET
+    - name: BUS_EVENTS_POSTGRES_DSN
+      value_from: env:BUS_EVENTS_POSTGRES_DSN
+  ports:
+    - name: events-api
+      protocol: tcp
+      target: 8081
+      host: 127.0.0.1
+  healthcheck:
+    tcp_port: 8081
+    interval: 250ms
+    timeout: 20s

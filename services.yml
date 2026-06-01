@@ -1,6 +1,8 @@
 version: "1"
 env_files:
   - .env
+profile_dirs:
+  - services/profiles
 services:
   postgres:
     profile: postgres-native

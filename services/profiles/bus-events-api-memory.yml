@@ -1,0 +1,28 @@
+id: bus-events-api-memory
+aliases:
+  - bus-events-api
+name: Bus Events API memory backend
+description: Bus Events API provider using the in-memory backend for local development.
+service_kind: bus.api.events
+runtime:
+  kind: native
+  provider: bus
+  command:
+    - bus-api-provider-events
+  args:
+    - --addr
+    - 127.0.0.1:8081
+    - --events-backend
+    - memory
+  env:
+    - name: BUS_EVENTS_JWT_SECRET
+      value_from: env:BUS_EVENTS_JWT_SECRET
+  ports:
+    - name: events-api
+      protocol: tcp
+      target: 8081
+      host: 127.0.0.1
+  healthcheck:
+    tcp_port: 8081
+    interval: 250ms
+    timeout: 20s

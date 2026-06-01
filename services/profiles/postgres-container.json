@@ -1,0 +1,44 @@
+{
+  "id": "postgres-container",
+  "name": "PostgreSQL container",
+  "description": "PostgreSQL database server backed by a container runtime provider.",
+  "service_kind": "database.postgres",
+  "runtime": {
+    "kind": "container",
+    "provider": "container",
+    "image": "postgres:18",
+    "env": [
+      {
+        "name": "POSTGRES_USER",
+        "value": "bus_service"
+      },
+      {
+        "name": "POSTGRES_PASSWORD",
+        "value_from": "services.postgres.password"
+      },
+      {
+        "name": "POSTGRES_DB",
+        "value": "bus"
+      }
+    ],
+    "ports": [
+      {
+        "name": "postgres",
+        "protocol": "tcp",
+        "target": 5432
+      }
+    ],
+    "mounts": [
+      {
+        "name": "data",
+        "source": "services.postgres.data",
+        "target": "/var/lib/postgresql/data"
+      }
+    ],
+    "healthcheck": {
+      "command": ["pg_isready", "-U", "bus_service"],
+      "interval": "5s",
+      "timeout": "3s"
+    }
+  }
+}

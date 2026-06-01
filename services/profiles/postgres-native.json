@@ -1,0 +1,58 @@
+{
+  "id": "postgres-native",
+  "aliases": ["postgres"],
+  "name": "PostgreSQL native process",
+  "description": "PostgreSQL database server using installed PostgreSQL binaries and a native local process.",
+  "service_kind": "database.postgres",
+  "runtime": {
+    "kind": "native",
+    "provider": "homebrew",
+    "command": ["{env:BUS_POSTGRES_BIN}/postgres"],
+    "args": [
+      "-p",
+      "{env:BUS_POSTGRES_PORT}",
+      "-c",
+      "listen_addresses=127.0.0.1"
+    ],
+    "env": [
+      {
+        "name": "BUS_POSTGRES_BIN",
+        "value_from": "env:BUS_POSTGRES_BIN"
+      },
+      {
+        "name": "PGDATA",
+        "value_from": "env:BUS_POSTGRES_PGDATA",
+        "default": ".bus/services/postgres/data"
+      },
+      {
+        "name": "BUS_POSTGRES_PORT",
+        "value_from": "env:BUS_POSTGRES_PORT",
+        "default": "5432"
+      }
+    ],
+    "ports": [
+      {
+        "name": "postgres",
+        "protocol": "tcp",
+        "target": 5432
+      }
+    ],
+    "healthcheck": {
+      "tcp_port_from": "env:BUS_POSTGRES_PORT",
+      "interval": "250ms",
+      "timeout": "20s"
+    },
+    "options": {
+      "init": {
+        "command": ["{env:BUS_POSTGRES_BIN}/initdb"],
+        "args": [
+          "-D",
+          "{env:PGDATA}",
+          "--username=bus_service",
+          "--auth=trust"
+        ],
+        "creates": "{env:PGDATA}/PG_VERSION"
+      }
+    }
+  }
+}
