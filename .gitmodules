@@ -506,3 +506,15 @@
 	path = agents/worker
 	url = git@github.com:busdk/agent-worker.git
 	branch = main
+[submodule "bus-services"]
+	path = bus-services
+	url = git@github.com:busdk/bus-services.git
+	branch = main
+[submodule "bus-integration-services"]
+	path = bus-integration-services
+	url = git@github.com:busdk/bus-integration-services.git
+	branch = main
+[submodule "bus-api-provider-services"]
+	path = bus-api-provider-services
+	url = git@github.com:busdk/bus-api-provider-services.git
+	branch = main
