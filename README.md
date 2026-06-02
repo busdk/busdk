@@ -106,6 +106,15 @@ Start the local stack:
 bus services up
 ```
 
+The root `services.yml` declares `default_services`, so `bus services up`
+starts the default service set plus dependencies. Use `--all` to start every
+service declared in the file, including optional services that are not part of
+the default set:
+
+```bash
+bus services up --all
+```
+
 Stop it when finished:
 
 ```bash

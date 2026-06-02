@@ -3,6 +3,8 @@ env_files:
   - .env
 profile_dirs:
   - profiles
+default_services:
+  - api
 services:
   postgres:
     profile: postgres/native
