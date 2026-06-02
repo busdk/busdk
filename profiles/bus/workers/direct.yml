@@ -43,6 +43,18 @@ runtime:
       description: Host home directory used to resolve the default Codex auth/config home.
       value_from: process_env:HOME
       default: " "
+    - name: SHELL
+      description: Host login shell path passed to direct Codex worker App Server processes.
+      value_from: process_env:SHELL
+      default: " "
+    - name: USER
+      description: Host user name passed to direct Codex worker App Server processes.
+      value_from: process_env:USER
+      default: " "
+    - name: LOGNAME
+      description: Host login name passed to direct Codex worker App Server processes.
+      value_from: process_env:LOGNAME
+      default: " "
     - name: CODEX_HOME
       description: Host Codex auth/config home used when set.
       value_from: process_env:CODEX_HOME
