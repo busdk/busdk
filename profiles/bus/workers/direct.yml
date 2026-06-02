@@ -13,9 +13,11 @@ runtime:
   command:
     - bus
   args:
-    - integration-workers
-    - --lifecycle
-    - direct-exec
+    - integration
+    - --events-url
+    - "{env:BUS_EVENTS_API_URL}"
+    - --enable-module
+    - workers
   env:
     - name: PATH
       value_from: process_env:PATH
@@ -30,6 +32,9 @@ runtime:
     - name: BUS_WORKERS_ENVIRONMENT_NAME
       value_from: env:BUS_WORKERS_ENVIRONMENT_NAME
       default: Local dev
+    - name: BUS_WORKERS_LIFECYCLE
+      value_from: env:BUS_WORKERS_LIFECYCLE
+      default: direct-exec
     - name: BUS_WORKERS_DIRECT_REPO_ROOT
       value_from: env:BUS_WORKERS_DIRECT_REPO_ROOT
     - name: BUS_WORKERS_DIRECT_WORKER_ROOT

@@ -13,7 +13,11 @@ runtime:
   command:
     - bus
   args:
-    - integration-repos
+    - integration
+    - --events-url
+    - "{env:BUS_EVENTS_API_URL}"
+    - --enable-module
+    - repos
   env:
     - name: PATH
       value_from: process_env:PATH

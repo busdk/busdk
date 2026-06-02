@@ -13,8 +13,11 @@ runtime:
   command:
     - bus
   args:
-    - integration-task
-    - --task-service
+    - integration
+    - --events-url
+    - "{env:BUS_EVENTS_API_URL}"
+    - --enable-module
+    - task
   env:
     - name: PATH
       value_from: process_env:PATH

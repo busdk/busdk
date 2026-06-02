@@ -205,11 +205,11 @@ is another `bus api` process with the local Workers and Tasks modules enabled.
 More API modules can be added to the same process as their providers are wired
 into `bus-api`.
 
-The `repos`, `workers`, and `tasks` services currently run as separate native
-processes launched through the `bus` dispatcher. That makes it easy to restart
-one domain service without restarting the others. The shared `bus integration`
-runtime is the path toward a combined integration host, but the default stack
-does not pretend that aggregate host is already wired for every domain.
+The `repos`, `workers`, and `tasks` services launch the shared integration host
+as `bus integration ... --enable-module <name>`. Each profile still runs as its
+own service process so one domain can be restarted without restarting the
+others, but the launched binary is the integration host and the selected
+`bus-integration-*` module is enabled inside that host.
 
 The stack points at runtime profiles stored under `profiles/`:
 
