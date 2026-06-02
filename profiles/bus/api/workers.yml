@@ -6,6 +6,7 @@ description: Bus API gateway with the Workers provider mounted.
 service_kind: bus.api
 parameters:
   - name: capability_token
+    type: string
     description: Capability path token used in the Bus API base URL.
     default: local
 runtime:

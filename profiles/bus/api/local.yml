@@ -9,6 +9,7 @@ description: Bus API gateway with the local Tasks and Workers modules enabled.
 service_kind: bus.api
 parameters:
   - name: capability_token
+    type: string
     description: Capability path token used in the Bus API base URL.
     default: local
 runtime:

@@ -9,6 +9,7 @@ description: Bus Workers service running local direct Codex App Server workers.
 service_kind: bus.integration.workers
 parameters:
   - name: events_url
+    type: string
     description: Bus Events API base URL consumed by the shared integration host.
     default: http://127.0.0.1:8081/local/v1
 runtime:
