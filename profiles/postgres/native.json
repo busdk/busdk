@@ -31,6 +31,18 @@
         "description": "TCP port for the native PostgreSQL listener.",
         "value_from": "env:BUS_POSTGRES_PORT",
         "default": "5432"
+      },
+      {
+        "name": "LANG",
+        "description": "Locale used by PostgreSQL initialization and runtime.",
+        "value_from": "env:BUS_POSTGRES_LANG",
+        "default": "C"
+      },
+      {
+        "name": "LC_ALL",
+        "description": "Locale category override used by PostgreSQL initialization and runtime.",
+        "value_from": "env:BUS_POSTGRES_LC_ALL",
+        "default": "C"
       }
     ],
     "ports": [
