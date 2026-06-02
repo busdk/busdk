@@ -7,24 +7,24 @@ services:
   postgres:
     profile: postgres/native
   events:
-    profile: bus-events-postgres
+    profile: bus/events/postgres
     depends_on:
       - postgres
   repos:
-    profile: bus-repos-local
+    profile: bus/repos/local
     depends_on:
       - events
   workers:
-    profile: bus-workers-direct
+    profile: bus/workers/direct
     depends_on:
       - events
       - repos
   tasks:
-    profile: bus-tasks-local
+    profile: bus/tasks/local
     depends_on:
       - events
   api:
-    profile: bus-api-local
+    profile: bus/api/local
     depends_on:
       - events
       - workers

@@ -1,8 +1,8 @@
-id: bus/integration/tasks/local
+id: bus/tasks/local
 aliases:
   - bus-integration-tasks-local
+  - bus/integration/tasks/local
   - bus/integration-tasks/local
-  - bus/tasks/local
   - bus-tasks-local
 name: Bus Tasks local service
 description: Bus Tasks service backed by Bus Events API.

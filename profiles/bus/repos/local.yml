@@ -1,8 +1,8 @@
-id: bus/integration/repos/local
+id: bus/repos/local
 aliases:
   - bus-integration-repos-local
+  - bus/integration/repos/local
   - bus/integration-repos/local
-  - bus/repos/local
   - bus-repos-local
 name: Bus Repos local service
 description: Bus Repos service backed by preconfigured local Git repositories.

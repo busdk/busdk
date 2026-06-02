@@ -1,7 +1,9 @@
-id: bus/api/events/memory
+id: bus/events/memory
 aliases:
+  - bus-api-events-memory
   - bus-events-api-memory
   - bus-events-api
+  - bus/api/events/memory
   - bus/events-api/memory
 name: Bus Events API memory backend
 description: Bus Events API provider using the in-memory backend for local development.

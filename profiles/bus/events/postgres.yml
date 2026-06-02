@@ -1,8 +1,9 @@
-id: bus/api/events/postgres
+id: bus/events/postgres
 aliases:
+  - bus-api-events-postgres
   - bus-events-api-postgres
+  - bus/api/events/postgres
   - bus/events-api/postgres
-  - bus/events/postgres
   - bus-events-postgres
 name: Bus Events API PostgreSQL backend
 description: Bus Events API provider using PostgreSQL as the durable Events backend.

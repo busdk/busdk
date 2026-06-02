@@ -199,16 +199,19 @@ The stack points at runtime profiles stored under `profiles/`:
 ```text
 profiles/
 - postgres/native.json
-- bus/api/events/postgres.yml
+- bus/events/postgres.yml
+- bus/events/memory.yml
 - bus/api/local.yml
-- bus/integration/repos/local.yml
-- bus/integration/tasks/local.yml
-- bus/integration/workers/direct.yml
+- bus/repos/local.yml
+- bus/tasks/local.yml
+- bus/workers/direct.yml
 ```
 
-Profiles define commands, arguments, environment references, healthchecks, and
-deterministic initialization steps. The stack file chooses which services run
-and how they depend on each other.
+Profile references follow their file paths without the extension, such as
+`bus/events/postgres` for `profiles/bus/events/postgres.yml`. Profiles define
+commands, arguments, environment references, healthchecks, and deterministic
+initialization steps. The stack file chooses which services run and how they
+depend on each other.
 
 If you change `BUS_WORKERS_DIRECT_REPO_ROOT` or
 `BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO`, remove
