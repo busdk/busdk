@@ -25,6 +25,8 @@ runtime:
     - --enable-module
     - events
   env:
+    - name: PATH
+      value_from: process_env:PATH
     - name: BUS_API_CAPABILITY_TOKEN
       value_from: env:BUS_API_CAPABILITY_TOKEN
       default: local

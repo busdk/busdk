@@ -16,6 +16,8 @@ runtime:
     - integration-task
     - --task-service
   env:
+    - name: PATH
+      value_from: process_env:PATH
     - name: BUS_EVENTS_API_URL
       value_from: env:BUS_EVENTS_API_URL
       default: http://127.0.0.1:8081/local/v1
