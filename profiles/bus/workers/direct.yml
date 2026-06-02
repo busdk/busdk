@@ -12,6 +12,10 @@ parameters:
     type: string
     description: Bus Events API base URL consumed by the shared integration host.
     default: http://127.0.0.1:8081/local/v1
+  - name: codex_auth_home
+    type: string
+    description: Optional Codex auth/config home copied into isolated direct worker CODEX_HOME directories.
+    default: " "
 runtime:
   kind: native
   provider: bus
@@ -27,6 +31,14 @@ runtime:
     - name: PATH
       description: Process search path used to locate the bus dispatcher.
       value_from: process_env:PATH
+    - name: HOME
+      description: Host home directory used to resolve the default Codex auth/config home.
+      value_from: process_env:HOME
+      default: " "
+    - name: CODEX_HOME
+      description: Host Codex auth/config home used when set.
+      value_from: process_env:CODEX_HOME
+      default: " "
     - name: BUS_API_TOKEN
       description: Bearer token used by the integration host when calling the Bus Events API.
       value_from: env:BUS_API_TOKEN
@@ -64,6 +76,10 @@ runtime:
       description: Command used to launch the local Codex executable.
       value_from: env:BUS_WORKERS_DIRECT_CODEX_COMMAND
       default: codex
+    - name: BUS_WORKERS_DIRECT_CODEX_AUTH_HOME
+      description: Explicit Codex auth/config directory copied into each isolated direct worker CODEX_HOME.
+      value_from: env:BUS_WORKERS_DIRECT_CODEX_AUTH_HOME
+      default: "{param:codex_auth_home}"
     - name: BUS_WORKERS_DIRECT_BASE_REF
       description: Default Git base ref used for product task worktrees.
       value_from: env:BUS_WORKERS_DIRECT_BASE_REF
