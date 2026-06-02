@@ -11,8 +11,9 @@ runtime:
   kind: native
   provider: bus
   command:
-    - bus-api
+    - bus
   args:
+    - api
     - serve
     - --token
     - "{env:BUS_API_CAPABILITY_TOKEN}"
@@ -29,10 +30,10 @@ runtime:
   env:
     - name: BUS_WORKERS_EVENTS_URL
       value_from: env:BUS_WORKERS_EVENTS_URL
-      default: http://127.0.0.1:8081
+      default: http://127.0.0.1:8081/local/v1
     - name: BUS_TASKS_EVENTS_URL
       value_from: env:BUS_TASKS_EVENTS_URL
-      default: http://127.0.0.1:8081
+      default: http://127.0.0.1:8081/local/v1
     - name: BUS_API_TOKEN
       value_from: env:BUS_API_TOKEN
     - name: BUS_API_CAPABILITY_TOKEN

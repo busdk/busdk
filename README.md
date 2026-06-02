@@ -192,16 +192,18 @@ postgres -> events -> repos -> workers
 events, workers, tasks -> api
 ```
 
-The `api` service is one `bus-api` process. Its profile enables multiple API
-modules with repeated `--provider` and `--enable-module` flags. More API
-modules can be added to the same process as their providers are wired into
-`bus-api`.
+The `events` service is launched as `bus api ... --provider events
+--enable-module events`, so the Events API is hosted through the Bus API
+surface rather than by executing a provider binary directly. The `api` service
+is another `bus api` process with the local Workers and Tasks modules enabled.
+More API modules can be added to the same process as their providers are wired
+into `bus-api`.
 
 The `repos`, `workers`, and `tasks` services currently run as separate native
-processes. That makes it easy to restart one domain service without restarting
-the others. The shared `bus-integration` runtime is the path toward a combined
-integration host, but the default stack does not pretend that aggregate host is
-already wired for every domain.
+processes launched through the `bus` dispatcher. That makes it easy to restart
+one domain service without restarting the others. The shared `bus integration`
+runtime is the path toward a combined integration host, but the default stack
+does not pretend that aggregate host is already wired for every domain.
 
 The stack points at runtime profiles stored under `profiles/`:
 

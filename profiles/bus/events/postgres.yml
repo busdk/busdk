@@ -12,13 +12,24 @@ runtime:
   kind: native
   provider: bus
   command:
-    - bus-api-provider-events
+    - bus
   args:
-    - --addr
-    - 127.0.0.1:8081
-    - --events-backend
-    - postgres
+    - api
+    - serve
+    - --token
+    - "{env:BUS_API_CAPABILITY_TOKEN}"
+    - --port
+    - "8081"
+    - --provider
+    - events
+    - --enable-module
+    - events
   env:
+    - name: BUS_API_CAPABILITY_TOKEN
+      value_from: env:BUS_API_CAPABILITY_TOKEN
+      default: local
+    - name: BUS_EVENTS_BACKEND
+      value: postgres
     - name: BUS_EVENTS_JWT_SECRET
       value_from: env:BUS_EVENTS_JWT_SECRET
     - name: BUS_EVENTS_POSTGRES_DSN

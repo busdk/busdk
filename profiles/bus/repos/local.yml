@@ -11,11 +11,13 @@ runtime:
   kind: native
   provider: bus
   command:
-    - bus-integration-repos
+    - bus
+  args:
+    - integration-repos
   env:
     - name: BUS_EVENTS_API_URL
       value_from: env:BUS_EVENTS_API_URL
-      default: http://127.0.0.1:8081
+      default: http://127.0.0.1:8081/local/v1
     - name: BUS_API_TOKEN
       value_from: env:BUS_API_TOKEN
     - name: BUS_REPOS_ENVIRONMENT_ID
