@@ -5,6 +5,22 @@ profile_dirs:
   - profiles
 default_services:
   - api
+groups:
+  infrastructure:
+    name: Infrastructure
+    services:
+      - postgres
+      - events
+  integrations:
+    name: Integrations
+    services:
+      - repos
+      - workers
+      - tasks
+  gateways:
+    name: API gateways
+    services:
+      - api
 services:
   postgres:
     profile: postgres/native

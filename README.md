@@ -192,6 +192,12 @@ postgres -> events -> repos -> workers
 events, workers, tasks -> api
 ```
 
+The file also groups services with short display names: `Infrastructure`
+contains PostgreSQL and Events, `Integrations` contains Repos, Workers, and
+Tasks, and `API gateways` contains the local Bus API gateway. Group `name` is
+the display label; `description` is optional and only needed for longer
+explanation.
+
 The `events` service is launched as `bus api ... --provider events
 --enable-module events`, so the Events API is hosted through the Bus API
 surface rather than by executing a provider binary directly. The `api` service
