@@ -19,13 +19,15 @@ This is the shortest path for the current local worker use case:
 You need PostgreSQL binaries available locally and a working `codex` command
 with local Codex authentication already configured.
 
-The checked-in `services.yml` starts the services needed for local workers:
+The checked-in `services.yml` starts the services needed for local workers and
+tasks:
 
 - native PostgreSQL for durable Events storage;
 - Bus Events API backed by PostgreSQL;
-- Bus Repos integration for Git branch and worktree materialization;
-- Bus Workers integration using the local direct Codex runner;
-- Bus API gateway with the Workers provider mounted.
+- Bus Repos service for Git branch and worktree materialization;
+- Bus Workers service using the local direct Codex runner;
+- Bus Tasks service for task threads and task-to-worker assignment;
+- one Bus API gateway process with the local Workers and Tasks modules mounted.
 
 ### 1. Install
 
@@ -92,7 +94,7 @@ BUS_AUTH_HS256_SECRET="$BUS_LOCAL_SECRET" \
   bus configure BUS_API_TOKEN="$(bus operator token --format token issue --local \
     --subject local-workers \
     --audience ai.hg.fi/api \
-    --scope 'events:send events:listen workers:read workers:write workers:control' \
+    --scope 'events:send events:listen workers:read workers:write workers:control task:send task:read task:reply' \
     --ttl 12h)"
 ```
 
@@ -116,8 +118,8 @@ on first start and skips initialization when `PG_VERSION` already exists.
 
 ### 4. Create And Guide A Worker
 
-The Workers API is served through the local Bus API gateway. The default local
-URL is:
+The Workers and Tasks APIs are served through the local Bus API gateway. The
+default local URL is:
 
 ```text
 http://127.0.0.1:8090/local/v1
@@ -172,15 +174,35 @@ bus workers --api-url http://127.0.0.1:8090/local/v1 stop <worker-id> \
 
 ## Services Configuration
 
-The root `services.yml` is intentionally small. It points at runtime profiles
-stored under `profiles/`:
+The root `services.yml` is intentionally small and uses operator-facing service
+ids:
+
+```text
+postgres -> events -> repos -> workers
+                  \-> tasks
+events, workers, tasks -> api
+```
+
+The `api` service is one `bus-api` process. Its profile enables multiple API
+modules with repeated `--provider` and `--enable-module` flags. More API
+modules can be added to the same process as their providers are wired into
+`bus-api`.
+
+The `repos`, `workers`, and `tasks` services currently run as separate native
+processes. That makes it easy to restart one domain service without restarting
+the others. The shared `bus-integration` runtime is the path toward a combined
+integration host, but the default stack does not pretend that aggregate host is
+already wired for every domain.
+
+The stack points at runtime profiles stored under `profiles/`:
 
 ```text
 profiles/
 - postgres/native.json
 - bus/api/events/postgres.yml
-- bus/api/workers.yml
+- bus/api/local.yml
 - bus/integration/repos/local.yml
+- bus/integration/tasks/local.yml
 - bus/integration/workers/direct.yml
 ```
 

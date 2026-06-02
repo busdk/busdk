@@ -2,8 +2,10 @@ id: bus/integration/tasks/local
 aliases:
   - bus-integration-tasks-local
   - bus/integration-tasks/local
-name: Bus Tasks local integration
-description: Bus Tasks integration service backed by Bus Events API.
+  - bus/tasks/local
+  - bus-tasks-local
+name: Bus Tasks local service
+description: Bus Tasks service backed by Bus Events API.
 service_kind: bus.integration.tasks
 runtime:
   kind: native

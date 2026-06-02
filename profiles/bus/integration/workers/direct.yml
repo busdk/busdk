@@ -2,8 +2,10 @@ id: bus/integration/workers/direct
 aliases:
   - bus-integration-workers-direct
   - bus/integration-workers/direct
-name: Bus Workers direct Codex integration
-description: Bus Workers integration running local direct Codex App Server workers.
+  - bus/workers/direct
+  - bus-workers-direct
+name: Bus Workers direct Codex service
+description: Bus Workers service running local direct Codex App Server workers.
 service_kind: bus.integration.workers
 runtime:
   kind: native

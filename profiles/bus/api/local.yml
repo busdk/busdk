@@ -1,9 +1,11 @@
-id: bus/api/tasks-workers
+id: bus/api/local
 aliases:
+  - bus-api-local
+  - bus/api/tasks-workers
   - bus-api-tasks-workers
   - bus-api-workers-tasks
-name: Bus API Tasks and Workers gateway
-description: Bus API gateway with the Tasks and Workers providers mounted.
+name: Bus API local gateway
+description: Bus API gateway with the local Tasks and Workers modules enabled.
 service_kind: bus.api
 runtime:
   kind: native

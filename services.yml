@@ -6,26 +6,26 @@ profile_dirs:
 services:
   postgres:
     profile: postgres/native
-  events-api:
-    profile: bus/api/events/postgres
+  events:
+    profile: bus-events-postgres
     depends_on:
       - postgres
-  repos-integration:
-    profile: bus/integration/repos/local
+  repos:
+    profile: bus-repos-local
     depends_on:
-      - events-api
-  workers-integration:
-    profile: bus/integration/workers/direct
+      - events
+  workers:
+    profile: bus-workers-direct
     depends_on:
-      - events-api
-      - repos-integration
-  tasks-integration:
-    profile: bus/integration/tasks/local
+      - events
+      - repos
+  tasks:
+    profile: bus-tasks-local
     depends_on:
-      - events-api
-  bus-api:
-    profile: bus/api/tasks-workers
+      - events
+  api:
+    profile: bus-api-local
     depends_on:
-      - events-api
-      - workers-integration
-      - tasks-integration
+      - events
+      - workers
+      - tasks
