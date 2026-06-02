@@ -17,15 +17,18 @@
     "env": [
       {
         "name": "BUS_POSTGRES_BIN",
+        "description": "Directory containing PostgreSQL binaries such as postgres and initdb.",
         "value_from": "env:BUS_POSTGRES_BIN"
       },
       {
         "name": "PGDATA",
+        "description": "Data directory used by the native PostgreSQL process.",
         "value_from": "env:BUS_POSTGRES_PGDATA",
         "default": ".bus/services/postgres/data"
       },
       {
         "name": "BUS_POSTGRES_PORT",
+        "description": "TCP port for the native PostgreSQL listener.",
         "value_from": "env:BUS_POSTGRES_PORT",
         "default": "5432"
       }

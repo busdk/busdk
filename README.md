@@ -229,6 +229,12 @@ commands, arguments, environment references, healthchecks, and deterministic
 initialization steps. The stack file chooses which services run and how they
 depend on each other.
 
+Service `params` configure profile-local values, such as capability path tokens
+or Events API URLs used only to build command arguments. They are not exported
+to the child process environment unless the profile explicitly references them
+in `runtime.env`. Runtime environment entries in profiles include descriptions
+so operators can see why each value is passed through.
+
 If you change `BUS_WORKERS_DIRECT_REPO_ROOT` or
 `BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO`, remove
 `.bus/services/repos/repositories.json` before starting again so the repos

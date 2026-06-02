@@ -7,6 +7,10 @@ aliases:
 name: Bus Workers direct Codex service
 description: Bus Workers service running local direct Codex App Server workers.
 service_kind: bus.integration.workers
+parameters:
+  - name: events_url
+    description: Bus Events API base URL consumed by the shared integration host.
+    default: http://127.0.0.1:8081/local/v1
 runtime:
   kind: native
   provider: bus
@@ -15,57 +19,71 @@ runtime:
   args:
     - integration
     - --events-url
-    - "{env:BUS_EVENTS_API_URL}"
+    - "{param:events_url}"
     - --provider
     - workers
   env:
     - name: PATH
+      description: Process search path used to locate the bus dispatcher.
       value_from: process_env:PATH
-    - name: BUS_EVENTS_API_URL
-      value_from: env:BUS_EVENTS_API_URL
-      default: http://127.0.0.1:8081/local/v1
     - name: BUS_API_TOKEN
+      description: Bearer token used by the integration host when calling the Bus Events API.
       value_from: env:BUS_API_TOKEN
     - name: BUS_WORKERS_ENVIRONMENT_ID
+      description: Environment id stamped on Workers integration events.
       value_from: env:BUS_WORKERS_ENVIRONMENT_ID
       default: local-dev
     - name: BUS_WORKERS_ENVIRONMENT_NAME
+      description: Human-readable environment name reported by worker status.
       value_from: env:BUS_WORKERS_ENVIRONMENT_NAME
       default: Local dev
     - name: BUS_WORKERS_LIFECYCLE
+      description: Worker lifecycle mode selected by the Workers integration.
       value_from: env:BUS_WORKERS_LIFECYCLE
       default: direct-exec
     - name: BUS_WORKERS_DIRECT_REPO_ROOT
+      description: Product repository root used when creating task worktrees.
       value_from: env:BUS_WORKERS_DIRECT_REPO_ROOT
     - name: BUS_WORKERS_DIRECT_WORKER_ROOT
+      description: Runtime directory for local direct Codex worker processes.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_ROOT
       default: .bus/services/workers/runtime
     - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
+      description: Git repository used for worker identity project data.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
     - name: BUS_WORKERS_DIRECT_MODEL
+      description: Default model assigned to direct Codex workers.
       value_from: env:BUS_WORKERS_DIRECT_MODEL
       default: gpt-5.3-codex-spark
     - name: BUS_WORKERS_DIRECT_SANDBOX
+      description: Sandbox mode passed to direct Codex workers.
       value_from: env:BUS_WORKERS_DIRECT_SANDBOX
       default: workspace-write
     - name: BUS_WORKERS_DIRECT_CODEX_COMMAND
+      description: Command used to launch the local Codex executable.
       value_from: env:BUS_WORKERS_DIRECT_CODEX_COMMAND
       default: codex
     - name: BUS_WORKERS_DIRECT_BASE_REF
+      description: Default Git base ref used for product task worktrees.
       value_from: env:BUS_WORKERS_DIRECT_BASE_REF
       default: HEAD
     - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF
+      description: Default Git base ref used for worker identity worktrees.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF
       default: HEAD
     - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_BRANCH_PREFIX
+      description: Branch prefix used when materializing worker identity worktrees.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_BRANCH_PREFIX
       default: worker/
     - name: BUS_WORKERS_DIRECT_WORKSPACE_MATERIALIZER
+      description: Workspace materializer used by direct Codex workers.
       value_from: env:BUS_WORKERS_DIRECT_WORKSPACE_MATERIALIZER
       default: repos-events
     - name: BUS_WORKERS_DIRECT_REPOS_ENSURE_TIMEOUT
+      description: Timeout for Repos ensure requests made during worktree materialization.
       value_from: env:BUS_WORKERS_DIRECT_REPOS_ENSURE_TIMEOUT
       default: 30s
     - name: BUS_WORKERS_DIRECT_MESSAGE_EVIDENCE_TIMEOUT
+      description: Timeout while waiting for direct Codex worker message evidence.
       value_from: env:BUS_WORKERS_DIRECT_MESSAGE_EVIDENCE_TIMEOUT
       default: 3m

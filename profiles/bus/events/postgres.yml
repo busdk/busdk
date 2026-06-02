@@ -8,6 +8,10 @@ aliases:
 name: Bus Events API PostgreSQL backend
 description: Bus Events API provider using PostgreSQL as the durable Events backend.
 service_kind: bus.api.events
+parameters:
+  - name: capability_token
+    description: Capability path token used in the Bus API base URL.
+    default: local
 runtime:
   kind: native
   provider: bus
@@ -17,22 +21,23 @@ runtime:
     - api
     - serve
     - --token
-    - "{env:BUS_API_CAPABILITY_TOKEN}"
+    - "{param:capability_token}"
     - --port
     - "8081"
     - --provider
     - events
   env:
     - name: PATH
+      description: Process search path used to locate the bus dispatcher.
       value_from: process_env:PATH
-    - name: BUS_API_CAPABILITY_TOKEN
-      value_from: env:BUS_API_CAPABILITY_TOKEN
-      default: local
     - name: BUS_EVENTS_BACKEND
+      description: Selects the PostgreSQL Events backend.
       value: postgres
     - name: BUS_EVENTS_JWT_SECRET
+      description: HS256 secret used by the Events API to validate Bus API bearer tokens.
       value_from: env:BUS_EVENTS_JWT_SECRET
     - name: BUS_EVENTS_POSTGRES_DSN
+      description: PostgreSQL connection string used as the durable Events backend.
       value_from: env:BUS_EVENTS_POSTGRES_DSN
   ports:
     - name: events-api

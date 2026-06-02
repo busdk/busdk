@@ -4,6 +4,10 @@ aliases:
 name: Bus API Workers gateway
 description: Bus API gateway with the Workers provider mounted.
 service_kind: bus.api
+parameters:
+  - name: capability_token
+    description: Capability path token used in the Bus API base URL.
+    default: local
 runtime:
   kind: native
   provider: bus
@@ -13,23 +17,24 @@ runtime:
     - api
     - serve
     - --token
-    - "{env:BUS_API_CAPABILITY_TOKEN}"
+    - "{param:capability_token}"
     - --port
     - "{env:BUS_API_PORT}"
     - --provider
     - workers
   env:
     - name: PATH
+      description: Process search path used to locate the bus dispatcher.
       value_from: process_env:PATH
     - name: BUS_WORKERS_EVENTS_URL
+      description: Bus Events API URL used by the Workers API provider.
       value_from: env:BUS_WORKERS_EVENTS_URL
       default: http://127.0.0.1:8081/local/v1
     - name: BUS_API_TOKEN
+      description: Bearer token used by API providers when calling the Bus Events API.
       value_from: env:BUS_API_TOKEN
-    - name: BUS_API_CAPABILITY_TOKEN
-      value_from: env:BUS_API_CAPABILITY_TOKEN
-      default: local
     - name: BUS_API_PORT
+      description: TCP port for this Bus API gateway process.
       value_from: env:BUS_API_PORT
       default: "8090"
   ports:

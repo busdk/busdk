@@ -11,14 +11,17 @@
     "env": [
       {
         "name": "POSTGRES_USER",
+        "description": "Initial PostgreSQL role created by the container image.",
         "value": "bus_service"
       },
       {
         "name": "POSTGRES_PASSWORD",
+        "description": "Initial PostgreSQL password supplied by the runtime provider.",
         "value_from": "services.postgres.password"
       },
       {
         "name": "POSTGRES_DB",
+        "description": "Initial PostgreSQL database created by the container image.",
         "value": "bus"
       }
     ],

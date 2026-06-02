@@ -26,23 +26,33 @@ services:
     profile: postgres/native
   events:
     profile: bus/events/postgres
+    params:
+      capability_token: local
     depends_on:
       - postgres
   repos:
     profile: bus/repos/local
+    params:
+      events_url: http://127.0.0.1:8081/local/v1
     depends_on:
       - events
   workers:
     profile: bus/workers/direct
+    params:
+      events_url: http://127.0.0.1:8081/local/v1
     depends_on:
       - events
       - repos
   tasks:
     profile: bus/tasks/local
+    params:
+      events_url: http://127.0.0.1:8081/local/v1
     depends_on:
       - events
   api:
     profile: bus/api/local
+    params:
+      capability_token: local
     depends_on:
       - events
       - workers
