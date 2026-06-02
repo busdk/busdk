@@ -1,0 +1,23 @@
+id: bus/integration/tasks/local
+aliases:
+  - bus-integration-tasks-local
+  - bus/integration-tasks/local
+name: Bus Tasks local integration
+description: Bus Tasks integration service backed by Bus Events API.
+service_kind: bus.integration.tasks
+runtime:
+  kind: native
+  provider: bus
+  command:
+    - bus-integration-task
+  args:
+    - --task-service
+  env:
+    - name: BUS_EVENTS_API_URL
+      value_from: env:BUS_EVENTS_API_URL
+      default: http://127.0.0.1:8081
+    - name: BUS_API_TOKEN
+      value_from: env:BUS_API_TOKEN
+    - name: BUS_TASKS_ENVIRONMENT_ID
+      value_from: env:BUS_TASKS_ENVIRONMENT_ID
+      default: local-dev

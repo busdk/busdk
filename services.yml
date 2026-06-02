@@ -19,8 +19,13 @@ services:
     depends_on:
       - events-api
       - repos-integration
+  tasks-integration:
+    profile: bus/integration/tasks/local
+    depends_on:
+      - events-api
   bus-api:
-    profile: bus/api/workers
+    profile: bus/api/tasks-workers
     depends_on:
       - events-api
       - workers-integration
+      - tasks-integration
