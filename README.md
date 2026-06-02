@@ -198,15 +198,14 @@ Tasks, and `API gateways` contains the local Bus API gateway. Group `name` is
 the display label; `description` is optional and only needed for longer
 explanation.
 
-The `events` service is launched as `bus api ... --provider events
---enable-module events`, so the Events API is hosted through the Bus API
-surface rather than by executing a provider binary directly. The `api` service
-is another `bus api` process with the local Workers and Tasks modules enabled.
-More API modules can be added to the same process as their providers are wired
-into `bus-api`.
+The `events` service is launched as `bus api ... --provider events`, so the
+Events API is hosted through the Bus API surface rather than by executing a
+provider binary directly. The `api` service is another `bus api` process with
+the local Workers and Tasks providers enabled. More API providers can be added
+to the same process as they are wired into `bus-api`.
 
 The `repos`, `workers`, and `tasks` services launch the shared integration host
-as `bus integration ... --enable-module <name>`. Each profile still runs as its
+as `bus integration ... --provider <name>`. Each profile still runs as its
 own service process so one domain can be restarted without restarting the
 others, but the launched binary is the integration host and the selected
 `bus-integration-*` module is enabled inside that host.

@@ -16,7 +16,7 @@ runtime:
     - integration
     - --events-url
     - "{env:BUS_EVENTS_API_URL}"
-    - --enable-module
+    - --provider
     - task
   env:
     - name: PATH

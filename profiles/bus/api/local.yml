@@ -20,13 +20,7 @@ runtime:
     - --port
     - "{env:BUS_API_PORT}"
     - --provider
-    - workers
-    - --provider
-    - tasks
-    - --enable-module
-    - workers
-    - --enable-module
-    - tasks
+    - workers,tasks
   env:
     - name: PATH
       value_from: process_env:PATH

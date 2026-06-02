@@ -22,8 +22,6 @@ runtime:
     - "8081"
     - --provider
     - events
-    - --enable-module
-    - events
   env:
     - name: PATH
       value_from: process_env:PATH
