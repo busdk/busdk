@@ -1,0 +1,50 @@
+id: bus/api/tasks-workers
+aliases:
+  - bus-api-tasks-workers
+  - bus-api-workers-tasks
+name: Bus API Tasks and Workers gateway
+description: Bus API gateway with the Tasks and Workers providers mounted.
+service_kind: bus.api
+runtime:
+  kind: native
+  provider: bus
+  command:
+    - bus-api
+  args:
+    - serve
+    - --token
+    - "{env:BUS_API_CAPABILITY_TOKEN}"
+    - --port
+    - "{env:BUS_API_PORT}"
+    - --provider
+    - workers
+    - --provider
+    - tasks
+    - --enable-module
+    - workers
+    - --enable-module
+    - tasks
+  env:
+    - name: BUS_WORKERS_EVENTS_URL
+      value_from: env:BUS_WORKERS_EVENTS_URL
+      default: http://127.0.0.1:8081
+    - name: BUS_TASKS_EVENTS_URL
+      value_from: env:BUS_TASKS_EVENTS_URL
+      default: http://127.0.0.1:8081
+    - name: BUS_API_TOKEN
+      value_from: env:BUS_API_TOKEN
+    - name: BUS_API_CAPABILITY_TOKEN
+      value_from: env:BUS_API_CAPABILITY_TOKEN
+      default: local
+    - name: BUS_API_PORT
+      value_from: env:BUS_API_PORT
+      default: "8090"
+  ports:
+    - name: bus-api
+      protocol: tcp
+      target: 8090
+      host: 127.0.0.1
+  healthcheck:
+    tcp_port_from: env:BUS_API_PORT
+    interval: 250ms
+    timeout: 20s
