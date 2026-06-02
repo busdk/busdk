@@ -16,6 +16,14 @@ parameters:
     type: string
     description: Optional Codex auth/config home copied into isolated direct worker CODEX_HOME directories.
     default: " "
+  - name: default_model
+    type: string
+    description: Optional default Codex model for direct workers when a worker create request does not provide one.
+    default: " "
+  - name: unified_exec
+    type: boolean
+    description: Enable Codex unified exec for direct worker App Server processes.
+    default: false
 runtime:
   kind: native
   provider: bus
@@ -65,13 +73,17 @@ runtime:
       description: Git repository used for worker identity project data.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
     - name: BUS_WORKERS_DIRECT_MODEL
-      description: Default model assigned to direct Codex workers.
+      description: Optional default model assigned to direct Codex workers when a worker create request does not provide one.
       value_from: env:BUS_WORKERS_DIRECT_MODEL
-      default: gpt-5.3-codex-spark
+      default: "{param:default_model}"
     - name: BUS_WORKERS_DIRECT_SANDBOX
       description: Sandbox mode passed to direct Codex workers.
       value_from: env:BUS_WORKERS_DIRECT_SANDBOX
       default: workspace-write
+    - name: BUS_WORKERS_DIRECT_UNIFIED_EXEC
+      description: Whether direct Codex workers should enable Codex unified exec; disabled by default as a local direct-worker compatibility workaround.
+      value_from: env:BUS_WORKERS_DIRECT_UNIFIED_EXEC
+      default: "{param:unified_exec}"
     - name: BUS_WORKERS_DIRECT_CODEX_COMMAND
       description: Command used to launch the local Codex executable.
       value_from: env:BUS_WORKERS_DIRECT_CODEX_COMMAND
