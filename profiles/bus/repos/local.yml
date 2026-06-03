@@ -1,0 +1,64 @@
+id: bus/repos/local
+aliases:
+  - bus-integration-repos-local
+  - bus/integration/repos/local
+  - bus/integration-repos/local
+  - bus-repos-local
+name: Bus Repos local service
+description: Bus Repos service backed by preconfigured local Git repositories.
+service_kind: bus.integration.repos
+parameters:
+  - name: events_url
+    type: string
+    description: Bus Events API base URL consumed by the shared integration host.
+    default: http://127.0.0.1:8081/local/v1
+runtime:
+  kind: native
+  provider: bus
+  command:
+    - bus
+  args:
+    - integration
+    - --events-url
+    - "{param:events_url}"
+    - --provider
+    - repos
+  env:
+    - name: PATH
+      description: Process search path used to locate the bus dispatcher.
+      value_from: process_env:PATH
+    - name: BUS_API_TOKEN
+      description: Bearer token used by the integration host when calling the Bus Events API.
+      value_from: env:BUS_API_TOKEN
+    - name: BUS_REPOS_ENVIRONMENT_ID
+      description: Environment id stamped on Repos integration events.
+      value_from: env:BUS_WORKERS_ENVIRONMENT_ID
+      default: local-dev
+    - name: BUS_REPOS_CONFIG
+      description: Path to the generated Repos repository catalog file.
+      value_from: env:BUS_REPOS_CONFIG
+      default: .bus/services/repos/repositories.json
+    - name: BUS_WORKERS_DIRECT_REPO_ROOT
+      description: Product repository root used to populate the Repos catalog.
+      value_from: env:BUS_WORKERS_DIRECT_REPO_ROOT
+    - name: BUS_WORKERS_DIRECT_BASE_REF
+      description: Default Git base ref used for product task worktrees.
+      value_from: env:BUS_WORKERS_DIRECT_BASE_REF
+      default: HEAD
+    - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
+      description: Git repository used for worker identity project data.
+      value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
+    - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF
+      description: Default Git base ref used for worker identity worktrees.
+      value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF
+      default: HEAD
+  options:
+    init:
+      command:
+        - /bin/sh
+      args:
+        - -c
+        - >-
+          mkdir -p "$(dirname "{env:BUS_REPOS_CONFIG}")" &&
+          printf '%s\n' '{"repositories":[{"id":"product","path":"{env:BUS_WORKERS_DIRECT_REPO_ROOT}","default_base_ref":"{env:BUS_WORKERS_DIRECT_BASE_REF}"},{"id":"worker-identity","path":"{env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO}","default_base_ref":"{env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF}"}]}' > "{env:BUS_REPOS_CONFIG}"
+      creates: "{env:BUS_REPOS_CONFIG}"

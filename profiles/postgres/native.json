@@ -1,0 +1,73 @@
+{
+  "id": "postgres/native",
+  "aliases": ["postgres", "postgres-native"],
+  "name": "PostgreSQL native process",
+  "description": "PostgreSQL database server using installed PostgreSQL binaries and a native local process.",
+  "service_kind": "database.postgres",
+  "runtime": {
+    "kind": "native",
+    "provider": "homebrew",
+    "command": ["{env:BUS_POSTGRES_BIN}/postgres"],
+    "args": [
+      "-p",
+      "{env:BUS_POSTGRES_PORT}",
+      "-c",
+      "listen_addresses=127.0.0.1"
+    ],
+    "env": [
+      {
+        "name": "BUS_POSTGRES_BIN",
+        "description": "Directory containing PostgreSQL binaries such as postgres and initdb.",
+        "value_from": "env:BUS_POSTGRES_BIN"
+      },
+      {
+        "name": "PGDATA",
+        "description": "Data directory used by the native PostgreSQL process.",
+        "value_from": "env:BUS_POSTGRES_PGDATA",
+        "default": ".bus/services/postgres/data"
+      },
+      {
+        "name": "BUS_POSTGRES_PORT",
+        "description": "TCP port for the native PostgreSQL listener.",
+        "value_from": "env:BUS_POSTGRES_PORT",
+        "default": "5432"
+      },
+      {
+        "name": "LANG",
+        "description": "Locale used by PostgreSQL initialization and runtime.",
+        "value_from": "env:BUS_POSTGRES_LANG",
+        "default": "C"
+      },
+      {
+        "name": "LC_ALL",
+        "description": "Locale category override used by PostgreSQL initialization and runtime.",
+        "value_from": "env:BUS_POSTGRES_LC_ALL",
+        "default": "C"
+      }
+    ],
+    "ports": [
+      {
+        "name": "postgres",
+        "protocol": "tcp",
+        "target": 5432
+      }
+    ],
+    "healthcheck": {
+      "tcp_port_from": "env:BUS_POSTGRES_PORT",
+      "interval": "250ms",
+      "timeout": "20s"
+    },
+    "options": {
+      "init": {
+        "command": ["{env:BUS_POSTGRES_BIN}/initdb"],
+        "args": [
+          "-D",
+          "{env:PGDATA}",
+          "--username=bus_service",
+          "--auth=trust"
+        ],
+        "creates": "{env:PGDATA}/PG_VERSION"
+      }
+    }
+  }
+}

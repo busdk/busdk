@@ -122,8 +122,6 @@ services:
       - local-dev
       - --provider
       - auth
-      - --enable-module
-      - auth
 
   bus-usage-api:
     <<: *go-service
@@ -196,7 +194,7 @@ services:
       - sh
       - -ec
       - |
-        exec go run -tags 'busdk_notes,busdk_concrete,busdk_busdata' ./cmd/bus-api serve --listen 0.0.0.0 --port 8092 --token local-dev --provider notes --enable-module notes
+        exec go run -tags 'busdk_notes,busdk_concrete,busdk_busdata' ./cmd/bus-api serve --listen 0.0.0.0 --port 8092 --token local-dev --provider notes
 
   bus-stripe:
     <<: *go-service

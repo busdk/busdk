@@ -1,0 +1,59 @@
+version: "0"
+env_files:
+  - .env
+profile_dirs:
+  - profiles
+default_services:
+  - api
+groups:
+  infrastructure:
+    name: Infrastructure
+    services:
+      - postgres
+      - events
+  integrations:
+    name: Integrations
+    services:
+      - repos
+      - workers
+      - tasks
+  gateways:
+    name: API gateways
+    services:
+      - api
+services:
+  postgres:
+    profile: postgres/native
+  events:
+    profile: bus/events/postgres
+    params:
+      capability_token: local
+    depends_on:
+      - postgres
+  repos:
+    profile: bus/repos/local
+    params:
+      events_url: http://127.0.0.1:8081/local/v1
+    depends_on:
+      - events
+  workers:
+    profile: bus/workers/direct
+    params:
+      events_url: http://127.0.0.1:8081/local/v1
+    depends_on:
+      - events
+      - repos
+  tasks:
+    profile: bus/tasks/local
+    params:
+      events_url: http://127.0.0.1:8081/local/v1
+    depends_on:
+      - events
+  api:
+    profile: bus/api/local
+    params:
+      capability_token: local
+    depends_on:
+      - events
+      - workers
+      - tasks

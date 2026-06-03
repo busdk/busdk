@@ -2,17 +2,23 @@
 set -eu
 
 # Minimal manual Spark worker launcher.
-# This intentionally does not use bus-task, Bus Events, or any worker provider.
+# This intentionally does not use bus-task, Bus Events, Docker, or providers.
 
-REMOTE=${BUS_MANUAL_SPARK_REMOTE:-coding-agent@dev.hg.fi}
-REMOTE_REPO=${BUS_MANUAL_SPARK_REMOTE_REPO:-/home/coding-agent/coding-agent/git/busdk/busdk}
-REMOTE_ROOT=${BUS_MANUAL_SPARK_REMOTE_ROOT:-/home/coding-agent/coding-agent/git/busdk/tmp/workers}
-IMAGE=${BUS_MANUAL_SPARK_IMAGE:-bus-integration-task:local-image-smoke}
+SCRIPT_DIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
+DEFAULT_REPO=$(CDPATH= cd "$SCRIPT_DIR/.." && pwd)
+
+HOST=${BUS_MANUAL_SPARK_HOST:-local}
+REPO=${BUS_MANUAL_SPARK_REPO:-$DEFAULT_REPO}
+WORKER_ROOT=${BUS_MANUAL_SPARK_WORKER_ROOT:-$REPO/tmp/workers}
+WORKER_REPO=${BUS_MANUAL_SPARK_WORKER_REPO:-$REPO/agents/worker}
 MODEL=${BUS_MANUAL_SPARK_MODEL:-gpt-5.3-codex-spark}
-SANDBOX=${BUS_MANUAL_SPARK_SANDBOX:-danger-full-access}
-AUTH_HOME=${BUS_MANUAL_SPARK_AUTH_HOME:-/home/coding-agent/coding-agent/.codex}
-PORT_START=${BUS_MANUAL_SPARK_PORT_START:-19100}
+SANDBOX=${BUS_MANUAL_SPARK_SANDBOX:-workspace-write}
+CODEX_CMD=${BUS_MANUAL_SPARK_CODEX:-codex}
+AUTH_HOME=${BUS_MANUAL_SPARK_AUTH_HOME:-${CODEX_HOME:-$HOME/.codex}}
 BASE_REF=${BUS_MANUAL_SPARK_BASE_REF:-HEAD}
+WORKER_BASE_REF=${BUS_MANUAL_SPARK_WORKER_BASE_REF:-HEAD}
+SESSION_BACKEND=${BUS_MANUAL_SPARK_SESSION_BACKEND:-screen}
+PATH_PREFIX=${BUS_MANUAL_SPARK_PATH_PREFIX:-$REPO/bin:$REPO/scripts:$HOME/.local/bin:$HOME/go/bin:/usr/local/go/bin}
 
 usage() {
 	cat >&2 <<'USAGE'
@@ -24,23 +30,28 @@ usage:
   manual-dev-hg-spark-worker.sh status [NAME]
   manual-dev-hg-spark-worker.sh stop NAME
 
-Starts plain Docker-hosted Codex App Server workers on coding-agent@dev.hg.fi.
-No Bus task/event/provider implementation is involved. Each worker gets a
-remote Git worktree, a module branch, a worker-specific AGENTS.md,
-worker-specific logs, a worker-specific CODEX_HOME copy, and a Spark-model
-app-server container. The checkout is mounted at /workspace/projects/busdk
-inside the container.
+Starts host-run Codex workers without Docker or virtualization. Each worker gets
+a BusDK product worktree, a module implementation branch, a worker identity
+worktree from agents/worker, worker-local memo/log/scratch paths, isolated
+CODEX_HOME, and a Codex session with an explicit sandbox.
+
+The default session backend is screen. The worker inherits a Go-friendly tool
+environment with PATH_PREFIX prepended so it can run git, go, make, Bus
+binaries, and module-local scripts from inside the Codex sandbox.
 
 Environment overrides:
-  BUS_MANUAL_SPARK_REMOTE       default coding-agent@dev.hg.fi
-  BUS_MANUAL_SPARK_REMOTE_REPO  default /home/coding-agent/coding-agent/git/busdk/busdk
-  BUS_MANUAL_SPARK_REMOTE_ROOT  default /home/coding-agent/coding-agent/git/busdk/tmp/workers
-  BUS_MANUAL_SPARK_IMAGE        default bus-integration-task:local-image-smoke
-  BUS_MANUAL_SPARK_MODEL        default gpt-5.3-codex-spark
-  BUS_MANUAL_SPARK_SANDBOX      default danger-full-access
-  BUS_MANUAL_SPARK_AUTH_HOME    default /home/coding-agent/coding-agent/.codex
-  BUS_MANUAL_SPARK_PORT_START   default 19100
-  BUS_MANUAL_SPARK_BASE_REF     default HEAD
+  BUS_MANUAL_SPARK_HOST             default local
+  BUS_MANUAL_SPARK_REPO             default parent of this script directory
+  BUS_MANUAL_SPARK_WORKER_ROOT      default $REPO/tmp/workers
+  BUS_MANUAL_SPARK_WORKER_REPO      default $REPO/agents/worker
+  BUS_MANUAL_SPARK_MODEL            default gpt-5.3-codex-spark
+  BUS_MANUAL_SPARK_SANDBOX          default workspace-write
+  BUS_MANUAL_SPARK_CODEX            default codex
+  BUS_MANUAL_SPARK_AUTH_HOME        default CODEX_HOME or $HOME/.codex
+  BUS_MANUAL_SPARK_BASE_REF         default HEAD
+  BUS_MANUAL_SPARK_WORKER_BASE_REF  default HEAD
+  BUS_MANUAL_SPARK_SESSION_BACKEND  default screen
+  BUS_MANUAL_SPARK_PATH_PREFIX      default repo/bin, repo/scripts, common Go paths
 USAGE
 	exit 2
 }
@@ -50,13 +61,204 @@ shell_quote() {
 }
 
 worker_dir() {
-	printf '%s/%s\n' "$REMOTE_ROOT" "$1"
+	printf '%s/%s\n' "$WORKER_ROOT" "$1"
 }
 
-remote_meta() {
-	name=$1
-	key=$2
-	ssh "$REMOTE" "test -f $(shell_quote "$(worker_dir "$name")/meta.env") && sed -n 's/^$key=//p' $(shell_quote "$(worker_dir "$name")/meta.env") | tail -1"
+meta_file_for() {
+	printf '%s/meta.env\n' "$(worker_dir "$1")"
+}
+
+meta_value() {
+	mv_name=$1
+	mv_key=$2
+	mv_meta=$(meta_file_for "$mv_name")
+	if [ -f "$mv_meta" ]; then
+		sed -n "s/^$mv_key=//p" "$mv_meta" | tail -1
+	fi
+}
+
+validate_worker() {
+	case "$1" in
+		''|*[!abcdefghijklmnopqrstuvwxyz0123456789-]*)
+			printf 'worker NAME must be a lowercase slug using letters, digits, and dash: %s\n' "$1" >&2
+			exit 2
+			;;
+	esac
+}
+
+validate_module() {
+	case "$1" in
+		''|*/*|*..*|*[!abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-]*)
+			printf 'MODULE must be a BusDK module directory name without slashes or shell metacharacters: %s\n' "$1" >&2
+			exit 2
+			;;
+	esac
+}
+
+validate_branch() {
+	if ! git check-ref-format --branch "$1" >/dev/null 2>&1; then
+		printf 'invalid branch name: %s\n' "$1" >&2
+		exit 2
+	fi
+}
+
+require_local_host() {
+	case "$HOST" in
+		local|localhost|127.0.0.1|'')
+			;;
+		*)
+			printf 'remote host mode is not implemented by this host-run launcher yet: %s\n' "$HOST" >&2
+			printf 'run on macOS/local host with BUS_MANUAL_SPARK_HOST=local\n' >&2
+			exit 2
+			;;
+	esac
+}
+
+require_command() {
+	if ! command -v "$1" >/dev/null 2>&1; then
+		printf 'required command not found in PATH: %s\n' "$1" >&2
+		exit 1
+	fi
+}
+
+screen_session_alive() {
+	ssa_session=$1
+	screen -ls 2>/dev/null | grep -Eq "[.]$ssa_session([[:space:]]|$)"
+}
+
+ensure_worker_repo() {
+	if [ -d "$WORKER_REPO/.git" ] || [ -f "$WORKER_REPO/.git" ]; then
+		return 0
+	fi
+	git -C "$REPO" submodule update --init agents/worker
+	if [ ! -d "$WORKER_REPO/.git" ] && [ ! -f "$WORKER_REPO/.git" ]; then
+		printf 'worker identity repository is not initialized: %s\n' "$WORKER_REPO" >&2
+		exit 1
+	fi
+}
+
+add_worktree() {
+	aw_repo=$1
+	aw_path=$2
+	aw_branch=$3
+	aw_base_ref=$4
+	if [ -d "$aw_path/.git" ] || [ -f "$aw_path/.git" ]; then
+		return 0
+	fi
+	mkdir -p "$(dirname "$aw_path")"
+	if git -C "$aw_repo" show-ref --verify --quiet "refs/heads/$aw_branch"; then
+		git -C "$aw_repo" worktree add "$aw_path" "$aw_branch"
+	else
+		git -C "$aw_repo" worktree add -b "$aw_branch" "$aw_path" "$aw_base_ref"
+	fi
+}
+
+init_module_checkout() {
+	im_product_worktree=$1
+	im_module=$2
+	if [ -d "$im_product_worktree/$im_module/.git" ] || [ -f "$im_product_worktree/$im_module/.git" ]; then
+		return 0
+	fi
+	git -C "$im_product_worktree" submodule update --init "$im_module"
+}
+
+init_go_replace_siblings() {
+	igr_product_worktree=$1
+	igr_module=$2
+	igr_go_mod="$igr_product_worktree/$igr_module/go.mod"
+	if [ ! -f "$igr_go_mod" ]; then
+		return 0
+	fi
+	sed -n 's/^[[:space:]]*replace[[:space:]][^=]*=>[[:space:]]*..\/\([^[:space:]]*\).*/\1/p' "$igr_go_mod" | while IFS= read -r igr_dep_module; do
+		case "$igr_dep_module" in
+			''|*/*|.*)
+				continue
+				;;
+		esac
+		if [ "$igr_dep_module" != "$igr_module" ]; then
+			init_module_checkout "$igr_product_worktree" "$igr_dep_module"
+		fi
+	done
+}
+
+prepare_codex_home() {
+	pch_codex_home=$1
+	mkdir -p "$pch_codex_home"
+	chmod 700 "$pch_codex_home" 2>/dev/null || true
+	if [ -d "$AUTH_HOME" ] && [ ! -e "$pch_codex_home/config.toml" ] && [ ! -e "$pch_codex_home/auth.json" ]; then
+		(umask 077; cp -pR "$AUTH_HOME/." "$pch_codex_home"/ 2>/dev/null || true)
+	fi
+	chmod -R u+rwX,go-rwx "$pch_codex_home" 2>/dev/null || true
+}
+
+write_worker_identity_files() {
+	wwif_name=$1
+	wwif_module=$2
+	wwif_branch=$3
+	wwif_identity_worktree=$4
+	wwif_prompt_file=$5
+	mkdir -p "$wwif_identity_worktree/logs" "$wwif_identity_worktree/memory"
+	cp "$wwif_prompt_file" "$wwif_identity_worktree/TASK.md"
+	cat >"$wwif_identity_worktree/SUPERVISOR.md" <<EOF
+# Manual Spark Worker Assignment
+
+Worker: $wwif_name
+Module: $wwif_module
+Implementation branch: $wwif_branch
+Model: $MODEL
+Sandbox: $SANDBOX
+
+Rules:
+- Work only on the assigned implementation slice and focused unit tests.
+- Use the BusDK product worktree for product/module changes.
+- Use this worker identity worktree for editable operating rules, memory, and
+  memo logs.
+- Keep memo logs under ./logs using the hourly agent memo convention.
+- Do not commit, push, or delete unrelated work unless the supervisor asks.
+EOF
+	if ! grep -q '^## Manual Bootstrap Assignment$' "$wwif_identity_worktree/AGENTS.md" 2>/dev/null; then
+		cat >>"$wwif_identity_worktree/AGENTS.md" <<EOF
+
+## Manual Bootstrap Assignment
+
+This worker identity branch is assigned to worker $wwif_name.
+
+Read SUPERVISOR.md and TASK.md before changing product files. Keep durable
+worker memory and hourly memo logs in this identity worktree. Product changes
+belong in the assigned BusDK product worktree and module branch.
+EOF
+	fi
+}
+
+write_runner() {
+	wr_runner=$1
+	wr_product_worktree=$2
+	wr_identity_worktree=$3
+	wr_module=$4
+	wr_prompt_file=$5
+	wr_log_file=$6
+	wr_codex_home=$7
+	cat >"$wr_runner" <<EOF
+#!/bin/sh
+set -eu
+export CODEX_HOME=$(shell_quote "$wr_codex_home")
+export BUSDK_ROOT=$(shell_quote "$wr_product_worktree")
+export BUS_WORKER_IDENTITY_ROOT=$(shell_quote "$wr_identity_worktree")
+export PATH=$(shell_quote "$PATH_PREFIX"):\$PATH
+mkdir -p "\$CODEX_HOME"
+cd $(shell_quote "$wr_product_worktree/$wr_module")
+printf 'manual Spark worker started at %s\n' "\$(date -u '+%Y-%m-%dT%H:%M:%SZ')" >>$(shell_quote "$wr_log_file")
+printf 'workdir=%s\nidentity=%s\nmodel=%s\nsandbox=%s\n' $(shell_quote "$wr_product_worktree/$wr_module") $(shell_quote "$wr_identity_worktree") $(shell_quote "$MODEL") $(shell_quote "$SANDBOX") >>$(shell_quote "$wr_log_file")
+exec $(shell_quote "$CODEX_CMD") \\
+  --model $(shell_quote "$MODEL") \\
+  --sandbox $(shell_quote "$SANDBOX") \\
+  -C $(shell_quote "$wr_product_worktree/$wr_module") \\
+  --add-dir $(shell_quote "$wr_product_worktree") \\
+  --add-dir $(shell_quote "$wr_identity_worktree") \\
+  --no-alt-screen \\
+  "\$(cat $(shell_quote "$wr_prompt_file"))"
+EOF
+	chmod +x "$wr_runner"
 }
 
 cmd=${1:-}
@@ -68,281 +270,219 @@ start)
 	name=${1:-}
 	module=${2:-}
 	branch=${3:-}
-	prompt_file=${4:-}
-	[ -n "$name" ] && [ -n "$module" ] && [ -n "$branch" ] && [ -n "$prompt_file" ] || usage
-	if [ ! -f "$prompt_file" ]; then
-		printf 'prompt file not found: %s\n' "$prompt_file" >&2
+	prompt_source=${4:-}
+	[ -n "$name" ] && [ -n "$module" ] && [ -n "$branch" ] && [ -n "$prompt_source" ] || usage
+	validate_worker "$name"
+	validate_module "$module"
+	validate_branch "$branch"
+	require_local_host
+	require_command git
+	require_command go
+	require_command make
+	require_command "$CODEX_CMD"
+	if [ "$SESSION_BACKEND" = "screen" ]; then
+		require_command screen
+	else
+		printf 'unsupported BUS_MANUAL_SPARK_SESSION_BACKEND: %s\n' "$SESSION_BACKEND" >&2
 		exit 2
 	fi
-
-	case "$name" in
-		*[!A-Za-z0-9_.-]*|'')
-			printf 'worker NAME must contain only letters, numbers, dot, underscore, or dash: %s\n' "$name" >&2
-			exit 2
-			;;
-	esac
+	if [ ! -f "$prompt_source" ]; then
+		printf 'prompt file not found: %s\n' "$prompt_source" >&2
+		exit 2
+	fi
+	if [ ! -d "$REPO/.git" ] && [ ! -f "$REPO/.git" ]; then
+		printf 'BusDK repository not found: %s\n' "$REPO" >&2
+		exit 1
+	fi
+	ensure_worker_repo
 
 	dir=$(worker_dir "$name")
-	prompt_remote="$dir/prompt.md"
-	ssh "$REMOTE" "mkdir -p $(shell_quote "$dir")"
-	scp "$prompt_file" "$REMOTE:$prompt_remote" >/dev/null
+	product_worktree="$dir/product"
+	identity_worktree="$dir/agent-worker"
+	logs_path="$dir/logs"
+	scratch_path="$dir/scratch"
+	codex_home="$dir/codex-home"
+	prompt_file="$dir/prompt.md"
+	live_prompt="$dir/live-prompt.md"
+	meta_file="$dir/meta.env"
+	runner="$dir/run-codex.sh"
+	log_file="$logs_path/screenlog.0"
+	pid_file="$dir/pid"
+	session="bus-manual-spark-$name"
+	identity_branch="worker/$name"
+	lockdir="$WORKER_ROOT/.manual-spark.lock"
 
-	remote_script=$(mktemp "${TMPDIR:-/tmp}/manual-spark-start.XXXXXX")
-	trap 'rm -f "$remote_script"' EXIT
-	cat >"$remote_script" <<'REMOTE_SCRIPT'
-set -eu
-name=$1
-module=$2
-branch=$3
-remote_repo=$4
-remote_root=$5
-image=$6
-model=$7
-sandbox=$8
-auth_home=$9
-port_start=${10}
-base_ref=${11}
-
-dir="$remote_root/$name"
-worktree="$dir/worktree"
-codex_home="$dir/codex-home"
-workspace="$dir/workspace"
-worker_agents="$workspace/AGENTS.md"
-worker_logs="$workspace/logs"
-token_file="$dir/ws-token"
-meta_file="$dir/meta.env"
-prompt_file="$dir/prompt.md"
-container_prompt="/workspace/task.md"
-container="bus-manual-spark-$name"
-lockdir="$remote_root/.manual-spark.lock"
-
-mkdir -p "$dir" "$codex_home" "$workspace" "$worker_logs"
-if [ ! -d "$remote_repo/.git" ]; then
-	printf 'remote repo not found: %s\n' "$remote_repo" >&2
-	exit 1
-fi
-
-init_module_checkout() {
-	init_module=$1
-	if [ -z "$init_module" ]; then
-		return 0
-	fi
-	if [ ! -d "$worktree/$init_module/.git" ] && [ ! -f "$worktree/$init_module/.git" ]; then
-		pinned_commit=$(git -C "$worktree" rev-parse "HEAD:$init_module" 2>/dev/null || true)
-		if [ -d "$remote_repo/$init_module" ]; then
-			git clone "$remote_repo/$init_module" "$worktree/$init_module"
-			if [ -n "$pinned_commit" ]; then
-				git -C "$worktree/$init_module" checkout "$pinned_commit"
-			fi
-		else
-			git -C "$worktree" submodule update --init "$init_module"
-		fi
-	fi
-}
-
-while ! mkdir "$lockdir" 2>/dev/null; do
-	sleep 1
-done
-trap 'rmdir "$lockdir" 2>/dev/null || true' EXIT INT TERM
-
-if [ "$base_ref" = "origin/main" ]; then
-	git -C "$remote_repo" fetch origin main >/dev/null 2>&1 || true
-fi
-if [ ! -d "$worktree/.git" ] && [ ! -f "$worktree/.git" ]; then
-	if git -C "$remote_repo" show-ref --verify --quiet "refs/heads/$branch"; then
-		git -C "$remote_repo" worktree add "$worktree" "$branch"
-	else
-		git -C "$remote_repo" worktree add -b "$branch" "$worktree" "$base_ref"
-	fi
-fi
-
-if [ ! -s "$token_file" ]; then
-	(umask 077; openssl rand -hex 32 >"$token_file")
-fi
-
-cat >"$worker_agents" <<EOF
-# Manual Spark Worker: $name
-
-You are a focused Codex implementation worker running under supervisor control.
-
-Task prompt:
-
-$(sed 's/^/> /' "$prompt_file")
-
-Rules:
-- Work only on the assigned implementation slice and its unit tests.
-- Do not run e2e or integration tests unless the supervisor explicitly asks.
-- Keep changes inside /workspace/projects/busdk/$module unless the task prompt
-  explicitly names another file or dependency path.
-- Use the existing project guidance in /workspace/projects/busdk/AGENTS.md and
-  nested AGENTS.md files before editing.
-- Report progress and blockers in the attached Codex conversation.
-- Write any durable scratch notes or command evidence under /workspace/logs.
-- Do not commit, push, or delete unrelated work unless the supervisor asks.
-EOF
-
-port=$port_start
-while ss -ltn | awk '{print $4}' | grep -Eq "[:.]$port$"; do
-	port=$((port + 1))
-done
-
-if [ -f "$worktree/.gitmodules" ]; then
-	init_module_checkout "$module"
-fi
-if [ -d "$worktree/$module/.git" ] || [ -f "$worktree/$module/.git" ]; then
-	if git -C "$worktree/$module" show-ref --verify --quiet "refs/heads/$branch"; then
-		git -C "$worktree/$module" checkout "$branch"
-	else
-		git -C "$worktree/$module" checkout -b "$branch"
-	fi
-fi
-if [ -f "$worktree/$module/go.mod" ]; then
-	sed -n 's/^[[:space:]]*replace[[:space:]][^=]*=>[[:space:]]*..\/\([^[:space:]]*\).*/\1/p' "$worktree/$module/go.mod" | while IFS= read -r dep_module; do
-		case "$dep_module" in
-			''|*/*|.*)
-				continue
-				;;
-		esac
-		if [ "$dep_module" != "$module" ]; then
-			init_module_checkout "$dep_module"
-		fi
+	mkdir -p "$WORKER_ROOT"
+	while ! mkdir "$lockdir" 2>/dev/null; do
+		sleep 1
 	done
-fi
+	trap 'rmdir "$lockdir" 2>/dev/null || true' EXIT INT TERM
 
-docker rm -f "$container" >/dev/null 2>&1 || true
-docker run -d \
-	--name "$container" \
-	--hostname "$container" \
-	-p "127.0.0.1:$port:$port" \
-	-v "$worktree:/workspace/projects/busdk" \
-	-v "$worker_agents:/workspace/AGENTS.md:ro" \
-	-v "$worker_logs:/workspace/logs" \
-	-v "$prompt_file:$container_prompt:ro" \
-	-v "$codex_home:/workspace/codex-home" \
-	-v "$auth_home:/workspace/codex-auth:ro" \
-	-v "$token_file:/workspace/manual-token:ro" \
-	-w "/workspace" \
-	--entrypoint sh \
-	"$image" \
-	-lc 'set -eu
-export CODEX_HOME=/workspace/codex-home
-mkdir -p "$CODEX_HOME"
-if [ -d /workspace/codex-auth ]; then
-  cp -a /workspace/codex-auth/. "$CODEX_HOME"/ 2>/dev/null || true
-fi
-chmod -R u+rwX "$CODEX_HOME" 2>/dev/null || true
-exec codex app-server \
-  -c model="'"$model"'" \
-  --listen "ws://0.0.0.0:'"$port"'" \
-  --ws-auth capability-token \
-  --ws-token-file /workspace/manual-token'
+	if [ -f "$meta_file" ]; then
+		old_worker=$(meta_value "$name" worker)
+		old_session=$(meta_value "$name" session_name)
+		if [ "$old_worker" != "$name" ]; then
+			printf 'metadata at %s belongs to another worker: %s\n' "$meta_file" "$old_worker" >&2
+			exit 1
+		fi
+		if [ -n "$old_session" ] && screen_session_alive "$old_session"; then
+			printf 'worker already appears live: %s\n' "$name" >&2
+			printf 'use status, attach, prompt, logs, stop, or an explicit recovery flow\n' >&2
+			exit 1
+		fi
+	fi
 
-cat >"$meta_file" <<EOF
-name=$name
+	mkdir -p "$dir" "$logs_path" "$scratch_path"
+	cp "$prompt_source" "$prompt_file"
+	cp "$prompt_source" "$live_prompt"
+
+	add_worktree "$REPO" "$product_worktree" "$branch" "$BASE_REF"
+	init_module_checkout "$product_worktree" "$module"
+	if [ -d "$product_worktree/$module/.git" ] || [ -f "$product_worktree/$module/.git" ]; then
+		if git -C "$product_worktree/$module" show-ref --verify --quiet "refs/heads/$branch"; then
+			git -C "$product_worktree/$module" checkout "$branch"
+		else
+			git -C "$product_worktree/$module" checkout -b "$branch"
+		fi
+	fi
+	init_go_replace_siblings "$product_worktree" "$module"
+
+	add_worktree "$WORKER_REPO" "$identity_worktree" "$identity_branch" "$WORKER_BASE_REF"
+	write_worker_identity_files "$name" "$module" "$branch" "$identity_worktree" "$prompt_file"
+	prepare_codex_home "$codex_home"
+	write_runner "$runner" "$product_worktree" "$identity_worktree" "$module" "$prompt_file" "$log_file" "$codex_home"
+
+	cat >"$meta_file" <<EOF
+worker=$name
 module=$module
 branch=$branch
-worktree=$worktree
-container_checkout=/workspace/projects/busdk
-worker_agents=/workspace/AGENTS.md
-worker_logs=/workspace/logs
-container_prompt=$container_prompt
-container=$container
-port=$port
-model=$model
-sandbox=$sandbox
+worktree_path=$product_worktree
+worker_identity_branch=$identity_branch
+worker_identity_worktree_path=$identity_worktree
+logs_path=$logs_path
+scratch_path=$scratch_path
+codex_home=$codex_home
 prompt_file=$prompt_file
+live_prompt=$live_prompt
+runner=$runner
+session_backend=$SESSION_BACKEND
+session_name=$session
+pid_file=$pid_file
+model=$MODEL
+sandbox=$SANDBOX
+codex_cmd=$CODEX_CMD
+host=$HOST
+created_at=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+owner=manual-spark-worker-bootstrap
 EOF
 
-printf 'worker=%s\ncontainer=%s\nworktree=%s\nmodule=%s\nbranch=%s\nport=%s\nmodel=%s\nprompt=%s\n' \
-	"$name" "$container" "$worktree" "$module" "$branch" "$port" "$model" "$prompt_file"
-REMOTE_SCRIPT
+	(cd "$logs_path" && screen -L -dmS "$session" /bin/sh "$runner")
+	printf '%s\n' "$$" >"$pid_file"
 
-	ssh "$REMOTE" "sh -s -- $(shell_quote "$name") $(shell_quote "$module") $(shell_quote "$branch") $(shell_quote "$REMOTE_REPO") $(shell_quote "$REMOTE_ROOT") $(shell_quote "$IMAGE") $(shell_quote "$MODEL") $(shell_quote "$SANDBOX") $(shell_quote "$AUTH_HOME") $(shell_quote "$PORT_START") $(shell_quote "$BASE_REF")" <"$remote_script"
+	printf 'worker=%s\nsession=%s\nproduct_worktree=%s\nmodule=%s\nbranch=%s\nidentity_branch=%s\nidentity_worktree=%s\nlogs=%s\ncodex_home=%s\nmodel=%s\nsandbox=%s\n' \
+		"$name" "$session" "$product_worktree" "$module" "$branch" "$identity_branch" "$identity_worktree" "$logs_path" "$codex_home" "$MODEL" "$SANDBOX"
 	printf '\nAttach with:\n  %s attach %s\n' "$0" "$name"
-	printf '\nStart the live guided task with:\n  %s prompt %s\n' "$0" "$name"
-	printf '\nPrompt is stored on the remote host and mounted at /workspace/task.md:\n  %s\n' "$prompt_remote"
+	printf '\nSend more guidance with:\n  %s prompt %s /path/to/prompt.md\n' "$0" "$name"
 	;;
 
 prompt)
 	name=${1:-}
 	override_prompt=${2:-}
 	[ -n "$name" ] || usage
-	container=$(remote_meta "$name" container)
-	port=$(remote_meta "$name" port)
-	model=$(remote_meta "$name" model)
-	sandbox=$(remote_meta "$name" sandbox)
-	module=$(remote_meta "$name" module)
-	[ -n "$container" ] && [ -n "$port" ] || {
+	validate_worker "$name"
+	require_local_host
+	require_command screen
+	session=$(meta_value "$name" session_name)
+	live_prompt=$(meta_value "$name" live_prompt)
+	[ -n "$session" ] && [ -n "$live_prompt" ] || {
 		printf 'worker not found or missing metadata: %s\n' "$name" >&2
 		exit 1
 	}
-	remote_url="ws://127.0.0.1:$port"
+	if ! screen_session_alive "$session"; then
+		printf 'worker session is not live: %s\n' "$session" >&2
+		exit 1
+	fi
 	if [ -n "$override_prompt" ]; then
 		if [ ! -f "$override_prompt" ]; then
 			printf 'prompt file not found: %s\n' "$override_prompt" >&2
 			exit 2
 		fi
-		tmp_prompt=$(mktemp "${TMPDIR:-/tmp}/manual-spark-prompt.XXXXXX")
-		trap 'rm -f "$tmp_prompt"' EXIT
-		cp "$override_prompt" "$tmp_prompt"
-		scp "$tmp_prompt" "$REMOTE:$(worker_dir "$name")/live-prompt.md" >/dev/null
-	else
-		ssh "$REMOTE" "cp $(shell_quote "$(worker_dir "$name")/prompt.md") $(shell_quote "$(worker_dir "$name")/live-prompt.md")"
+		cp "$override_prompt" "$live_prompt"
 	fi
-	ssh -tt "$REMOTE" "token=\$(cat $(shell_quote "$(worker_dir "$name")/ws-token")); prompt=\$(cat $(shell_quote "$(worker_dir "$name")/live-prompt.md")); docker exec -it -e CODEX_REMOTE_TOKEN=\"\$token\" $(shell_quote "$container") codex --remote $(shell_quote "$remote_url") --remote-auth-token-env CODEX_REMOTE_TOKEN --model $(shell_quote "$model") --sandbox $(shell_quote "$sandbox") -C $(shell_quote "/workspace/projects/busdk/$module") --add-dir /workspace/projects/busdk --no-alt-screen \"\$prompt\""
+	screen -S "$session" -X readbuf "$live_prompt"
+	screen -S "$session" -X paste .
+	screen -S "$session" -X stuff "$(printf '\015')"
+	printf 'sent prompt to %s\n' "$name"
 	;;
 
 attach)
 	name=${1:-}
 	[ -n "$name" ] || usage
-	container=$(remote_meta "$name" container)
-	port=$(remote_meta "$name" port)
-	model=$(remote_meta "$name" model)
-	sandbox=$(remote_meta "$name" sandbox)
-	module=$(remote_meta "$name" module)
-	[ -n "$container" ] && [ -n "$port" ] || {
+	validate_worker "$name"
+	require_local_host
+	require_command screen
+	session=$(meta_value "$name" session_name)
+	[ -n "$session" ] || {
 		printf 'worker not found or missing metadata: %s\n' "$name" >&2
 		exit 1
 	}
-	remote_url="ws://127.0.0.1:$port"
-	ssh -t "$REMOTE" "token=\$(cat $(shell_quote "$(worker_dir "$name")/ws-token")); docker exec -it -e CODEX_REMOTE_TOKEN=\"\$token\" $(shell_quote "$container") codex --remote $(shell_quote "$remote_url") --remote-auth-token-env CODEX_REMOTE_TOKEN --model $(shell_quote "$model") --sandbox $(shell_quote "$sandbox") -C $(shell_quote "/workspace/projects/busdk/$module") --add-dir /workspace/projects/busdk --no-alt-screen"
+	screen -r "$session"
 	;;
 
 logs)
 	name=${1:-}
 	[ -n "$name" ] || usage
-	container=$(remote_meta "$name" container)
-	[ -n "$container" ] || {
+	validate_worker "$name"
+	logs_path=$(meta_value "$name" logs_path)
+	[ -n "$logs_path" ] || {
 		printf 'worker not found or missing metadata: %s\n' "$name" >&2
 		exit 1
 	}
-	ssh "$REMOTE" "docker logs -f --tail 120 $(shell_quote "$container")"
+	tail -n 120 -f "$logs_path/screenlog.0"
 	;;
 
 status)
 	name=${1:-}
 	if [ -n "$name" ]; then
-		container=$(remote_meta "$name" container)
-		[ -n "$container" ] || {
-			printf 'worker not found or missing metadata: %s\n' "$name" >&2
+		validate_worker "$name"
+		meta=$(meta_file_for "$name")
+		if [ ! -f "$meta" ]; then
+			printf 'worker not found: %s\n' "$name" >&2
 			exit 1
-		}
-		ssh "$REMOTE" "docker ps -a --filter name=$(shell_quote "$container")"
+		fi
+		cat "$meta"
+		session=$(meta_value "$name" session_name)
+		if [ -n "$session" ] && command -v screen >/dev/null 2>&1 && screen_session_alive "$session"; then
+			printf 'live=true\n'
+		else
+			printf 'live=false\n'
+		fi
 	else
-		ssh "$REMOTE" "docker ps -a --filter name=bus-manual-spark-"
+		for meta in "$WORKER_ROOT"/*/meta.env; do
+			[ -f "$meta" ] || continue
+			sed -n 's/^worker=/worker=/p; s/^module=/module=/p; s/^branch=/branch=/p; s/^session_name=/session_name=/p' "$meta"
+			printf '\n'
+		done
 	fi
 	;;
 
 stop)
 	name=${1:-}
 	[ -n "$name" ] || usage
-	container=$(remote_meta "$name" container)
-	[ -n "$container" ] || {
+	validate_worker "$name"
+	require_local_host
+	require_command screen
+	session=$(meta_value "$name" session_name)
+	[ -n "$session" ] || {
 		printf 'worker not found or missing metadata: %s\n' "$name" >&2
 		exit 1
 	}
-	ssh "$REMOTE" "docker stop $(shell_quote "$container") >/dev/null && docker rm $(shell_quote "$container") >/dev/null"
-	printf 'stopped %s\n' "$name"
+	if screen_session_alive "$session"; then
+		screen -S "$session" -X quit
+		printf 'stopped %s\n' "$name"
+	else
+		printf 'worker session was not live: %s\n' "$name"
+	fi
 	;;
 
 *)

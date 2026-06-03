@@ -1,0 +1,48 @@
+id: bus/events/memory
+aliases:
+  - bus-api-events-memory
+  - bus-events-api-memory
+  - bus-events-api
+  - bus/api/events/memory
+  - bus/events-api/memory
+name: Bus Events API memory backend
+description: Bus Events API provider using the in-memory backend for local development.
+service_kind: bus.api.events
+parameters:
+  - name: capability_token
+    type: string
+    description: Capability path token used in the Bus API base URL.
+    default: local
+runtime:
+  kind: native
+  provider: bus
+  command:
+    - bus
+  args:
+    - api
+    - serve
+    - --token
+    - "{param:capability_token}"
+    - --port
+    - "8081"
+    - --provider
+    - events
+  env:
+    - name: PATH
+      description: Process search path used to locate the bus dispatcher.
+      value_from: process_env:PATH
+    - name: BUS_EVENTS_BACKEND
+      description: Selects the in-memory Events backend.
+      value: memory
+    - name: BUS_EVENTS_JWT_SECRET
+      description: HS256 secret used by the Events API to validate Bus API bearer tokens.
+      value_from: env:BUS_EVENTS_JWT_SECRET
+  ports:
+    - name: events-api
+      protocol: tcp
+      target: 8081
+      host: 127.0.0.1
+  healthcheck:
+    tcp_port: 8081
+    interval: 250ms
+    timeout: 20s

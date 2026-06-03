@@ -498,3 +498,27 @@
 	path = bus-api-provider-repos
 	url = git@github.com:busdk/bus-api-provider-repos.git
 	branch = 1-bus-api-provider-repos
+[submodule "bus-api-provider-task"]
+	path = bus-api-provider-task
+	url = git@github.com:busdk/bus-api-provider-task.git
+	branch = 1-bus-api-provider-task
+[submodule "agents/worker"]
+	path = agents/worker
+	url = git@github.com:busdk/agent-worker.git
+	branch = main
+[submodule "bus-services"]
+	path = bus-services
+	url = git@github.com:busdk/bus-services.git
+	branch = 1-bus-services
+[submodule "bus-integration-services"]
+	path = bus-integration-services
+	url = git@github.com:busdk/bus-integration-services.git
+	branch = 1-bus-integration-services
+[submodule "bus-api-provider-services"]
+	path = bus-api-provider-services
+	url = git@github.com:busdk/bus-api-provider-services.git
+	branch = 1-bus-api-provider-services
+[submodule "bus-integration-events"]
+	path = bus-integration-events
+	url = git@github.com:busdk/bus-integration-events.git
+	branch = 1-bus-integration-events

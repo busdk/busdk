@@ -1,0 +1,36 @@
+id: bus/tasks/local
+aliases:
+  - bus-integration-tasks-local
+  - bus/integration/tasks/local
+  - bus/integration-tasks/local
+  - bus-tasks-local
+name: Bus Tasks local service
+description: Bus Tasks service backed by Bus Events API.
+service_kind: bus.integration.tasks
+parameters:
+  - name: events_url
+    type: string
+    description: Bus Events API base URL consumed by the shared integration host.
+    default: http://127.0.0.1:8081/local/v1
+runtime:
+  kind: native
+  provider: bus
+  command:
+    - bus
+  args:
+    - integration
+    - --events-url
+    - "{param:events_url}"
+    - --provider
+    - task
+  env:
+    - name: PATH
+      description: Process search path used to locate the bus dispatcher.
+      value_from: process_env:PATH
+    - name: BUS_API_TOKEN
+      description: Bearer token used by the integration host when calling the Bus Events API.
+      value_from: env:BUS_API_TOKEN
+    - name: BUS_TASKS_ENVIRONMENT_ID
+      description: Environment id stamped on Tasks integration data.
+      value_from: env:BUS_TASKS_ENVIRONMENT_ID
+      default: local-dev
