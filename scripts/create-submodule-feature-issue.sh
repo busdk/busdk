@@ -40,7 +40,7 @@ ISSUE_NUMBER="$(gh api -X POST "repos/$REPO/issues" \
 echo "created issue #$ISSUE_NUMBER"
 
 DEFAULT_BRANCH="$(gh api "repos/$REPO" --jq '.default_branch')"
-BRANCH="1-$NAME"
+BRANCH="develop"
 
 # If branch exists already, do nothing.
 if gh api "repos/$REPO/git/ref/heads/$BRANCH" >/dev/null 2>&1; then

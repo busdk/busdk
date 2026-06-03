@@ -1,211 +1,211 @@
 [submodule "bus"]
 	path = bus
 	url = git@github.com:busdk/bus.git
-	branch = 2-core-bus-command
+	branch = develop
 [submodule "docs"]
 	path = docs
 	url = git@github.com:busdk/docs.git
-	branch = main
+	branch = develop
 [submodule "busdk.com"]
 	path = busdk.com
 	url = git@github.com:busdk/busdk.com.git
-	branch = main
+	branch = develop
 [submodule "bus-accounts"]
 	path = bus-accounts
 	url = git@github.com:busdk/bus-accounts.git
-	branch = 1-initial-accounts-subcommand
+	branch = develop
 [submodule "bus-assets"]
 	path = bus-assets
 	url = git@github.com:busdk/bus-assets.git
-	branch = 1-bus-assets
+	branch = develop
 [submodule "bus-attachments"]
 	path = bus-attachments
 	url = git@github.com:busdk/bus-attachments.git
-	branch = 1-bus-attachments
+	branch = develop
 [submodule "bus-bank"]
 	path = bus-bank
 	url = git@github.com:busdk/bus-bank.git
-	branch = 1-bus-bank
+	branch = develop
 [submodule "bus-budget"]
 	path = bus-budget
 	url = git@github.com:busdk/bus-budget.git
-	branch = 1-bus-budget
+	branch = develop
 [submodule "bus-entities"]
 	path = bus-entities
 	url = git@github.com:busdk/bus-entities.git
-	branch = 1-bus-entities
+	branch = develop
 [submodule "bus-inventory"]
 	path = bus-inventory
 	url = git@github.com:busdk/bus-inventory.git
-	branch = 1-bus-inventory
+	branch = develop
 [submodule "bus-invoices"]
 	path = bus-invoices
 	url = git@github.com:busdk/bus-invoices.git
-	branch = 1-bus-invoices
+	branch = develop
 [submodule "bus-journal"]
 	path = bus-journal
 	url = git@github.com:busdk/bus-journal.git
-	branch = 1-initial-version
+	branch = develop
 [submodule "bus-payroll"]
 	path = bus-payroll
 	url = git@github.com:busdk/bus-payroll.git
-	branch = 1-bus-payroll
+	branch = develop
 [submodule "bus-period"]
 	path = bus-period
 	url = git@github.com:busdk/bus-period.git
-	branch = 1-bus-period
+	branch = develop
 [submodule "bus-reconcile"]
 	path = bus-reconcile
 	url = git@github.com:busdk/bus-reconcile.git
-	branch = 1-bus-reconcile
+	branch = develop
 [submodule "bus-reports"]
 	path = bus-reports
 	url = git@github.com:busdk/bus-reports.git
-	branch = 1-bus-reports
+	branch = develop
 [submodule "bus-validate"]
 	path = bus-validate
 	url = git@github.com:busdk/bus-validate.git
-	branch = 1-bus-validate
+	branch = develop
 [submodule "bus-vat"]
 	path = bus-vat
 	url = git@github.com:busdk/bus-vat.git
-	branch = 1-bus-vat
+	branch = develop
 [submodule "bus-filing"]
 	path = bus-filing
 	url = git@github.com:busdk/bus-filing.git
-	branch = 1-bus-filing
+	branch = develop
 [submodule "bus-filing-prh"]
 	path = bus-filing-prh
 	url = git@github.com:busdk/bus-filing-prh.git
-	branch = 1-bus-filing-prh
+	branch = develop
 [submodule "bus-filing-vero"]
 	path = bus-filing-vero
 	url = git@github.com:busdk/bus-filing-vero.git
-	branch = 1-bus-filing-vero
+	branch = develop
 [submodule "bus-loans"]
 	path = bus-loans
 	url = git@github.com:busdk/bus-loans.git
-	branch = 1-bus-loans
+	branch = develop
 [submodule "bus-pdf"]
 	path = bus-pdf
 	url = git@github.com:busdk/bus-pdf.git
-	branch = 1-bus-pdf
+	branch = develop
 [submodule "bus-init"]
 	path = bus-init
 	url = git@github.com:busdk/bus-init.git
-	branch = 1-bus-init
+	branch = develop
 [submodule "bus-data"]
 	path = bus-data
 	url = git@github.com:busdk/bus-data.git
-	branch = 1-bus-data
+	branch = develop
 [submodule "bus-bfl"]
 	path = bus-bfl
 	url = git@github.com:busdk/bus-bfl.git
-	branch = 1-bus-bfl
+	branch = develop
 [submodule "bus-dev"]
 	path = bus-dev
 	url = git@github.com:busdk/bus-dev.git
-	branch = 1-bus-dev
+	branch = develop
 [submodule "bus-config"]
 	path = bus-config
 	url = git@github.com:busdk/bus-config.git
-	branch = 1-bus-config
+	branch = develop
 [submodule "bus-api"]
 	path = bus-api
 	url = git@github.com:busdk/bus-api.git
-	branch = 1-bus-api
+	branch = develop
 [submodule "bus-agent"]
 	path = bus-agent
 	url = git@github.com:busdk/bus-agent.git
-	branch = 1-bus-agent
+	branch = develop
 [submodule "bus-sheets"]
 	path = bus-sheets
 	url = git@github.com:busdk/bus-sheets.git
-	branch = 1-bus-sheets
+	branch = develop
 [submodule "bus-preferences"]
 	path = bus-preferences
 	url = git@github.com:busdk/bus-preferences.git
-	branch = 1-bus-preferences
+	branch = develop
 [submodule "bus-run"]
 	path = bus-run
 	url = git@github.com:busdk/bus-run.git
-	branch = 1-bus-run
+	branch = develop
 [submodule "bus-balances"]
 	path = bus-balances
 	url = git@github.com:busdk/bus-balances.git
-	branch = 1-bus-balances
+	branch = develop
 [submodule "bus-books"]
 	path = bus-books
 	url = git@github.com:busdk/bus-books.git
-	branch = 1-bus-books
+	branch = develop
 [submodule "bus-replay"]
 	path = bus-replay
 	url = git@github.com:busdk/bus-replay.git
-	branch = 1-bus-replay
+	branch = develop
 [submodule "bus-status"]
 	path = bus-status
 	url = git@github.com:busdk/bus-status.git
-	branch = 1-bus-status
+	branch = develop
 [submodule "bus-shell"]
 	path = bus-shell
 	url = git@github.com:busdk/bus-shell.git
-	branch = 1-bus-shell
+	branch = develop
 [submodule "bus-secrets"]
 	path = bus-secrets
 	url = git@github.com:busdk/bus-secrets.git
-	branch = 1-bus-secrets
+	branch = develop
 [submodule "bus-update"]
 	path = bus-update
 	url = git@github.com:busdk/bus-update.git
-	branch = 1-bus-update
+	branch = develop
 [submodule "bus-api-provider-books"]
 	path = bus-api-provider-books
 	url = git@github.com:busdk/bus-api-provider-books.git
-	branch = 1-bus-api-provider-books
+	branch = develop
 [submodule "bus-api-provider-session"]
 	path = bus-api-provider-session
 	url = git@github.com:busdk/bus-api-provider-session.git
-	branch = 1-bus-api-provider-session
+	branch = develop
 [submodule "bus-api-provider-data"]
 	path = bus-api-provider-data
 	url = git@github.com:busdk/bus-api-provider-data.git
-	branch = 1-bus-api-provider-data
+	branch = develop
 [submodule "bus-events"]
 	path = bus-events
 	url = git@github.com:busdk/bus-events.git
-	branch = 1-bus-events
+	branch = develop
 [submodule "bus-ledger"]
 	path = bus-ledger
 	url = git@github.com:busdk/bus-ledger.git
-	branch = 1-bus-ledger
+	branch = develop
 [submodule "bus-ui"]
 	path = bus-ui
 	url = git@github.com:busdk/bus-ui.git
-	branch = 1-bus-ui
+	branch = develop
 [submodule "bus-factory"]
 	path = bus-factory
 	url = git@github.com:busdk/bus-factory.git
-	branch = 1-bus-factory
+	branch = develop
 [submodule "bus-faq"]
 	path = bus-faq
 	url = git@github.com:busdk/bus-faq.git
-	branch = 1-bus-faq
+	branch = develop
 [submodule "sdd"]
 	path = sdd
 	url = git@github.com:busdk/sdd.git
-	branch = 1-sdd
+	branch = develop
 [submodule "bus-portal"]
 	path = bus-portal
 	url = git@github.com:busdk/bus-portal.git
-	branch = 1-bus-portal
+	branch = develop
 [submodule "bus-inspection"]
 	path = bus-inspection
 	url = git@github.com:busdk/bus-inspection.git
-	branch = 1-bus-inspection
+	branch = develop
 [submodule "bus-gateway"]
 	path = bus-gateway
 	url = git@github.com:busdk/bus-gateway.git
-	branch = 1-bus-gateway
+	branch = develop
 [submodule "aiz"]
 	path = aiz
 	url = git@github.com:busdk/aiz.git
@@ -213,312 +213,312 @@
 [submodule "bus-customers"]
 	path = bus-customers
 	url = git@github.com:busdk/bus-customers.git
-	branch = 1-bus-customers
+	branch = develop
 [submodule "bus-vendors"]
 	path = bus-vendors
 	url = git@github.com:busdk/bus-vendors.git
-	branch = 1-bus-vendors
+	branch = develop
 [submodule "bus-memo"]
 	path = bus-memo
 	url = git@github.com:busdk/bus-memo.git
-	branch = 1-bus-memo
+	branch = develop
 [submodule "bus-files"]
 	path = bus-files
 	url = git@github.com:busdk/bus-files.git
-	branch = 1-bus-files
+	branch = develop
 [submodule "bus-debts"]
 	path = bus-debts
 	url = git@github.com:busdk/bus-debts.git
-	branch = 1-bus-debts
+	branch = develop
 [submodule "bus-chat"]
 	path = bus-chat
 	url = git@github.com:busdk/bus-chat.git
-	branch = 1-bus-chat
+	branch = develop
 [submodule "bus-auth"]
 	path = bus-auth
 	url = git@github.com:busdk/bus-auth.git
-	branch = 1-bus-auth
+	branch = develop
 [submodule "bus-api-provider-auth"]
 	path = bus-api-provider-auth
 	url = git@github.com:busdk/bus-api-provider-auth.git
-	branch = 1-bus-api-provider-auth
+	branch = develop
 [submodule "bus-containers"]
 	path = bus-containers
 	url = git@github.com:busdk/bus-containers.git
-	branch = 1-bus-containers
+	branch = develop
 [submodule "bus-vm"]
 	path = bus-vm
 	url = git@github.com:busdk/bus-vm.git
-	branch = 1-bus-vm
+	branch = develop
 [submodule "bus-api-provider-events"]
 	path = bus-api-provider-events
 	url = git@github.com:busdk/bus-api-provider-events.git
-	branch = 1-bus-api-provider-events
+	branch = develop
 [submodule "bus-api-provider-llm"]
 	path = bus-api-provider-llm
 	url = git@github.com:busdk/bus-api-provider-llm.git
-	branch = 1-bus-api-provider-llm
+	branch = develop
 [submodule "bus-api-provider-vm"]
 	path = bus-api-provider-vm
 	url = git@github.com:busdk/bus-api-provider-vm.git
-	branch = 1-bus-api-provider-vm
+	branch = develop
 [submodule "bus-api-provider-containers"]
 	path = bus-api-provider-containers
 	url = git@github.com:busdk/bus-api-provider-containers.git
-	branch = 1-bus-api-provider-containers
+	branch = develop
 [submodule "bus-api-provider-usage"]
 	path = bus-api-provider-usage
 	url = git@github.com:busdk/bus-api-provider-usage.git
-	branch = 1-bus-api-provider-usage
+	branch = develop
 [submodule "bus-integration-upcloud"]
 	path = bus-integration-upcloud
 	url = git@github.com:busdk/bus-integration-upcloud.git
-	branch = 1-bus-integration-upcloud
+	branch = develop
 [submodule "bus-integration-ssh-runner"]
 	path = bus-integration-ssh-runner
 	url = git@github.com:busdk/bus-integration-ssh-runner.git
-	branch = 1-bus-integration-ssh-runner
+	branch = develop
 [submodule "bus-integration"]
 	path = bus-integration
 	url = git@github.com:busdk/bus-integration.git
-	branch = 1-bus-integration
+	branch = develop
 [submodule "bus-integration-usage"]
 	path = bus-integration-usage
 	url = git@github.com:busdk/bus-integration-usage.git
-	branch = 1-bus-integration-usage
+	branch = develop
 [submodule "bus-work"]
 	path = bus-work
 	url = git@github.com:busdk/bus-work.git
-	branch = 1-bus-work
+	branch = develop
 [submodule "bus-operator"]
 	path = bus-operator
 	url = git@github.com:busdk/bus-operator.git
-	branch = 1-bus-operator
+	branch = develop
 [submodule "bus-billing"]
 	path = bus-billing
 	url = git@github.com:busdk/bus-billing.git
-	branch = 1-bus-billing
+	branch = develop
 [submodule "bus-api-provider-billing"]
 	path = bus-api-provider-billing
 	url = git@github.com:busdk/bus-api-provider-billing.git
-	branch = 1-bus-api-provider-billing
+	branch = develop
 [submodule "bus-integration-billing"]
 	path = bus-integration-billing
 	url = git@github.com:busdk/bus-integration-billing.git
-	branch = 1-bus-integration-billing
+	branch = develop
 [submodule "bus-integration-stripe"]
 	path = bus-integration-stripe
 	url = git@github.com:busdk/bus-integration-stripe.git
-	branch = 1-bus-integration-stripe
+	branch = develop
 [submodule "bus-operator-billing"]
 	path = bus-operator-billing
 	url = git@github.com:busdk/bus-operator-billing.git
-	branch = 1-bus-operator-billing
+	branch = develop
 [submodule "bus-operator-stripe"]
 	path = bus-operator-stripe
 	url = git@github.com:busdk/bus-operator-stripe.git
-	branch = 1-bus-operator-stripe
+	branch = develop
 [submodule "bus-operator-auth"]
 	path = bus-operator-auth
 	url = git@github.com:busdk/bus-operator-auth.git
-	branch = 1-bus-operator-auth
+	branch = develop
 [submodule "bus-operator-token"]
 	path = bus-operator-token
 	url = git@github.com:busdk/bus-operator-token.git
-	branch = 1-bus-operator-token
+	branch = develop
 [submodule "bus-portal-auth"]
 	path = bus-portal-auth
 	url = git@github.com:busdk/bus-portal-auth.git
-	branch = 1-bus-portal-auth
+	branch = develop
 [submodule "bus-portal-ai"]
 	path = bus-portal-ai
 	url = git@github.com:busdk/bus-portal-ai.git
-	branch = 1-bus-portal-ai
+	branch = develop
 [submodule "bus-api-provider-terminal"]
 	path = bus-api-provider-terminal
 	url = git@github.com:busdk/bus-api-provider-terminal.git
-	branch = 1-bus-api-provider-terminal
+	branch = develop
 [submodule "bus-portal-accounting"]
 	path = bus-portal-accounting
 	url = git@github.com:busdk/bus-portal-accounting.git
-	branch = 1-bus-portal-accounting
+	branch = develop
 [submodule "bus-lint"]
 	path = bus-lint
 	url = git@github.com:busdk/bus-lint.git
-	branch = 1-bus-lint
+	branch = develop
 [submodule "bus-api-provider-mcp"]
 	path = bus-api-provider-mcp
 	url = git@github.com:busdk/bus-api-provider-mcp.git
-	branch = 1-bus-api-provider-mcp
+	branch = develop
 [submodule "bus-mcp"]
 	path = bus-mcp
 	url = git@github.com:busdk/bus-mcp.git
-	branch = 1-bus-mcp
+	branch = develop
 [submodule "bus-operator-deploy"]
 	path = bus-operator-deploy
 	url = git@github.com:busdk/bus-operator-deploy.git
-	branch = 1-bus-operator-deploy
+	branch = develop
 [submodule "bus-operator-cloud"]
 	path = bus-operator-cloud
 	url = git@github.com:busdk/bus-operator-cloud.git
-	branch = 1-bus-operator-cloud
+	branch = develop
 [submodule "bus-api-provider-cloud"]
 	path = bus-api-provider-cloud
 	url = git@github.com:busdk/bus-api-provider-cloud.git
-	branch = 1-bus-api-provider-cloud
+	branch = develop
 [submodule "bus-integration-cloud"]
 	path = bus-integration-cloud
 	url = git@github.com:busdk/bus-integration-cloud.git
-	branch = 1-bus-integration-cloud
+	branch = develop
 [submodule "bus-operator-node"]
 	path = bus-operator-node
 	url = git@github.com:busdk/bus-operator-node.git
-	branch = 1-bus-operator-node
+	branch = develop
 [submodule "bus-api-provider-node"]
 	path = bus-api-provider-node
 	url = git@github.com:busdk/bus-api-provider-node.git
-	branch = 1-bus-api-provider-node
+	branch = develop
 [submodule "bus-integration-node"]
 	path = bus-integration-node
 	url = git@github.com:busdk/bus-integration-node.git
-	branch = 1-bus-integration-node
+	branch = develop
 [submodule "bus-operator-inference"]
 	path = bus-operator-inference
 	url = git@github.com:busdk/bus-operator-inference.git
-	branch = 1-bus-operator-inference
+	branch = develop
 [submodule "bus-api-provider-inference"]
 	path = bus-api-provider-inference
 	url = git@github.com:busdk/bus-api-provider-inference.git
-	branch = 1-bus-api-provider-inference
+	branch = develop
 [submodule "bus-integration-inference"]
 	path = bus-integration-inference
 	url = git@github.com:busdk/bus-integration-inference.git
-	branch = 1-bus-integration-inference
+	branch = develop
 [submodule "bus-integration-ollama"]
 	path = bus-integration-ollama
 	url = git@github.com:busdk/bus-integration-ollama.git
-	branch = 1-bus-integration-ollama
+	branch = develop
 [submodule "bus-operator-database"]
 	path = bus-operator-database
 	url = git@github.com:busdk/bus-operator-database.git
-	branch = 1-bus-operator-database
+	branch = develop
 [submodule "bus-api-provider-database"]
 	path = bus-api-provider-database
 	url = git@github.com:busdk/bus-api-provider-database.git
-	branch = 1-bus-api-provider-database
+	branch = develop
 [submodule "bus-integration-database"]
 	path = bus-integration-database
 	url = git@github.com:busdk/bus-integration-database.git
-	branch = 1-bus-integration-database
+	branch = develop
 [submodule "bus-integration-postgres"]
 	path = bus-integration-postgres
 	url = git@github.com:busdk/bus-integration-postgres.git
-	branch = 1-bus-integration-postgres
+	branch = develop
 [submodule "bus-integration-docker"]
 	path = bus-integration-docker
 	url = git@github.com:busdk/bus-integration-docker.git
-	branch = 1-bus-integration-docker
+	branch = develop
 [submodule "bus-integration-task"]
 	path = bus-integration-task
 	url = git@github.com:busdk/bus-integration-task.git
-	branch = 1-bus-integration-task
+	branch = develop
 [submodule "bus-integration-codex"]
 	path = bus-integration-codex
 	url = git@github.com:busdk/bus-integration-codex.git
-	branch = 1-bus-integration-codex
+	branch = develop
 [submodule "bus-help"]
 	path = bus-help
 	url = git@github.com:busdk/bus-help.git
-	branch = 1-bus-help
+	branch = develop
 [submodule "bus-configure"]
 	path = bus-configure
 	url = git@github.com:busdk/bus-configure.git
-	branch = 1-bus-configure
+	branch = develop
 [submodule "bus-integration-podman"]
 	path = bus-integration-podman
 	url = git@github.com:busdk/bus-integration-podman.git
-	branch = 1-bus-integration-podman
+	branch = develop
 [submodule "bus-integration-containers"]
 	path = bus-integration-containers
 	url = git@github.com:busdk/bus-integration-containers.git
-	branch = 1-bus-integration-containers
+	branch = develop
 [submodule "bus-notes"]
 	path = bus-notes
 	url = git@github.com:busdk/bus-notes.git
-	branch = 1-bus-notes
+	branch = develop
 [submodule "bus-api-provider-notes"]
 	path = bus-api-provider-notes
 	url = git@github.com:busdk/bus-api-provider-notes.git
-	branch = 1-bus-api-provider-notes
+	branch = develop
 [submodule "bus-integration-notes"]
 	path = bus-integration-notes
 	url = git@github.com:busdk/bus-integration-notes.git
-	branch = 1-bus-integration-notes
+	branch = develop
 [submodule "bus-portal-notes"]
 	path = bus-portal-notes
 	url = git@github.com:busdk/bus-portal-notes.git
-	branch = 1-bus-portal-notes
+	branch = develop
 [submodule "bus-gx"]
 	path = bus-gx
 	url = git@github.com:busdk/bus-gx.git
-	branch = 1-bus-gx
+	branch = develop
 [submodule "bus-remote-control"]
 	path = bus-remote-control
 	url = git@github.com:busdk/bus-remote-control.git
-	branch = 1-bus-remote-control
+	branch = develop
 [submodule "bus-remote"]
 	path = bus-remote
 	url = git@github.com:busdk/bus-remote.git
-	branch = 1-bus-remote
+	branch = develop
 [submodule "bus-task"]
 	path = bus-task
 	url = git@github.com:busdk/bus-task.git
-	branch = 1-bus-task
+	branch = develop
 [submodule "bus-worker"]
 	path = bus-worker
 	url = git@github.com:busdk/bus-worker.git
-	branch = 1-bus-worker
+	branch = develop
 [submodule "bus-integration-worker"]
 	path = bus-integration-worker
 	url = git@github.com:busdk/bus-integration-worker.git
-	branch = 1-bus-integration-worker
+	branch = develop
 [submodule "bus-api-provider-worker"]
 	path = bus-api-provider-worker
 	url = git@github.com:busdk/bus-api-provider-worker.git
-	branch = 1-bus-api-provider-worker
+	branch = develop
 [submodule "bus-repos"]
 	path = bus-repos
 	url = git@github.com:busdk/bus-repos.git
-	branch = 1-bus-repos
+	branch = develop
 [submodule "bus-integration-repos"]
 	path = bus-integration-repos
 	url = git@github.com:busdk/bus-integration-repos.git
-	branch = 1-bus-integration-repos
+	branch = develop
 [submodule "bus-api-provider-repos"]
 	path = bus-api-provider-repos
 	url = git@github.com:busdk/bus-api-provider-repos.git
-	branch = 1-bus-api-provider-repos
+	branch = develop
 [submodule "bus-api-provider-task"]
 	path = bus-api-provider-task
 	url = git@github.com:busdk/bus-api-provider-task.git
-	branch = 1-bus-api-provider-task
+	branch = develop
 [submodule "agents/worker"]
 	path = agents/worker
 	url = git@github.com:busdk/agent-worker.git
-	branch = main
+	branch = develop
 [submodule "bus-services"]
 	path = bus-services
 	url = git@github.com:busdk/bus-services.git
-	branch = 1-bus-services
+	branch = develop
 [submodule "bus-integration-services"]
 	path = bus-integration-services
 	url = git@github.com:busdk/bus-integration-services.git
-	branch = 1-bus-integration-services
+	branch = develop
 [submodule "bus-api-provider-services"]
 	path = bus-api-provider-services
 	url = git@github.com:busdk/bus-api-provider-services.git
-	branch = 1-bus-api-provider-services
+	branch = develop
 [submodule "bus-integration-events"]
 	path = bus-integration-events
 	url = git@github.com:busdk/bus-integration-events.git
-	branch = 1-bus-integration-events
+	branch = develop

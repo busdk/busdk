@@ -397,13 +397,17 @@ the `skills/` directory.
 3. Keep BusDK modules as Git submodules at repository root (`bus`, `bus-*`).
 4. Treat checked-in submodule commit SHAs as authoritative pins. Do not add
    lockfiles.
-5. Before editing the root `Makefile` or adding root orchestration, read the
+5. Use `develop` as the only normal integration and promotion branch for the
+   BusDK superproject and Bus modules. Do not merge, fast-forward, push, or
+   promote work to `main` unless the operator explicitly asks for `main` in
+   that specific request.
+6. Before editing the root `Makefile` or adding root orchestration, read the
    `Root Makefile Contract` below.
-6. Do not add root CLI binaries or network features to this superproject.
-7. The `.bus/` directory is a tracked project directory. Never add `.bus` or
+7. Do not add root CLI binaries or network features to this superproject.
+8. The `.bus/` directory is a tracked project directory. Never add `.bus` or
    `.bus/` ignore rules. Runtime lock artifacts such as `.bus-dev.lock` may be
    ignored.
-8. Do not treat `.bus/`, `Makefile.local`, `./tests`, or `FEATURES.md` as
+9. Do not treat `.bus/`, `Makefile.local`, `./tests`, or `FEATURES.md` as
    temporary files unless a repository explicitly documents an exception.
 
 ## Root Makefile Contract

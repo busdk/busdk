@@ -28,5 +28,5 @@ cp -a ./bus-accounts/.gitignore "./$NAME/.gitignore"
 #touch "./docs/docs/modules/$NAME.md"
 
 (
-  cd $NAME && git checkout "1-$NAME" && git merge main && git push
+  cd $NAME && git checkout develop && git merge main && git push
 )
