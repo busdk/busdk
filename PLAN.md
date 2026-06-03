@@ -30,9 +30,17 @@ Minimum completion checklist:
 
 - [ ] Add the owning `bus-events` implementation follow-up for a deployed relay
   service path over the existing local/testable `bus events relay` command.
-- [ ] Define route configuration from `bus-remote`/environment metadata:
-  local/destination Events URLs, stable environment IDs, token-file or
-  credential-source references, event filters, and durable state-file paths.
+- [ ] Define route configuration from `bus-remote`/environment metadata without
+  operator hand-composition: the normal reusable `services.yml` should be
+  shareable across local and dev-hg-style systems, declare only local service
+  roles, and not expose proof secrets, token paths, SSH-forward ports,
+  duplicate route files, or remote-environment configuration. Once both
+  environments are running `bus services up` and one side has the other
+  configured as a Bus remote, Services should derive the local/destination
+  Events URLs, stable environment IDs, atomic route-pair identity,
+  deterministic active/passive relay ownership, credential source, token
+  issue/refresh behavior, event filters, and durable state/status paths from
+  `bus-remote` and owned Bus configuration.
 - [ ] Install/run the relay through the normal service surface for local,
   dev-hg, and H100-style environments, with manual one-shot sync kept only as
   recovery/debug tooling.
@@ -44,10 +52,11 @@ Minimum completion checklist:
 - [ ] Prove restart/resume and no replay storm: stopping and restarting the
   relay resumes from persisted cursors and does not replay old unrelated task
   history or loop imported remote-origin events back to their origin.
-- [ ] Prove one live dev-hg or H100 route end to end: local task creation,
-  service relay to remote, remote claim/progress/terminal evidence, relay back
-  to local, and local `bus dev work status`/`stats` showing the result without a
-  manual import/export loop.
+- [ ] Prove one live dev-hg or H100 route from the normal root stack, not a
+  temporary proof stack: local task creation, service relay to remote, remote
+  claim/progress/terminal evidence, relay back to local, and local `bus task`
+  status/stats showing the result without manual import/export or
+  proof-specific relay configuration.
 
 ## Remote Credential Source Selection Goal
 
