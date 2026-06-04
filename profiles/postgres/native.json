@@ -12,7 +12,9 @@
       "-p",
       "{env:BUS_POSTGRES_PORT}",
       "-c",
-      "listen_addresses=127.0.0.1"
+      "listen_addresses=127.0.0.1",
+      "-c",
+      "unix_socket_directories={env:BUS_POSTGRES_SOCKET_DIR}"
     ],
     "env": [
       {
@@ -31,6 +33,12 @@
         "description": "TCP port for the native PostgreSQL listener.",
         "value_from": "env:BUS_POSTGRES_PORT",
         "default": "5432"
+      },
+      {
+        "name": "BUS_POSTGRES_SOCKET_DIR",
+        "description": "Unix socket directory for the native PostgreSQL process. Defaults to the service-owned data dir for unprivileged process-level stacks.",
+        "value_from": "env:BUS_POSTGRES_SOCKET_DIR",
+        "default": ".bus/services/postgres/data"
       },
       {
         "name": "LANG",
