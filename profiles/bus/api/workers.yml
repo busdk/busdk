@@ -37,6 +37,10 @@ runtime:
     - name: BUS_WORKERS_EVENTS_TOKEN_FILE
       description: Explicit Bus Events token file used by the Workers API provider before inherited process tokens.
       value: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
+    - name: BUS_WORKERS_ENVIRONMENT_ID
+      description: Current environment id stamped as the origin of worker API Events.
+      value_from: env:BUS_WORKERS_ENVIRONMENT_ID
+      default: local-dev
     - name: BUS_EVENTS_TOKEN_FILE
       description: Shared Bus Events token file fallback for mounted API providers.
       value: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"

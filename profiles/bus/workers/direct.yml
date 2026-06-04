@@ -140,7 +140,7 @@ runtime:
     - name: BUS_WORKERS_APPSERVER_REMOTE_REPO
       description: Repository root used by Codex App Server worker launches.
       value_from: env:BUS_WORKERS_APPSERVER_REMOTE_REPO
-      default: .
+      default: "{env:BUS_WORKERS_DIRECT_REPO_ROOT}"
     - name: BUS_WORKERS_APPSERVER_REMOTE_ROOT
       description: Runtime directory for Codex App Server worker launches.
       value_from: env:BUS_WORKERS_APPSERVER_REMOTE_ROOT
