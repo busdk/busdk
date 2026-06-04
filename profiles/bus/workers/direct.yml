@@ -4,8 +4,8 @@ aliases:
   - bus/integration/workers/direct
   - bus/integration-workers/direct
   - bus-workers-direct
-name: Bus Workers direct Codex service
-description: Bus Workers service running local direct Codex App Server workers.
+name: Bus Workers Codex App Server service
+description: Bus Workers service running Codex App Server workers.
 service_kind: bus.integration.workers
 parameters:
   - name: events_url
@@ -73,7 +73,7 @@ runtime:
     - name: BUS_WORKERS_LIFECYCLE
       description: Worker lifecycle mode selected by the Workers integration.
       value_from: env:BUS_WORKERS_LIFECYCLE
-      default: direct-exec
+      default: appserver-exec
     - name: BUS_WORKERS_DIRECT_REPO_ROOT
       description: Product repository root used when creating task worktrees.
       value_from: env:BUS_WORKERS_DIRECT_REPO_ROOT
@@ -128,3 +128,35 @@ runtime:
       description: Timeout while waiting for direct Codex worker message evidence.
       value_from: env:BUS_WORKERS_DIRECT_MESSAGE_EVIDENCE_TIMEOUT
       default: 3m
+    - name: BUS_WORKERS_APPSERVER_REMOTE_REPO
+      description: Repository root used by Codex App Server worker launches.
+      value_from: env:BUS_WORKERS_APPSERVER_REMOTE_REPO
+      default: .
+    - name: BUS_WORKERS_APPSERVER_REMOTE_ROOT
+      description: Runtime directory for Codex App Server worker launches.
+      value_from: env:BUS_WORKERS_APPSERVER_REMOTE_ROOT
+      default: .bus/services/workers/appserver
+    - name: BUS_WORKERS_APPSERVER_IMAGE
+      description: Container image used for Codex App Server worker launches.
+      value_from: env:BUS_WORKERS_APPSERVER_IMAGE
+      default: bus-integration-task:local-image-smoke
+    - name: BUS_WORKERS_APPSERVER_MODEL
+      description: Default Codex model for App Server workers.
+      value_from: env:BUS_WORKERS_APPSERVER_MODEL
+      default: "{param:default_model}"
+    - name: BUS_WORKERS_APPSERVER_SANDBOX
+      description: Sandbox mode passed to App Server workers.
+      value_from: env:BUS_WORKERS_APPSERVER_SANDBOX
+      default: danger-full-access
+    - name: BUS_WORKERS_APPSERVER_AUTH_HOME
+      description: Codex auth/config home mounted into App Server worker launches.
+      value_from: env:BUS_WORKERS_APPSERVER_AUTH_HOME
+      default: "{param:codex_auth_home}"
+    - name: BUS_WORKERS_APPSERVER_PORT_START
+      description: First host-local port considered for App Server worker launches.
+      value_from: env:BUS_WORKERS_APPSERVER_PORT_START
+      default: "19100"
+    - name: BUS_WORKERS_APPSERVER_CONTAINER_PREFIX
+      description: Container name prefix for App Server worker launches.
+      value_from: env:BUS_WORKERS_APPSERVER_CONTAINER_PREFIX
+      default: bus-worker-
