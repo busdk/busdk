@@ -764,7 +764,18 @@ writing the claim. For progress, heartbeat, review, and closeout reports, follow
     using a constructor default. Prove the fix with both a unit test that
     observes the carried timeout and a fresh worker message through the normal
     `bus workers message` surface.
-18. When a BusDK issue is solved after a long loop, capture the reusable
+18. For App Server worker delivery failures after a worker has been created or
+    resumed, verify runtime metadata freshness before changing worker routing
+    or relay semantics. Compare the user/request intent Event, the persisted
+    worker state, lifecycle-owned `meta.env`, the actual container or App
+    Server port, and the messenger session cache. If the container is up on a
+    fresh port but delivery uses an older `app_server_url`, the lifecycle must
+    refresh non-secret runtime facts from `meta.env` before message delivery
+    and status reporting, and the messenger must drop cached sessions when the
+    App Server URL changes. Preserve this with unit tests for metadata refresh
+    and cache invalidation, then verify with a fresh `bus workers message`
+    through the normal Services stack.
+19. When a BusDK issue is solved after a long loop, capture the reusable
     method, not only the commit. The memo and durable guidance should preserve
     the symptom, slow assumption, decisive diagnostic, code/config invariant,
     verification command, and the first check to run next time so future
