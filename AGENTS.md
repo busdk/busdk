@@ -741,3 +741,23 @@ writing the claim. For progress, heartbeat, review, and closeout reports, follow
     or the owning module `AGENTS.md`. Name the original symptom, the mistaken
     assumption that slowed progress, the decisive check, the invariant fixed,
     and the first command or inspection to run next time.
+16. For App Server WebSocket `401 Unauthorized` failures, start with the
+    capability-token path instead of treating the worker as generally broken.
+    Check that the lifecycle created a host-side token file next to the worker
+    worktree, the container or App Server process requires WebSocket auth, the
+    messenger reads the host token file without logging the value, and the
+    client sends `Authorization: Bearer ...` during the WebSocket upgrade. Add
+    a protocol-level handshake regression when this path changes.
+17. For App Server message deliveries that report `turn/started` but never
+    return assistant evidence, compare the configured Services timeout with
+    the messenger instance used by the active lifecycle. If `services.yml` or
+    a profile already sets a longer evidence timeout, verify the App Server
+    lifecycle passes that same value into its messenger instead of silently
+    using a constructor default. Prove the fix with both a unit test that
+    observes the carried timeout and a fresh worker message through the normal
+    `bus workers message` surface.
+18. When a BusDK issue is solved after a long loop, capture the reusable
+    method, not only the commit. The memo and durable guidance should preserve
+    the symptom, slow assumption, decisive diagnostic, code/config invariant,
+    verification command, and the first check to run next time so future
+    workers can begin from the proven route.
