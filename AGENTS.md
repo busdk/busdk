@@ -694,3 +694,50 @@ writing the claim. For progress, heartbeat, review, and closeout reports, follow
    contents, or customer-sensitive payloads. When richer logging is needed,
    log source kinds, file paths, presence/absence, IDs, sizes, counts, and
    redacted summaries instead of secret values.
+8. For `bus services up` proof, verify the binary the service stack actually
+   launches. The normal stack prefixes `dist-bin` on `PATH`, so a module
+   `make install` into `~/.local/bin` or `bin/` is not enough evidence. After
+   promotion or remote refresh, compare the superproject commit, affected
+   submodule SHAs, and an observable marker from `dist-bin/bus`,
+   `dist-bin/bus-integration`, or the affected `dist-bin/bus-*` binary before
+   declaring the stack updated.
+9. For local-plus-remote proof, treat version freshness as a first diagnostic,
+   not a late cleanup step. Check local and remote `develop` commits,
+   submodule pins, rebuilt installed binaries, and restarted native services
+   before spending time debugging behavior that may come from stale software.
+10. For Events relay failures, inspect event routing metadata, cursor state,
+    import/origin markers, and relay state before changing product modules.
+    Relay decisions should be metadata-addressed, not event-name filtered. If
+    a fresh addressed event is not moving, look for cursor/window starvation,
+    route-pair ownership, import suppression, or stale service binaries before
+    adding special-case sync logic to task or worker modules.
+11. For worker message delivery failures, compare the user-visible delivery
+    result with the lifecycle code path. `delivery=recorded` means the message
+    was stored but no live lifecycle messenger accepted it; inspect whether the
+    active worker lifecycle implements message delivery. App Server workers
+    must use the Codex App Server turn path, not a legacy one-shot exec path.
+12. For App Server worker runtime errors, debug the concrete boundary in this
+    order: host worktree path and existence, container or App Server process
+    status, App Server URL, capability-token file presence, WebSocket
+    handshake status, then turn/session response. Log paths, booleans, ids,
+    HTTP status codes, and file presence only. A `401 Unauthorized` handshake
+    means the messenger/auth path is wrong until the capability token source is
+    wired correctly; do not treat it as an unproven worker failure.
+13. For local worker/App Server `No such file or directory` failures, search
+    recent memos and prior commits for the exact error before designing a new
+    worker architecture. Then compare the process argv, configured cwd,
+    declared writable roots or `--add-dir` args, materialized submodules, and
+    installed binary path. Preserve the successful diagnostic sequence in the
+    current memo once the root cause is found.
+14. Worker communication and task guidance are allowed to contain token-shaped
+    text, model ids, and secret discussion in local or isolated environments.
+    Do not use broad substring filters such as matching `sk-` anywhere in a
+    message. Secret protection belongs at logging, persistence, export, and
+    transport boundaries where values would be exposed unintentionally; if a
+    detector produces false positives on normal worker content, narrow or
+    remove that detector instead of blocking the worker flow.
+15. After fixing a repeated BusDK infrastructure problem, immediately record a
+    future-practice note in the current memo and, when reusable, in this file
+    or the owning module `AGENTS.md`. Name the original symptom, the mistaken
+    assumption that slowed progress, the decisive check, the invariant fixed,
+    and the first command or inspection to run next time.
