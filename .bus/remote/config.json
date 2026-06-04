@@ -21,7 +21,7 @@
       "worker_events_url": "http://bus-events:8081",
       "credential_source": {
         "kind": "ssh-issued-token",
-        "ref": "bus operator-token --format json issue events-relay",
+        "ref": "bus operator-token --format json --local issue events-relay",
         "lifetime_seconds": 86400,
         "refresh_before_seconds": 3600
       },
