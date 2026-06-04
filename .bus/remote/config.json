@@ -20,8 +20,14 @@
       "controller_events_url": "http://127.0.0.1:8081",
       "worker_events_url": "http://bus-events:8081",
       "credential_source": {
-        "kind": "token-file",
-        "ref": "/home/coding-agent/coding-agent/.config/bus/auth/api-token"
+        "kind": "ssh-issued-token",
+        "ref": "bus operator-token --format json issue events-relay",
+        "lifetime_seconds": 86400,
+        "refresh_before_seconds": 3600
+      },
+      "events_relay": {
+        "owner_environment_id": "local-dev",
+        "route_pair_id": "local_dev_hg_events"
       },
       "worker_defaults": {
         "agent_backend": "codex-appserver",

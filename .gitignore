@@ -38,6 +38,8 @@ bin/
 .bus-dev.lock
 tmp/
 .bus/secrets
+.bus/events/
+.bus/tokens/
 .tmp*
 .cache
 .bus/bus-factory/ai-state.json
