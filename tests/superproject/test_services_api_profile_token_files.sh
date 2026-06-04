@@ -27,18 +27,12 @@ local_path, workers_path = sys.argv[1:]
 
 def assert_profile(path, expected_envs):
     profile = json.load(open(path, encoding="utf-8"))
-    params = {item["name"]: item for item in profile.get("parameters", [])}
-    token_param = params.get("token_file")
-    if not token_param:
-        raise SystemExit(f"{profile.get('id')} missing token_file parameter")
-    if token_param.get("default") != "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt":
-        raise SystemExit(f"{profile.get('id')} token_file default = {token_param.get('default')!r}")
     env = {item["name"]: item for item in profile.get("runtime", {}).get("env", [])}
     for name in expected_envs:
         item = env.get(name)
         if not item:
             raise SystemExit(f"{profile.get('id')} missing {name}")
-        if item.get("default") != "{param:token_file}":
+        if item.get("default") != "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt":
             raise SystemExit(f"{profile.get('id')} {name} default = {item.get('default')!r}")
     if "BUS_API_TOKEN" not in env:
         raise SystemExit(f"{profile.get('id')} missing BUS_API_TOKEN fallback env")
