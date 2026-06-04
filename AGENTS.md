@@ -780,3 +780,10 @@ writing the claim. For progress, heartbeat, review, and closeout reports, follow
     the symptom, slow assumption, decisive diagnostic, code/config invariant,
     verification command, and the first check to run next time so future
     workers can begin from the proven route.
+20. When resuming a BusDK issue that resembles a recent worker, relay,
+    service-launch, install, credential, or remote-runtime failure, run a
+    recent-fix intake before dispatching or coding: read the current and
+    previous hourly memos for future-practice notes, search for the exact
+    symptom text, and begin with the last successful diagnostic sequence. If
+    the new case differs, record that difference in the memo before choosing a
+    new design path.
