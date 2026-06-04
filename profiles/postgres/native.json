@@ -36,9 +36,9 @@
       },
       {
         "name": "BUS_POSTGRES_SOCKET_DIR",
-        "description": "Unix socket directory for the native PostgreSQL process. Defaults to the service-owned data dir for unprivileged process-level stacks.",
+        "description": "Unix socket directory for the native PostgreSQL process. Defaults to /tmp for unprivileged process-level stacks.",
         "value_from": "env:BUS_POSTGRES_SOCKET_DIR",
-        "default": ".bus/services/postgres/data"
+        "default": "/tmp"
       },
       {
         "name": "LANG",
