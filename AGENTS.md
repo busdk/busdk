@@ -233,20 +233,37 @@ this root file must preserve the supervisor/worker boundary itself.
     can be improved while testing instead of blocking the first accepted loop.
     Keep the checklist focused on work that directly makes remote workers
     productive and repeatable.
-19. Use precise acceptance vocabulary. A worker that is `created`, `claimed`,
+19. For unfinished BusDK goals, do not report "not proven" or "not done" as a
+    blocker. Before stopping or asking the operator, decompose the remaining
+    work into concrete module-owned items with DoD: the command or workflow
+    that must succeed, the owner module, required evidence, expected files or
+    services touched, and the verification command. For each item, ask whether
+    it is truly in the current goal scope or should be deferred. Use the live
+    memos to estimate how long the current approach has failed; if the answer
+    is hours of unsuccessful work, ask the operator for scope refinement or
+    supervisor help with the precise decision needed. When rereading memos,
+    check whether the work repeated mistakes the operator had already
+    corrected, and immediately improve `AGENTS.md`, `PLAN.md`, or the relevant
+    runbook when the instruction was too easy to miss.
+20. At BusDK session closeout, review the current hourly memo against these
+    operating rules and the operator corrections recorded during the session.
+    If the work drifted from the rules, say so in the memo and improve the
+    smallest relevant `AGENTS.md`, `PLAN.md`, or skill runbook before
+    finishing the session.
+21. Use precise acceptance vocabulary. A worker that is `created`, `claimed`,
     `running`, `done`, or even promoted inside an isolated/remote checkout is
     not accepted project progress until supervisor-side review verifies the
     diff, required checks pass, the owning branch is promoted or repaired, and
     the superproject pin is updated when applicable. Reports and memos must
     distinguish: task created, worker claimed, worker produced a diff, worker
     branch promoted, supervisor accepted, root pinned, pushed, and released.
-20. When a worker result is partly useful but fails review, prefer the normal
+22. When a worker result is partly useful but fails review, prefer the normal
     iterative production loop: reopen with exact findings, hand the repair to a
     stronger model or reviewer lane when useful, or make the smallest
     supervisor acceptance repair only when delegation is blocked. Do not
     describe a first-attempt failure as H100/model failure when the overall
     attempt-review-repair-promote loop is still producing accepted work.
-21. Treat pause/release mode as a hard drain-and-collect workflow. When the
+23. Treat pause/release mode as a hard drain-and-collect workflow. When the
     operator pauses new development or asks for a release, stop scheduling new
     work; inspect local, dev-hg, H100, and other configured environments for
     queued/claimed/running tasks; cancel stale queued or false-active streams
@@ -254,7 +271,7 @@ this root file must preserve the supervisor/worker boundary itself.
     services; verify no environment has commits ahead of its upstream that need
     retrieval; verify the root checkout is clean; then run the requested
     release command.
-22. Treat worktree cleanup as review-first. Prefer first-class Bus prune
+24. Treat worktree cleanup as review-first. Prefer first-class Bus prune
     commands and dry-run reports over manual deletion. Do not run destructive
     cleanup while task refs are active or while Git locks may still represent
     live work; use `--apply`-style cleanup only after reviewing the dry-run
