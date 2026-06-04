@@ -32,8 +32,8 @@ def assert_profile(path, expected_envs):
         item = env.get(name)
         if not item:
             raise SystemExit(f"{profile.get('id')} missing {name}")
-        if item.get("default") != "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt":
-            raise SystemExit(f"{profile.get('id')} {name} default = {item.get('default')!r}")
+        if item.get("value") != "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt":
+            raise SystemExit(f"{profile.get('id')} {name} value = {item.get('value')!r}")
     if "BUS_API_TOKEN" not in env:
         raise SystemExit(f"{profile.get('id')} missing BUS_API_TOKEN fallback env")
 

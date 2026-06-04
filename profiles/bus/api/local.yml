@@ -43,16 +43,13 @@ runtime:
       value_from: env:BUS_API_TOKEN
     - name: BUS_TASK_EVENTS_TOKEN_FILE
       description: Explicit Bus Events token file used by the Tasks API provider before inherited process tokens.
-      value_from: env:BUS_TASK_EVENTS_TOKEN_FILE
-      default: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
+      value: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
     - name: BUS_WORKERS_EVENTS_TOKEN_FILE
       description: Explicit Bus Events token file used by the Workers API provider before inherited process tokens.
-      value_from: env:BUS_WORKERS_EVENTS_TOKEN_FILE
-      default: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
+      value: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
     - name: BUS_EVENTS_TOKEN_FILE
       description: Shared Bus Events token file fallback for mounted API providers.
-      value_from: env:BUS_EVENTS_TOKEN_FILE
-      default: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
+      value: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
     - name: BUS_API_PORT
       description: TCP port for this Bus API gateway process.
       value_from: env:BUS_API_PORT
