@@ -630,13 +630,18 @@ writing the claim. For progress, heartbeat, review, and closeout reports, follow
    by removing a requirement, narrowing the problem, reusing a smaller
    existing primitive, or accepting a temporary manual step. Prefer less
    system over more system when both would honestly solve the current need.
-9. Prefer a minimal core with optional overlays. Project-specific rituals such
+9. When an open product, architecture, credential, runner, or proof-shape
+   question could materially change the fastest path, stop and ask the
+   operator before investing significant implementation time. Treat this as
+   part of the supervisor/team-lead role: surfacing consequential ambiguity is
+   progress, and guessing through it for hours is not.
+10. Prefer a minimal core with optional overlays. Project-specific rituals such
    as Bus Notes usage, PLAN-driven closeout rules, reporting formats, or other
    workflow conventions should be opt-in project policy unless the active proof
    shows they are truly required by the substrate itself. Do not hard-wire
    project process into the core worker/task/event machinery unless that
    dependency is intentional, explicit, and source-backed.
-10. For worker infrastructure specifically, prioritize getting one smallest
+11. For worker infrastructure specifically, prioritize getting one smallest
    useful worker lane running end to end before expanding registry UX, remote
    parity, generalized orchestration, or product polish. Once that lane works,
    use it to help build the fuller system.
