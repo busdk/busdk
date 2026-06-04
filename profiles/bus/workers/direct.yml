@@ -45,6 +45,9 @@ runtime:
     - name: PATH
       description: Process search path used to locate the bus dispatcher.
       value_from: process_env:PATH
+    - name: BUS_SERVICES_BUS_DIR
+      description: Durable Bus state directory used for generated service credentials.
+      value_from: env:BUS_SERVICES_BUS_DIR
     - name: HOME
       description: Host home directory used to resolve the default Codex auth/config home.
       value_from: process_env:HOME
