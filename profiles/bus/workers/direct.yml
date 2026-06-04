@@ -82,7 +82,7 @@ runtime:
     - name: BUS_WORKERS_LIFECYCLE
       description: Worker lifecycle mode selected by the Workers integration.
       value_from: env:BUS_WORKERS_LIFECYCLE
-      default: appserver-exec
+      default: direct-exec
     - name: BUS_WORKERS_DIRECT_REPO_ROOT
       description: Product repository root used when creating task worktrees.
       value_from: env:BUS_WORKERS_DIRECT_REPO_ROOT
