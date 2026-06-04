@@ -711,6 +711,14 @@ writing the claim. For progress, heartbeat, review, and closeout reports, follow
     a fresh addressed event is not moving, look for cursor/window starvation,
     route-pair ownership, import suppression, or stale service binaries before
     adding special-case sync logic to task or worker modules.
+    When the relay cursor appears to advance but a specific addressed Event is
+    absent on the destination, search both local and remote Events by
+    `correlationId` and `bus.destination.environment.id`, then inspect the
+    relay status cursor and recent-event set. If the missing Event is older
+    than the cursor or surrounded by imported remote Events, treat it as a
+    pending-destination scan/window bug until disproved. Fix and test the
+    generic Events relay; do not add task, worker, or event-name-specific
+    forwarding rules.
 11. For worker message delivery failures, compare the user-visible delivery
     result with the lifecycle code path. `delivery=recorded` means the message
     was stored but no live lifecycle messenger accepted it; inspect whether the
