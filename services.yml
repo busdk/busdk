@@ -5,12 +5,14 @@ profile_dirs:
   - profiles
 default_services:
   - api
+  - events-relay
 groups:
   infrastructure:
     name: Infrastructure
     services:
       - postgres
       - events
+      - events-relay
   integrations:
     name: Integrations
     services:
@@ -30,6 +32,10 @@ services:
       capability_token: local
     depends_on:
       - postgres
+  events-relay:
+    profile: bus-events-relay
+    depends_on:
+      - events
   repos:
     profile: bus/repos/local
     params:
