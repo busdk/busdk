@@ -50,6 +50,7 @@ runtime:
     - name: BUS_WORKERS_DIRECT_REPO_ROOT
       description: Product repository root used to populate the Repos catalog.
       value_from: env:BUS_WORKERS_DIRECT_REPO_ROOT
+      default: "{env:BUS_SERVICES_STACK_DIR}"
     - name: BUS_WORKERS_DIRECT_BASE_REF
       description: Default Git base ref used for product task worktrees.
       value_from: env:BUS_WORKERS_DIRECT_BASE_REF
@@ -57,6 +58,7 @@ runtime:
     - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
       description: Git repository used for worker identity project data.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
+      default: "{env:BUS_SERVICES_STACK_DIR}/agents/worker"
     - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF
       description: Default Git base ref used for worker identity worktrees.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF

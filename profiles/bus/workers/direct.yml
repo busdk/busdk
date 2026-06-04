@@ -86,6 +86,7 @@ runtime:
     - name: BUS_WORKERS_DIRECT_REPO_ROOT
       description: Product repository root used when creating task worktrees.
       value_from: env:BUS_WORKERS_DIRECT_REPO_ROOT
+      default: "{env:BUS_SERVICES_STACK_DIR}"
     - name: BUS_WORKERS_DIRECT_WORKER_ROOT
       description: Runtime directory for local direct Codex worker processes.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_ROOT
@@ -93,6 +94,7 @@ runtime:
     - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
       description: Git repository used for worker identity project data.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
+      default: "{env:BUS_SERVICES_STACK_DIR}/agents/worker"
     - name: BUS_WORKERS_DIRECT_MODEL
       description: Optional default model assigned to direct Codex workers when a worker create request does not provide one.
       value_from: env:BUS_WORKERS_DIRECT_MODEL
