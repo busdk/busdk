@@ -168,6 +168,7 @@ print-test-modules:
 		*) printf "invalid TEST_SCOPE: %s\n" "$$scope" >&2; exit 2;; \
 	esac; \
 	changed_modules="$(CHANGED_MODULES)"; \
+	explicit_changed_modules="$$changed_modules"; \
 	if [ "$$scope" = "changed" ] && [ -z "$$changed_modules" ]; then \
 		changed_modules="$$( \
 			{ \
@@ -189,7 +190,14 @@ print-test-modules:
 			} | awk '!seen[$$0]++' \
 		)"; \
 	fi; \
-	for mod in $(MODULE_DIRS); do \
+	candidate_modules="$(MODULE_DIRS)"; \
+	if [ -n "$$explicit_changed_modules" ]; then \
+		for chosen in $$explicit_changed_modules; do \
+			case "$$chosen" in bus|bus-*) candidate_modules="$$candidate_modules $$chosen";; esac; \
+		done; \
+	fi; \
+	candidate_modules="$$(printf "%s\n" $$candidate_modules | awk '!seen[$$0]++')"; \
+	for mod in $$candidate_modules; do \
 		selected=1; \
 		if [ "$$scope" = "changed" ]; then \
 			selected=0; \
@@ -235,6 +243,7 @@ test:
 		*) printf "invalid TEST_SCOPE: %s\n" "$$scope" >&2; exit 2;; \
 	esac; \
 	changed_modules="$(CHANGED_MODULES)"; \
+	explicit_changed_modules="$$changed_modules"; \
 	if [ "$$scope" = "changed" ] && [ -z "$$changed_modules" ]; then \
 		changed_modules="$$( \
 			{ \
@@ -257,7 +266,14 @@ test:
 		)"; \
 	fi; \
 	ran=0; \
-	for mod in $(MODULE_DIRS); do \
+	candidate_modules="$(MODULE_DIRS)"; \
+	if [ -n "$$explicit_changed_modules" ]; then \
+		for chosen in $$explicit_changed_modules; do \
+			case "$$chosen" in bus|bus-*) candidate_modules="$$candidate_modules $$chosen";; esac; \
+		done; \
+	fi; \
+	candidate_modules="$$(printf "%s\n" $$candidate_modules | awk '!seen[$$0]++')"; \
+	for mod in $$candidate_modules; do \
 		selected=1; \
 		if [ "$$scope" = "changed" ]; then \
 			selected=0; \
@@ -302,6 +318,7 @@ e2e:
 		*) printf "invalid TEST_SCOPE: %s\n" "$$scope" >&2; exit 2;; \
 	esac; \
 	changed_modules="$(CHANGED_MODULES)"; \
+	explicit_changed_modules="$$changed_modules"; \
 	if [ "$$scope" = "changed" ] && [ -z "$$changed_modules" ]; then \
 		changed_modules="$$( \
 			{ \
@@ -324,7 +341,14 @@ e2e:
 		)"; \
 	fi; \
 	ran=0; \
-	for mod in $(MODULE_DIRS); do \
+	candidate_modules="$(MODULE_DIRS)"; \
+	if [ -n "$$explicit_changed_modules" ]; then \
+		for chosen in $$explicit_changed_modules; do \
+			case "$$chosen" in bus|bus-*) candidate_modules="$$candidate_modules $$chosen";; esac; \
+		done; \
+	fi; \
+	candidate_modules="$$(printf "%s\n" $$candidate_modules | awk '!seen[$$0]++')"; \
+	for mod in $$candidate_modules; do \
 		selected=1; \
 		if [ "$$scope" = "changed" ]; then \
 			selected=0; \
