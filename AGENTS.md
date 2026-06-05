@@ -787,3 +787,17 @@ writing the claim. For progress, heartbeat, review, and closeout reports, follow
     symptom text, and begin with the last successful diagnostic sequence. If
     the new case differs, record that difference in the memo before choosing a
     new design path.
+21. When a solved issue depended on comparing live behavior against the
+    intended service path, make that comparison the next default diagnostic.
+    For BusDK this often means checking that `bus services up` is launching the
+    freshly rebuilt `dist-bin` binaries, that local and remote checkouts share
+    the same `develop` commit and submodule pins, that Events are addressed by
+    metadata rather than event name, and that App Server workers are using the
+    accepted live turn path. Do these checks before adding new synchronization,
+    credential, worker, or CLI logic.
+22. When a worker or relay fix succeeds, record the exact proof shape that
+    closed it: the Bus command or service path used, task ref, worker id, route
+    or environment ids, relevant event names and metadata fields, local/remote
+    commits, rebuilt binaries, and the verification command. Future workers
+    should be able to replay the same first check without reconstructing it
+    from chat history.
