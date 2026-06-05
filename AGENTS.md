@@ -323,6 +323,12 @@ this root file must preserve the supervisor/worker boundary itself.
     legacy/default surface and print no workers; do not treat that as evidence
     that the persistent worker store is empty without checking the configured
     Workers API.
+32. Temporary supervisor, worker, proof, and scratch worktrees must live under
+    an ignored scratch path, normally `tmp/worktrees/` in this superproject or
+    the Services-owned `.bus/services/workers/...` runtime paths. Do not create
+    new temporary worktrees, symlink farms, or proof checkouts under
+    `projects/busdk/worktrees`; that path is visible to Git status and should
+    stay empty unless a future tracked product feature explicitly owns it.
 
 ## Recipient-Scoped Worker Focus
 
