@@ -304,6 +304,25 @@ this root file must preserve the supervisor/worker boundary itself.
     depend on event names. Add hermetic fake-transport tests for the Event
     metadata and cursor behavior that caused the surprise, and use live SSH
     proof only as an end-to-end acceptance layer.
+29. After the service-owned Events relay MVP is accepted, BusDK product work
+    must use Bus tasks and persistent Bus worker identities as the normal and
+    exclusive execution infrastructure. Supervisors define task refs, pick or
+    create worker identities, send guidance with `bus workers message`, monitor
+    Events/status/log evidence, review diffs, reopen incomplete work, and
+    promote accepted branches. Supervisors do not directly implement product
+    changes or run direct compile/test/install loops as a substitute for worker
+    work.
+30. Prefer `gpt-5.3-codex-spark` for BusDK worker identities and dispatches
+    unless the operator explicitly requests another model or a task has a
+    concrete model-specific requirement. When a worker must use a different
+    model, record the reason in the task stream or memo.
+31. Use the Services-backed Workers API when listing or controlling persistent
+    workers. In the current local Services stack that means
+    `bus workers --api-url http://127.0.0.1:8090/local/v1 --token-file
+    .bus/tokens/local-events.jwt ...`. A bare `bus workers list` may hit the
+    legacy/default surface and print no workers; do not treat that as evidence
+    that the persistent worker store is empty without checking the configured
+    Workers API.
 
 ## Recipient-Scoped Worker Focus
 
