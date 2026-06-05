@@ -522,3 +522,11 @@
 	path = bus-integration-events
 	url = git@github.com:busdk/bus-integration-events.git
 	branch = develop
+[submodule "bus-api-provider-update"]
+	path = bus-api-provider-update
+	url = git@github.com:busdk/bus-api-provider-update.git
+	branch = develop
+[submodule "bus-integration-update"]
+	path = bus-integration-update
+	url = git@github.com:busdk/bus-integration-update.git
+	branch = develop
