@@ -277,6 +277,33 @@ this root file must preserve the supervisor/worker boundary itself.
     live work; use `--apply`-style cleanup only after reviewing the dry-run
     candidates, active-task refusal evidence, and submodule worktree registry
     behavior.
+25. After solving a BusDK infrastructure issue, record the reusable diagnostic
+    path in the current memo and the most specific `AGENTS.md`. The note must
+    include the original symptom, the wrong or stale assumption, the decisive
+    command/log/observation, the invariant that fixed it, the verification
+    command or proof, and the first check to run next time. This is required
+    for worker launch, App Server, Events relay, service startup, install or
+    version skew, route pairing, credential, and local safety-filter failures.
+26. When a worker or App Server path fails with a vague execution error such as
+    "no such file or directory", do not guess at task/worker architecture
+    first. Check the exact service process argv, selected binary path, worker
+    workdir, App Server allowed directories, sandbox/network policy,
+    environment id, and the installed-vs-source commit. Add narrow diagnostics
+    that expose paths, ids, booleans, and command names without secrets; then
+    reproduce with a fresh worker message before accepting the fix.
+27. When a locally built fix does not affect a service or remote proof, assume
+    release skew until disproved. Verify the executable that `bus services up`
+    launches, the superproject commit, affected submodule SHA, install target,
+    and remote checkout before changing product logic. If `make clean build
+    install` or submodule refresh is the intended release step, run it before
+    judging runtime behavior.
+28. When Events relay behavior surprises task or worker flows, inspect Event
+    metadata first: origin environment, destination environment,
+    sync-target ids, recipient ids, task ref, worker id, correlation id, route
+    owner, and durable cursor namespace. Product relay eligibility must not
+    depend on event names. Add hermetic fake-transport tests for the Event
+    metadata and cursor behavior that caused the surprise, and use live SSH
+    proof only as an end-to-end acceptance layer.
 
 ## Recipient-Scoped Worker Focus
 
