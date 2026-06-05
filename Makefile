@@ -19,7 +19,9 @@ PREFIX ?= $(HOME_DIR)/.local
 BINDIR ?= $(PREFIX)/bin
 INSTALL ?= install
 
-MODULE_DIRS := $(sort $(foreach d,$(wildcard bus bus-*),$(if $(wildcard $(d)/Makefile),$(d),)))
+GITMODULE_PATHS := $(shell git config --file .gitmodules --get-regexp '^submodule\..*\.path' 2>/dev/null | awk '{print $$2}')
+GITLINK_MODULE_DIRS := $(foreach d,$(filter bus bus-%,$(GITMODULE_PATHS)),$(if $(filter 160000,$(shell git ls-files -s -- $(d) | awk 'NR == 1 {print $$1}')),$(d)))
+MODULE_DIRS := $(sort $(foreach d,$(GITLINK_MODULE_DIRS),$(if $(wildcard $(d)/Makefile),$(if $(shell git -C $(d) rev-parse --git-dir 2>/dev/null),$(d),))))
 SKIP_MODULES ?=
 TEST_SCOPE ?= changed
 CHANGED_MODULES ?=
