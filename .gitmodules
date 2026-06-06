@@ -530,3 +530,7 @@
 	path = bus-integration-update
 	url = git@github.com:busdk/bus-integration-update.git
 	branch = develop
+[submodule "bus-agent-runtime"]
+	path = bus-agent-runtime
+	url = git@github.com:busdk/bus-agent-runtime.git
+	branch = develop
