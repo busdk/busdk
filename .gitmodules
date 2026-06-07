@@ -534,3 +534,6 @@
 	path = bus-agent-runtime
 	url = git@github.com:busdk/bus-agent-runtime.git
 	branch = develop
+[submodule "skills"]
+	path = skills
+	url = git@github.com:busdk/skills.git
