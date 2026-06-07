@@ -63,16 +63,16 @@
       "id": "ai-hg-h100",
       "kind": "ssh-docker",
       "compose_file": "compose.yaml",
-      "ssh_target": "dev@ai.hg.fi",
+      "ssh_target": "coding-agent@ai.hg.fi",
       "ssh_host": "ai.hg.fi",
-      "ssh_user": "dev",
+      "ssh_user": "coding-agent",
       "ssh_port": 22,
-      "remote_workdir": "/home/dev/workspace/busdk/busdk",
+      "remote_workdir": "/home/coding-agent/coding-agent/git/busdk/busdk",
       "controller_events_url": "http://127.0.0.1:8081",
       "worker_events_url": "http://bus-events:8081",
       "credential_source": {
         "kind": "token-file",
-        "ref": "/home/dev/.config/bus/auth/api-token"
+        "ref": "/home/coding-agent/.config/bus/auth/api-token"
       },
       "worker_defaults": {
         "agent_backend": "codex-appserver",
@@ -85,16 +85,16 @@
   ],
   "environments": [
     {
-      "id": "env_h100_ai",
+      "id": "env-h100-ai",
       "name": "h100",
       "display_name": "H100 Local",
       "remote_id": "ai-hg-h100",
       "local_environment_id": "local-events",
       "sync_target_ids": [
-        "env_h100_ai"
+        "env-h100-ai"
       ],
       "sync_state": {
-        "env_h100_ai": "pending"
+        "env-h100-ai": "pending"
       },
       "worker_styles": [
         "ssh-docker"
