@@ -5,6 +5,28 @@ treat `Current Refined Finish Line` as the active priority lane; complete its
 minimum checklist in order, using nested unchecked items under the labeled
 product lane for scoped worker actions before opening older context.
 
+## Bus Agent Runtime Workers Goal
+
+`docs/docs/goals/bus-agent-runtime-workers.md` owns the cross-module goal for
+making `bus-agent-runtime` available through `bus workers` as a first-class
+direct runtime provider while keeping explicit Codex providers intact.
+
+- [ ] Promote accepted Bus Agent Runtime Workers branches and sync configured
+  environments.
+  - Goal: once the module slices are reviewed and verified, their accepted
+    commits must land on the relevant module `develop` branches, update the
+    BusDK submodule pins, and be synced to the configured development
+    environments.
+  - Scope:
+    - promote only reviewed worker-owned implementation branches
+    - pin updated module commits in the BusDK superproject
+    - sync local, `coding-agent@dev.hg.fi`, and `coding-agent@ai.hg.fi` as
+      required by the goal
+    - keep rejected branches, temporary proof worktrees, and stale worker
+      attempts out of `develop`
+  - Verification: clean module status, pushed `develop` branches, updated
+    BusDK pin commit, and environment sync evidence.
+
 ## High-Priority Service-Owned Events Relay Goal
 
 Priority: high. Treat service-owned Events relay as a gating prerequisite for
