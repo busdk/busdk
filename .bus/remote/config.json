@@ -80,6 +80,17 @@
         "model": "gpt-oss:120b",
         "reasoning_effort": "high",
         "auth_mode": "local-provider"
+      },
+      "worker_environment": {
+        "path_additions": [
+          "/home/coding-agent/.local/bin"
+        ],
+        "tool_paths": {
+          "bus": "/home/coding-agent/.local/bin/bus",
+          "bus-agent-runtime": "/home/coding-agent/.local/bin/bus-agent-runtime",
+          "codex": "/home/coding-agent/.local/bin/codex",
+          "node": "/usr/local/bin/node"
+        }
       }
     }
   ],
