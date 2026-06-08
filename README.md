@@ -17,7 +17,9 @@ This is the shortest path for the current local worker use case:
 4. Create and guide a local Codex Spark worker with `bus workers ...`.
 
 You need PostgreSQL binaries available locally and a working `codex` command
-with local Codex authentication already configured.
+with local Codex authentication already configured. For self-hosted GPU worker
+hosts, you can use the Bus-owned agent runtime instead of Codex by configuring
+the local model provider values below.
 
 The checked-in `services.yml` starts the services needed for local workers and
 tasks:
@@ -83,6 +85,26 @@ repository is the current directory and the worker identity repository is
 bus configure BUS_WORKERS_DIRECT_REPO_ROOT="$PWD"
 bus configure BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO="$PWD/agents/worker"
 ```
+
+Configure the Bus-owned runtime on self-hosted GPU hosts. These values assume
+an Ollama-compatible endpoint is listening locally and serving `gemma4:31b`.
+Keep using the Codex runner commands below on machines where Codex should
+remain the direct worker provider.
+
+```bash
+bus configure BUS_WORKERS_DIRECT_DEFAULT_PROVIDER=bus-agent-runtime
+bus configure BUS_AGENT_CODEX_LOCAL_MODEL=gemma4:31b
+bus configure BUS_AGENT_RUNTIME_H100_BASE_URL=http://127.0.0.1:11434
+bus configure BUS_AGENT_RUNTIME_H100_MODEL=gemma4:31b
+bus configure BUS_AGENT_RUNTIME_H100_TIMEOUT=5m
+bus configure OLLAMA_HOST=http://127.0.0.1:11434
+```
+
+The current setup spells out the required values so the checked-in
+`services.yml` remains reproducible across hosts. Defaults such as generated
+JWT secrets, local runtime provider choices, and provider-specific model
+settings should come from the owning Bus modules and service/profile metadata,
+not from hard-coded literals inside `bus configure`.
 
 Create a local API token for the services. Run this in the same shell where
 `BUS_LOCAL_SECRET` is set, or replace it with the same unique value configured
