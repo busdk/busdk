@@ -827,12 +827,18 @@ writing the claim. For progress, heartbeat, review, and closeout reports, follow
     App Server URL changes. Preserve this with unit tests for metadata refresh
     and cache invalidation, then verify with a fresh `bus workers message`
     through the normal Services stack.
-19. When a BusDK issue is solved after a long loop, capture the reusable
+19. For nested Git write failures in Codex or App Server-backed workers, treat
+    the worker launch configuration as an owned repair surface. First compare
+    the worktree path, root `.git`, `.git/modules`, and nested submodule
+    gitdir paths against the actual `--add-dir` arguments or writable roots
+    passed to the Codex process. Fix the worker/App Server launch path before
+    relying on escalated Git as a routine promotion mechanism.
+20. When a BusDK issue is solved after a long loop, capture the reusable
     method, not only the commit. The memo and durable guidance should preserve
     the symptom, slow assumption, decisive diagnostic, code/config invariant,
     verification command, and the first check to run next time so future
     workers can begin from the proven route.
-20. When resuming a BusDK issue that resembles a recent worker, relay,
+21. When resuming a BusDK issue that resembles a recent worker, relay,
     service-launch, install, credential, or remote-runtime failure, run a
     recent-fix intake before dispatching or coding: read the current and
     previous hourly memos for future-practice notes, search for the exact
