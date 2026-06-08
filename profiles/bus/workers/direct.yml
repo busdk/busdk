@@ -24,6 +24,10 @@ parameters:
     type: string
     description: Optional default Codex model for direct workers when a worker create request does not provide one.
     default: " "
+  - name: direct_default_provider
+    type: string
+    description: Optional default direct worker provider for omitted create requests.
+    default: " "
   - name: unified_exec
     type: boolean
     description: Enable Codex unified exec for direct worker App Server processes.
@@ -139,6 +143,10 @@ runtime:
       description: Timeout while waiting for direct Codex worker message evidence.
       value_from: env:BUS_WORKERS_DIRECT_MESSAGE_EVIDENCE_TIMEOUT
       default: 3m
+    - name: BUS_WORKERS_DIRECT_DEFAULT_PROVIDER
+      description: Default direct worker provider for omitted create requests.
+      value_from: env:BUS_WORKERS_DIRECT_DEFAULT_PROVIDER
+      default: "{param:direct_default_provider}"
     - name: BUS_WORKERS_APPSERVER_REMOTE_REPO
       description: Repository root used by Codex App Server worker launches.
       value_from: env:BUS_WORKERS_APPSERVER_REMOTE_REPO
