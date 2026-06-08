@@ -147,6 +147,50 @@ runtime:
       description: Default direct worker provider for omitted create requests.
       value_from: env:BUS_WORKERS_DIRECT_DEFAULT_PROVIDER
       default: "{param:direct_default_provider}"
+    - name: BUS_PREFERENCES_PATH
+      description: Bus preferences JSON path used by direct-worker default-provider discovery.
+      value_from: env:BUS_PREFERENCES_PATH
+      default: " "
+    - name: BUS_CONFIG_DIR
+      description: Bus config root used by direct-worker default-provider discovery.
+      value_from: env:BUS_CONFIG_DIR
+      default: " "
+    - name: BUS_AGENT_CODEX_LOCAL_MODEL
+      description: Local model selector used by direct-worker default-provider discovery.
+      value_from: env:BUS_AGENT_CODEX_LOCAL_MODEL
+      default: " "
+    - name: BUS_AGENT_RUNTIME_MESSAGE_PROVIDER
+      description: Optional explicit provider kind for worker message requests.
+      value_from: env:BUS_AGENT_RUNTIME_MESSAGE_PROVIDER
+      default: " "
+    - name: BUS_AGENT_RUNTIME_MESSAGE_BASE_URL
+      description: Optional base URL for provider-backed worker message requests.
+      value_from: env:BUS_AGENT_RUNTIME_MESSAGE_BASE_URL
+      default: " "
+    - name: BUS_AGENT_RUNTIME_MESSAGE_MODEL
+      description: Optional message model override for worker message requests.
+      value_from: env:BUS_AGENT_RUNTIME_MESSAGE_MODEL
+      default: " "
+    - name: BUS_AGENT_RUNTIME_MESSAGE_TIMEOUT
+      description: Optional timeout for provider-backed worker message requests.
+      value_from: env:BUS_AGENT_RUNTIME_MESSAGE_TIMEOUT
+      default: " "
+    - name: BUS_AGENT_RUNTIME_H100_BASE_URL
+      description: H100/local-provider base URL forwarded to worker message requests.
+      value_from: env:BUS_AGENT_RUNTIME_H100_BASE_URL
+      default: " "
+    - name: BUS_AGENT_RUNTIME_H100_MODEL
+      description: H100/local-provider model forwarded to worker message requests.
+      value_from: env:BUS_AGENT_RUNTIME_H100_MODEL
+      default: " "
+    - name: BUS_AGENT_RUNTIME_H100_TIMEOUT
+      description: H100/local-provider timeout forwarded to worker message requests.
+      value_from: env:BUS_AGENT_RUNTIME_H100_TIMEOUT
+      default: " "
+    - name: OLLAMA_HOST
+      description: Ollama host forwarded to worker message requests.
+      value_from: env:OLLAMA_HOST
+      default: " "
     - name: BUS_WORKERS_APPSERVER_REMOTE_REPO
       description: Repository root used by Codex App Server worker launches.
       value_from: env:BUS_WORKERS_APPSERVER_REMOTE_REPO
