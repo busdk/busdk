@@ -27,6 +27,56 @@ direct runtime provider while keeping explicit Codex providers intact.
   - Verification: clean module status, pushed `develop` branches, updated
     BusDK pin commit, and environment sync evidence.
 
+## Service Tool Freshness And Runtime Proof Gate
+
+Goal definition: routine local, dev-hg, and H100 service proofs must not waste
+time on stale installed BusDK binaries, wrong dispatchers, or sandbox-hidden
+service processes. The standard release/proof path is make-owned: build and
+install the needed tools, restart Services through the dispatcher-first
+profiles, inspect the live process executable path from an environment that can
+see the processes, and compare command version/commit metadata against the
+expected source commits. `bus services` may report and verify service state, but
+must not build product binaries.
+
+- [ ] Fix root `make install` freshness end to end: remove the root-level
+  installed-binary-newer-than-module-bin shortcut or run the module build before
+  applying any shortcut, so module Makefiles own source freshness. Add
+  superproject regression coverage for the stale case where source is newer
+  than `module/bin/<module>` while `$(BINDIR)/<module>` is newer than that bin
+  artifact, and verify `make install`, `make build install`, and scoped
+  `SKIP_MODULES`/`CHANGED_MODULES` behavior remain deterministic.
+- [ ] Add service-critical build metadata end to end across the dispatcher and
+  Services stack binaries: reuse the `bus-agent-runtime` pattern so `bus`,
+  `bus-api`, `bus-integration`, `bus-worker`/`bus-workers`, `bus-services`,
+  `bus-integration-services`, and service-critical integration commands expose
+  stable text plus JSON version metadata with module name, version, commit, and
+  build time. Add module e2e coverage that packaged and installed binaries
+  report the expected current commit, and keep release metadata non-secret.
+- [ ] Add a make-owned Services freshness proof gate end to end, for example
+  `make services-refresh-proof`: build/install the service-critical binaries,
+  restart the root Services stack through the normal dispatcher-first profiles,
+  inspect live service PIDs (`/proc/<pid>/exe` on Linux and the macOS
+  equivalent such as `lsof`), capture process start times, capture command
+  version/commit metadata, and fail when any live process uses the wrong
+  dispatcher, stale installed binary, stale module commit, or uninspectable
+  process without an explicit inspection-unavailable diagnostic. This target
+  must live in the root Makefile or a root script called by make, not in
+  `bus services`.
+- [ ] Make process-inspection failures explicit end to end: update
+  `bus-integration-services` and `bus-services` PID checks so `Signal(0)` or
+  platform process inspection distinguishes process-missing (`ESRCH`) from
+  inspection denied/unavailable (`EPERM`, sandbox denial, missing `/proc`,
+  denied `lsof`), and reports `inspection_unavailable` or an equivalent
+  machine-readable status instead of `exited`. Add focused tests for
+  permission-denied liveness checks and status output.
+- [ ] Preserve dispatcher-first Services profiles while making child resolution
+  auditable: continue starting service profiles as `bus api`,
+  `bus integration`, and other dispatcher commands, then add dispatcher or
+  service-state metadata that records the resolved child executable path and
+  version/commit for the dispatched module. The proof gate must catch both a
+  wrong `bus` dispatcher and a dispatcher that resolves a stale `bus-*` child
+  without switching profiles to direct module binary invocation.
+
 ## High-Priority Service-Owned Events Relay Goal
 
 Priority: high. Treat service-owned Events relay as a gating prerequisite for
