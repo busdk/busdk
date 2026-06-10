@@ -12,6 +12,16 @@
   `GOCACHE`, and can run a read-only `git status`, `go test ./pkg/aiportal
   -run TestModuleRendersChatAndTerminalAPIOnlySurfaces -count=1`, and
   `bus gx lint pkg/aiportal/page_intro.gx` without supervisor pre-alignment.
+- [ ] Clean up stale local worker registry/projection behavior while removing
+  deprecated direct Codex runner support.
+  Current local `bus workers list` can still show old `runner_kind=direct` /
+  `runner_provider=codex-direct` records as `running` after `bus workers stop`
+  returns success, while `bus workers status` reports zero workers and the
+  recorded PIDs are no longer alive. Acceptance: lifecycle mutations require
+  no hidden direct-exec compatibility path, stopped workers are reflected
+  consistently by list/status/show, stale runtime records are marked stopped or
+  pruned with auditable events, and new worker creation supports only Codex App
+  Server or Bus-owned runtime providers such as `bus-agent-runtime`.
 This is the active BusDK superproject work tracker. For the current H100 goal,
 treat `Current Refined Finish Line` as the active priority lane; complete its
 minimum checklist in order, using nested unchecked items under the labeled
