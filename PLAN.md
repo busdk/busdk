@@ -1,6 +1,17 @@
 # PLAN.md
 
 - [ ] Review root-level remote cleanup salvage artifacts under `logs/remote-worktree-salvage-20260610-13`, especially preserved superproject scripts/profiles and unmerged branch archives. Acceptance: route each preserved root-level patch to the owning module or root plan item, apply only still-useful deltas to `develop`, and record discarded superseded worker branches before deleting the archive.
+- [ ] Fix local App Server Bus worker materialization for module-scoped tasks.
+  Current `bus workers` lanes can start from stale superproject submodule pins,
+  fail nested dependency submodule initialization under supervisor
+  `.git/modules`, and run Go commands against an unwritable default
+  `$HOME/Library/Caches/go-build`. Acceptance: a fresh `bus workers create
+  --module bus-portal-ai --task-ref ...` worktree starts from the current local
+  product `HEAD` or an explicit requested base, materializes `replace`
+  dependencies such as `../bus-gx` and `../bus-ui`, sets a task-writable
+  `GOCACHE`, and can run a read-only `git status`, `go test ./pkg/aiportal
+  -run TestModuleRendersChatAndTerminalAPIOnlySurfaces -count=1`, and
+  `bus gx lint pkg/aiportal/page_intro.gx` without supervisor pre-alignment.
 This is the active BusDK superproject work tracker. For the current H100 goal,
 treat `Current Refined Finish Line` as the active priority lane; complete its
 minimum checklist in order, using nested unchecked items under the labeled
