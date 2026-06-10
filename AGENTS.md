@@ -323,7 +323,14 @@ this root file must preserve the supervisor/worker boundary itself.
     legacy/default surface and print no workers; do not treat that as evidence
     that the persistent worker store is empty without checking the configured
     Workers API.
-32. Temporary supervisor, worker, proof, and scratch worktrees must live under
+32. The default local Services stack must not require SSH access to
+    `dev.hg.fi` or any other remote worker host. `bus services up` must start
+    the local control-plane services needed for task submission, review, and
+    local worker orchestration without Events relay credentials. Keep
+    `events-relay` and remote sync/proof services optional, for example behind
+    `--all` or explicit profile selection, so missing remote host keys or SSH
+    credentials cannot block local development.
+33. Temporary supervisor, worker, proof, and scratch worktrees must live under
     an ignored scratch path, normally `tmp/worktrees/` in this superproject or
     the Services-owned `.bus/services/workers/...` runtime paths. Do not create
     new temporary worktrees, symlink farms, or proof checkouts under

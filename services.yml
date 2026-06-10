@@ -5,7 +5,6 @@ profile_dirs:
   - profiles
 default_services:
   - api
-  - events-relay
 groups:
   infrastructure:
     name: Infrastructure
