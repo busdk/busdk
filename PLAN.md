@@ -1,7 +1,7 @@
 # PLAN.md
 
 - [ ] Review root-level remote cleanup salvage artifacts under `logs/remote-worktree-salvage-20260610-13`, especially preserved superproject scripts/profiles and unmerged branch archives. Acceptance: route each preserved root-level patch to the owning module or root plan item, apply only still-useful deltas to `develop`, and record discarded superseded worker branches before deleting the archive.
-- [ ] Fix local App Server Bus worker materialization for module-scoped tasks.
+- [x] Fix local App Server Bus worker materialization for module-scoped tasks.
   Current `bus workers` lanes can start from stale superproject submodule pins,
   fail nested dependency submodule initialization under supervisor
   `.git/modules`, and run Go commands against an unwritable default
