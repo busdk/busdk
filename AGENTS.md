@@ -221,6 +221,12 @@ this root file must preserve the supervisor/worker boundary itself.
     chat memory for repeated lessons such as single-binary/systemd deployment
     shape, per-remote credential sources instead of process-global tokens,
     App Server as the normal worker backend, or H100/dev-hg capacity usage.
+    For local Bus worker services, the supported Codex path is the Codex App
+    Server protocol, normally launched as a host process so macOS supervisor
+    hosts do not require Docker or nested virtualization. Do not reintroduce
+    `codex exec`, `direct-exec`, `direct` runner kind, or `codex-direct`
+    provider as the operator-facing worker path; add new providers such as
+    `bus-agent-runtime` behind the worker provider/App Server-style contract.
 17. Treat important operator corrections, focus reminders, naming lessons, and
     repeated “don’t do that” guidance as durable memory work, not just chat.
     When the lesson is expected to matter again, write it into the most

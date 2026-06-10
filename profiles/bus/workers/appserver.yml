@@ -1,11 +1,11 @@
-id: bus/workers/direct
+id: bus/workers/appserver
 aliases:
-  - bus-integration-workers-direct
-  - bus/integration/workers/direct
-  - bus/integration-workers/direct
-  - bus-workers-direct
+  - bus-integration-workers-appserver
+  - bus/integration/workers/appserver
+  - bus/integration-workers/appserver
+  - bus-workers-appserver
 name: Bus Workers Codex App Server service
-description: Bus Workers service running Codex App Server workers.
+description: Bus Workers service running host-process Codex App Server workers.
 service_kind: bus.integration.workers
 parameters:
   - name: events_url
@@ -18,19 +18,15 @@ parameters:
     default: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
   - name: codex_auth_home
     type: string
-    description: Optional Codex auth/config home copied into isolated direct worker CODEX_HOME directories.
+    description: Optional Codex auth/config home copied into isolated App Server worker CODEX_HOME directories.
     default: " "
   - name: default_model
     type: string
-    description: Optional default Codex model for direct workers when a worker create request does not provide one.
-    default: " "
-  - name: direct_default_provider
-    type: string
-    description: Optional default direct worker provider for omitted create requests.
+    description: Optional default model for App Server workers when a worker create request does not provide one.
     default: " "
   - name: unified_exec
     type: boolean
-    description: Enable Codex unified exec for direct worker App Server processes.
+    description: Enable Codex unified exec for host-process Codex App Server workers.
     default: false
 runtime:
   kind: native
@@ -57,15 +53,15 @@ runtime:
       value_from: process_env:HOME
       default: " "
     - name: SHELL
-      description: Host login shell path passed to direct Codex worker App Server processes.
+      description: Host login shell path passed to Codex App Server worker processes.
       value_from: process_env:SHELL
       default: " "
     - name: USER
-      description: Host user name passed to direct Codex worker App Server processes.
+      description: Host user name passed to Codex App Server worker processes.
       value_from: process_env:USER
       default: " "
     - name: LOGNAME
-      description: Host login name passed to direct Codex worker App Server processes.
+      description: Host login name passed to Codex App Server worker processes.
       value_from: process_env:LOGNAME
       default: " "
     - name: CODEX_HOME
@@ -86,13 +82,13 @@ runtime:
     - name: BUS_WORKERS_LIFECYCLE
       description: Worker lifecycle mode selected by the Workers integration.
       value_from: env:BUS_WORKERS_LIFECYCLE
-      default: direct-exec
+      default: appserver-exec
     - name: BUS_WORKERS_DIRECT_REPO_ROOT
       description: Product repository root used when creating task worktrees.
       value_from: env:BUS_WORKERS_DIRECT_REPO_ROOT
       default: "{env:BUS_SERVICES_STACK_DIR}"
     - name: BUS_WORKERS_DIRECT_WORKER_ROOT
-      description: Runtime directory for local direct Codex worker processes.
+      description: Runtime directory for local host-process App Server workers.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_ROOT
       default: .bus/services/workers/runtime
     - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
@@ -100,15 +96,15 @@ runtime:
       value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
       default: "{env:BUS_SERVICES_STACK_DIR}/agents/worker"
     - name: BUS_WORKERS_DIRECT_MODEL
-      description: Optional default model assigned to direct Codex workers when a worker create request does not provide one.
+      description: Optional default model assigned to App Server workers when a worker create request does not provide one.
       value_from: env:BUS_WORKERS_DIRECT_MODEL
       default: "{param:default_model}"
     - name: BUS_WORKERS_DIRECT_SANDBOX
-      description: Sandbox mode passed to direct Codex workers.
+      description: Sandbox mode passed to Codex App Server workers.
       value_from: env:BUS_WORKERS_DIRECT_SANDBOX
       default: workspace-write
     - name: BUS_WORKERS_DIRECT_UNIFIED_EXEC
-      description: Whether direct Codex workers should enable Codex unified exec; disabled by default as a local direct-worker compatibility workaround.
+      description: Whether Codex App Server workers should enable unified exec.
       value_from: env:BUS_WORKERS_DIRECT_UNIFIED_EXEC
       default: "{param:unified_exec}"
     - name: BUS_WORKERS_DIRECT_CODEX_COMMAND
@@ -116,7 +112,7 @@ runtime:
       value_from: env:BUS_WORKERS_DIRECT_CODEX_COMMAND
       default: codex
     - name: BUS_WORKERS_DIRECT_CODEX_AUTH_HOME
-      description: Explicit Codex auth/config directory copied into each isolated direct worker CODEX_HOME.
+      description: Explicit Codex auth/config directory copied into each isolated App Server worker CODEX_HOME.
       value_from: env:BUS_WORKERS_DIRECT_CODEX_AUTH_HOME
       default: "{param:codex_auth_home}"
     - name: BUS_WORKERS_DIRECT_BASE_REF
@@ -132,7 +128,7 @@ runtime:
       value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_BRANCH_PREFIX
       default: worker/
     - name: BUS_WORKERS_DIRECT_WORKSPACE_MATERIALIZER
-      description: Workspace materializer used by direct Codex workers.
+      description: Workspace materializer used by host-process App Server workers.
       value_from: env:BUS_WORKERS_DIRECT_WORKSPACE_MATERIALIZER
       default: repos-events
     - name: BUS_WORKERS_DIRECT_REPOS_ENSURE_TIMEOUT
@@ -140,23 +136,19 @@ runtime:
       value_from: env:BUS_WORKERS_DIRECT_REPOS_ENSURE_TIMEOUT
       default: 30s
     - name: BUS_WORKERS_DIRECT_MESSAGE_EVIDENCE_TIMEOUT
-      description: Timeout while waiting for direct Codex worker message evidence.
+      description: Timeout while waiting for App Server worker message evidence.
       value_from: env:BUS_WORKERS_DIRECT_MESSAGE_EVIDENCE_TIMEOUT
       default: 3m
-    - name: BUS_WORKERS_DIRECT_DEFAULT_PROVIDER
-      description: Default direct worker provider for omitted create requests.
-      value_from: env:BUS_WORKERS_DIRECT_DEFAULT_PROVIDER
-      default: "{param:direct_default_provider}"
     - name: BUS_PREFERENCES_PATH
-      description: Bus preferences JSON path used by direct-worker default-provider discovery.
+      description: Bus preferences JSON path used by provider discovery.
       value_from: env:BUS_PREFERENCES_PATH
       default: " "
     - name: BUS_CONFIG_DIR
-      description: Bus config root used by direct-worker default-provider discovery.
+      description: Bus config root used by provider discovery.
       value_from: env:BUS_CONFIG_DIR
       default: " "
     - name: BUS_AGENT_CODEX_LOCAL_MODEL
-      description: Local model selector used by direct-worker default-provider discovery.
+      description: Local model selector used by provider discovery.
       value_from: env:BUS_AGENT_CODEX_LOCAL_MODEL
       default: " "
     - name: BUS_AGENT_RUNTIME_MESSAGE_PROVIDER
@@ -200,7 +192,7 @@ runtime:
       value_from: env:BUS_WORKERS_APPSERVER_REMOTE_ROOT
       default: .bus/services/workers/appserver
     - name: BUS_WORKERS_APPSERVER_IMAGE
-      description: Container image used for Codex App Server worker launches.
+      description: Optional container image used only by non-local App Server plan mode.
       value_from: env:BUS_WORKERS_APPSERVER_IMAGE
       default: bus-integration-task:local-image-smoke
     - name: BUS_WORKERS_APPSERVER_MODEL
@@ -220,6 +212,6 @@ runtime:
       value_from: env:BUS_WORKERS_APPSERVER_PORT_START
       default: "19100"
     - name: BUS_WORKERS_APPSERVER_CONTAINER_PREFIX
-      description: Container name prefix for App Server worker launches.
+      description: Optional container name prefix used only by non-local App Server plan mode.
       value_from: env:BUS_WORKERS_APPSERVER_CONTAINER_PREFIX
       default: bus-worker-

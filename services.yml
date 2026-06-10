@@ -42,7 +42,7 @@ services:
     depends_on:
       - events
   workers:
-    profile: bus/workers/direct
+    profile: bus/workers/appserver
     params:
       events_url: http://127.0.0.1:8081/local/v1
     depends_on:
