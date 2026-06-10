@@ -1,5 +1,6 @@
 # PLAN.md
 
+- [ ] Review root-level remote cleanup salvage artifacts under `logs/remote-worktree-salvage-20260610-13`, especially preserved superproject scripts/profiles and unmerged branch archives. Acceptance: route each preserved root-level patch to the owning module or root plan item, apply only still-useful deltas to `develop`, and record discarded superseded worker branches before deleting the archive.
 This is the active BusDK superproject work tracker. For the current H100 goal,
 treat `Current Refined Finish Line` as the active priority lane; complete its
 minimum checklist in order, using nested unchecked items under the labeled
