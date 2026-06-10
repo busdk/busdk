@@ -537,3 +537,7 @@
 [submodule "skills"]
 	path = skills
 	url = git@github.com:busdk/skills.git
+[submodule "bus-top"]
+	path = bus-top
+	url = git@github.com:busdk/bus-top.git
+	branch = develop
