@@ -46,6 +46,11 @@
         "description": "Locale category override used by PostgreSQL initialization and runtime.",
         "value_from": "env:BUS_POSTGRES_LC_ALL",
         "default": "C"
+      },
+      {
+        "name": "PATH",
+        "description": "Command lookup path used by PostgreSQL helper binaries such as initdb.",
+        "value_from": "process_env:PATH"
       }
     ],
     "ports": [
