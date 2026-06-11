@@ -108,8 +108,9 @@ not from hard-coded literals inside `bus configure`.
 
 `bus services up` uses `BUS_EVENTS_JWT_SECRET` to create the local API token
 file. Do not configure `BUS_API_TOKEN` for the normal local stack; Services
-writes the token to `.bus/tokens/local-events.jwt` and records the non-secret
-client defaults in `.env`.
+writes the token to `.bus/tokens/local-events.jwt`. Standard local Events and
+Workers client settings are dispatcher-provided runtime defaults, so they do
+not need to be written to `.env`.
 
 ### 3. Start Services
 
@@ -138,8 +139,8 @@ Service runtime state, logs, generated repository configuration, and PostgreSQL
 data live under `.bus/` by default. The PostgreSQL profile initializes `PGDATA`
 on first start and skips initialization when `PG_VERSION` already exists.
 
-On startup, Services also writes these local client defaults to `.env` when
-they are missing:
+The dispatcher supplies these non-secret local client defaults to child
+commands when they are otherwise unset:
 
 ```bash
 BUS_EVENTS_API_URL=http://127.0.0.1:8081/local/v1
@@ -148,11 +149,16 @@ BUS_WORKERS_API_URL=http://127.0.0.1:8090/local/v1
 BUS_WORKERS_API_TOKEN_FILE=.bus/tokens/local-events.jwt
 ```
 
+Precedence is process environment, then `.env`, then dispatcher defaults. Use
+`.env` only for explicit local overrides, private configuration, and values
+such as `BUS_EVENTS_JWT_SECRET`.
+
 ### 4. Create And Guide A Worker
 
 The Workers and Tasks APIs are served through the local Bus API gateway. After
-`bus services up`, the dispatcher loads the local `.env`, so the normal worker
-commands do not need `--api-url` or `--token-file`.
+`bus services up`, the dispatcher supplies the standard local API URL and token
+file defaults, so the normal worker commands do not need `--api-url` or
+`--token-file`.
 
 List workers:
 
