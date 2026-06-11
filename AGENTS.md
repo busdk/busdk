@@ -649,16 +649,22 @@ Use these rules when editing product taxonomy or public product pages:
   separate deployment, runtime, or auth/billing product becomes independently
   understandable and sellable.
 - Keep Bus Agentic Development as the product line for automated agentic
-  software development. Do not split tasks, workers, agent runtime, prompts,
-  chat, AI portal, notes, MCP, repository workspace contracts, or developer
-  factory UI into separate public product pages unless those surfaces later
-  become independently understandable and sellable. MCP and repository modules are not
-  one shared product; they are supporting capabilities under Bus Agentic
-  Development. That product page should explain the full loop: task threads,
-  worker creation and control, the lightweight Bus-owned agent runtime, local
-  and remote execution, prompt/script/pipeline workflows, chat, durable project
-  notes, approvals, terminal state, repository workspaces, MCP capability
-  exposure, quality review, and developer workflow UI.
+  software development. The selling point is autonomous agents and autonomous
+  work, not merely human-supervised AI assistance. Human review and approval
+  should be presented as an available governance/control layer, while the
+  product should also support AI supervisor agents, such as Codex or Claude App
+  sessions, that can define work, launch workers, monitor evidence, review
+  output, and keep the board moving. Do not split tasks, workers, agent
+  runtime, prompts, chat, AI portal, notes, MCP, repository workspace
+  contracts, or developer factory UI into separate public product pages unless
+  those surfaces later become independently understandable and sellable. MCP
+  and repository modules are not one shared product; they are supporting
+  capabilities under Bus Agentic Development. That product page should explain
+  the full loop: task threads, worker creation and control, the lightweight
+  Bus-owned agent runtime, local and remote execution, prompt/script/pipeline
+  workflows, chat, durable project notes, approvals, terminal state, repository
+  workspaces, MCP capability exposure, quality review, supervisor-agent
+  automation, and developer workflow UI.
 
 Canonical task lifecycle Events use `bus.task.*`. Canonical worker
 lifecycle/control Events use `bus.workers.*`. Treat `bus.dev.task.*`,
