@@ -233,6 +233,9 @@ this root file must preserve the supervisor/worker boundary itself.
     specific relevant `AGENTS.md` in the same session, and update the current
     hourly memo to record why it mattered. Use `PLAN.md` alongside `AGENTS.md`
     when the lesson also changes execution order or acceptance criteria.
+    Stage and commit `PLAN.md` changes directly on `develop` in the owning
+    repository before moving on; do not leave planning edits as uncommitted
+    supervisor checkout drift.
 18. For the H100/remote-worker goal, prioritize the minimum real-work loop over
     adjacent product polish: one configured model can be enough, private image
     delivery can be deferred when source-checkout/App Server works, and stats
