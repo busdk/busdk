@@ -22,6 +22,14 @@
   consistently by list/status/show, stale runtime records are marked stopped or
   pruned with auditable events, and new worker creation supports only Codex App
   Server or Bus-owned runtime providers such as `bus-agent-runtime`.
+  Reproduced during the Repos materialization normal-services proof on
+  2026-06-11: `bus workers stop repos-normal-proof-mini-20260611e` returned
+  success and published `bus.workers.stop.request`
+  `evt_1781193793271936000`, but no stopped snapshot followed, the App Server
+  process remained live until manual teardown, and duplicate parentless
+  `bus-integration --provider workers` children reappeared beside the
+  Services-owned wrapper/child. Treat that as worker/service lifecycle hygiene,
+  not a Repos materialization failure.
 This is the active BusDK superproject work tracker. For the current H100 goal,
 treat `Current Refined Finish Line` as the active priority lane; complete its
 minimum checklist in order, using nested unchecked items under the labeled
