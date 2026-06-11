@@ -598,11 +598,15 @@ Use these rules when editing product taxonomy or public product pages:
   virtualization and can run inside containers or systemd-managed environments.
   Do not describe Bus Services as a security, sandboxing, or service isolation
   layer; it does not limit access between services.
-- Present Bus GX / Bus UI as a main product line even though it also supports
-  other BusDK products. Teams may want TSX/React-style UI development for Go
-  and Go/WASM directly, so `bus-gx` and `bus-ui` should be public product
-  surfaces for deterministic rendering, reusable components, portal-ready UI
-  primitives, and testable frontend surfaces.
+- Present Bus GX/UI Library as a main product line even though it also supports
+  other BusDK products. Teams may want Go-native UI components with TSX-like
+  authoring directly, so `bus-gx` and `bus-ui` should be public product
+  surfaces for compiled Go render roots, reusable component families, runtime
+  bridges, deterministic tests, and policy-free frontend surfaces. Do not
+  position it as "React cloned in Go"; React and TSX are useful reference
+  points, but the product contract is Go-first and keeps routes,
+  authorization, provider semantics, secrets, and business policy in owning
+  product modules.
 - Group supporting infrastructure under a separate supporting-platform category
   when it exists mainly to build, host, connect, or operate BusDK components.
 - Treat dispatcher and host modules such as `bus`, `bus-api`,
