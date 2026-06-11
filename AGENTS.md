@@ -227,6 +227,10 @@ this root file must preserve the supervisor/worker boundary itself.
     `codex exec`, `direct-exec`, `direct` runner kind, or `codex-direct`
     provider as the operator-facing worker path; add new providers such as
     `bus-agent-runtime` behind the worker provider/App Server-style contract.
+    Do not request `gpt-5.3-codex-spark` for new workers or app-server-backed
+    implementation tasks while the weekly quota is exhausted. Use
+    `gpt-5.4-mini` first, escalate to `gpt-5.4` only when mini cannot complete
+    the work, and use `gpt-5.5` only as the last resort.
 17. Treat important operator corrections, focus reminders, naming lessons, and
     repeated “don’t do that” guidance as durable memory work, not just chat.
     When the lesson is expected to matter again, write it into the most
