@@ -45,10 +45,9 @@ products.
 | Bus Deploy | Deployment orchestration, node setup, cloud/database/inference readiness, and SSH-runner-backed operations. | `bus-operator-deploy`, `bus-operator-cloud`, `bus-operator-database`, `bus-operator-inference`, `bus-operator-node`, `bus-api-provider-cloud`, `bus-api-provider-database`, `bus-api-provider-node`, `bus-integration-cloud`, `bus-integration-database`, `bus-integration-node`, `bus-integration-postgres`, `bus-integration-ssh-runner` |
 | Bus GX / Bus UI | TSX/React-style UI development for Go and Go/WASM with deterministic rendering and reusable components. | `bus-gx`, `bus-ui` |
 | Bus AI Portal | Frontend product for AI chat, agent work, terminal, and container experiences. | `bus-portal-ai` |
-| Bus Accounting Portal | Frontend product for accounting customer navigation, uploads, evidence packages, previews, and downloads. | `bus-portal-accounting` |
 | Bus Auth Portal | Frontend product for registration, login, approval/waitlist, logout, and session UX. | `bus-portal-auth` |
 | Bus Notes Portal | Frontend product for browsing, searching, reviewing, editing, publishing, and archiving notes. | `bus-portal-notes` |
-| Bus Books | Auditable bookkeeping software built on open workspace data. | `bus-books`, `bus-ledger`, accounting domain modules |
+| Bus Books | Auditable bookkeeping software built on open workspace data, including local bookkeeping UI and customer-facing accounting portal workflows. | `bus-books`, `bus-ledger`, `bus-portal-accounting`, accounting domain modules |
 | Bus Data Workbench | Schema-backed CSV/workspace data, sheets, files, attachments, and replayable state. | `bus-data`, `bus-sheets`, `bus-files`, `bus-attachments`, `bus-replay` |
 | Bus Formula Language | Deterministic formulas for workspace data and workbook extraction. | `bus-bfl` |
 | Bus PDF Renderer | Deterministic PDFs for invoices, reports, evidence packs, and other render-model-driven documents. | `bus-pdf` |
@@ -68,6 +67,9 @@ Accounting modules that belong under Bus Books include `bus-accounts`,
 `bus-debts`, `bus-entities`, `bus-inventory`, `bus-invoices`, `bus-journal`,
 `bus-ledger`, `bus-loans`, `bus-memo`, `bus-payroll`, `bus-period`,
 `bus-reconcile`, `bus-reports`, `bus-validate`, `bus-vat`, and `bus-vendors`.
+`bus-portal-accounting` also belongs under Bus Books as the customer-facing
+portal experience for workspace summaries, attachment uploads, evidence
+packages, and artifact preview/download workflows.
 
 ## Not Public Product Pages Yet
 
