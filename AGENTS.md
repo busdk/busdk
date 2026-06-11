@@ -621,6 +621,9 @@ Use these rules when editing product taxonomy or public product pages:
   uploads, evidence packages, and artifact preview/download workflows.
   `bus-pdf` is document-rendering infrastructure for Bus Books workflows such
   as invoices, reports, and evidence packs, not a standalone end-user product.
+- Keep Bus Notes and Bus Notes Portal as one public product. `bus-portal-notes`
+  is the frontend experience for the Bus Notes product, not a separate product
+  page unless it later becomes independently understandable and sellable.
 - Keep Bus Agentic Development as the product line for automated agentic
   software development. Do not split tasks, workers, agent runtime, prompts,
   chat, AI portal, MCP, repository workspace contracts, or developer factory UI
