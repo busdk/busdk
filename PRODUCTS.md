@@ -45,28 +45,3 @@ end-user product lines above rather than products sold on their own.
 | Bus Events | Publish, listen, replay, sync, and request/reply event substrate for BusDK components. | `bus-events`, `bus-api-provider-events`, `bus-integration-events` |
 | Bus Operator | Operator command shell for trusted deployment, admin, and service automation. | `bus-operator`, `bus-operator-token` |
 | Bus Portal Host | Frontend module shell and dispatcher for Bus application modules. | `bus-portal`, `bus-gateway` |
-
-## Bus Books
-
-Bus Books is the end-user accounting product. The UI, CLI, and API operate over
-the same deterministic workspace data.
-
-Accounting modules that belong under Bus Books include `bus-accounts`,
-`bus-assets`, `bus-balances`, `bus-bank`, `bus-budget`, `bus-customers`,
-`bus-debts`, `bus-entities`, `bus-inventory`, `bus-invoices`, `bus-journal`,
-`bus-ledger`, `bus-loans`, `bus-memo`, `bus-payroll`, `bus-period`,
-`bus-reconcile`, `bus-reports`, `bus-validate`, `bus-vat`, and `bus-vendors`.
-`bus-portal-accounting` also belongs under Bus Books as the customer-facing
-portal experience for workspace summaries, attachment uploads, evidence
-packages, and artifact preview/download workflows.
-
-## Not Public Product Pages Yet
-
-- Bus Filing Finland: real direction, but not ready for marketing yet.
-  Modules: `bus-filing`, `bus-filing-prh`, `bus-filing-vero`.
-- `aiz`: research project for now.
-- `bus-work`: do not market until its status is fully reconciled with
-  Bus Agentic Development.
-- Individual `bus-api-provider-*`, `bus-integration-*`, and `bus-operator-*`
-  modules: assign them to the product line they serve instead of publishing
-  separate product pages.

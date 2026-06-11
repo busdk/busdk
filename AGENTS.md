@@ -597,9 +597,28 @@ Use these rules when editing product taxonomy or public product pages:
 - Do not market unfinished, research-only, or unclear surfaces as public
   products yet. Document them as research, technical preview, or internal
   modules until their user-facing value is ready.
+- Keep the explicit exclusion list in this guidance, not in `PRODUCTS.md`.
+  Current exclusions:
+  - Bus Filing Finland is a real direction, but not ready for marketing yet.
+    This covers `bus-filing`, `bus-filing-prh`, and `bus-filing-vero`.
+  - `aiz` is a research project for now.
+  - `bus-work` should not be marketed until its status is fully reconciled with
+    Bus Agentic Development.
+  - Individual `bus-api-provider-*`, `bus-integration-*`, and
+    `bus-operator-*` modules should be assigned to the product line they serve
+    instead of published as separate product pages.
 - Keep Bus Books as the single public accounting UI product. The deterministic
   accounting engine and `bus-portal-accounting` are proof and feature depth
-  inside Bus Books unless they later become independently sellable.
+  inside Bus Books unless they later become independently sellable. The Bus
+  Books product page may explain that the UI, CLI, and API operate over the
+  same deterministic workspace data. Accounting modules under Bus Books include
+  `bus-accounts`, `bus-assets`, `bus-balances`, `bus-bank`, `bus-budget`,
+  `bus-customers`, `bus-debts`, `bus-entities`, `bus-inventory`,
+  `bus-invoices`, `bus-journal`, `bus-ledger`, `bus-loans`, `bus-memo`,
+  `bus-payroll`, `bus-period`, `bus-reconcile`, `bus-reports`,
+  `bus-validate`, `bus-vat`, and `bus-vendors`. `bus-portal-accounting` is the
+  customer-facing portal experience for workspace summaries, attachment
+  uploads, evidence packages, and artifact preview/download workflows.
 - Keep Bus Agentic Development as the product line for automated agentic
   software development. Do not split tasks, workers, agent runtime, prompts,
   chat, AI portal, or developer factory UI into separate public product pages
