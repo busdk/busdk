@@ -21,7 +21,7 @@ HTML, and unit-testable components that fit naturally into BusDK services,
 portals, agent workflows, and local-first product modules.
 
 This is a developer and platform product line. It is for teams that want
-frontend interfaces to be as inspectable, testable, and ownable as the rest of
+frontend interfaces to be as inspectable, testable, and maintainable as the rest of
 their Go system.
 
 ## Short Positioning

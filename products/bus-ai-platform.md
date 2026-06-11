@@ -19,7 +19,7 @@ We help technical founders, SaaS developers, and platform teams ship AI
 features on infrastructure they control by offering a self-hostable AI platform
 with model APIs, inference runtime control, deployment automation, auth, usage,
 and billing, unlike raw model runners or cloud-only AI APIs, because Bus AI
-Platform turns AI backend plumbing into an ownable BusDK service stack.
+Platform turns AI backend plumbing into a self-hostable BusDK service stack.
 
 ## Core Questions
 
@@ -106,7 +106,7 @@ platform work needed before AI features can become real products:
 
 Bus AI Platform should be positioned against four alternatives:
 
-- Cloud-only AI APIs: easy to call, but less ownable and often disconnected
+- Cloud-only AI APIs: easy to call, but less self-hostable and often disconnected
   from local, self-hosted, or customer-controlled runtime needs.
 - Hyperscaler AI platforms: powerful, but broad, complex, and tied to a large
   cloud control plane.
@@ -158,7 +158,7 @@ Likely objections and how the page should answer them:
   control over runtime, deployment, auth, usage, billing, and data placement.
 - "Why not use Azure, Vertex, Bedrock, or another hyperscaler platform?"
   Those are strong managed platforms. Bus AI Platform should be presented as a
-  smaller, ownable BusDK-native layer for teams that want self-hostable or
+  smaller, self-hostable BusDK-native layer for teams that want local or
   local-to-remote AI infrastructure.
 - "Why not just use Ollama or another model runner?"
   Model runners are runtime pieces. Bus AI Platform should provide the product
@@ -183,7 +183,7 @@ infrastructure for product builders, not generic AI hype.
 Use:
 
 - self-hostable AI platform
-- ownable AI infrastructure
+- self-hostable AI infrastructure
 - OpenAI-compatible model access
 - inference runtime control
 - local-to-remote deployment
@@ -218,7 +218,7 @@ Later channels:
   runners, and custom glue.
 - Sales deck for technical founders and platform teams.
 - Case studies from BusDK internal usage.
-- Launch article about ownable AI product infrastructure.
+- Launch article about self-hostable AI product infrastructure.
 
 ### Call To Action
 
@@ -253,7 +253,7 @@ Product marketing should be judged by:
 
 Suggested headline:
 
-> Ownable AI infrastructure for product builders.
+> Self-hostable AI infrastructure for product builders.
 
 Suggested subheadline:
 
