@@ -43,7 +43,6 @@ tmp/
 .tmp*
 .cache
 .bus/bus-factory/ai-state.json
-.bus/bus-top/
 .bus/services/
 logs/*.log
 logs/
