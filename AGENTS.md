@@ -591,6 +591,13 @@ Use these rules when editing product taxonomy or public product pages:
   or module order. Bus Agentic Development, Bus AI Platform, and Bus Books
   should appear before smaller command-oriented products such as Bus Top and
   Bus Services.
+- Present Bus Services as generally useful process-level service stack
+  software, not only as BusDK project support. Its public message may compare
+  it to Docker Compose for packaging multiple services, especially during
+  development, while emphasizing that it does not require containers or
+  virtualization and can run inside containers or systemd-managed environments.
+  Do not describe Bus Services as a security, sandboxing, or service isolation
+  layer; it does not limit access between services.
 - Group supporting infrastructure under a separate supporting-platform category
   when it exists mainly to build, host, connect, or operate BusDK components.
 - Treat dispatcher and host modules such as `bus`, `bus-api`,
