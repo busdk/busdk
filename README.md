@@ -106,19 +106,10 @@ JWT secrets, local runtime provider choices, and provider-specific model
 settings should come from the owning Bus modules and service/profile metadata,
 not from hard-coded literals inside `bus configure`.
 
-Create a local API token for the services. Run this in the same shell where
-`BUS_LOCAL_SECRET` is set, or replace it with the same unique value configured
-as `BUS_EVENTS_JWT_SECRET`. The default local auth audience is `ai.hg.fi/api`;
-keep it unless you have changed the local API/Event auth configuration.
-
-```bash
-BUS_AUTH_HS256_SECRET="$BUS_LOCAL_SECRET" \
-  bus configure BUS_API_TOKEN="$(bus operator token --format token issue --local \
-    --subject local-workers \
-    --audience ai.hg.fi/api \
-    --scope 'events:send events:listen workers:read workers:write workers:control task:send task:read task:reply' \
-    --ttl 12h)"
-```
+`bus services up` uses `BUS_EVENTS_JWT_SECRET` to create the local API token
+file. Do not configure `BUS_API_TOKEN` for the normal local stack; Services
+writes the token to `.bus/tokens/local-events.jwt` and records the non-secret
+client defaults in `.env`.
 
 ### 3. Start Services
 
@@ -147,19 +138,26 @@ Service runtime state, logs, generated repository configuration, and PostgreSQL
 data live under `.bus/` by default. The PostgreSQL profile initializes `PGDATA`
 on first start and skips initialization when `PG_VERSION` already exists.
 
+On startup, Services also writes these local client defaults to `.env` when
+they are missing:
+
+```bash
+BUS_EVENTS_API_URL=http://127.0.0.1:8081/local/v1
+BUS_EVENTS_TOKEN_FILE=.bus/tokens/local-events.jwt
+BUS_WORKERS_API_URL=http://127.0.0.1:8090/local/v1
+BUS_WORKERS_API_TOKEN_FILE=.bus/tokens/local-events.jwt
+```
+
 ### 4. Create And Guide A Worker
 
-The Workers and Tasks APIs are served through the local Bus API gateway. The
-default local URL is:
-
-```text
-http://127.0.0.1:8090/local/v1
-```
+The Workers and Tasks APIs are served through the local Bus API gateway. After
+`bus services up`, the dispatcher loads the local `.env`, so the normal worker
+commands do not need `--api-url` or `--token-file`.
 
 List workers:
 
 ```bash
-bus workers --api-url http://127.0.0.1:8090/local/v1 list --environment local-dev
+bus workers list --environment local-dev
 ```
 
 Create a local Codex Spark worker. Omit `--id`; the Workers API provider
@@ -167,7 +165,7 @@ generates a UUID and the worker identity branch defaults to
 `worker/{worker_uuid}`:
 
 ```bash
-bus workers --api-url http://127.0.0.1:8090/local/v1 create \
+bus workers create \
   --label "Spark 1" \
   --type agent \
   --profile codex-spark \
@@ -181,7 +179,7 @@ bus workers --api-url http://127.0.0.1:8090/local/v1 create \
 Use the returned worker id for guidance:
 
 ```bash
-bus workers --api-url http://127.0.0.1:8090/local/v1 message <worker-id> \
+bus workers message <worker-id> \
   --environment local-dev \
   --text "Inspect the task details and wait for guidance before editing."
 ```
@@ -189,16 +187,16 @@ bus workers --api-url http://127.0.0.1:8090/local/v1 message <worker-id> \
 Read worker responses and status:
 
 ```bash
-bus workers --api-url http://127.0.0.1:8090/local/v1 messages <worker-id> --environment local-dev
-bus workers --api-url http://127.0.0.1:8090/local/v1 status <worker-id> --environment local-dev
-bus workers --api-url http://127.0.0.1:8090/local/v1 logs <worker-id> --environment local-dev
-bus workers --api-url http://127.0.0.1:8090/local/v1 attach <worker-id> --environment local-dev
+bus workers messages <worker-id> --environment local-dev
+bus workers status <worker-id> --environment local-dev
+bus workers logs <worker-id> --environment local-dev
+bus workers attach <worker-id> --environment local-dev
 ```
 
 Stop the worker:
 
 ```bash
-bus workers --api-url http://127.0.0.1:8090/local/v1 stop <worker-id> \
+bus workers stop <worker-id> \
   --environment local-dev \
   --reason "done"
 ```
