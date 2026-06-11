@@ -608,17 +608,19 @@ Use these rules when editing product taxonomy or public product pages:
     `bus-operator-*` modules should be assigned to the product line they serve
     instead of published as separate product pages.
 - Keep Bus Books as the single public accounting UI product. The deterministic
-  accounting engine and `bus-portal-accounting` are proof and feature depth
-  inside Bus Books unless they later become independently sellable. The Bus
-  Books product page may explain that the UI, CLI, and API operate over the
-  same deterministic workspace data. Accounting modules under Bus Books include
-  `bus-accounts`, `bus-assets`, `bus-balances`, `bus-bank`, `bus-budget`,
-  `bus-customers`, `bus-debts`, `bus-entities`, `bus-inventory`,
-  `bus-invoices`, `bus-journal`, `bus-ledger`, `bus-loans`, `bus-memo`,
-  `bus-payroll`, `bus-pdf`, `bus-period`, `bus-reconcile`, `bus-reports`,
-  `bus-validate`, `bus-vat`, and `bus-vendors`. `bus-portal-accounting` is the
-  customer-facing portal experience for workspace summaries, attachment
-  uploads, evidence packages, and artifact preview/download workflows.
+  accounting engine, data workbench surfaces, and `bus-portal-accounting` are
+  proof and feature depth inside Bus Books unless they later become
+  independently sellable. The Bus Books product page may explain that the UI,
+  CLI, and API operate over the same deterministic workspace data. Modules
+  under Bus Books include `bus-accounts`, `bus-assets`, `bus-attachments`,
+  `bus-balances`, `bus-bank`, `bus-budget`, `bus-customers`, `bus-data`,
+  `bus-debts`, `bus-entities`, `bus-files`, `bus-inventory`, `bus-invoices`,
+  `bus-journal`, `bus-ledger`, `bus-loans`, `bus-memo`, `bus-payroll`,
+  `bus-pdf`, `bus-period`, `bus-reconcile`, `bus-replay`, `bus-reports`,
+  `bus-sheets`, `bus-validate`, `bus-vat`, and `bus-vendors`.
+  `bus-portal-accounting` is the customer-facing portal experience for
+  workspace summaries, attachment uploads, evidence packages, and artifact
+  preview/download workflows.
   `bus-pdf` is document-rendering infrastructure for Bus Books workflows such
   as invoices, reports, and evidence packs, not a standalone end-user product.
 - Keep Bus Notes and Bus Notes Portal as one public product. `bus-portal-notes`
