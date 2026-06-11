@@ -654,15 +654,19 @@ Use these rules when editing product taxonomy or public product pages:
   should be presented as an available governance/control layer, while the
   product should also support AI supervisor agents, such as Codex or Claude App
   sessions, that can define work, launch workers, monitor evidence, review
-  output, and keep the board moving. Do not split tasks, workers, agent
-  runtime, prompts, chat, AI portal, notes, MCP, repository workspace
-  contracts, or developer factory UI into separate public product pages unless
-  those surfaces later become independently understandable and sellable. MCP
-  and repository modules are not one shared product; they are supporting
-  capabilities under Bus Agentic Development. That product page should explain
-  the full loop: task threads, worker creation and control, the lightweight
-  Bus-owned agent runtime, local and remote execution, prompt/script/pipeline
-  workflows, chat, durable project notes, approvals, terminal state, repository
+  output, and keep the board moving. Multi-environment execution is a core
+  product point: Bus agents can work across local and remote development
+  environments, and teams should be able to add multiple SSH-accessible
+  environments as work capacity for autonomous agents. Do not split tasks,
+  workers, agent runtime, prompts, chat, AI portal, notes, MCP, repository
+  workspace contracts, or developer factory UI into separate public product
+  pages unless those surfaces later become independently understandable and
+  sellable. MCP and repository modules are not one shared product; they are
+  supporting capabilities under Bus Agentic Development. That product page
+  should explain the full loop: task threads, worker creation and control, the
+  lightweight Bus-owned agent runtime, local and remote execution,
+  SSH-configured development environments, prompt/script/pipeline workflows,
+  chat, durable project notes, approvals, terminal state, repository
   workspaces, MCP capability exposure, quality review, supervisor-agent
   automation, and developer workflow UI.
 
