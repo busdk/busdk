@@ -576,6 +576,39 @@ family is plural: `bus-workers` provides `bus workers`, local control flows
 through `bus-api-provider-workers`, and remote worker/container management
 flows through `bus-integration-workers`.
 
+## Product Taxonomy Guidance
+
+Keep `PRODUCTS.md` as a product taxonomy, not a module inventory or agent
+process note. It should describe product lines, supporting platform products,
+and excluded/not-yet-marketable surfaces in user-facing terms.
+
+Use these rules when editing product taxonomy or public product pages:
+
+- Keep BusDK as the bundle, installer, and shared product-family identity.
+- Give primary product pages to user-facing products that buyers, operators,
+  developers, or finance users can understand as a complete product.
+- Group supporting infrastructure under a separate supporting-platform category
+  when it exists mainly to build, host, connect, or operate BusDK components.
+- Treat dispatcher and host modules such as `bus`, `bus-api`,
+  `bus-integration`, `bus-portal`, and `bus-operator` as host products. Their
+  child modules belong under the concrete product line they serve.
+- Do not duplicate a module across multiple marketed product pages. Cross-link
+  when a module participates in more than one workflow.
+- Do not market unfinished, research-only, or unclear surfaces as public
+  products yet. Document them as research, technical preview, or internal
+  modules until their user-facing value is ready.
+- Keep Bus Books as the single public accounting UI product. The deterministic
+  accounting engine and `bus-portal-accounting` are proof and feature depth
+  inside Bus Books unless they later become independently sellable.
+- Keep Bus Agentic Development as the product line for automated agentic
+  software development. Do not split tasks, workers, agent runtime, prompts,
+  chat, AI portal, or developer factory UI into separate public product pages
+  unless those surfaces later become independently understandable and sellable.
+  That product page should explain the full loop: task threads, worker
+  creation and control, the lightweight Bus-owned agent runtime, local and
+  remote execution, prompt/script/pipeline workflows, chat, approvals,
+  terminal state, quality review, and developer workflow UI.
+
 Canonical task lifecycle Events use `bus.task.*`. Canonical worker
 lifecycle/control Events use `bus.workers.*`. Treat `bus.dev.task.*`,
 `bus.work.*`, and singular `bus.worker.*` names as legacy, compatibility, or

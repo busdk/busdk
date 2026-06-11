@@ -7,22 +7,6 @@ and most provider, integration, operator, and support modules should appear
 inside the product line they serve instead of becoming separate marketed
 products.
 
-## Product Page Rules
-
-- Keep BusDK as the bundle, installer, and shared product-family identity.
-- Give primary product pages to user-facing products that buyers, operators,
-  developers, or finance users can understand as a complete product.
-- Group supporting infrastructure under a separate supporting-platform category
-  when it exists mainly to build, host, connect, or operate BusDK components.
-- Treat dispatcher and host modules such as `bus`, `bus-api`,
-  `bus-integration`, `bus-portal`, and `bus-operator` as host products. Their
-  child modules belong under the concrete product line they serve.
-- Do not duplicate a module across multiple marketed product pages. Cross-link
-  when a module participates in more than one workflow.
-- Do not market unfinished, research-only, or unclear surfaces as public
-  products yet. Document them as research, technical preview, or internal
-  modules until their user-facing value is ready.
-
 ## End-User Product Lines
 
 | Product page | Positioning | Primary module ownership |
@@ -62,11 +46,10 @@ end-user product lines above rather than products sold on their own.
 | Bus Operator | Operator command shell for trusted deployment, admin, and service automation. | `bus-operator`, `bus-operator-token` |
 | Bus Portal Host | Frontend module shell and dispatcher for Bus application modules. | `bus-portal`, `bus-gateway` |
 
-## Bus Books Boundary
+## Bus Books
 
-Bus Books is the marketed end-user accounting product. The accounting engine is
-not a separate product page right now. It is proof inside the Bus Books page:
-the UI, CLI, and API operate over the same deterministic workspace data.
+Bus Books is the end-user accounting product. The UI, CLI, and API operate over
+the same deterministic workspace data.
 
 Accounting modules that belong under Bus Books include `bus-accounts`,
 `bus-assets`, `bus-balances`, `bus-bank`, `bus-budget`, `bus-customers`,
@@ -76,19 +59,6 @@ Accounting modules that belong under Bus Books include `bus-accounts`,
 `bus-portal-accounting` also belongs under Bus Books as the customer-facing
 portal experience for workspace summaries, attachment uploads, evidence
 packages, and artifact preview/download workflows.
-
-## Bus Agentic Development Boundary
-
-Bus Agentic Development is the marketed product line for automated agentic
-software development. It should not be split into separate public product pages
-for tasks, workers, agent runtime, prompts, chat, AI portal, or developer
-factory UI unless those surfaces later become independently understandable and
-sellable.
-
-The product page should explain the whole loop: task threads, worker creation
-and control, the lightweight Bus-owned agent runtime, local and remote
-execution, prompt/script/pipeline workflows, chat, approvals, terminal state,
-quality review, and developer workflow UI.
 
 ## Not Public Product Pages Yet
 
