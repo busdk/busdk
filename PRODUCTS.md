@@ -21,10 +21,9 @@ products.
 | Bus Deploy | Deployment orchestration, node setup, cloud/database/inference readiness, and SSH-runner-backed operations. | `bus-operator-deploy`, `bus-operator-cloud`, `bus-operator-database`, `bus-operator-inference`, `bus-operator-node`, `bus-api-provider-cloud`, `bus-api-provider-database`, `bus-api-provider-node`, `bus-integration-cloud`, `bus-integration-database`, `bus-integration-node`, `bus-integration-postgres`, `bus-integration-ssh-runner` |
 | Bus Auth Portal | Frontend product for registration, login, approval/waitlist, logout, and session UX. | `bus-portal-auth` |
 | Bus Notes Portal | Frontend product for browsing, searching, reviewing, editing, publishing, and archiving notes. | `bus-portal-notes` |
-| Bus Books | Auditable bookkeeping software built on open workspace data, including local bookkeeping UI and customer-facing accounting portal workflows. | `bus-books`, `bus-ledger`, `bus-portal-accounting`, accounting domain modules |
+| Bus Books | Auditable bookkeeping software built on open workspace data, including local bookkeeping UI, customer-facing accounting portal workflows, and deterministic accounting documents. | `bus-books`, `bus-ledger`, `bus-portal-accounting`, `bus-pdf`, accounting domain modules |
 | Bus Data Workbench | Schema-backed CSV/workspace data, sheets, files, attachments, and replayable state. | `bus-data`, `bus-sheets`, `bus-files`, `bus-attachments`, `bus-replay` |
 | Bus Formula Language | Deterministic formulas for workspace data and workbook extraction. | `bus-bfl` |
-| Bus PDF Renderer | Deterministic PDFs for invoices, reports, evidence packs, and other render-model-driven documents. | `bus-pdf` |
 | Bus Notes | Durable project notes, review, search, publish, archive, and FAQ-style answer storage. | `bus-notes`, `bus-api-provider-notes`, `bus-integration-notes`, `bus-faq` |
 | Bus Inspection | Inspection, customer, site, observation, export, photo, and AI-assisted inspection workflows. | `bus-inspection` |
 

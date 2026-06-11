@@ -615,10 +615,12 @@ Use these rules when editing product taxonomy or public product pages:
   `bus-accounts`, `bus-assets`, `bus-balances`, `bus-bank`, `bus-budget`,
   `bus-customers`, `bus-debts`, `bus-entities`, `bus-inventory`,
   `bus-invoices`, `bus-journal`, `bus-ledger`, `bus-loans`, `bus-memo`,
-  `bus-payroll`, `bus-period`, `bus-reconcile`, `bus-reports`,
+  `bus-payroll`, `bus-pdf`, `bus-period`, `bus-reconcile`, `bus-reports`,
   `bus-validate`, `bus-vat`, and `bus-vendors`. `bus-portal-accounting` is the
   customer-facing portal experience for workspace summaries, attachment
   uploads, evidence packages, and artifact preview/download workflows.
+  `bus-pdf` is document-rendering infrastructure for Bus Books workflows such
+  as invoices, reports, and evidence packs, not a standalone end-user product.
 - Keep Bus Agentic Development as the product line for automated agentic
   software development. Do not split tasks, workers, agent runtime, prompts,
   chat, AI portal, MCP, repository workspace contracts, or developer factory UI
