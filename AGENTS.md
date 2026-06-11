@@ -587,6 +587,10 @@ Use these rules when editing product taxonomy or public product pages:
 - Keep BusDK as the bundle, installer, and shared product-family identity.
 - Give primary product pages to user-facing products that buyers, operators,
   developers, or finance users can understand as a complete product.
+- Order end-user product lines by strategic public importance, not by command
+  or module order. Bus Agentic Development, Bus AI Platform, and Bus Books
+  should appear before smaller command-oriented products such as Bus Top and
+  Bus Services.
 - Group supporting infrastructure under a separate supporting-platform category
   when it exists mainly to build, host, connect, or operate BusDK components.
 - Treat dispatcher and host modules such as `bus`, `bus-api`,
@@ -610,8 +614,8 @@ Use these rules when editing product taxonomy or public product pages:
 - Keep Bus Books as the single public accounting UI product. The deterministic
   accounting engine, data workbench surfaces, Bus Formula Language, and
   `bus-portal-accounting` are proof and feature depth inside Bus Books unless
-  they later become
-  independently sellable. The Bus Books product page may explain that the UI,
+  they later become independently sellable. The Bus Books product page may
+  explain that the UI,
   CLI, and API operate over the same deterministic workspace data. Modules
   under Bus Books include `bus-accounts`, `bus-assets`, `bus-attachments`,
   `bus-balances`, `bus-bank`, `bus-bfl`, `bus-budget`, `bus-customers`, `bus-data`,
@@ -647,8 +651,8 @@ Use these rules when editing product taxonomy or public product pages:
 - Keep Bus Agentic Development as the product line for automated agentic
   software development. Do not split tasks, workers, agent runtime, prompts,
   chat, AI portal, notes, MCP, repository workspace contracts, or developer
-  factory UI into separate public product pages unless those surfaces later become
-  independently understandable and sellable. MCP and repository modules are not
+  factory UI into separate public product pages unless those surfaces later
+  become independently understandable and sellable. MCP and repository modules are not
   one shared product; they are supporting capabilities under Bus Agentic
   Development. That product page should explain the full loop: task threads,
   worker creation and control, the lightweight Bus-owned agent runtime, local
