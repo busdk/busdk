@@ -14,7 +14,7 @@ products.
 | BusDK | Full BusDK bundle, installer, and product-family overview. | `bus`, `bus-update`, release/install docs |
 | Bus Top | Human-readable process and system monitoring with optional AI explanations. | `bus-top`, `bus-status` |
 | Bus Services | Project service stacks from `services.yml`: plan, start, stop, status, and verification. | `bus-services`, `bus-integration-services`, `bus-api-provider-services` |
-| Bus Agentic Development | Automated agentic software development with task threads, durable workers, a lightweight agent runtime, prompts, chat, review, and developer workflow UI. | `bus-task`, `bus-worker`, `bus-agent-runtime`, `bus-run`, `bus-agent`, `bus-chat`, `bus-dev`, `bus-factory`, `bus-lint`, `bus-remote`, `bus-remote-control`, `bus-api-provider-task`, `bus-api-provider-worker`, `bus-integration-task`, `bus-integration-worker`, `bus-portal-ai` |
+| Bus Agentic Development | Automated agentic software development with task threads, durable workers, a lightweight agent runtime, prompts, chat, review, repository workspaces, MCP capability exposure, and developer workflow UI. | `bus-task`, `bus-worker`, `bus-agent-runtime`, `bus-run`, `bus-agent`, `bus-chat`, `bus-dev`, `bus-factory`, `bus-lint`, `bus-remote`, `bus-remote-control`, `bus-mcp`, `bus-repos`, `bus-api-provider-mcp`, `bus-api-provider-repos`, `bus-api-provider-task`, `bus-api-provider-worker`, `bus-integration-repos`, `bus-integration-task`, `bus-integration-worker`, `bus-portal-ai` |
 | Bus AI API | Self-hostable OpenAI-compatible model API, inference runtime control, lifecycle events, and usage hooks. | `bus-api-provider-llm`, `bus-api-provider-inference`, `bus-integration-inference`, `bus-integration-codex`, `bus-integration-ollama` |
 | Bus Runtime | User-owned VMs, containers, terminal sessions, and runtime backends. | `bus-vm`, `bus-containers`, `bus-api-provider-vm`, `bus-api-provider-containers`, `bus-api-provider-terminal`, `bus-integration-containers`, `bus-integration-docker`, `bus-integration-podman`, `bus-integration-upcloud` |
 | Bus Auth and Billing | Login, sessions, account approval, service tokens, entitlements, usage, and Stripe-backed billing. | `bus-auth`, `bus-billing`, `bus-api-provider-auth`, `bus-api-provider-session`, `bus-api-provider-billing`, `bus-api-provider-usage`, `bus-integration-billing`, `bus-integration-usage`, `bus-integration-stripe`, `bus-operator-auth`, `bus-operator-billing`, `bus-operator-stripe` |
@@ -26,7 +26,6 @@ products.
 | Bus Formula Language | Deterministic formulas for workspace data and workbook extraction. | `bus-bfl` |
 | Bus PDF Renderer | Deterministic PDFs for invoices, reports, evidence packs, and other render-model-driven documents. | `bus-pdf` |
 | Bus Notes | Durable project notes, review, search, publish, archive, and FAQ-style answer storage. | `bus-notes`, `bus-api-provider-notes`, `bus-integration-notes`, `bus-faq` |
-| Bus MCP and Repos | MCP capability exposure and repository workspace contracts. | `bus-mcp`, `bus-api-provider-mcp`, `bus-repos`, `bus-api-provider-repos`, `bus-integration-repos` |
 | Bus Inspection | Inspection, customer, site, observation, export, photo, and AI-assisted inspection workflows. | `bus-inspection` |
 
 ## Supporting Platform Products
