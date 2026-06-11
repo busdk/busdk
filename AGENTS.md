@@ -624,11 +624,12 @@ Use these rules when editing product taxonomy or public product pages:
   preview/download workflows.
   `bus-pdf` is document-rendering infrastructure for Bus Books workflows such
   as invoices, reports, and evidence packs, not a standalone end-user product.
-- Keep Bus Auth Portal and Bus Auth as one public product line under Bus Auth
-  and Billing. `bus-portal-auth` is the frontend experience for auth,
-  registration, approval/waitlist, and session UX; it should not be a separate
-  product page unless it later becomes independently understandable and
-  sellable.
+- Keep Bus Auth, Bus Auth Portal, and Bus Billing under Bus AI Platform.
+  `bus-auth`, `bus-portal-auth`, `bus-billing`, auth/session providers, usage
+  hooks, Stripe integration, and auth/billing operators are platform services
+  for login, approval, entitlements, metering, and paid AI hosting. They should
+  not be a separate public product page unless the auth/billing experience
+  later becomes independently understandable and sellable.
 - Keep Bus Notes under Bus Agentic Development. `bus-notes`,
   `bus-portal-notes`, `bus-api-provider-notes`, `bus-integration-notes`, and
   `bus-faq` provide durable project memory, review notes, publishing, search,
@@ -639,9 +640,10 @@ Use these rules when editing product taxonomy or public product pages:
   hosting services. This product may include OpenAI-compatible model access,
   inference/runtime control, deployment automation, user-owned VMs,
   containers, terminal sessions, node/cloud/database readiness, lifecycle
-  events, usage hooks, and future UIs. Bus Deploy and Bus Runtime modules
-  belong under Bus AI Platform unless a separate deployment or runtime product
-  becomes independently understandable and sellable.
+  events, usage hooks, auth, billing, and future UIs. Bus Deploy, Bus Runtime,
+  Bus Auth, and Bus Billing modules belong under Bus AI Platform unless a
+  separate deployment, runtime, or auth/billing product becomes independently
+  understandable and sellable.
 - Keep Bus Agentic Development as the product line for automated agentic
   software development. Do not split tasks, workers, agent runtime, prompts,
   chat, AI portal, notes, MCP, repository workspace contracts, or developer
