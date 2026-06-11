@@ -608,12 +608,13 @@ Use these rules when editing product taxonomy or public product pages:
     `bus-operator-*` modules should be assigned to the product line they serve
     instead of published as separate product pages.
 - Keep Bus Books as the single public accounting UI product. The deterministic
-  accounting engine, data workbench surfaces, and `bus-portal-accounting` are
-  proof and feature depth inside Bus Books unless they later become
+  accounting engine, data workbench surfaces, Bus Formula Language, and
+  `bus-portal-accounting` are proof and feature depth inside Bus Books unless
+  they later become
   independently sellable. The Bus Books product page may explain that the UI,
   CLI, and API operate over the same deterministic workspace data. Modules
   under Bus Books include `bus-accounts`, `bus-assets`, `bus-attachments`,
-  `bus-balances`, `bus-bank`, `bus-budget`, `bus-customers`, `bus-data`,
+  `bus-balances`, `bus-bank`, `bus-bfl`, `bus-budget`, `bus-customers`, `bus-data`,
   `bus-debts`, `bus-entities`, `bus-files`, `bus-inventory`, `bus-invoices`,
   `bus-journal`, `bus-ledger`, `bus-loans`, `bus-memo`, `bus-payroll`,
   `bus-pdf`, `bus-period`, `bus-reconcile`, `bus-replay`, `bus-reports`,
@@ -623,20 +624,35 @@ Use these rules when editing product taxonomy or public product pages:
   preview/download workflows.
   `bus-pdf` is document-rendering infrastructure for Bus Books workflows such
   as invoices, reports, and evidence packs, not a standalone end-user product.
-- Keep Bus Notes and Bus Notes Portal as one public product. `bus-portal-notes`
-  is the frontend experience for the Bus Notes product, not a separate product
-  page unless it later becomes independently understandable and sellable.
+- Keep Bus Auth Portal and Bus Auth as one public product line under Bus Auth
+  and Billing. `bus-portal-auth` is the frontend experience for auth,
+  registration, approval/waitlist, and session UX; it should not be a separate
+  product page unless it later becomes independently understandable and
+  sellable.
+- Keep Bus Notes under Bus Agentic Development. `bus-notes`,
+  `bus-portal-notes`, `bus-api-provider-notes`, `bus-integration-notes`, and
+  `bus-faq` provide durable project memory, review notes, publishing, search,
+  and FAQ-style answer storage for agentic development workflows; they should
+  not be a separate public product page unless the notes experience later
+  becomes independently understandable and sellable.
+- Use Bus AI Platform, not Bus AI API, as the public product line for AI
+  hosting services. This product may include OpenAI-compatible model access,
+  inference/runtime control, deployment automation, user-owned VMs,
+  containers, terminal sessions, node/cloud/database readiness, lifecycle
+  events, usage hooks, and future UIs. Bus Deploy and Bus Runtime modules
+  belong under Bus AI Platform unless a separate deployment or runtime product
+  becomes independently understandable and sellable.
 - Keep Bus Agentic Development as the product line for automated agentic
   software development. Do not split tasks, workers, agent runtime, prompts,
-  chat, AI portal, MCP, repository workspace contracts, or developer factory UI
-  into separate public product pages unless those surfaces later become
+  chat, AI portal, notes, MCP, repository workspace contracts, or developer
+  factory UI into separate public product pages unless those surfaces later become
   independently understandable and sellable. MCP and repository modules are not
   one shared product; they are supporting capabilities under Bus Agentic
   Development. That product page should explain the full loop: task threads,
   worker creation and control, the lightweight Bus-owned agent runtime, local
-  and remote execution, prompt/script/pipeline workflows, chat, approvals,
-  terminal state, repository workspaces, MCP capability exposure, quality
-  review, and developer workflow UI.
+  and remote execution, prompt/script/pipeline workflows, chat, durable project
+  notes, approvals, terminal state, repository workspaces, MCP capability
+  exposure, quality review, and developer workflow UI.
 
 Canonical task lifecycle Events use `bus.task.*`. Canonical worker
 lifecycle/control Events use `bus.workers.*`. Treat `bus.dev.task.*`,
