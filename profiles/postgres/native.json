@@ -7,7 +7,7 @@
   "runtime": {
     "kind": "native",
     "provider": "homebrew",
-    "command": ["postgres"],
+    "command": ["{env:BUS_POSTGRES_BIN}/postgres"],
     "args": [
       "-p",
       "{env:BUS_POSTGRES_PORT}",
@@ -17,6 +17,12 @@
       "unix_socket_directories={env:BUS_POSTGRES_SOCKET_DIR}"
     ],
     "env": [
+      {
+        "name": "BUS_POSTGRES_BIN",
+        "description": "Directory containing native PostgreSQL server binaries such as postgres and initdb.",
+        "value_from": "env:BUS_POSTGRES_BIN",
+        "default": "/opt/homebrew/opt/postgresql@18/bin"
+      },
       {
         "name": "PGDATA",
         "description": "Data directory used by the native PostgreSQL process.",
@@ -67,7 +73,7 @@
     },
     "options": {
       "init": {
-        "command": ["initdb"],
+        "command": ["{env:BUS_POSTGRES_BIN}/initdb"],
         "args": [
           "-D",
           "{env:PGDATA}",
