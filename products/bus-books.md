@@ -2,26 +2,29 @@
 
 ## Working Product Definition
 
-Bus Books is BusDK's product line for auditable bookkeeping on open workspace
-data. It gives founders, bookkeepers, accountants, finance operators, and
-technical evaluators a local bookkeeping UI backed by deterministic accounting
-modules, attachments, reconciliation, validation, reports, formulas, document
-rendering, CLI access, and API access over the same workspace data.
+Bus Books is BusDK's product line for auditable financial work on open
+workspace data. It gives founders, bookkeepers, accountants, finance
+operators, agentic AI systems, and technical evaluators apps and tools for
+accounting, invoices, bookkeeping evidence, reconciliation, validation,
+reports, formulas, document rendering, CLI access, and API access over the
+same workspace data.
 
 The current market focus should be practical bookkeeping, evidence, and
-auditability. Bus Books may later support broader finance workflows, but the
-public offer should stay anchored in books that users can inspect, validate,
-reproduce, and export.
+auditability for both human operators and agentic AI workflows. Bus Books may
+later support broader finance workflows, but the public offer should stay
+anchored in books, invoices, and financial records that users and agents can
+inspect, validate, reproduce, and export.
 
 ## Short Positioning
 
-We help founders, bookkeepers, accountants, and finance operators keep
-auditable books by offering local bookkeeping software built on deterministic
-open workspace data, unlike opaque SaaS accounting tools, scattered
-spreadsheets, or disconnected accountant portals, because Bus Books connects a
-human-friendly UI, accounting engine, attachments, bank and reconciliation
-workflows, VAT/reporting, validation, formulas, PDFs, CLI, and API over the
-same evidence-backed data.
+We help founders, bookkeepers, accountants, finance operators, and agentic AI
+systems work on accounting, invoices, and financial workflows by offering
+auditable finance software built on deterministic open workspace data, unlike
+opaque SaaS accounting tools, scattered spreadsheets, or disconnected
+accountant portals, because Bus Books connects human-facing apps, agent-facing
+tools, an accounting engine, attachments, bank and reconciliation workflows,
+VAT/reporting, validation, formulas, PDFs, CLI, and API over the same
+evidence-backed data.
 
 ## Core Questions
 
@@ -35,6 +38,7 @@ The product page should convert visitors into one of these outcomes:
 - Review the audit/evidence model.
 - Book a pilot or technical demo.
 - Read the accounting engine, CLI, or API documentation.
+- Understand how humans and agentic AI can work over the same financial data.
 
 Secondary goals are awareness among small business founders, bookkeepers,
 accountants, auditors, and technical operators who want more control over
@@ -50,6 +54,9 @@ Primary audience:
   reconciliation, VAT, periods, and reports.
 - Technical founders or automation-minded operators who want CLI/API access to
   accounting data.
+- AI-forward businesses that want agentic AI to help process invoices,
+  organize evidence, review exceptions, prepare reports, or operate financial
+  workflows without losing human review and auditability.
 
 Technical evaluators and auditors are an important secondary audience. They
 should be able to understand how the data is stored, how calculations are
@@ -69,13 +76,18 @@ Small business bookkeeping often becomes hard to trust and hard to operate:
 - Teams fear lock-in because the system of record is not plain, local, or easy
   to inspect.
 - Accountants and founders may both see partial views of the same books.
+- Agentic AI tools can help with financial work, but they need structured
+  tools, evidence, validation, permissions, and reviewable outputs instead of
+  free-form access to fragile accounting records.
 
 ### Offer
 
 Bus Books offers auditable bookkeeping software built around one workspace
-data model:
+data model for humans and agentic AI:
 
 - Local bookkeeping web UI.
+- Agent-facing tools for working with accounting, invoices, evidence,
+  validation, reports, and other financial workflows.
 - Dashboard, inbox, journal, ledger/daybook, periods, VAT, bank, reconcile,
   reports, and validation workflows.
 - Customer-facing accounting portal workflows through `bus-portal-accounting`.
@@ -84,8 +96,8 @@ data model:
 - Bus Formula Language for deterministic formulas and workbook extraction.
 - PDF/document rendering for invoices, reports, and evidence packs.
 - CLI and API access for automation and technical evaluation.
-- Optional agent assistance where useful, without making AI the core trust
-  claim.
+- Agentic AI workflows where useful, with deterministic data, validation,
+  permissions, evidence, and human review as the trust layer.
 
 ### Value
 
@@ -99,6 +111,8 @@ and less locked into one interface:
 - Validate accounting data before periods, VAT, reports, or exports are relied
   on.
 - Build automation without bypassing the human-facing bookkeeping workflow.
+- Let humans and agentic AI work on the same accounting, invoice, and financial
+  workflow data without creating a separate shadow system.
 
 ### Differentiation
 
@@ -120,6 +134,9 @@ BusDK's differentiators:
   outputs are part of the same product line.
 - The product can serve human bookkeeping workflows and technical automation
   workflows without hiding the source data.
+- Agentic AI can operate through structured tools over inspectable financial
+  data instead of improvising over screenshots, PDFs, email, or exported
+  spreadsheets.
 
 ### Proof
 
@@ -134,6 +151,8 @@ can actually show:
 - A validation report showing detected issues and clean state.
 - An evidence pack or PDF report that links numbers back to source documents.
 - CLI/API examples reading the same workspace data shown in the UI.
+- An agent-assisted workflow that classifies invoices, links evidence, proposes
+  entries, flags validation issues, and leaves reviewable output for a human.
 
 Evidence to collect later:
 
@@ -159,8 +178,9 @@ Likely objections and how the page should answer them:
   Frame safety around inspectability, backups, evidence, and reproducible
   calculations, not vague security claims.
 - "Is AI changing my books?"
-  Make clear that optional agents can help with workflow, but the trust layer
-  is deterministic data, validation, evidence, and human review.
+  Make clear that agentic AI can help operate financial workflows, but the
+  trust layer is deterministic data, permissions, validation, evidence, and
+  human review.
 - "Is it ready for my business?"
   Offer sample workspaces, pilots, supported workflow lists, and honest
   readiness notes.
@@ -179,6 +199,8 @@ Use:
 - validation
 - reconciliation
 - UI, CLI, and API over the same data
+- human and agentic-AI workflows
+- agent-facing financial tools
 - inspectable reports
 - local control
 
@@ -188,6 +210,7 @@ Avoid:
 - fully automated compliance
 - effortless tax filing
 - AI accountant
+- black-box agent
 - replace your bookkeeper
 - guaranteed correctness
 - vague "real-time finance brain" claims
@@ -201,6 +224,8 @@ Initial channels:
 - Sample bookkeeping workspace.
 - Guided demo showing inbox, journal, reconciliation, validation, and report
   output.
+- Agentic AI workflow demo showing how an agent works with invoices, evidence,
+  validation, and human review.
 - Technical architecture page for the accounting engine and workspace data.
 - CLI/API examples for technical evaluators.
 
@@ -240,6 +265,7 @@ Product marketing should be judged by:
 - First reconciled transaction.
 - First validation report.
 - First generated evidence pack or PDF report.
+- First agent-assisted invoice, evidence, validation, or reporting workflow.
 - Qualified conversations with bookkeepers, accountants, founders, or finance
   operators.
 
@@ -247,22 +273,23 @@ Product marketing should be judged by:
 
 Suggested headline:
 
-> Auditable bookkeeping on open workspace data.
+> Auditable financial workflows for humans and agentic AI.
 
 Suggested subheadline:
 
-> Bus Books gives founders, bookkeepers, and accountants a local bookkeeping UI,
-> deterministic accounting engine, evidence-backed attachments, validation,
-> reports, formulas, PDFs, CLI, and API over the same inspectable workspace
-> data.
+> Bus Books gives founders, bookkeepers, accountants, finance operators, and
+> agentic AI systems apps and tools for accounting, invoices, evidence,
+> reconciliation, validation, reports, formulas, PDFs, CLI, and API over the
+> same inspectable workspace data.
 
 Suggested primary sections:
 
-1. Keep the evidence with the numbers.
-2. Use the UI, CLI, or API over the same books.
-3. Reconcile, validate, and report with deterministic workflows.
-4. Built for founders, bookkeepers, accountants, and technical evaluators.
-5. Optional agents can help, but the books stay inspectable.
+1. Humans and agents work over the same financial data.
+2. Keep the evidence with the numbers.
+3. Use the UI, CLI, API, or agent tools over the same books.
+4. Reconcile, validate, and report with deterministic workflows.
+5. Built for founders, bookkeepers, accountants, finance operators, and
+   technical evaluators.
 
 Suggested proof section:
 
@@ -272,9 +299,10 @@ Suggested proof section:
 - Show validation output.
 - Show a report or evidence pack.
 - Show CLI/API access to the same data.
+- Show an agentic AI workflow that produces reviewable financial work.
 
 Suggested CTA block:
 
-> Try the sample books, inspect the evidence, and see how Bus Books keeps the
-> UI, accounting engine, CLI, and API connected to one workspace.
-
+> Try the sample books, inspect the evidence, and see how Bus Books keeps
+> humans, agentic AI, the UI, accounting engine, CLI, and API connected to one
+> workspace.

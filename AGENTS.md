@@ -611,12 +611,14 @@ Use these rules when editing product taxonomy or public product pages:
   - Individual `bus-api-provider-*`, `bus-integration-*`, and
     `bus-operator-*` modules should be assigned to the product line they serve
     instead of published as separate product pages.
-- Keep Bus Books as the single public accounting UI product. The deterministic
-  accounting engine, data workbench surfaces, Bus Formula Language, and
-  `bus-portal-accounting` are proof and feature depth inside Bus Books unless
-  they later become independently sellable. The Bus Books product page may
-  explain that the UI,
-  CLI, and API operate over the same deterministic workspace data. Modules
+- Keep Bus Books as the single public accounting and financial-workflow
+  product for humans and agentic AI. The deterministic accounting engine, data
+  workbench surfaces, Bus Formula Language, and `bus-portal-accounting` are
+  proof and feature depth inside Bus Books unless they later become
+  independently sellable. The Bus Books product page may explain that human
+  apps, agent-facing tools, the UI, CLI, and API operate over the same
+  deterministic workspace data for accounting, invoices, and financial
+  workflows. Modules
   under Bus Books include `bus-accounts`, `bus-assets`, `bus-attachments`,
   `bus-balances`, `bus-bank`, `bus-bfl`, `bus-budget`, `bus-customers`, `bus-data`,
   `bus-debts`, `bus-entities`, `bus-files`, `bus-inventory`, `bus-invoices`,
