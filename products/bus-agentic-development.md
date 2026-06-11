@@ -2,26 +2,28 @@
 
 ## Working Product Definition
 
-Bus Agentic Development is BusDK's product line for autonomous software work.
-It gives AI supervisor agents and worker agents the tools to define work,
-launch workers, run in local or remote development environments, inspect
-evidence, review output, and keep project boards moving.
+Bus Agentic Development is BusDK's product line for semi-autonomous software
+development. It gives AI supervisor agents and worker agents the tools to
+define work, launch workers, run in local or remote development environments,
+inspect evidence, review output, and keep project boards moving.
 
-The current market focus should remain software development because that is
-where the product has the clearest workflows: repositories, terminals,
-worktrees, tests, reviews, notes, approvals, remote environments, and task
-threads. The broader long-term platform may support other kinds of work, but
-the public offer should not claim general business automation until those
-workflows are proven.
+The current market focus should remain semi-autonomous software development:
+integrating AI agents into a software project so they can operate as
+autonomously as normal human workers. The product should focus on the workflow
+BusDK actually uses to build BusDK software, BusDK tools, and Go-heavy systems.
+This is not a strict language boundary; what matters is that the tools work
+seamlessly in the semi-automatic development loop. The public offer should not
+claim generic "any kind of software development" until those workflows are
+proven.
 
 ## Short Positioning
 
-We help technical teams automate real software work by giving AI supervisor
-agents durable tasks, workers, repositories, terminals, notes, reviews, and
-multi-environment execution, unlike chat-only coding assistants or opaque
-agent SaaS tools, because Bus Agentic Development treats agents as inspectable
-workers operating over real project workspaces with local and SSH-accessible
-remote capacity.
+We help BusDK and AI-native engineering teams develop software
+semi-automatically by giving AI supervisor agents durable tasks, workers,
+repositories, terminals, notes, reviews, and multi-environment execution,
+unlike chat-only coding assistants or opaque agent SaaS tools, because Bus
+Agentic Development treats agents as inspectable worker participants operating
+over real project workspaces with local and SSH-accessible remote capacity.
 
 ## Core Questions
 
@@ -31,7 +33,7 @@ The immediate goal is qualified product understanding and adoption, not broad
 hype. The product page should convert technically serious visitors into one of
 these outcomes:
 
-- Run a first autonomous task.
+- Run a first semi-autonomous development task.
 - Connect a repository or workspace.
 - Configure a local or SSH-accessible remote development environment.
 - Book a technical demo.
@@ -44,14 +46,12 @@ AI-forward engineering teams.
 
 Primary audience:
 
-- Technical founders and small product teams that need more engineering output
-  than they can staff.
-- CTOs, engineering leads, and staff engineers responsible for developer
-  productivity.
+- BusDK maintainers and contributors building BusDK software and tools.
+- Technical teams adopting the BusDK-style semi-automatic development loop.
+- Go-heavy infrastructure, platform, and business-software teams that need
+  durable agent work rather than one-off chat assistance.
 - Teams already using Codex, Claude, Copilot, Devin, Cursor, or similar AI
   development tools and hitting orchestration limits.
-- Agencies and consultants managing many client repositories or maintenance
-  tasks.
 
 Early adopters should be technical enough to understand repositories,
 terminals, SSH, task queues, review evidence, and local/remote development
@@ -59,8 +59,8 @@ environments.
 
 ### Problem
 
-AI coding tools can write code, but autonomous software work is still hard to
-operate:
+AI coding tools can write code, but semi-autonomous software development is
+still hard to operate:
 
 - Work disappears into chat threads instead of durable task records.
 - Agents do not naturally coordinate across many independent tasks.
@@ -68,11 +68,12 @@ operate:
 - Remote execution capacity is awkward to add and manage.
 - Evidence, terminal state, notes, and review context are scattered.
 - Teams need a way for AI supervisors to launch, monitor, reopen, and accept
-  worker output without losing control.
+  worker output so agents can behave more like normal project workers.
 
 ### Offer
 
-Bus Agentic Development offers an autonomous work system for software projects:
+Bus Agentic Development offers a semi-autonomous development system for BusDK
+and BusDK-style software projects:
 
 - Durable task threads.
 - Worker creation, control, and monitoring.
@@ -91,14 +92,16 @@ Bus Agentic Development offers an autonomous work system for software projects:
 ### Value
 
 The buyer should care because Bus Agentic Development turns AI coding from
-one-off assistance into repeatable autonomous work:
+one-off assistance into repeatable semi-autonomous software work:
 
-- Run more work in parallel without every worker needing a human babysitter.
+- Run more work in parallel without every worker needing constant human
+  babysitting.
 - Add SSH-accessible development machines as agent capacity.
 - Preserve context, evidence, and decisions across task lifecycles.
 - Let AI supervisor agents handle much of the coordination work.
 - Keep human review available where risk, policy, or quality requires it.
-- Use real project workspaces instead of isolated prompt conversations.
+- Use real BusDK-style project workspaces instead of isolated prompt
+  conversations.
 
 ### Differentiation
 
@@ -112,14 +115,17 @@ Bus Agentic Development should be positioned against three alternatives:
 
 BusDK's differentiators:
 
-- Autonomous work is the primary product promise.
-- Supervisor agents are first-class users, not just humans watching a dashboard.
+- Semi-autonomous software development is the primary product promise.
+- Autonomous worker and supervisor agents are first-class users, not just
+  humans watching a dashboard.
 - Multiple local and SSH-accessible environments can become work capacity.
 - Tasks, workers, notes, terminal state, repository context, and review
   evidence are durable.
 - The system is modular: CLI, API, UI, events, MCP, repositories, and remote
   control can be composed.
 - Human approval is a governance layer, not the only operating model.
+- The product is optimized around BusDK's own AI-native development workflow
+  instead of trying to be a generic coding assistant for every stack.
 
 ### Proof
 
@@ -156,8 +162,10 @@ Likely objections and how the page should answer them:
   Trust should come from inspectable evidence, review gates, permissions,
   terminal logs, diffs, and the ability to reopen or reject work.
 - "Is this only for BusDK?"
-  The product should be presented as BusDK-native first, but designed for real
-  repositories and workspaces beyond BusDK where the environment is configured.
+  The product should be presented as BusDK-native and BusDK-optimized first.
+  It can apply beyond BusDK when the environment fits the same semi-automatic
+  development loop, but generic software development should not be the first
+  marketing promise.
 - "Does this replace developers?"
   The honest answer is that it automates software work and coordination
   overhead. Humans still define product direction, architecture judgment,
@@ -176,6 +184,7 @@ infrastructure for real work, not a toy and not magic.
 
 Use:
 
+- semi-autonomous software development
 - autonomous work
 - supervisor agents
 - worker agents
@@ -192,6 +201,7 @@ Avoid:
 - replace your engineers
 - effortless software development
 - fully autonomous with no review
+- generic AI coding platform for every stack
 - vague "10x" claims without proof
 
 ### Channels
@@ -212,13 +222,14 @@ Later channels:
   agents.
 - Case studies.
 - Sales deck for technical pilots.
-- Blog posts about multi-environment autonomous software work.
+- Blog posts about BusDK's semi-automatic development workflow and
+  multi-environment autonomous software work.
 
 ### Call To Action
 
 Primary CTA:
 
-- Run your first autonomous task.
+- Run your first semi-autonomous development task.
 
 Secondary CTAs:
 
@@ -245,18 +256,18 @@ Product marketing should be judged by:
 
 Suggested headline:
 
-> Autonomous agents for real software work.
+> Semi-autonomous software development with autonomous agents.
 
 Suggested subheadline:
 
 > Bus Agentic Development gives AI supervisor agents durable tasks, worker
 > control, repositories, terminals, notes, reviews, and local or SSH-accessible
-> development environments so software work can run in parallel with
-> inspectable evidence.
+> development environments so BusDK-style software work can run in parallel
+> with inspectable evidence.
 
 Suggested primary sections:
 
-1. Autonomous work, not another chat window.
+1. Semi-autonomous development, not another chat window.
 2. Supervisor agents that launch, monitor, review, and reopen worker tasks.
 3. Add local and SSH-accessible environments as agent capacity.
 4. Durable project memory: tasks, notes, terminal state, diffs, and evidence.
@@ -270,12 +281,13 @@ Suggested primary sections:
 is jargon-heavy. Public copy can test alternatives:
 
 - Bus Developer Agents
-- Bus Autonomous Development
+- Bus Semi-Autonomous Development
 - Bus Agents for Software Work
 
 The page should not be renamed until the product taxonomy decision changes.
 For now, use `Bus Agentic Development` as the file and product-line name, while
-allowing the page headline to say "Autonomous agents for real software work."
+allowing the page headline to say "Semi-autonomous software development with
+autonomous agents."
 
 ## Current Module Ownership
 

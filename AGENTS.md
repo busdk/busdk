@@ -648,12 +648,18 @@ Use these rules when editing product taxonomy or public product pages:
   Bus Auth, and Bus Billing modules belong under Bus AI Platform unless a
   separate deployment, runtime, or auth/billing product becomes independently
   understandable and sellable.
-- Keep Bus Agentic Development as the product line for automated agentic
-  software development. The selling point is autonomous agents and autonomous
-  work, not merely human-supervised AI assistance. Human review and approval
-  should be presented as an available governance/control layer, while the
-  product should also support AI supervisor agents, such as Codex or Claude App
-  sessions, that can define work, launch workers, monitor evidence, review
+- Keep Bus Agentic Development as the product line for semi-autonomous
+  software development. The selling point is integrating autonomous AI worker
+  and supervisor agents into a software project so they can operate as
+  autonomously as normal human workers, not merely human-supervised AI
+  assistance. The market focus should be BusDK's own AI-native development
+  workflow: BusDK software, BusDK tools, Go-heavy systems, and adjacent
+  projects where the same semi-automatic development loop works seamlessly.
+  This is not a strict language boundary, but generic "any kind of software
+  development" should not be the first public promise. Human review and
+  approval should be presented as an available governance/control layer, while
+  the product should also support AI supervisor agents, such as Codex or Claude
+  App sessions, that can define work, launch workers, monitor evidence, review
   output, and keep the board moving. Multi-environment execution is a core
   product point: Bus agents can work across local and remote development
   environments, and teams should be able to add multiple SSH-accessible
