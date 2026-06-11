@@ -19,7 +19,6 @@ products.
 | Bus Runtime | User-owned VMs, containers, terminal sessions, and runtime backends. | `bus-vm`, `bus-containers`, `bus-api-provider-vm`, `bus-api-provider-containers`, `bus-api-provider-terminal`, `bus-integration-containers`, `bus-integration-docker`, `bus-integration-podman`, `bus-integration-upcloud` |
 | Bus Auth and Billing | Login, sessions, account approval, service tokens, entitlements, usage, and Stripe-backed billing. | `bus-auth`, `bus-billing`, `bus-api-provider-auth`, `bus-api-provider-session`, `bus-api-provider-billing`, `bus-api-provider-usage`, `bus-integration-billing`, `bus-integration-usage`, `bus-integration-stripe`, `bus-operator-auth`, `bus-operator-billing`, `bus-operator-stripe` |
 | Bus Deploy | Deployment orchestration, node setup, cloud/database/inference readiness, and SSH-runner-backed operations. | `bus-operator-deploy`, `bus-operator-cloud`, `bus-operator-database`, `bus-operator-inference`, `bus-operator-node`, `bus-api-provider-cloud`, `bus-api-provider-database`, `bus-api-provider-node`, `bus-integration-cloud`, `bus-integration-database`, `bus-integration-node`, `bus-integration-postgres`, `bus-integration-ssh-runner` |
-| Bus GX / Bus UI | TSX/React-style UI development for Go and Go/WASM with deterministic rendering and reusable components. | `bus-gx`, `bus-ui` |
 | Bus Auth Portal | Frontend product for registration, login, approval/waitlist, logout, and session UX. | `bus-portal-auth` |
 | Bus Notes Portal | Frontend product for browsing, searching, reviewing, editing, publishing, and archiving notes. | `bus-portal-notes` |
 | Bus Books | Auditable bookkeeping software built on open workspace data, including local bookkeeping UI and customer-facing accounting portal workflows. | `bus-books`, `bus-ledger`, `bus-portal-accounting`, accounting domain modules |
@@ -45,3 +44,4 @@ end-user product lines above rather than products sold on their own.
 | Bus Events | Publish, listen, replay, sync, and request/reply event substrate for BusDK components. | `bus-events`, `bus-api-provider-events`, `bus-integration-events` |
 | Bus Operator | Operator command shell for trusted deployment, admin, and service automation. | `bus-operator`, `bus-operator-token` |
 | Bus Portal Host | Frontend module shell and dispatcher for Bus application modules. | `bus-portal`, `bus-gateway` |
+| Bus GX / Bus UI | TSX/React-style UI development for Go and Go/WASM with deterministic rendering and reusable components. | `bus-gx`, `bus-ui` |
