@@ -52,20 +52,20 @@ Run these commands from the project directory that contains `services.yml`.
 The file stores local values in `.env`; `services.yml` remains public and
 should not contain secrets or machine-specific paths.
 
-Configure PostgreSQL. `BUS_POSTGRES_BIN` must point at the directory that
-contains the `postgres` and `initdb` binaries. On macOS with Homebrew
-PostgreSQL 18:
+Configure PostgreSQL. The native profile runs `postgres` and `initdb` from
+`PATH`, so install PostgreSQL and make those commands visible to the shell that
+starts `bus services`. Then choose the local data directory and port:
 
 ```bash
-bus configure BUS_POSTGRES_BIN=/opt/homebrew/opt/postgresql@18/bin
 bus configure BUS_POSTGRES_PGDATA="$PWD/.bus/services/postgres/data"
 bus configure BUS_POSTGRES_PORT=5432
 ```
 
-On a Linux package install, the path is often similar to:
+On macOS with Homebrew, add the PostgreSQL bin directory to `PATH` first when
+Homebrew does not link the commands globally:
 
 ```bash
-bus configure BUS_POSTGRES_BIN=/usr/lib/postgresql/18/bin
+export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"
 ```
 
 Configure Events API auth and PostgreSQL storage. Generate a unique local
