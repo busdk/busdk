@@ -34,13 +34,11 @@ runtime:
   command:
     - bus
   args:
-    - integration
+    - integration-workers
     - --events-url
     - "{param:events_url}"
     - --token-file
     - "{param:token_file}"
-    - --provider
-    - workers
   env:
     - name: PATH
       description: Process search path used to locate the bus dispatcher.
