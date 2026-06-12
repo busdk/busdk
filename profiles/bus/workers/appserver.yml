@@ -37,6 +37,8 @@ runtime:
     - integration-workers
     - --events-url
     - "{param:events_url}"
+    - --token-file
+    - "{param:token_file}"
   env:
     - name: PATH
       description: Process search path used to locate the bus dispatcher.
