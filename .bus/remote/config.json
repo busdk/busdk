@@ -9,13 +9,11 @@
       "compose_project": "bus-local-ai-platform"
     },
     {
-      "id": "dev-hg",
+      "id": "dev.hg.fi",
       "kind": "ssh-docker",
       "compose_file": "compose.yaml",
-      "ssh_target": "coding-agent@dev.hg.fi",
+      "ssh_target": "dev.hg.fi",
       "ssh_host": "dev.hg.fi",
-      "ssh_user": "coding-agent",
-      "ssh_port": 22,
       "remote_workdir": "/home/coding-agent/coding-agent/git/busdk/busdk",
       "controller_events_url": "http://127.0.0.1:8081",
       "worker_events_url": "http://127.0.0.1:8081/local/v1",
@@ -60,14 +58,12 @@
       }
     },
     {
-      "id": "ai-hg-h100",
+      "id": "ai.hg.fi",
       "kind": "ssh-docker",
       "compose_file": "compose.yaml",
-      "ssh_target": "coding-agent@ai.hg.fi",
+      "ssh_target": "ai.hg.fi",
       "ssh_host": "ai.hg.fi",
-      "ssh_user": "coding-agent",
-      "ssh_port": 22,
-      "remote_workdir": "/home/coding-agent/coding-agent/git/busdk/busdk",
+      "remote_workdir": "/home/coding-agent/git/busdk",
       "controller_events_url": "http://127.0.0.1:8081",
       "worker_events_url": "http://bus-events:8081",
       "credential_source": {
@@ -96,16 +92,16 @@
   ],
   "environments": [
     {
-      "id": "env-h100-ai",
-      "name": "h100",
-      "display_name": "H100 Local",
-      "remote_id": "ai-hg-h100",
+      "id": "ai.hg.fi",
+      "name": "ai.hg.fi",
+      "display_name": "ai.hg.fi",
+      "remote_id": "ai.hg.fi",
       "local_environment_id": "local-events",
       "sync_target_ids": [
-        "env-h100-ai"
+        "ai.hg.fi"
       ],
       "sync_state": {
-        "env-h100-ai": "pending"
+        "ai.hg.fi": "pending"
       },
       "worker_styles": [
         "ssh-docker"
@@ -119,10 +115,10 @@
       }
     },
     {
-      "id": "env-dev-hg-codex",
-      "name": "dev-hg",
-      "display_name": "dev.hg.fi Codex",
-      "remote_id": "dev-hg",
+      "id": "dev.hg.fi",
+      "name": "dev.hg.fi",
+      "display_name": "dev.hg.fi",
+      "remote_id": "dev.hg.fi",
       "default_worker_profile": "codex-spark",
       "worker_styles": [
         "ssh-docker"

@@ -94,9 +94,9 @@ remain the direct worker provider.
 ```bash
 bus configure BUS_WORKERS_DIRECT_DEFAULT_PROVIDER=bus-agent-runtime
 bus configure BUS_AGENT_CODEX_LOCAL_MODEL=gemma4:31b
-bus configure BUS_AGENT_RUNTIME_H100_BASE_URL=http://127.0.0.1:11434
-bus configure BUS_AGENT_RUNTIME_H100_MODEL=gemma4:31b
-bus configure BUS_AGENT_RUNTIME_H100_TIMEOUT=5m
+bus configure BUS_AGENT_RUNTIME_MESSAGE_PROVIDER=ollama
+bus configure BUS_AGENT_RUNTIME_MESSAGE_MODEL=gemma4:31b
+bus configure BUS_AGENT_RUNTIME_MESSAGE_TIMEOUT=5m
 bus configure OLLAMA_HOST=http://127.0.0.1:11434
 ```
 

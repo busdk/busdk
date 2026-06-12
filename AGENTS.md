@@ -740,7 +740,8 @@ read `skills/bus-dev-task-worker-ops/SKILL.md` and the owning module
 `AGENTS.md`/`PLAN.md`. Root policy: Codex App Server is the normal development
 worker backend because it supports live steering, approvals, progress events,
 structured closeout, and task attempt metadata. One-shot Codex execution is
-legacy compatibility, not the default for H100/dev-hg/local worker lanes.
+legacy compatibility, not the default for configured local or remote worker
+lanes.
 Development worker systems must store Bus Events task history durably, using
 PostgreSQL or an explicit repository-file-backed store. The Events `memory`
 backend is acceptable only for automated tests, self-tests, or intentionally
@@ -758,13 +759,16 @@ and module policy in this file or the most specific nested module
 The local supervisor host is a macOS virtual server without supported nested
 virtualization. Do not plan or diagnose BusDK Docker/container work as if
 Docker should run locally here. Container and Docker-specific build,
-inspection, smoke, and worker proof should run on the configured remote
-environment `coding-agent@dev.hg.fi` unless the operator provides a newer
-remote target for that task.
+inspection, smoke, and worker proof should run on a configured remote
+environment unless the operator provides a newer remote target for that task.
+Remote ids are user-defined deployment data; do not hardcode SSH usernames,
+ports, gateway details, or environment-specific names into product code, ENV
+variable names, profile semantics, tests, or product documentation.
 
 For the current task/worker refactor, the intended operating topology is a
 local Bus control plane on the supervisor host for Events/task submission and
-review, with Docker/App Server worker execution on `coding-agent@dev.hg.fi`.
+review, with Docker/App Server worker execution on a configured persistent
+remote.
 Starting work locally should route task Events to the remote worker-side Events
 service and import remote claim/progress/terminal evidence back locally; do not
 replace this with a local Docker worker attempt on the macOS supervisor host.

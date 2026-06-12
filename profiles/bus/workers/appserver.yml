@@ -167,18 +167,6 @@ runtime:
       description: Optional timeout for provider-backed worker message requests.
       value_from: env:BUS_AGENT_RUNTIME_MESSAGE_TIMEOUT
       default: " "
-    - name: BUS_AGENT_RUNTIME_H100_BASE_URL
-      description: H100/local-provider base URL forwarded to worker message requests.
-      value_from: env:BUS_AGENT_RUNTIME_H100_BASE_URL
-      default: " "
-    - name: BUS_AGENT_RUNTIME_H100_MODEL
-      description: H100/local-provider model forwarded to worker message requests.
-      value_from: env:BUS_AGENT_RUNTIME_H100_MODEL
-      default: " "
-    - name: BUS_AGENT_RUNTIME_H100_TIMEOUT
-      description: H100/local-provider timeout forwarded to worker message requests.
-      value_from: env:BUS_AGENT_RUNTIME_H100_TIMEOUT
-      default: " "
     - name: OLLAMA_HOST
       description: Ollama host forwarded to worker message requests.
       value_from: env:OLLAMA_HOST
