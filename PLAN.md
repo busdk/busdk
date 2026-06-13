@@ -35,11 +35,12 @@ treat `Current Refined Finish Line` as the active priority lane; complete its
 minimum checklist in order, using nested unchecked items under the labeled
 product lane for scoped worker actions before opening older context.
 
-## Bus Agent Runtime Workers Goal
+## Codex Fork / Bus Agent Runtime Parity Goal
 
-`docs/docs/goals/bus-agent-runtime-workers.md` owns the cross-module goal for
-making `bus-agent-runtime` available through `bus workers` as a first-class
-direct runtime provider while keeping explicit Codex providers intact.
+`docs/docs/goals/codex-fork.md` owns the cross-module goal for the Bus-owned
+Go implementation of the headless Codex App Server worker-runtime surface. The
+completed worker-provider bridge made `bus-agent-runtime` available through
+`bus workers` while keeping explicit Codex providers intact.
 
 - [ ] Promote accepted Bus Agent Runtime Workers branches and sync configured
   environments.
