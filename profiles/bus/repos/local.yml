@@ -30,9 +30,13 @@ runtime:
     - --provider
     - repos
   env:
-    - name: PATH
-      description: Process search path used to locate the bus dispatcher.
+    - name: BUS_SERVICES_PROCESS_PATH
+      description: Host process search path used when no stack-local Bus tool path is available.
       value_from: process_env:PATH
+    - name: PATH
+      description: Process search path used to locate Bus dispatcher and module binaries.
+      value_from: env:BUS_SERVICES_TOOL_PATH
+      default: "{env:BUS_SERVICES_PROCESS_PATH}"
     - name: BUS_SERVICES_BUS_DIR
       description: Durable Bus state directory used for generated service credentials.
       value_from: env:BUS_SERVICES_BUS_DIR

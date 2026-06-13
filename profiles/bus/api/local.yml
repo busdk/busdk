@@ -27,9 +27,13 @@ runtime:
     - --provider
     - workers,tasks
   env:
-    - name: PATH
-      description: Process search path used to locate the bus dispatcher.
+    - name: BUS_SERVICES_PROCESS_PATH
+      description: Host process search path used when no stack-local Bus tool path is available.
       value_from: process_env:PATH
+    - name: PATH
+      description: Process search path used to locate Bus dispatcher and module binaries.
+      value_from: env:BUS_SERVICES_TOOL_PATH
+      default: "{env:BUS_SERVICES_PROCESS_PATH}"
     - name: BUS_WORKERS_EVENTS_URL
       description: Bus Events API URL used by the Workers API provider.
       value_from: env:BUS_WORKERS_EVENTS_URL
