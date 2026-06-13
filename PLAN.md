@@ -1,5 +1,13 @@
 # PLAN.md
 
+- [ ] Bus UI package-boundary refactor from `pkg/uikit` toward `pkg/ui`, `pkg/uiportal`, `pkg/gx`, and module-local packages.
+  - Goal: replace the current mixed compatibility surface with owner-specific packages without doing a blanket import rewrite.
+  - Parallel feature sets:
+    - public `pkg/ui` facade/export alignment for reusable shared UI components
+    - low-level `pkg/gx` foundation extraction for render-tree primitives
+    - Bus-scoped extraction for portal, assistant, terminal, runtime, server, and resource helpers
+    - compatibility-only retention and staged migration for `pkg/uikit`
+  - Acceptance: the symbol-family audit is recorded, the follow-up work is split into concrete module-owned PLAN items, and any code changes are limited to one safe boundary lane at a time with focused tests.
 - [ ] Review root-level remote cleanup salvage artifacts under `logs/remote-worktree-salvage-20260610-13`, especially preserved superproject scripts/profiles and unmerged branch archives. Acceptance: route each preserved root-level patch to the owning module or root plan item, apply only still-useful deltas to `develop`, and record discarded superseded worker branches before deleting the archive.
 - [x] Fix local App Server Bus worker materialization for module-scoped tasks.
   Current `bus workers` lanes can start from stale superproject submodule pins,
