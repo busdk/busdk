@@ -1,9 +1,78 @@
 #!/usr/bin/env sh
 set -eu
 
+script_dir="$(CDPATH= cd "$(dirname "$0")" && pwd)"
+script_path="$script_dir/$(basename "$0")"
+
+promote_ref_to_main() {
+  repo_label=$1
+  source_label=$2
+  source_ref=$3
+  original_branch="$(git symbolic-ref -q --short HEAD || true)"
+  original_head="$(git rev-parse --verify HEAD)"
+  source_commit="$(git rev-parse --verify "${source_ref}^{commit}")"
+
+  restore_original_checkout() {
+    if [ -n "$original_branch" ]; then
+      git checkout -q "$original_branch"
+    else
+      git checkout -q "$original_head"
+    fi
+  }
+
+  if ! git rev-parse --verify refs/heads/main >/dev/null; then
+    if git rev-parse --verify refs/remotes/origin/main >/dev/null; then
+      git branch --track main origin/main >/dev/null
+    else
+      echo "$repo_label: missing local main branch and origin/main; aborting" >&2
+      exit 1
+    fi
+  fi
+
+  main_before="$(git rev-parse refs/heads/main)"
+  origin_main_ref=""
+  if git rev-parse --verify refs/remotes/origin/main >/dev/null; then
+    origin_main_ref="$(git rev-parse refs/remotes/origin/main)"
+  fi
+
+  git checkout -q main
+
+  if git merge-base --is-ancestor HEAD "$source_commit"; then
+    git rebase "$source_commit"
+  elif git merge-base --is-ancestor "$source_commit" HEAD; then
+    echo "$repo_label: main already contains $source_label at $source_commit"
+  elif [ -n "$origin_main_ref" ] && [ "$main_before" != "$origin_main_ref" ] && git merge-base --is-ancestor "$origin_main_ref" "$source_commit"; then
+    git rebase "$source_commit"
+  else
+    echo "$repo_label: main and $source_label have diverged; refusing to rewrite published main" >&2
+    echo "$repo_label: merge or rebase main manually, then rerun publish" >&2
+    restore_original_checkout
+    exit 1
+  fi
+
+  main_after="$(git rev-parse HEAD)"
+  if [ "$main_after" = "$main_before" ]; then
+    echo "$repo_label: main unchanged at $main_after"
+  else
+    echo "$repo_label: moved main from $main_before to $main_after"
+  fi
+  restore_original_checkout
+  git push origin main
+}
+
+if [ "${1:-}" = "--promote-current-repo" ]; then
+  promote_ref_to_main "${2:-$(basename "$PWD")}" "current HEAD" HEAD
+  exit 0
+fi
+
 if [ -n "$(git status --porcelain --untracked-files=normal)" ]; then
   echo "working tree has uncommitted changes; aborting" >&2
   git status --short --untracked-files=normal >&2
+  exit 1
+fi
+
+if [ "$(git symbolic-ref -q --short HEAD || true)" != "develop" ]; then
+  echo "publish must run from the superproject develop branch; aborting" >&2
   exit 1
 fi
 
@@ -33,6 +102,9 @@ git submodule foreach --recursive '
     exit 1
   fi
 '
+
+git submodule foreach --recursive "\"$script_path\" --promote-current-repo \"\$name\""
+promote_ref_to_main "superproject" "develop" refs/heads/develop
 
 latest_tag="$(git tag --list 'v*' --sort=-v:refname | { read -r first || true; printf '%s' "$first"; })"
 
