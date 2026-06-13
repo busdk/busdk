@@ -10,6 +10,7 @@
 	path = busdk.com
 	url = git@github.com:busdk/busdk.com.git
 	branch = develop
+	update = rebase
 [submodule "bus-accounts"]
 	path = bus-accounts
 	url = git@github.com:busdk/bus-accounts.git
