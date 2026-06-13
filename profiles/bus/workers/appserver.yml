@@ -85,6 +85,10 @@ runtime:
       description: Worker lifecycle mode selected by the Workers integration.
       value_from: env:BUS_WORKERS_LIFECYCLE
       default: appserver-exec
+    - name: BUS_WORKERS_APPSERVER_DEFAULT_PROVIDER
+      description: Default App Server provider when a worker create request omits runner_provider.
+      value_from: env:BUS_WORKERS_APPSERVER_DEFAULT_PROVIDER
+      default: "{env:BUS_WORKERS_DIRECT_DEFAULT_PROVIDER}"
     - name: BUS_WORKERS_DIRECT_REPO_ROOT
       description: Product repository root used when creating task worktrees.
       value_from: env:BUS_WORKERS_DIRECT_REPO_ROOT
