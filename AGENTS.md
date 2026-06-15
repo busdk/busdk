@@ -199,13 +199,19 @@ this root file must preserve the supervisor/worker boundary itself.
     each slice.
 13. Before resuming a GX/UI adopter lane after a core facade parity patch, run
     or require a bounded facade parity probe for the exact files in that
-    adopter slice. The probe must list every remaining old-helper,
-    terminal/runtime, request/result/effect/client, and test-fake symbol needed
-    by the migration, then classify each as `terminalui public facade exists`,
-    `ui public facade exists`, `explicit adopter adapter needed`, or `missing
-    public core facade`. Do not resume implementation until the table has no
-    `missing public core facade` entries, or until those entries are split into
-    narrow core facade tasks.
+    adopter slice. The probe prompt and task DoD must require an explicit table
+    schema. Each old symbol or call-site must be classified as one of: public
+    `ui`, public `terminalui`, explicit adopter adapter, test-only accepted,
+    accepted asset/string, or missing public core facade. Risky rows must name
+    the behavior invariant to preserve, especially request path, method,
+    resource kind, result kind, callback semantics, and no double-prefix paths.
+    An inventory-only response, file dump, or generic "no missing facades"
+    statement is not accepted probe evidence. Do not resume implementation
+    until the supervisor has reviewed the classification table and it has no
+    missing public core facade entries, or until those entries are split into
+    narrow core facade tasks. If the worker probe is incomplete, reopen or
+    nudge the probe for the table, or produce and review the table as a
+    supervisor planning artifact before launching implementation.
 14. The only normal exception for direct implementation edits is when there is a
    real blocker and the infrastructure needed to run Bus task workers is not
    available, and the direct edit is the narrowest safe change to restore that
