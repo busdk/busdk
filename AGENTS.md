@@ -262,6 +262,22 @@ this root file must preserve the supervisor/worker boundary itself.
     refresh the repo-wide audit before saying cleanup is closed; the DoD should
     either show no remaining production hits in scope or name the deferred
     inventory with task refs.
+13b. Keep broad GX/UI module-family probes output-bounded and table-first.
+    The first worker turn must receive exact file scope and the supervisor's
+    known hit list, then produce a compact classification table plus concise
+    missing-facade list. Do not ask these workers to dump large file contents,
+    paste broad `rg` output, or rerun repository-wide discovery when the
+    supervisor already has the scoped inventory. If the surface is too large
+    for one compact answer, require partial tables by category, such as
+    CLI/server, browser/WASM, AI/render, and docs/tests; the accepted artifact
+    is the table, not the search log. If a broad probe completes with
+    `last_agent_message=null`, malformed output, or an oversized transcript,
+    and one corrective nudge still produces no usable table, park that
+    worker/runtime shape immediately and relaunch with a smaller prompt or a
+    different model. When a probe table creates core follow-up tasks, rebaseline
+    the inventory at once with those task refs and mark which module-family
+    rows are blocked on each core task, so backlog and velocity reporting count
+    newly split architecture work explicitly.
 14. After a core facade or behavior parity blocker is accepted, any GX/UI
     adopter worker carrying an old dirty diff must prove a fresh product
     root/module base and produce the bounded symbol-plus-behavior table before
