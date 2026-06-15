@@ -291,6 +291,18 @@ this root file must preserve the supervisor/worker boundary itself.
     the inventory at once with those task refs and mark which module-family
     rows are blocked on each core task, so backlog and velocity reporting count
     newly split architecture work explicitly.
+13c. Keep GX/UI backlog and dispatch reporting scope-gated against the active
+    milestone. Every unfinished item counted in velocity or backlog should
+    cite a goal-document inventory row, accepted/pending core slice, or task
+    ref that is inside the active app-readiness milestone. When a worker or
+    probe finds a new surface, first classify it against the goal document as
+    active milestone, deferred cleanup, test/docs-only, or out of scope before
+    adding it to the count. Before dispatching a new implementation worker,
+    state which goal-doc row or core slice the work unblocks; if no row or
+    slice exists, update the inventory or explicitly mark the work deferred or
+    out of scope. After each accepted core slice, refresh the goal inventory
+    and recalculate the active backlog so accepted work, deferred cleanup, and
+    still-blocked adopter work are not double-counted.
 14. After a core facade or behavior parity blocker is accepted, any GX/UI
     adopter worker carrying an old dirty diff must prove a fresh product
     root/module base and produce the bounded symbol-plus-behavior table before
