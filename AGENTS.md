@@ -155,7 +155,19 @@ this root file must preserve the supervisor/worker boundary itself.
    thread records the current prompt. A `running`/`ready` worker with no
    assistant output, command trace, or diff is queued capacity, not progress;
    inspect session logs and nudge or replace it instead of waiting on elapsed
-   time alone.
+   time alone. Treat prompt files as supervisor reference artifacts, not as
+   the worker's primary task context. For every replacement or implementation
+   worker, send a live worker message that includes the complete scoped task,
+   exact paths, accepted base pins, DoD checks, and first concrete action; do
+   not ask the worker to discover a runtime-local prompt file. The first live
+   checkpoint must verify assistant stream, fresh-base/root SHA evidence, and
+   either a first diff or a concrete no-change/facade-gap diagnosis within one
+   short supervision window. For small implementation-only GX/UI lanes, if a
+   worker says it is patching but the owned tree remains clean after the gate,
+   stop counting it as active implementation and either send a minimal inline
+   patch plan or park/replace the worker. If that minimal inline patch plan
+   still leaves the tree clean after the next checkpoint, park or replace the
+   worker instead of sending another broad nudge.
 7. Before adopter workers edit against newly accepted shared facades, require a
    fresh-base preflight in the worker message that names the repository root
    for every SHA check. In nested BusDK/product worktrees, BusDK commits,
@@ -222,24 +234,34 @@ this root file must preserve the supervisor/worker boundary itself.
     incomplete, reopen or nudge the probe for the table, or produce and review
     the table as a supervisor planning artifact before launching
     implementation.
-14. The only normal exception for direct implementation edits is when there is a
+14. After a core facade or behavior parity blocker is accepted, any GX/UI
+    adopter worker carrying an old dirty diff must prove a fresh product
+    root/module base and produce the bounded symbol-plus-behavior table before
+    implementation continues. Timebox that fresh-base gate in the next short
+    supervision window: count only fresh-base proof plus table, output, or
+    reviewable diff as active progress. If the worker cannot move from the old
+    base to the new pinned base promptly, preserve its diff as reference
+    evidence, stop or park it, and launch a clean worker on the accepted BusDK
+    pin unless the attempt exposes a concrete infrastructure or rebase failure
+    that needs its own task.
+15. The only normal exception for direct implementation edits is when there is a
    real blocker and the infrastructure needed to run Bus task workers is not
    available, and the direct edit is the narrowest safe change to restore that
    worker infrastructure.
-15. If the worker substrate is partially usable, prefer dispatching an
+16. If the worker substrate is partially usable, prefer dispatching an
    infrastructure worker or reviewer worker over local implementation. Use the
    supervisor checkout for investigation and evidence gathering, not for
    absorbing product implementation.
-16. When the supervisor must make an exception, record the reason in the current
+17. When the supervisor must make an exception, record the reason in the current
    hourly memo, including why worker delegation was unavailable, what exact
    infrastructure path was restored, what verification was run, and which tasks
    should be reopened or dispatched afterward.
-17. Periodically compare recent hourly memos, task statistics, and active-worker
+18. Periodically compare recent hourly memos, task statistics, and active-worker
    evidence against the active goal. If independent parallel capacity is
    underused, explicitly dispatch/refill unblocked work or record the concrete
    blocker; report utilization truthfully instead of implying full capacity
    when the board is idle or thinly staffed.
-18. Treat each periodic memo/task-stat review as an operating-control loop, not
+19. Treat each periodic memo/task-stat review as an operating-control loop, not
    as a retrospective note. The review must end with one of these concrete
    outcomes: updated PLAN/tasks, new or reopened worker dispatch, promoted or
    rejected worker output, a documented automation improvement, or a specific
@@ -247,14 +269,14 @@ this root file must preserve the supervisor/worker boundary itself.
    underutilization, stale workers, repeated manual steps, or evidence gaps,
    convert that finding into the next supervisor action before returning to
    ordinary status reporting.
-19. For every substantial supervisor session and every progress report on an
+20. For every substantial supervisor session and every progress report on an
    active multi-worker goal, do a compact goal-health review before answering:
    recent memo evidence, active workers per environment, independent unblocked
    work topics, accepted/promoted output since the previous review, current
    bottleneck, and the next dispatch/reopen/promote action. If the review shows
    idle capacity on H100, dev-hg, local, or other configured environments, fill
    it with scoped work unless a concrete blocker prevents it.
-20. Measure the supervisor process by accepted work and learning rate, not by
+21. Measure the supervisor process by accepted work and learning rate, not by
     activity. Record when actual parallelism is materially below available
     capacity, when the supervisor absorbed work that should have been delegated,
     when a worker lane failed because of platform friction, and what guidance,
