@@ -334,6 +334,19 @@ this root file must preserve the supervisor/worker boundary itself.
     out of scope. After each accepted core slice, refresh the goal inventory
     and recalculate the active backlog so accepted work, deferred cleanup, and
     still-blocked adopter work are not double-counted.
+13d. Once an active GX/UI adopter row has been probed enough to name
+    implementation-sized surfaces, maintain a small explicit slice queue for
+    that row before dispatching more workers. Each slice should name scoped
+    files, accepted facade dependencies, behavior invariants, DoD checks, and
+    whether the slice is active, deferred, or probe-needed. Velocity and ETA
+    reporting should count those implementation slices, not only broad module
+    family rows, while still summarizing related slices as one supervision lane
+    when useful. After accepting a partial slice, update the goal row by
+    removing completed files and confirming the remaining pre-listed slices
+    instead of treating the remainder as newly discovered work at the next
+    monitor sample. If a sub-slice depends on unclear facade ownership, mark
+    it `probe-needed` with a concrete probe DoD rather than hiding it inside a
+    broad row count.
 14. After a core facade or behavior parity blocker is accepted, any GX/UI
     adopter worker carrying an old dirty diff must prove a fresh product
     root/module base and produce the bounded symbol-plus-behavior table before
