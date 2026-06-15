@@ -157,12 +157,18 @@ this root file must preserve the supervisor/worker boundary itself.
    inspect session logs and nudge or replace it instead of waiting on elapsed
    time alone.
 7. Before adopter workers edit against newly accepted shared facades, require a
-   fresh-base preflight in the worker message: module branch,
-   `git rev-parse HEAD`, relevant submodule pins, clean worktree, and
-   confirmation that required core facade commits are present. If a core facade
-   lands while an adopter worker is already running, treat stale-base promotion
-   as a review risk and rebase, recreate, or explicitly justify acceptance
-   before promoting its patch.
+   fresh-base preflight in the worker message that names the repository root
+   for every SHA check. In nested BusDK/product worktrees, BusDK commits,
+   module commits, and supervisor commits live in different repositories; a
+   correct preflight prints `pwd`, `git rev-parse --show-toplevel`, the BusDK
+   superproject HEAD from the worker's product-worktree root, the target module
+   root and module HEAD from the module directory, and relevant submodule pins
+   from the BusDK root when the task depends on a core facade commit. Do not
+   write generic "must include commit X" prompts without stating which repo is
+   expected to contain that commit. If a core facade lands while an adopter
+   worker is already running, treat stale-base promotion as a review risk and
+   rebase, recreate, or explicitly justify acceptance before promoting its
+   patch.
 8. For GX/UI API refactors, split mixed adopter cleanup by semantic surface and
    prefer one-surface or one-file verification rhythms over broad mechanical
    loops. Action/resource cleanup, WASM browser cleanup, terminal generic
@@ -178,24 +184,29 @@ this root file must preserve the supervisor/worker boundary itself.
     Test harness `uikit`/`uikittest` usage and accepted asset URL strings such
     as `assets/uikit.css` must be classified separately, not blindly removed.
     Do not accept a local wrapper layer whose only purpose is hiding `uikit`.
-11. The only normal exception for direct implementation edits is when there is a
+11. If a GX/UI adopter lane discovers a missing public facade needed to preserve
+    accepted behavior, stop or return a no-change diagnosis and create a
+    narrow core facade parity lane. Do not invent local wrappers, direct
+    internal imports, or adopter-specific aliases to bypass the missing public
+    boundary.
+12. The only normal exception for direct implementation edits is when there is a
    real blocker and the infrastructure needed to run Bus task workers is not
    available, and the direct edit is the narrowest safe change to restore that
    worker infrastructure.
-12. If the worker substrate is partially usable, prefer dispatching an
+13. If the worker substrate is partially usable, prefer dispatching an
    infrastructure worker or reviewer worker over local implementation. Use the
    supervisor checkout for investigation and evidence gathering, not for
    absorbing product implementation.
-13. When the supervisor must make an exception, record the reason in the current
+14. When the supervisor must make an exception, record the reason in the current
    hourly memo, including why worker delegation was unavailable, what exact
    infrastructure path was restored, what verification was run, and which tasks
    should be reopened or dispatched afterward.
-14. Periodically compare recent hourly memos, task statistics, and active-worker
+15. Periodically compare recent hourly memos, task statistics, and active-worker
    evidence against the active goal. If independent parallel capacity is
    underused, explicitly dispatch/refill unblocked work or record the concrete
    blocker; report utilization truthfully instead of implying full capacity
    when the board is idle or thinly staffed.
-15. Treat each periodic memo/task-stat review as an operating-control loop, not
+16. Treat each periodic memo/task-stat review as an operating-control loop, not
    as a retrospective note. The review must end with one of these concrete
    outcomes: updated PLAN/tasks, new or reopened worker dispatch, promoted or
    rejected worker output, a documented automation improvement, or a specific
@@ -203,20 +214,20 @@ this root file must preserve the supervisor/worker boundary itself.
    underutilization, stale workers, repeated manual steps, or evidence gaps,
    convert that finding into the next supervisor action before returning to
    ordinary status reporting.
-16. For every substantial supervisor session and every progress report on an
+17. For every substantial supervisor session and every progress report on an
    active multi-worker goal, do a compact goal-health review before answering:
    recent memo evidence, active workers per environment, independent unblocked
    work topics, accepted/promoted output since the previous review, current
    bottleneck, and the next dispatch/reopen/promote action. If the review shows
    idle capacity on H100, dev-hg, local, or other configured environments, fill
    it with scoped work unless a concrete blocker prevents it.
-17. Measure the supervisor process by accepted work and learning rate, not by
+18. Measure the supervisor process by accepted work and learning rate, not by
     activity. Record when actual parallelism is materially below available
     capacity, when the supervisor absorbed work that should have been delegated,
     when a worker lane failed because of platform friction, and what guidance,
     PLAN item, automation task, or worker dispatch was created to prevent the
     same stall from recurring.
-18. For broad goals, use delegated supervisor agents as the normal scaling
+19. For broad goals, use delegated supervisor agents as the normal scaling
     unit. The lead supervisor should own global priority, acceptance, pinning,
     and operator communication, while sub-supervisors own work lines such as
     remote freshness/proof, parallel lane refill, review/promote triage, or a
