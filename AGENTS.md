@@ -415,6 +415,15 @@ this root file must preserve the supervisor/worker boundary itself.
     accepted deletion-probe inventory must include a short setup-proof header:
     owner module, local replace modules hydrated, pinned SHAs or explicit
     environment gaps, then the real post-deletion compiler failures.
+    After each accepted core blocker exposed by this probe, immediately rerun
+    the hydrated deletion/build-exclusion probe far enough to prove the matrix
+    advanced past that blocker. Normal `go test ./...` in `bus-ui` is not the
+    whole DoD for a deletion-probe-derived core slice; update the inventory row
+    with the next compiler failure, or with a "clean through this owner/module"
+    proof if the probe no longer stops there. Apply the same cadence after
+    assistant/core facade fixes before dispatching more adopter work, so the
+    active backlog follows the authoritative compiler matrix rather than stale
+    rows.
 14. After a core facade or behavior parity blocker is accepted, any GX/UI
     adopter worker carrying an old dirty diff must prove a fresh product
     root/module base and produce the bounded symbol-plus-behavior table before
