@@ -171,15 +171,25 @@ this root file must preserve the supervisor/worker boundary itself.
    implementation workers on the same GX/UI slice have received complete live
    context plus a minimal patch plan and still produce no diff or concrete
    missing-facade diagnosis, stop retrying the same runtime/model/prompt shape;
-   more identical replacements are not active product progress. Escalate the
-   execution path instead: choose a different runtime or model known to apply
-   patches, route a narrow worker-infrastructure diagnosis for App Server or
-   tool-router clean-tree behavior, or ask the operator for a narrow supervisor
-   exception to implement the already-scoped patch in a worker-owned worktree
-   with normal review and promotion. Keep the product backlog count stable
-   unless a concrete missing facade or infrastructure repair task is created
-   with its own definition of done, and preserve the accepted table and
-   mechanical patch plan as the next attempt's starting material.
+   more identical replacements are not active product progress. Before any
+   further implementation retry on that same child slice, simplify first:
+   create a supervisor-owned source-map and patch-target table with direct file
+   paths, exact symbol lists, and no glob-heavy or regex-heavy discovery
+   commands. If ownership or API shape is still conceptually ambiguous, use a
+   `gpt-5.5` planning/source-map pass to produce the mechanical patch plan,
+   then delegate that simplified implementation to the normal supported worker
+   first. Escalate the implementation worker to `gpt-5.4` or `gpt-5.5` only
+   after the simplified task still fails because of reasoning or API-shape
+   complexity, not because of checkout materialization, prompt shape, or
+   tool-router errors. Otherwise escalate the execution path: choose a
+   different runtime known to apply patches, route a narrow worker-infrastructure
+   diagnosis for App Server or tool-router clean-tree behavior, or ask the
+   operator for a narrow supervisor exception to implement the already-scoped
+   patch in a worker-owned worktree with normal review and promotion. Keep the
+   product backlog count stable unless a concrete missing facade or
+   infrastructure repair task is created with its own definition of done, and
+   preserve the accepted table and mechanical patch plan as the next attempt's
+   starting material.
 7. Before adopter workers edit against newly accepted shared facades, require a
    fresh-base preflight in the worker message that names the repository root
    for every SHA check. In nested BusDK/product worktrees, BusDK commits,
