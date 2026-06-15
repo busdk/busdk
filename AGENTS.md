@@ -404,6 +404,17 @@ this root file must preserve the supervisor/worker boundary itself.
     whole remaining scope; removing `uikit` as a backing implementation layer
     from `bus-ui` itself is part of the end state unless a specific behavior is
     moved into a new non-compatibility internal package.
+    Before interpreting `go test ./...` output from a deletion/build-exclusion
+    probe, hydrate the owner module's full local `replace ../...` graph in the
+    worker-owned product worktree. For `bus-ui`, prove replacement siblings
+    such as `bus-gx`, `bus-help`, and `bus-update` are present at the
+    BusDK-pinned SHAs before treating compile output as product evidence. For
+    downstream dependency-user modules, first scan that module's `go.mod`
+    `replace ../...` entries and either hydrate those siblings or classify the
+    row explicitly as environment/hydration-only, not GX/UI product work. The
+    accepted deletion-probe inventory must include a short setup-proof header:
+    owner module, local replace modules hydrated, pinned SHAs or explicit
+    environment gaps, then the real post-deletion compiler failures.
 14. After a core facade or behavior parity blocker is accepted, any GX/UI
     adopter worker carrying an old dirty diff must prove a fresh product
     root/module base and produce the bounded symbol-plus-behavior table before
