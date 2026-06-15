@@ -190,6 +190,17 @@ this root file must preserve the supervisor/worker boundary itself.
    infrastructure repair task is created with its own definition of done, and
    preserve the accepted table and mechanical patch plan as the next attempt's
    starting material.
+   Before launching another GX/UI product worker after a worker/service
+   execution repair, run a local worker health gate: prove the running
+   `workers` service PID is alive rather than only present in a stale status
+   file; prove the launched command resolves to the checked-out BusDK
+   dispatcher or module binary and supports the profile flags, especially
+   `--token-file`; prove the deployed worker integration code includes any
+   required evidence-window repair such as the three-minute direct message
+   timeout, or state explicitly that it has not reloaded; and run one tiny
+   non-product worker/message smoke that produces assistant output inside the
+   evidence window. Do not count `delivered`, `ready`, or a clean worktree row
+   as active product progress.
 7. Before adopter workers edit against newly accepted shared facades, require a
    fresh-base preflight in the worker message that names the repository root
    for every SHA check. In nested BusDK/product worktrees, BusDK commits,
