@@ -203,6 +203,19 @@ this root file must preserve the supervisor/worker boundary itself.
    boundaries. Old helpers may remain as adapters, deprecated shims, tests, or
    implementation details, but workers should not promote old helper packages
    or local wrapper aliases as new app-facing patterns.
+9a. GX/UI facade parity must preserve behavior while matching the target public
+    architecture, not blindly copying legacy `pkg/uikit` API shapes. Render
+    and composition APIs should be node-first on the primary public facade;
+    data and control-plane APIs should expose typed DTO/helper boundaries; raw
+    HTML, string, or unsafe compatibility must be explicit in the name. For a
+    legacy renderer that only has HTML/string output, add two names
+    deliberately: a node-first public facade such as `RenderX` returning the
+    new public node type, and an explicit boundary such as `RenderXHTML` for
+    exact legacy string compatibility. Tests should prove the architecture
+    shape and byte/output parity where compatibility matters. Core facade
+    review gates must reject green-test patches that make the primary public
+    API normalize deprecated raw HTML/string/raw `uikit` concepts; reopen them
+    before promotion and require an explicit boundary instead.
 10. In GX/UI adopter audits, production direct `pkg/uikit` imports and
     production `uikit.` references are blockers until classified or removed.
     Test harness `uikit`/`uikittest` usage and accepted asset URL strings such
