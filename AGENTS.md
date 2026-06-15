@@ -167,7 +167,19 @@ this root file must preserve the supervisor/worker boundary itself.
    stop counting it as active implementation and either send a minimal inline
    patch plan or park/replace the worker. If that minimal inline patch plan
    still leaves the tree clean after the next checkpoint, park or replace the
-   worker instead of sending another broad nudge.
+   worker instead of sending another broad nudge. After two clean-tree
+   implementation workers on the same GX/UI slice have received complete live
+   context plus a minimal patch plan and still produce no diff or concrete
+   missing-facade diagnosis, stop retrying the same runtime/model/prompt shape;
+   more identical replacements are not active product progress. Escalate the
+   execution path instead: choose a different runtime or model known to apply
+   patches, route a narrow worker-infrastructure diagnosis for App Server or
+   tool-router clean-tree behavior, or ask the operator for a narrow supervisor
+   exception to implement the already-scoped patch in a worker-owned worktree
+   with normal review and promotion. Keep the product backlog count stable
+   unless a concrete missing facade or infrastructure repair task is created
+   with its own definition of done, and preserve the accepted table and
+   mechanical patch plan as the next attempt's starting material.
 7. Before adopter workers edit against newly accepted shared facades, require a
    fresh-base preflight in the worker message that names the repository root
    for every SHA check. In nested BusDK/product worktrees, BusDK commits,
