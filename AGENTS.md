@@ -193,6 +193,21 @@ this root file must preserve the supervisor/worker boundary itself.
    worker is already running, treat stale-base promotion as a review risk and
    rebase, recreate, or explicitly justify acceptance before promoting its
    patch.
+7a. For GX/UI module-owned worker prompts, do not assume the App Server
+    product worktree opens at the BusDK superproject root. The first preflight
+    must prove whether the effective cwd/root is the BusDK root or the target
+    module root with `pwd`, `git rev-parse --show-toplevel`, and a small
+    path-existence check for the scoped files and goal doc. Include an explicit
+    path map in the live worker message: `product_worktree_root`, `busdk_root`
+    if different or available, `target_module_root`, `goal_doc_absolute_path`,
+    and `scoped_file_paths_relative_to_target_module_root`. Do not tell a
+    worker to blindly `cd <module>` unless the proved product-worktree root is
+    the BusDK superproject; if the worker is already in the module root, use
+    paths such as `internal/run/run.go`, not
+    `bus-chat/internal/run/run.go`. For goal-doc lookup from a module-root
+    worker, provide the absolute `projects/busdk/docs/docs/goals/gx-ui.md`
+    path or a preverified relative path such as
+    `../docs/docs/goals/gx-ui.md`, instead of making each worker rediscover it.
 8. For GX/UI API refactors, split mixed adopter cleanup by semantic surface and
    prefer one-surface or one-file verification rhythms over broad mechanical
    loops. Action/resource cleanup, WASM browser cleanup, terminal generic
