@@ -198,20 +198,30 @@ this root file must preserve the supervisor/worker boundary itself.
     work versus post-core cleanup/docs/tests, and state acceptance checks for
     each slice.
 13. Before resuming a GX/UI adopter lane after a core facade parity patch, run
-    or require a bounded facade parity probe for the exact files in that
-    adopter slice. The probe prompt and task DoD must require an explicit table
-    schema. Each old symbol or call-site must be classified as one of: public
-    `ui`, public `terminalui`, explicit adopter adapter, test-only accepted,
-    accepted asset/string, or missing public core facade. Risky rows must name
-    the behavior invariant to preserve, especially request path, method,
-    resource kind, result kind, callback semantics, and no double-prefix paths.
-    An inventory-only response, file dump, or generic "no missing facades"
-    statement is not accepted probe evidence. Do not resume implementation
-    until the supervisor has reviewed the classification table and it has no
-    missing public core facade entries, or until those entries are split into
-    narrow core facade tasks. If the worker probe is incomplete, reopen or
-    nudge the probe for the table, or produce and review the table as a
-    supervisor planning artifact before launching implementation.
+    or require a bounded facade and behavior parity probe for the exact files
+    in that adopter slice. The probe prompt and task DoD must require an
+    explicit table schema. Each old symbol or call-site must be classified as
+    one of: public `ui`, public `terminalui`, explicit adopter adapter,
+    test-only accepted, accepted asset/string, or missing public core facade.
+    For every scoped test or behavior-sensitive call site, the table must also
+    name the old behavior under `pkg/uikit` or existing adopter tests, the
+    public facade symbol/type expected to preserve it, whether parity is
+    already proven by a core test, whether the adopter may update only package
+    types/imports or whether changed expectations mean a missing core parity
+    lane, and the exact invariant to preserve. Risky invariants include
+    request path, method, resource kind, result kind, callback invocation,
+    `Done()` channel behavior, reconnect attempt behavior, provider/client
+    error semantics, and no double-prefix paths. An inventory-only response,
+    file dump, or generic "no missing facades" statement is not accepted probe
+    evidence. Do not resume implementation until the supervisor has reviewed
+    the classification table and it has no missing public core facade or
+    missing behavior parity entries, or until those entries are split into
+    narrow core facade tasks. If an adopter test expectation fails because the
+    public facade regressed old behavior, pause the adopter and split a narrow
+    core parity lane rather than weakening the test. If the worker probe is
+    incomplete, reopen or nudge the probe for the table, or produce and review
+    the table as a supervisor planning artifact before launching
+    implementation.
 14. The only normal exception for direct implementation edits is when there is a
    real blocker and the infrastructure needed to run Bus task workers is not
    available, and the direct edit is the narrowest safe change to restore that
