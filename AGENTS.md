@@ -246,6 +246,22 @@ this root file must preserve the supervisor/worker boundary itself.
     incomplete, reopen or nudge the probe for the table, or produce and review
     the table as a supervisor planning artifact before launching
     implementation.
+13a. At the start of any broad GX/UI cleanup goal, and before reporting a
+    "final" remaining lane or ETA, run a repository-wide production-surface
+    audit for the target smell, not only the modules already active on the
+    board. For GX/UI, audit production direct `pkg/uikit` imports, production
+    `uikit.` references, `Checked`/`NodeChecked` helpers, raw HTML slot
+    patterns, and docs/examples that teach deprecated APIs across all BusDK
+    modules that apps may use. Turn the audit into an explicit inventory table
+    grouped by module family with files/symbol patterns, production versus
+    test/docs classification, app-readiness criticality, expected public
+    facade, behavior invariants, immediate milestone versus deferred status,
+    and whether a facade-parity probe is required. Tie ETA and backlog language
+    to that inventory. If a surface is out of the immediate milestone, name it
+    as deferred instead of leaving it undiscovered. After each accepted lane,
+    refresh the repo-wide audit before saying cleanup is closed; the DoD should
+    either show no remaining production hits in scope or name the deferred
+    inventory with task refs.
 14. After a core facade or behavior parity blocker is accepted, any GX/UI
     adopter worker carrying an old dirty diff must prove a fresh product
     root/module base and produce the bounded symbol-plus-behavior table before
