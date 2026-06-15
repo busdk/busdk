@@ -221,6 +221,22 @@ this root file must preserve the supervisor/worker boundary itself.
     Test harness `uikit`/`uikittest` usage and accepted asset URL strings such
     as `assets/uikit.css` must be classified separately, not blindly removed.
     Do not accept a local wrapper layer whose only purpose is hiding `uikit`.
+10a. For GX/UI adopter implementation, do not mechanically replace
+    `uikit.X(...)` with `ui.XChecked(...)` without reading the public helper
+    signature and tests. Public `Checked` helpers are explicit
+    string-boundary APIs with validation contracts, not drop-in replacements
+    for old convenience helpers. Before broad patching, worker prompts should
+    include a checked-boundary contract review step: list each old string
+    helper, the chosen public node-first or checked boundary, required
+    props/IDs/actions, and exact test invariant. For checked navigation,
+    panel, and form helpers, preserve behavior by supplying stable IDs,
+    action tokens, `ControlID`, `ControlName`, and matching rendered child
+    `id`/`name` fields where required. If the product module already has an
+    internal package named `ui`, deliberately alias the imported
+    `bus-ui/pkg/ui` package, such as `busui`, to avoid import-name churn. If
+    tests fail only on byte-fragile markup after the public checked contract
+    is correct, update assertions narrowly around stable visible behavior,
+    routes, and semantics rather than weakening the behavior check.
 11. If a GX/UI adopter lane discovers a missing public facade needed to preserve
     accepted behavior, stop or return a no-change diagnosis and create a
     narrow core facade parity lane. Do not invent local wrappers, direct
