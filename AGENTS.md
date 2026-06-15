@@ -256,15 +256,28 @@ this root file must preserve the supervisor/worker boundary itself.
     evidence, stop or park it, and launch a clean worker on the accepted BusDK
     pin unless the attempt exposes a concrete infrastructure or rebase failure
     that needs its own task.
-15. The only normal exception for direct implementation edits is when there is a
+15. For GX/UI WASM adopter slices, separate product failures from verifier-host
+    or toolchain proof gaps. Before treating a `GOOS=js GOARCH=wasm` failure as
+    product work, record the exact `go` binary, `go version`,
+    `GOOS=js GOARCH=wasm go env GOROOT GOOS GOARCH GOEXPERIMENT`, and a tiny
+    control such as `GOOS=js GOARCH=wasm go list std` or a minimal package that
+    imports `syscall/js`. If the control fails broadly across standard library
+    packages, route WASM proof to a known-good worker, host, or toolchain, or
+    record a named environment proof exception while keeping product acceptance
+    grounded in native tests, scoped no-legacy-surface audits, worker diff
+    review, and any available WASM-side worker result. If the control succeeds
+    but the module fails, keep it as product work and name the first compile
+    error, file, and symbol. Record the environment used for final WASM proof
+    in the goal or memo.
+16. The only normal exception for direct implementation edits is when there is a
    real blocker and the infrastructure needed to run Bus task workers is not
    available, and the direct edit is the narrowest safe change to restore that
    worker infrastructure.
-16. If the worker substrate is partially usable, prefer dispatching an
+17. If the worker substrate is partially usable, prefer dispatching an
    infrastructure worker or reviewer worker over local implementation. Use the
    supervisor checkout for investigation and evidence gathering, not for
    absorbing product implementation.
-17. When the supervisor must make an exception, record the reason in the current
+18. When the supervisor must make an exception, record the reason in the current
    hourly memo, including why worker delegation was unavailable, what exact
    infrastructure path was restored, what verification was run, and which tasks
    should be reopened or dispatched afterward.
