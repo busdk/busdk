@@ -215,22 +215,26 @@ this root file must preserve the supervisor/worker boundary itself.
    separate worker slices with narrow commands and tests, so failures identify
    the component, facade, or adopter surface that broke.
 9. In GX/UI architecture, `Action`, `Resource`, and `Effect` are shared public
-   boundaries. Old helpers may remain as adapters, deprecated shims, tests, or
-   implementation details, but workers should not promote old helper packages
-   or local wrapper aliases as new app-facing patterns.
+   boundaries. For unpublished/internal-only GX/UI APIs, backward
+   compatibility is not a goal by itself: do not keep `pkg/uikit`, `*Checked`
+   compatibility wrappers, old string-first aliases, or local wrapper layers
+   merely to preserve old call sites. Move or rewrite behavior into the
+   correct public package or a new non-compatibility internal package owned by
+   the node-first architecture.
 9a. GX/UI facade parity must preserve behavior while matching the target public
     architecture, not blindly copying legacy `pkg/uikit` API shapes. Render
     and composition APIs should be node-first on the primary public facade;
     data and control-plane APIs should expose typed DTO/helper boundaries; raw
-    HTML, string, or unsafe compatibility must be explicit in the name. For a
-    legacy renderer that only has HTML/string output, add two names
-    deliberately: a node-first public facade such as `RenderX` returning the
-    new public node type, and an explicit boundary such as `RenderXHTML` for
-    exact legacy string compatibility. Tests should prove the architecture
-    shape and byte/output parity where compatibility matters. Core facade
-    review gates must reject green-test patches that make the primary public
-    API normalize deprecated raw HTML/string/raw `uikit` concepts; reopen them
-    before promotion and require an explicit boundary instead.
+    HTML, string, or unsafe boundaries should exist only where intentionally
+    part of the new design, not for unpublished backward compatibility. For a
+    legacy renderer that only has HTML/string output, move or rewrite the
+    implementation into the correct public or internal package first; then add
+    a node-first public facade such as `RenderX` returning the new public node
+    type, and an explicit boundary such as `RenderXHTML` only when callers
+    intentionally need string output. Tests should prove the architecture
+    shape and output behavior where it matters. Core facade review gates must
+    reject green-test patches that merely wrap or alias `pkg/uikit` as the new
+    implementation layer.
 10. In GX/UI adopter audits, production direct `pkg/uikit` imports and
     production `uikit.` references are blockers until classified or removed.
     Test harness `uikit`/`uikittest` usage and accepted asset URL strings such
@@ -347,6 +351,59 @@ this root file must preserve the supervisor/worker boundary itself.
     monitor sample. If a sub-slice depends on unclear facade ownership, mark
     it `probe-needed` with a concrete probe DoD rather than hiding it inside a
     broad row count.
+13e. GX/UI ETA and "remaining work" reports must distinguish visible active
+    workers, known active implementation slices, and total discovered or
+    enumerated slices since the baseline. Do not use worker count or broad
+    module-family row count as the ETA denominator once probes reveal multiple
+    implementation-sized surfaces inside a row. For GX/UI or any broad cleanup
+    goal, the initial planning artifact must show the exact canonical module
+    set from the goal document, the exact audit commands, and a row for every
+    matching production surface before dispatching implementation workers or
+    reporting ETA. A repo-wide audit is not satisfied by checking only active
+    workers, dirty modules, or the first-wave worker queue; it must cover the
+    full goal-doc module set. If the supervisor deliberately starts a smaller
+    tactical wave, status must label it as "first-wave execution queue only,"
+    not "unfinished work" or "final backlog." When the operator explicitly
+    requests the broad audit first, include a proof line in the next report:
+    "Full goal-scope audit completed over modules X; excluded Y as
+    test/docs/deferred; current implementation-slice count Z." If that proof
+    is missing, do not claim an ETA. Require facade-parity probes before
+    adopter implementation estimates when scoped files still depend on
+    `pkg/uikit` for behavior-rich helpers. Treat newly revealed sub-slices
+    inside a known row as estimation debt and an instruction-following failure
+    when a broad audit was requested, not random surprise; update the row's
+    sub-slice queue immediately so the next monitor sample does not rediscover
+    it.
+13f. For GX/UI, derive the end-user module set mechanically from Go module
+    dependencies before relying on remembered goal rows. The first/current
+    inventory step must scan `go.mod` files for dependencies on
+    `github.com/busdk/bus-ui` and `github.com/busdk/bus-gx`, compare that
+    dependency-derived set with `docs/docs/goals/gx-ui.md`, and classify every
+    module in either set as active, accepted, deferred/test-docs-only, or out
+    of scope. For each dependency user, run or delegate two independent gates:
+    `go test ./...` for public facade/API compatibility, and a production
+    static audit for forbidden old-surface imports/usages such as direct
+    `github.com/busdk/bus-ui/pkg/uikit` in non-test app code. Tests alone are
+    not enough while compatibility shims still compile. Use the
+    dependency-derived module set as the denominator for "all end users
+    counted," then use the implementation-slice queue as the denominator for
+    ETA. When core `bus-ui` or `bus-gx` work is believed complete, prove it by
+    testing every dependency user and separately proving the old-surface
+    production audit is clean or has named active/deferred slices.
+13g. Use a throwaway `pkg/uikit` deletion or build-exclusion compile-break
+    probe as the authoritative truth gate when counting remaining GX/UI work.
+    The probe must run in a worker-owned branch/worktree and must not be
+    promoted until all replacement tasks are accepted. Remove or build-exclude
+    `bus-ui/pkg/uikit` and `bus-ui/pkg/uikit/uikittest`, then run
+    `go test ./...` in `bus-ui` first and across every dependency user
+    discovered by the `bus-ui`/`bus-gx` go.mod scan. Convert compiler failures
+    into an inventory split by owner: core `bus-ui` public facade
+    implementation still backed by uikit, adopter direct imports, test harness
+    replacement, docs/examples/catalog residue, and truly deferred or
+    out-of-scope items. Do not count "adopters stop importing uikit" as the
+    whole remaining scope; removing `uikit` as a backing implementation layer
+    from `bus-ui` itself is part of the end state unless a specific behavior is
+    moved into a new non-compatibility internal package.
 14. After a core facade or behavior parity blocker is accepted, any GX/UI
     adopter worker carrying an old dirty diff must prove a fresh product
     root/module base and produce the bounded symbol-plus-behavior table before
