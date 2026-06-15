@@ -208,6 +208,18 @@ this root file must preserve the supervisor/worker boundary itself.
     worker, provide the absolute `projects/busdk/docs/docs/goals/gx-ui.md`
     path or a preverified relative path such as
     `../docs/docs/goals/gx-ui.md`, instead of making each worker rediscover it.
+7b. For GX/UI worker lanes, do not count the lane as active implementation and
+    do not allow product edits until the worker proves the exact owning module
+    source tree is populated. The first hard gate must include `pwd`,
+    `git rev-parse --show-toplevel`, `git status --short`, and
+    `test -f <scoped target file>` from the target module root, such as
+    `test -f pkg/ui/ai_upload_facade.go` for the AI-upload facade blocker. If
+    the checkout is only an empty submodule/gitlink, if `--module bus-ui` does
+    not expose the expected `pkg/ui` tree, or if hydration requires GitHub SSH
+    access the worker does not have, stop the implementation lane and
+    repair/route worker materialization or local-reference hydration first.
+    Do not spend repeated nudges on code patches inside wrong nested checkouts
+    or unproven module roots.
 8. For GX/UI API refactors, split mixed adopter cleanup by semantic surface and
    prefer one-surface or one-file verification rhythms over broad mechanical
    loops. Action/resource cleanup, WASM browser cleanup, terminal generic
