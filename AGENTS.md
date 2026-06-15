@@ -199,8 +199,12 @@ this root file must preserve the supervisor/worker boundary itself.
    required evidence-window repair such as the three-minute direct message
    timeout, or state explicitly that it has not reloaded; and run one tiny
    non-product worker/message smoke that produces assistant output inside the
-   evidence window. Do not count `delivered`, `ready`, or a clean worktree row
-   as active product progress.
+   evidence window. Until Workers API message projections include assistant
+   response text, do not count `message.response` with `status=delivered` as
+   assistant progress. For product workers, require assistant text in the
+   worker Codex session JSONL, a real worker-owned git diff or commit plus
+   required check output, or explicit runtime error evidence; `ready`, a clean
+   worktree row, and delivered-only messages are transport evidence only.
 7. Before adopter workers edit against newly accepted shared facades, require a
    fresh-base preflight in the worker message that names the repository root
    for every SHA check. In nested BusDK/product worktrees, BusDK commits,
