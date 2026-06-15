@@ -189,24 +189,41 @@ this root file must preserve the supervisor/worker boundary itself.
     narrow core facade parity lane. Do not invent local wrappers, direct
     internal imports, or adopter-specific aliases to bypass the missing public
     boundary.
-12. The only normal exception for direct implementation edits is when there is a
+12. When a remaining GX/UI item is broad enough to hide facade parity or
+    semantic-contract unknowns, pause before implementation workers and create
+    a short planning or probe artifact in the task thread or goal document.
+    The artifact should name exact files in scope, map old symbols or APIs to
+    public facades, list behavior invariants, identify missing public facade
+    gaps, split implementation slices, classify critical-path app-readiness
+    work versus post-core cleanup/docs/tests, and state acceptance checks for
+    each slice.
+13. Before resuming a GX/UI adopter lane after a core facade parity patch, run
+    or require a bounded facade parity probe for the exact files in that
+    adopter slice. The probe must list every remaining old-helper,
+    terminal/runtime, request/result/effect/client, and test-fake symbol needed
+    by the migration, then classify each as `terminalui public facade exists`,
+    `ui public facade exists`, `explicit adopter adapter needed`, or `missing
+    public core facade`. Do not resume implementation until the table has no
+    `missing public core facade` entries, or until those entries are split into
+    narrow core facade tasks.
+14. The only normal exception for direct implementation edits is when there is a
    real blocker and the infrastructure needed to run Bus task workers is not
    available, and the direct edit is the narrowest safe change to restore that
    worker infrastructure.
-13. If the worker substrate is partially usable, prefer dispatching an
+15. If the worker substrate is partially usable, prefer dispatching an
    infrastructure worker or reviewer worker over local implementation. Use the
    supervisor checkout for investigation and evidence gathering, not for
    absorbing product implementation.
-14. When the supervisor must make an exception, record the reason in the current
+16. When the supervisor must make an exception, record the reason in the current
    hourly memo, including why worker delegation was unavailable, what exact
    infrastructure path was restored, what verification was run, and which tasks
    should be reopened or dispatched afterward.
-15. Periodically compare recent hourly memos, task statistics, and active-worker
+17. Periodically compare recent hourly memos, task statistics, and active-worker
    evidence against the active goal. If independent parallel capacity is
    underused, explicitly dispatch/refill unblocked work or record the concrete
    blocker; report utilization truthfully instead of implying full capacity
    when the board is idle or thinly staffed.
-16. Treat each periodic memo/task-stat review as an operating-control loop, not
+18. Treat each periodic memo/task-stat review as an operating-control loop, not
    as a retrospective note. The review must end with one of these concrete
    outcomes: updated PLAN/tasks, new or reopened worker dispatch, promoted or
    rejected worker output, a documented automation improvement, or a specific
@@ -214,40 +231,40 @@ this root file must preserve the supervisor/worker boundary itself.
    underutilization, stale workers, repeated manual steps, or evidence gaps,
    convert that finding into the next supervisor action before returning to
    ordinary status reporting.
-17. For every substantial supervisor session and every progress report on an
+19. For every substantial supervisor session and every progress report on an
    active multi-worker goal, do a compact goal-health review before answering:
    recent memo evidence, active workers per environment, independent unblocked
    work topics, accepted/promoted output since the previous review, current
    bottleneck, and the next dispatch/reopen/promote action. If the review shows
    idle capacity on H100, dev-hg, local, or other configured environments, fill
    it with scoped work unless a concrete blocker prevents it.
-18. Measure the supervisor process by accepted work and learning rate, not by
+20. Measure the supervisor process by accepted work and learning rate, not by
     activity. Record when actual parallelism is materially below available
     capacity, when the supervisor absorbed work that should have been delegated,
     when a worker lane failed because of platform friction, and what guidance,
     PLAN item, automation task, or worker dispatch was created to prevent the
     same stall from recurring.
-19. For broad goals, use delegated supervisor agents as the normal scaling
+21. For broad goals, use delegated supervisor agents as the normal scaling
     unit. The lead supervisor should own global priority, acceptance, pinning,
     and operator communication, while sub-supervisors own work lines such as
     remote freshness/proof, parallel lane refill, review/promote triage, or a
     specific module family. A sub-supervisor should not merely write a one-shot
     report: it should start safe workers, monitor them, refill the lane when a
     worker exits, and leave accept/reopen guidance with evidence.
-19. Lead supervisors and delegated sub-supervisors must read and apply
+22. Lead supervisors and delegated sub-supervisors must read and apply
     `skills/bus-product-delivery-supervisor/SKILL.md` and
     `skills/bus-dev-task-worker-ops/SKILL.md` before running broad supervisor
     loops, dispatching workers, or reporting progress on multi-worker goals.
     Sub-supervisor prompts must include these skill paths so the scaling loop
     is not lost when work is delegated to another agent.
-20. After accepting and pinning changes that affect worker launch, Events sync,
+23. After accepting and pinning changes that affect worker launch, Events sync,
     remote credentials, worker images, model/runtime configuration, or Bus
     developer tooling, update configured remote environments before using them
     as proof. Verify the remote checkout commit, affected submodule SHAs, and
     rebuilt/installed binaries or images. If a remote still runs stale software,
     treat that as an operating issue to fix or delegate, not as product
     evidence.
-21. Permission prompts are exceptional. Supervisors must first use already
+24. Permission prompts are exceptional. Supervisors must first use already
     approved commands, remote workers, and configured Bus services. Do not ask
     the operator for permission for routine Markdown edits, worker monitoring,
     SSH status checks, remote dispatch, or deterministic verification. If the
@@ -255,7 +272,7 @@ this root file must preserve the supervisor/worker boundary itself.
     continue independent remote/worktree work where possible and request
     permission only when that exact operation is required to finish an accepted
     change.
-22. Do not keep broad, vague checklist items as the active operating plan.
+25. Do not keep broad, vague checklist items as the active operating plan.
     Before reporting a goal checklist or dispatching workers, split fuzzy items
     into module-owned `PLAN.md` entries with concrete DoD: the command or user
     workflow that must work, the service/runtime owner, the required evidence,
@@ -273,7 +290,7 @@ this root file must preserve the supervisor/worker boundary itself.
       command made usable, such as attempt identity, requested/observed model,
       failure reason, recovery/intervention attribution, install command,
       refresh command, status command, or evidence command.
-18. When the operator corrects the architecture or priority, update durable
+26. When the operator corrects the architecture or priority, update durable
     guidance or the owning `PLAN.md` in the same work session. Do not rely on
     chat memory for repeated lessons such as single-binary/systemd deployment
     shape, per-remote credential sources instead of process-global tokens,
@@ -288,7 +305,7 @@ this root file must preserve the supervisor/worker boundary itself.
     implementation tasks while the weekly quota is exhausted. Use
     `gpt-5.4-mini` first, escalate to `gpt-5.4` only when mini cannot complete
     the work, and use `gpt-5.5` only as the last resort.
-19. Treat important operator corrections, focus reminders, naming lessons, and
+27. Treat important operator corrections, focus reminders, naming lessons, and
     repeated “don’t do that” guidance as durable memory work, not just chat.
     When the lesson is expected to matter again, write it into the most
     specific relevant `AGENTS.md` in the same session, and update the current
@@ -297,13 +314,13 @@ this root file must preserve the supervisor/worker boundary itself.
     Stage and commit `PLAN.md` changes directly on `develop` in the owning
     repository before moving on; do not leave planning edits as uncommitted
     supervisor checkout drift.
-20. For the H100/remote-worker goal, prioritize the minimum real-work loop over
+28. For the H100/remote-worker goal, prioritize the minimum real-work loop over
     adjacent product polish: one configured model can be enough, private image
     delivery can be deferred when source-checkout/App Server works, and stats
     can be improved while testing instead of blocking the first accepted loop.
     Keep the checklist focused on work that directly makes remote workers
     productive and repeatable.
-21. For unfinished BusDK goals, do not report "not proven" or "not done" as a
+29. For unfinished BusDK goals, do not report "not proven" or "not done" as a
     blocker. Before stopping or asking the operator, decompose the remaining
     work into concrete module-owned items with DoD: the command or workflow
     that must succeed, the owner module, required evidence, expected files or
@@ -315,25 +332,25 @@ this root file must preserve the supervisor/worker boundary itself.
     check whether the work repeated mistakes the operator had already
     corrected, and immediately improve `AGENTS.md`, `PLAN.md`, or the relevant
     runbook when the instruction was too easy to miss.
-22. At BusDK session closeout, review the current hourly memo against these
+30. At BusDK session closeout, review the current hourly memo against these
     operating rules and the operator corrections recorded during the session.
     If the work drifted from the rules, say so in the memo and improve the
     smallest relevant `AGENTS.md`, `PLAN.md`, or skill runbook before
     finishing the session.
-23. Use precise acceptance vocabulary. A worker that is `created`, `claimed`,
+31. Use precise acceptance vocabulary. A worker that is `created`, `claimed`,
     `running`, `done`, or even promoted inside an isolated/remote checkout is
     not accepted project progress until supervisor-side review verifies the
     diff, required checks pass, the owning branch is promoted or repaired, and
     the superproject pin is updated when applicable. Reports and memos must
     distinguish: task created, worker claimed, worker produced a diff, worker
     branch promoted, supervisor accepted, root pinned, pushed, and released.
-24. When a worker result is partly useful but fails review, prefer the normal
+32. When a worker result is partly useful but fails review, prefer the normal
     iterative production loop: reopen with exact findings, hand the repair to a
     stronger model or reviewer lane when useful, or make the smallest
     supervisor acceptance repair only when delegation is blocked. Do not
     describe a first-attempt failure as H100/model failure when the overall
     attempt-review-repair-promote loop is still producing accepted work.
-25. Treat pause/release mode as a hard drain-and-collect workflow. When the
+33. Treat pause/release mode as a hard drain-and-collect workflow. When the
     operator pauses new development or asks for a release, stop scheduling new
     work; inspect local, dev-hg, H100, and other configured environments for
     queued/claimed/running tasks; cancel stale queued or false-active streams
@@ -341,40 +358,40 @@ this root file must preserve the supervisor/worker boundary itself.
     services; verify no environment has commits ahead of its upstream that need
     retrieval; verify the root checkout is clean; then run the requested
     release command.
-26. Treat worktree cleanup as review-first. Prefer first-class Bus prune
+34. Treat worktree cleanup as review-first. Prefer first-class Bus prune
     commands and dry-run reports over manual deletion. Do not run destructive
     cleanup while task refs are active or while Git locks may still represent
     live work; use `--apply`-style cleanup only after reviewing the dry-run
     candidates, active-task refusal evidence, and submodule worktree registry
     behavior.
-27. After solving a BusDK infrastructure issue, record the reusable diagnostic
+35. After solving a BusDK infrastructure issue, record the reusable diagnostic
     path in the current memo and the most specific `AGENTS.md`. The note must
     include the original symptom, the wrong or stale assumption, the decisive
     command/log/observation, the invariant that fixed it, the verification
     command or proof, and the first check to run next time. This is required
     for worker launch, App Server, Events relay, service startup, install or
     version skew, route pairing, credential, and local safety-filter failures.
-28. When a worker or App Server path fails with a vague execution error such as
+36. When a worker or App Server path fails with a vague execution error such as
     "no such file or directory", do not guess at task/worker architecture
     first. Check the exact service process argv, selected binary path, worker
     workdir, App Server allowed directories, sandbox/network policy,
     environment id, and the installed-vs-source commit. Add narrow diagnostics
     that expose paths, ids, booleans, and command names without secrets; then
     reproduce with a fresh worker message before accepting the fix.
-29. When a locally built fix does not affect a service or remote proof, assume
+37. When a locally built fix does not affect a service or remote proof, assume
     release skew until disproved. Verify the executable that `bus services up`
     launches, the superproject commit, affected submodule SHA, install target,
     and remote checkout before changing product logic. If `make clean build
     install` or submodule refresh is the intended release step, run it before
     judging runtime behavior.
-30. When Events relay behavior surprises task or worker flows, inspect Event
+38. When Events relay behavior surprises task or worker flows, inspect Event
     metadata first: origin environment, destination environment,
     sync-target ids, recipient ids, task ref, worker id, correlation id, route
     owner, and durable cursor namespace. Product relay eligibility must not
     depend on event names. Add hermetic fake-transport tests for the Event
     metadata and cursor behavior that caused the surprise, and use live SSH
     proof only as an end-to-end acceptance layer.
-31. After the service-owned Events relay MVP is accepted, BusDK product work
+39. After the service-owned Events relay MVP is accepted, BusDK product work
     must use Bus tasks and persistent Bus worker identities as the normal and
     exclusive execution infrastructure. Supervisors define task refs, pick or
     create worker identities, send guidance with `bus workers message`, monitor
@@ -382,25 +399,25 @@ this root file must preserve the supervisor/worker boundary itself.
     promote accepted branches. Supervisors do not directly implement product
     changes or run direct compile/test/install loops as a substitute for worker
     work.
-32. Prefer `gpt-5.3-codex-spark` for BusDK worker identities and dispatches
+40. Prefer `gpt-5.3-codex-spark` for BusDK worker identities and dispatches
     unless the operator explicitly requests another model or a task has a
     concrete model-specific requirement. When a worker must use a different
     model, record the reason in the task stream or memo.
-33. Use the Services-backed Workers API when listing or controlling persistent
+41. Use the Services-backed Workers API when listing or controlling persistent
     workers. In the current local Services stack that means
     `bus workers --api-url http://127.0.0.1:8090/local/v1 --token-file
     .bus/tokens/local-events.jwt ...`. A bare `bus workers list` may hit the
     legacy/default surface and print no workers; do not treat that as evidence
     that the persistent worker store is empty without checking the configured
     Workers API.
-34. The default local Services stack must not require SSH access to
+42. The default local Services stack must not require SSH access to
     `dev.hg.fi` or any other remote worker host. `bus services up` must start
     the local control-plane services needed for task submission, review, and
     local worker orchestration without Events relay credentials. Keep
     `events-relay` and remote sync/proof services optional, for example behind
     `--all` or explicit profile selection, so missing remote host keys or SSH
     credentials cannot block local development.
-35. Temporary supervisor, worker, proof, and scratch worktrees must live under
+43. Temporary supervisor, worker, proof, and scratch worktrees must live under
     an ignored scratch path, normally `tmp/worktrees/` in this superproject or
     the Services-owned `.bus/services/workers/...` runtime paths. Do not create
     new temporary worktrees, symlink farms, or proof checkouts under
