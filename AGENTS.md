@@ -147,24 +147,55 @@ this root file must preserve the supervisor/worker boundary itself.
    preserve any leaked patch, restore only the leaked primary files, and
    relaunch with stricter path guardrails. Do not trust a worker diff until the
    primary checkout for that module has been checked clean.
-6. The only normal exception for direct implementation edits is when there is a
+6. Worker creation is not proof of execution. After creating a worker, send an
+   explicit start message unless the worker stream already shows assistant
+   output from the intended prompt. Count a lane as active only after three
+   signals exist: the assistant/event stream has started, the worker-owned
+   worktree has either a diff or a clear no-change diagnosis, and the task
+   thread records the current prompt. A `running`/`ready` worker with no
+   assistant output, command trace, or diff is queued capacity, not progress;
+   inspect session logs and nudge or replace it instead of waiting on elapsed
+   time alone.
+7. Before adopter workers edit against newly accepted shared facades, require a
+   fresh-base preflight in the worker message: module branch,
+   `git rev-parse HEAD`, relevant submodule pins, clean worktree, and
+   confirmation that required core facade commits are present. If a core facade
+   lands while an adopter worker is already running, treat stale-base promotion
+   as a review risk and rebase, recreate, or explicitly justify acceptance
+   before promoting its patch.
+8. For GX/UI API refactors, split mixed adopter cleanup by semantic surface and
+   prefer one-surface or one-file verification rhythms over broad mechanical
+   loops. Action/resource cleanup, WASM browser cleanup, terminal generic
+   imports, and terminal stream/container request conversion should normally be
+   separate worker slices with narrow commands and tests, so failures identify
+   the component, facade, or adopter surface that broke.
+9. In GX/UI architecture, `Action`, `Resource`, and `Effect` are shared public
+   boundaries. Old helpers may remain as adapters, deprecated shims, tests, or
+   implementation details, but workers should not promote old helper packages
+   or local wrapper aliases as new app-facing patterns.
+10. In GX/UI adopter audits, production direct `pkg/uikit` imports and
+    production `uikit.` references are blockers until classified or removed.
+    Test harness `uikit`/`uikittest` usage and accepted asset URL strings such
+    as `assets/uikit.css` must be classified separately, not blindly removed.
+    Do not accept a local wrapper layer whose only purpose is hiding `uikit`.
+11. The only normal exception for direct implementation edits is when there is a
    real blocker and the infrastructure needed to run Bus task workers is not
    available, and the direct edit is the narrowest safe change to restore that
    worker infrastructure.
-7. If the worker substrate is partially usable, prefer dispatching an
+12. If the worker substrate is partially usable, prefer dispatching an
    infrastructure worker or reviewer worker over local implementation. Use the
    supervisor checkout for investigation and evidence gathering, not for
    absorbing product implementation.
-8. When the supervisor must make an exception, record the reason in the current
+13. When the supervisor must make an exception, record the reason in the current
    hourly memo, including why worker delegation was unavailable, what exact
    infrastructure path was restored, what verification was run, and which tasks
    should be reopened or dispatched afterward.
-9. Periodically compare recent hourly memos, task statistics, and active-worker
+14. Periodically compare recent hourly memos, task statistics, and active-worker
    evidence against the active goal. If independent parallel capacity is
    underused, explicitly dispatch/refill unblocked work or record the concrete
    blocker; report utilization truthfully instead of implying full capacity
    when the board is idle or thinly staffed.
-10. Treat each periodic memo/task-stat review as an operating-control loop, not
+15. Treat each periodic memo/task-stat review as an operating-control loop, not
    as a retrospective note. The review must end with one of these concrete
    outcomes: updated PLAN/tasks, new or reopened worker dispatch, promoted or
    rejected worker output, a documented automation improvement, or a specific
@@ -172,40 +203,40 @@ this root file must preserve the supervisor/worker boundary itself.
    underutilization, stale workers, repeated manual steps, or evidence gaps,
    convert that finding into the next supervisor action before returning to
    ordinary status reporting.
-11. For every substantial supervisor session and every progress report on an
+16. For every substantial supervisor session and every progress report on an
    active multi-worker goal, do a compact goal-health review before answering:
    recent memo evidence, active workers per environment, independent unblocked
    work topics, accepted/promoted output since the previous review, current
    bottleneck, and the next dispatch/reopen/promote action. If the review shows
    idle capacity on H100, dev-hg, local, or other configured environments, fill
    it with scoped work unless a concrete blocker prevents it.
-12. Measure the supervisor process by accepted work and learning rate, not by
+17. Measure the supervisor process by accepted work and learning rate, not by
     activity. Record when actual parallelism is materially below available
     capacity, when the supervisor absorbed work that should have been delegated,
     when a worker lane failed because of platform friction, and what guidance,
     PLAN item, automation task, or worker dispatch was created to prevent the
     same stall from recurring.
-13. For broad goals, use delegated supervisor agents as the normal scaling
+18. For broad goals, use delegated supervisor agents as the normal scaling
     unit. The lead supervisor should own global priority, acceptance, pinning,
     and operator communication, while sub-supervisors own work lines such as
     remote freshness/proof, parallel lane refill, review/promote triage, or a
     specific module family. A sub-supervisor should not merely write a one-shot
     report: it should start safe workers, monitor them, refill the lane when a
     worker exits, and leave accept/reopen guidance with evidence.
-14. Lead supervisors and delegated sub-supervisors must read and apply
+19. Lead supervisors and delegated sub-supervisors must read and apply
     `skills/bus-product-delivery-supervisor/SKILL.md` and
     `skills/bus-dev-task-worker-ops/SKILL.md` before running broad supervisor
     loops, dispatching workers, or reporting progress on multi-worker goals.
     Sub-supervisor prompts must include these skill paths so the scaling loop
     is not lost when work is delegated to another agent.
-15. After accepting and pinning changes that affect worker launch, Events sync,
+20. After accepting and pinning changes that affect worker launch, Events sync,
     remote credentials, worker images, model/runtime configuration, or Bus
     developer tooling, update configured remote environments before using them
     as proof. Verify the remote checkout commit, affected submodule SHAs, and
     rebuilt/installed binaries or images. If a remote still runs stale software,
     treat that as an operating issue to fix or delegate, not as product
     evidence.
-16. Permission prompts are exceptional. Supervisors must first use already
+21. Permission prompts are exceptional. Supervisors must first use already
     approved commands, remote workers, and configured Bus services. Do not ask
     the operator for permission for routine Markdown edits, worker monitoring,
     SSH status checks, remote dispatch, or deterministic verification. If the
@@ -213,7 +244,7 @@ this root file must preserve the supervisor/worker boundary itself.
     continue independent remote/worktree work where possible and request
     permission only when that exact operation is required to finish an accepted
     change.
-17. Do not keep broad, vague checklist items as the active operating plan.
+22. Do not keep broad, vague checklist items as the active operating plan.
     Before reporting a goal checklist or dispatching workers, split fuzzy items
     into module-owned `PLAN.md` entries with concrete DoD: the command or user
     workflow that must work, the service/runtime owner, the required evidence,
