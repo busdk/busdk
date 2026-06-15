@@ -574,10 +574,17 @@ this root file must preserve the supervisor/worker boundary itself.
     `codex exec`, `direct-exec`, `direct` runner kind, or `codex-direct`
     provider as the operator-facing worker path; add new providers such as
     `bus-agent-runtime` behind the worker provider/App Server-style contract.
-    Do not request `gpt-5.3-codex-spark` for new workers or app-server-backed
-    implementation tasks while the weekly quota is exhausted. Use
-    `gpt-5.4-mini` first, escalate to `gpt-5.4` only when mini cannot complete
-    the work, and use `gpt-5.5` only as the last resort.
+    When a normal implementation worker stalls, simplify the task before
+    switching it to a smarter model: split planning from implementation,
+    narrow the files, and make the implementation DoD mechanical. For hard or
+    unclear architecture/source-map work, use `gpt-5.5` for the planning or
+    table artifact when needed, then delegate the simplified implementation to
+    the normal supported implementation worker first, such as Spark on the
+    current App Server substrate or Mini only where that model is actually
+    supported. Escalate implementation to `gpt-5.4` or `gpt-5.5` only after
+    the simplified implementation still fails because of reasoning or behavior
+    complexity, not because of checkout materialization, unsupported model
+    mapping, bad prompt shape, missing hard gates, or quota state.
 27. Treat important operator corrections, focus reminders, naming lessons, and
     repeated “don’t do that” guidance as durable memory work, not just chat.
     When the lesson is expected to matter again, write it into the most
