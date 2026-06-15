@@ -235,6 +235,26 @@ this root file must preserve the supervisor/worker boundary itself.
     shape and output behavior where it matters. Core facade review gates must
     reject green-test patches that merely wrap or alias `pkg/uikit` as the new
     implementation layer.
+9b. For GX/UI core migrations that remove `pkg/uikit` as a backing
+    implementation, do not dispatch a broad "move the whole facade" worker
+    without a source-map table. The planning artifact must name the old
+    `pkg/uikit` file/symbol group, the target owning package/file, the exported
+    API that must remain, the behavior or test invariant, and the first focused
+    test. Implement in this order: add or move real implementation into the new
+    owner package first; add or preserve focused owner tests; then replace
+    facade aliases or wrappers group-by-group. Do not delete or shrink the
+    public facade file until the new owner implementation compiles and the
+    public API compatibility is proven. For `assistantui`, split the
+    uikit-removal blocker into micro-slices if a worker stalls or drifts:
+    DTO/model types, event/status/history helpers, AI panel render and
+    client-script behavior, and the js render-props adapter. Each micro-slice
+    must end with `go test ./pkg/assistantui` or the exact first compile error,
+    plus a scoped no-production-`pkg/uikit` audit for the touched assistantui
+    files. A `PLAN.md`-only diff, deleted facade file, or package-comment-only
+    facade is negative evidence; park that worker path quickly and relaunch
+    with a smaller source-map slice. After each accepted micro-slice or full
+    assistantui slice, rerun the hydrated deletion/build-exclusion probe to
+    prove the matrix advances beyond `assistantui_ai_facade.go`.
 10. In GX/UI adopter audits, production direct `pkg/uikit` imports and
     production `uikit.` references are blockers until classified or removed.
     Test harness `uikit`/`uikittest` usage and accepted asset URL strings such
