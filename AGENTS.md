@@ -275,6 +275,14 @@ this root file must preserve the supervisor/worker boundary itself.
     worker, provide the absolute `projects/busdk/docs/docs/goals/gx-ui.md`
     path or a preverified relative path such as
     `../docs/docs/goals/gx-ui.md`, instead of making each worker rediscover it.
+    Before creating a GX/UI worker prompt, run a tiny supervisor-side path
+    preflight against the actual worker base and nested module cwd for every
+    referenced target, source, and test file. Use `test -f` or `rg --files`
+    evidence from the target module root. Prompt tables must include only
+    verified existing source files plus files explicitly labeled as desired-new
+    targets. Remove stale paths instead of leaving them as hints; one
+    nonexistent path can turn a mechanical Mini implementation slice into an
+    avoidable source-map investigation turn.
 7b. For GX/UI worker lanes, do not count the lane as active implementation and
     do not allow product edits until the worker proves the exact owning module
     source tree is populated. The first hard gate must include `pwd`,
