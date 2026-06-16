@@ -234,6 +234,12 @@ this root file must preserve the supervisor/worker boundary itself.
    worker Codex session JSONL, a real worker-owned git diff or commit plus
    required check output, or explicit runtime error evidence; `ready`, a clean
    worktree row, and delivered-only messages are transport evidence only. For
+   tonight's GX/UI local App Server work, use `--environment local-dev` only
+   unless the worker system is repaired and a smoke proves another environment.
+   `--environment local` has accepted create requests that did not materialize
+   in the live local pool or produced unusable module roots. Treat an
+   accidental `local` create as an environment-routing mistake, stop or ignore
+   it immediately, and do not wait on it as product capacity. For
    tonight's GX/UI data/evidence lanes, prefer `gpt-5.4-mini` on the local App
    Server substrate unless Spark first passes a fresh assistant-output smoke;
    Spark materialization without assistant text is false-active capacity.
