@@ -175,7 +175,12 @@ this root file must preserve the supervisor/worker boundary itself.
    further implementation retry on that same child slice, simplify first:
    create a supervisor-owned source-map and patch-target table with direct file
    paths, exact symbol lists, and no glob-heavy or regex-heavy discovery
-   commands. If ownership or API shape is still conceptually ambiguous, use a
+   commands. If a GX/UI micro-slice remains no-diff because it discovers
+   package-owned helper or API-shape questions, convert immediately to this
+   planning gate before the next implementation attempt. The planning artifact
+   must name the exact owner for node types, helper symbols, facade alias
+   removals, file targets, and focused tests. If ownership or API shape is
+   still conceptually ambiguous, use a
    `gpt-5.5` planning/source-map pass to produce the mechanical patch plan,
    then delegate that simplified implementation to the normal supported worker
    first. Escalate the implementation worker to `gpt-5.4` or `gpt-5.5` only
@@ -191,8 +196,11 @@ this root file must preserve the supervisor/worker boundary itself.
    preserve the accepted table and mechanical patch plan as the next attempt's
    starting material.
    Before launching another GX/UI product worker after a worker/service
-   execution repair, run a local worker health gate: prove the running
-   `workers` service PID is alive rather than only present in a stale status
+   execution repair, run a local worker health gate across the full
+   storage/control-plane chain: prove there is enough disk for service writes;
+   prove Postgres is running or recovered; prove a direct Events publish
+   succeeds; prove Repos is running and materializes a product workspace; prove
+   Workers and API respond from a live PID rather than only a stale status
    file; prove the launched command resolves to the checked-out BusDK
    dispatcher or module binary and supports the profile flags, especially
    `--token-file`; prove the deployed worker integration code includes any
@@ -204,7 +212,14 @@ this root file must preserve the supervisor/worker boundary itself.
    assistant progress. For product workers, require assistant text in the
    worker Codex session JSONL, a real worker-owned git diff or commit plus
    required check output, or explicit runtime error evidence; `ready`, a clean
-   worktree row, and delivered-only messages are transport evidence only.
+   worktree row, and delivered-only messages are transport evidence only. For
+   tonight's GX/UI data/evidence lanes, prefer `gpt-5.4-mini` on the local App
+   Server substrate unless Spark first passes a fresh assistant-output smoke;
+   Spark materialization without assistant text is false-active capacity.
+   For GX/UI render tests, verify the target package's GX intrinsic elements
+   or constructors before writing expected markup, or reuse elements already
+   proven in neighboring tests. Do not assume generic HTML tags such as
+   `strong` or `em` are available in the GX intrinsic table.
 7. Before adopter workers edit against newly accepted shared facades, require a
    fresh-base preflight in the worker message that names the repository root
    for every SHA check. In nested BusDK/product worktrees, BusDK commits,
