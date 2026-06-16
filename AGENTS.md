@@ -201,6 +201,13 @@ this root file must preserve the supervisor/worker boundary itself.
    then run gofmt, tests, and scoped audits. Do not start a large multi-file
    exception patch before the exact context is known, because one stale hunk
    must not erase otherwise-ready progress.
+   GX/UI planning/source-map workers must satisfy the same owning-module
+   hydration gate before their output counts as evidence: prove `pwd`,
+   `git rev-parse --show-toplevel`, `git status --short`, and the target files
+   from the planning prompt in the exact module root. If a planning worker has
+   an empty module checkout or cannot see the target files, stop it as a
+   materialization failure; do not treat its no-file diagnosis as a product
+   source-map result.
    Before launching another GX/UI product worker after a worker/service
    execution repair, run a local worker health gate across the full
    storage/control-plane chain: prove there is enough disk for service writes;
