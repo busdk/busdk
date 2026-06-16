@@ -19,8 +19,55 @@ Goal note:
 - extract a reusable shared AI host library in `bus-agent` and/or `bus-ui` for approval handling, terminal-session state, thread-isolation/lock reporting, streamed agent event propagation, and runtime auth/login handling, then migrate `bus-chat`, `bus-ledger`, `bus-factory`, and `bus-portal` to consume that shared implementation instead of keeping per-host copies
 - add a first-class configurable Codex local-model contract across BusDK AI hosts so modules such as `bus-ledger`, `bus-portal`, and other `bus-agent` consumers can target operator-selected local models like Gemma 4 without losing current hosted-model defaults
 - add `bus-chat` as a supported optional service in `bus-gateway`, including service-catalog setup, launcher visibility, and authenticated proxy launch flow
+- add first-class Bus worker identity templates so worker creation can choose a reusable identity repo/base ref by template, model, profile, or environment, for example mapping GPT-5.4 workers to an `agents/worker:gpt54` base, while preserving old runtime `AGENTS.md`, prompts, metadata, logs, and failure traces as run history instead of cloning or discarding them
 - finish the remaining Bus Events ecosystem route-discovery and delivery-policy work: wire declared event capabilities into `bus-api` REST-to-event route validation/discovery, then define terminal-failure, dead-letter, and operator-diagnostic semantics for work-queue delivery while keeping the current memory/Redis/PostgreSQL backend set until a concrete new backend is requested
 - complete shared `bus-auth` AI Platform session support as a `bus-agent` provider/auth option for host modules that call OpenAI-compatible `/v1/*` endpoints, without removing existing providers or weakening the already implemented domain API ownership boundaries
+
+### Add reusable worker identity templates and model/profile-based identity base selection
+
+Problem:
+- Bus direct worker creation already has the low-level ability to initialize a
+  worker identity checkout from a configurable identity repository and base
+  ref.
+- Today that identity repo/base ref is service-profile-wide configuration,
+  not a per-worker or per-template choice.
+- The current runtime tree shows many task-shaped worker directories whose
+  `AGENTS.md`, prompts, metadata, logs, and failure traces contain useful
+  lessons. They are not garbage, but they are also not safe clone sources for
+  new durable identities because they mix reusable guidance with per-run
+  paths, prompts, tokens, app-server state, and worktree details.
+
+Requested capability:
+- Add a first-class worker identity template contract that can select:
+  - template id and label
+  - worker profile, model, runner kind/provider, sandbox, capabilities, and
+    eligible environments
+  - worker identity repository reference and base ref/branch, such as
+    `agents/worker:gpt54`
+  - optional product base defaults and module-family hints
+  - durable guidance/memory policy for what may be copied into new workers
+- Allow `bus workers create` and the workers API to choose a template
+  explicitly, for example `--template gpt54`, or infer one from model/profile
+  when unambiguous.
+- Support multiple worker identity repositories and multiple base branches
+  without requiring a separate workers service process per model family.
+- Record the selected template, identity repo, and identity base ref in worker
+  metadata/status snapshots for audit, reuse, and later merge decisions.
+- Preserve completed worker run records separately from identity templates:
+  prompts, `AGENTS.md` snapshots, `meta.env`-style metadata, logs, failure
+  traces, task refs, model/runtime facts, and extracted lessons should be
+  archived or indexed before bulky runtime cache cleanup.
+
+Why this matters:
+- Operators need a small standing team of reusable worker identities instead
+  of always creating one-off workers.
+- Different model families can need different durable identity guidance, for
+  example GPT-5.4 using a `gpt54` base branch while Spark or local runtimes use
+  another base.
+- A template/base-ref approach keeps worker creation clean and repeatable
+  without losing the learning value in old worker directories.
+- This is safer than cloning an existing runtime directory because templates
+  copy only durable identity defaults, not transient task execution state.
 
 ### Support native statutory profit-and-loss lines for nonstandard tax-like adjustments without legacy mapping
 
