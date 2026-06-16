@@ -523,6 +523,16 @@ this root file must preserve the supervisor/worker boundary itself.
     assistant/core facade fixes before dispatching more adopter work, so the
     active backlog follows the authoritative compiler matrix rather than stale
     rows.
+    After every hydrated deletion-probe advance, also run a static production
+    audit in the owner module for remaining `pkg/uikit` imports and `uikit.`
+    calls. For `bus-ui` core work, audit `pkg/ui` non-test Go files and add
+    or refresh table-first goal rows for each visible future facade/file with
+    a concrete source-map or DoD. Report the next compiler blocker separately
+    from the remaining known core backlog; the deletion probe still chooses
+    sequencing, but backlog and ETA must not compress known future core facade
+    work into a single row. Keep adopter lanes parked until the core
+    production owner-module audit is clean or every remaining hit is
+    explicitly scoped, deferred, and counted with a row and definition of done.
 14. After a core facade or behavior parity blocker is accepted, any GX/UI
     adopter worker carrying an old dirty diff must prove a fresh product
     root/module base and produce the bounded symbol-plus-behavior table before
