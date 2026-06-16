@@ -768,10 +768,15 @@ this root file must preserve the supervisor/worker boundary itself.
     unless the operator explicitly requests another model or a task has a
     concrete model-specific requirement. When a worker must use a different
     model, record the reason in the task stream or memo.
-41. Use the Services-backed Workers API when listing or controlling persistent
-    workers. In the current local Services stack that means
-    `bus workers --api-url http://127.0.0.1:8090/local/v1 --token-file
-    .bus/tokens/local-events.jwt ...`. A bare `bus workers list` may hit the
+41. Keep the local dispatch surfaces separate. Bus task
+    creation/status/events use the Events API surface, currently
+    `bus task --api-url http://127.0.0.1:8081/local/v1 --token-file
+    .bus/tokens/local-events.jwt ...` and matching `bus events ...` commands.
+    Persistent worker list/create/control/message uses the Workers API
+    surface, currently `bus workers --api-url http://127.0.0.1:8090/local/v1
+    --token-file .bus/tokens/local-events.jwt ...`. Live worker prompts must
+    use the supported `bus workers message ... --text <prompt>` shape, not
+    guessed positional prompt text. A bare `bus workers list` may hit the
     legacy/default surface and print no workers; do not treat that as evidence
     that the persistent worker store is empty without checking the configured
     Workers API.
