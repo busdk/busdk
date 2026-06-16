@@ -498,7 +498,12 @@ this root file must preserve the supervisor/worker boundary itself.
     testing every dependency user and separately proving the old-surface
     production audit is clean or has named active/deferred slices.
 13g. Use a throwaway `pkg/uikit` deletion or build-exclusion compile-break
-    probe as the authoritative truth gate when counting remaining GX/UI work.
+    probe as the authoritative sequencing gate for GX/UI compiler blockers,
+    not as the whole scope or ETA denominator. The full repo/module static
+    inventory defines remaining scope: dependency-derived module set,
+    production direct `pkg/uikit` imports, production `uikit.` calls, owner
+    `pkg/ui`/`pkg/assistantui`/`pkg/terminalui` facades still backed by
+    `uikit`, and separate tests/docs/examples rows.
     The probe must run in a worker-owned branch/worktree and must not be
     promoted until all replacement tasks are accepted. Remove or build-exclude
     `bus-ui/pkg/uikit` and `bus-ui/pkg/uikit/uikittest`, then run
@@ -511,6 +516,18 @@ this root file must preserve the supervisor/worker boundary itself.
     whole remaining scope; removing `uikit` as a backing implementation layer
     from `bus-ui` itself is part of the end state unless a specific behavior is
     moved into a new non-compatibility internal package.
+    Before reporting ETA, update the goal document with concrete source-map
+    rows for every currently visible core and adopter surface, mark parent or
+    planning rows non-counting once split, and classify tests/docs/examples
+    separately from production. For unpublished internal code, do not preserve
+    compatibility layers as a finish strategy; move behavior into the intended
+    public facade or a deliberate non-compatibility internal owner.
+    During the same inventory pass, classify repeated work for automation:
+    deterministic audit/probe runners and alias/import codemods, generated
+    patch skeletons that still require review, or reasoning-heavy/manual rows.
+    Prefer the smallest temporary local tool only when it replaces repeated
+    worker turns or repeated supervisor scans; do not build broad tooling
+    before the inventory proves it will save quota.
     Before interpreting `go test ./...` output from a deletion/build-exclusion
     probe, hydrate the owner module's full local `replace ../...` graph in the
     worker-owned product worktree. For `bus-ui`, prove replacement siblings
