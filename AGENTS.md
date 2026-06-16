@@ -201,6 +201,14 @@ this root file must preserve the supervisor/worker boundary itself.
    then run gofmt, tests, and scoped audits. Do not start a large multi-file
    exception patch before the exact context is known, because one stale hunk
    must not erase otherwise-ready progress.
+   For the GX/UI form-controls split, treat `pkg/ui/control_uikit_bridge.go`
+   as a temporary split aid, not a durable compatibility layer. Every remaining
+   form-controls child review must say whether that child shrinks, deletes, or
+   leaves each bridge conversion unchanged; if a conversion remains, name the
+   exact not-yet-moved boundary that still requires it. By the final
+   form-controls alias-removal/deletion-probe child, the bridge must either be
+   gone or explicitly reduced to only still-compiler-derived non-form-control
+   work from the latest deletion matrix.
    GX/UI planning/source-map workers must satisfy the same owning-module
    hydration gate before their output counts as evidence: prove `pwd`,
    `git rev-parse --show-toplevel`, `git status --short`, and the target files
