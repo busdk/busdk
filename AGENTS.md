@@ -194,7 +194,13 @@ this root file must preserve the supervisor/worker boundary itself.
    product backlog count stable unless a concrete missing facade or
    infrastructure repair task is created with its own definition of done, and
    preserve the accepted table and mechanical patch plan as the next attempt's
-   starting material.
+   starting material. When using that reviewed worker-owned exception path for
+   GX/UI, preflight the exact edit context first: read the current alias/import
+   blocks and target helper files, patch new implementation files separately
+   from alias removals, verify `git status --short` after each chunk, and only
+   then run gofmt, tests, and scoped audits. Do not start a large multi-file
+   exception patch before the exact context is known, because one stale hunk
+   must not erase otherwise-ready progress.
    Before launching another GX/UI product worker after a worker/service
    execution repair, run a local worker health gate across the full
    storage/control-plane chain: prove there is enough disk for service writes;
