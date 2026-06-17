@@ -15,9 +15,9 @@ set -eu
 printf '%s\n' "$*" >>"$DOCKER_STUB_LOG"
 case "$*" in
   "ps --format {{.Names}}"*) exit 0 ;;
-  "compose -f compose.yaml --profile dev-task ps bus-events"*) exit 0 ;;
-  "compose -f compose.yaml --profile dev-task build bus-integration-task"*) exit 0 ;;
-  "compose -f compose.yaml --profile dev-task run "* ) exit 0 ;;
+  "compose --project-name bus-local-ai-platform -f compose.yaml --profile dev-task ps bus-events"*) exit 0 ;;
+  "compose --project-name bus-local-ai-platform -f compose.yaml --profile dev-task build bus-integration-task"*) exit 0 ;;
+  "compose --project-name bus-local-ai-platform -f compose.yaml --profile dev-task run "* ) exit 0 ;;
   * )
     printf 'unexpected docker invocation: %s\n' "$*" >&2
     exit 1
@@ -37,8 +37,8 @@ chmod +x "$tmp_dir/bin/docker"
     "$root_dir/scripts/dev-task-run-worker.sh" busdk-test-worker bus-data >/dev/null
 )
 
-run_line="$(grep 'compose -f compose.yaml --profile dev-task run ' "$tmp_dir/docker.log")"
-grep -q 'compose -f compose.yaml --profile dev-task build bus-integration-task' "$tmp_dir/docker.log"
+run_line="$(grep 'compose --project-name bus-local-ai-platform -f compose.yaml --profile dev-task run ' "$tmp_dir/docker.log")"
+grep -q 'compose --project-name bus-local-ai-platform -f compose.yaml --profile dev-task build bus-integration-task' "$tmp_dir/docker.log"
 case "$run_line" in
   *" run --rm --no-deps -d "* ) ;;
   * )
