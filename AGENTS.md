@@ -955,7 +955,9 @@ the `skills/` directory.
 5. Use `develop` as the only normal integration and promotion branch for the
    BusDK superproject and Bus modules. Do not merge, fast-forward, push, or
    promote work to `main` unless the operator explicitly asks for `main` in
-   that specific request.
+   that specific request. GitHub default branches remain `main` by design:
+   `main` is the stable previous-release branch, not the normal active
+   promotion target.
 6. Before editing the root `Makefile` or adding root orchestration, read the
    `Root Makefile Contract` below.
 7. Do not add root CLI binaries or network features to this superproject.
