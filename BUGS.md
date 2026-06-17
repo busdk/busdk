@@ -3,11 +3,15 @@
 Track defects/blockers that affect this repo's replay/parity workflows.
 Feature work belongs in `FEATURE_REQUESTS.md`.
 
-**Last reviewed:** 2026-05-03.
+**Last reviewed:** 2026-06-18.
 
 ## Active defects
 
-- [ ] Host-side verification can dirty tracked WASM artifacts in primary
+No known active defects are tracked here as of the last review.
+
+## Fixed defects
+
+- [x] Host-side verification can dirty tracked WASM artifacts in primary
   module checkouts.
   - Reported: 2026-05-17 while supervising parallel GX/UI migration workers.
     After worker review/build activity, `bus-inspection`, `bus-ledger`, and
@@ -25,8 +29,19 @@ Feature work belongs in `FEATURE_REQUESTS.md`.
     tracks `internal/ui/static/assets/app.wasm`, run the normal review command,
     and prove the primary checkout remains clean unless the source change
     intentionally updates the artifact.
-
-## Fixed defects
+  - Verified on 2026-06-18 in the worker-owned product worktree: clean
+    `bus-portal`, `bus-ledger`, and `bus-inspection` checkouts ran
+    `make build-wasm` without dirtying `internal/ui/static/assets/app.wasm` or
+    `internal/ui/static/assets/wasm_exec.js`. Default `bus-portal` `make test`
+    and `make test-e2e` both failed on unrelated contract assertions, but the
+    tracked WASM assets still remained clean. The historical dirty-tree
+    symptom did not reproduce in the direct module targets available here, and
+    the higher-level helper path was confirmed stale: `bus dev work stage
+    commit` now exits immediately with `bus-dev: bus dev work was removed; use
+    bus task for task/worker orchestration or bus dev pipeline/action/script
+    for local development workflows`. No current direct/helper path exercised
+    in this worktree dirtied the tracked WASM artifacts, so this item is being
+    closed as stale/cleanup rather than left open as an active product bug.
 
 - [x] Canceled `bus dev task` work could still launch a queued container run.
   - Reported: 2026-05-04 while resetting stale module workers. A canceled
