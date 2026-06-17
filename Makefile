@@ -136,6 +136,7 @@ refresh-tools:
 
 superproject-selftest:
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_busdk_refresh_tools.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_install_freshness.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_services_api_profile_token_files.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_dev_task_supervisor_heartbeat.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_dev_task_docker_compose_config.sh
@@ -149,6 +150,7 @@ superproject-selftest:
 
 superproject-source-selftest:
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_busdk_refresh_tools.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_install_freshness.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_services_api_profile_token_files.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_changed_scope.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_quiet.sh
@@ -596,22 +598,23 @@ install:
 		for pat in $(SKIP_PATTERNS); do \
 			case "$$mod" in $$pat) skip=1;; esac; \
 		done; \
-		if [ "$$skip" -eq 1 ]; then \
-			printf "==> %s (skipped)\n" "$$mod"; \
-			continue; \
-		fi; \
-		if [ -f "$$mod/Makefile" ]; then \
-			bin_name=$${mod##*/}; \
-			src="$$mod/bin/$$bin_name"; \
-			dst="$(DESTDIR)$(BINDIR)/$$bin_name"; \
-			if [ -f "$$src" ] && [ -f "$$dst" ] && [ "$$dst" -nt "$$src" ]; then \
-				printf "==> %s (up-to-date)\n" "$$mod"; \
+			if [ "$$skip" -eq 1 ]; then \
+				printf "==> %s (skipped)\n" "$$mod"; \
 				continue; \
 			fi; \
-			printf "==> %s\n" "$$mod"; \
-			"$(MAKE)" -C "$$mod" install $(MODULE_MAKE_VARS) BINARY="$$mod"; \
-		fi; \
-	done
+			if [ -f "$$mod/Makefile" ]; then \
+				bin_name=$${mod##*/}; \
+				src="$$mod/bin/$$bin_name"; \
+				dst="$(DESTDIR)$(BINDIR)/$$bin_name"; \
+				printf "==> %s\n" "$$mod"; \
+				"$(MAKE)" -C "$$mod" build $(MODULE_MAKE_VARS) BINARY="$$mod"; \
+				if [ -f "$$src" ] && [ -f "$$dst" ] && [ "$$dst" -nt "$$src" ]; then \
+					printf "==> %s (up-to-date)\n" "$$mod"; \
+					continue; \
+				fi; \
+				"$(MAKE)" -C "$$mod" install $(MODULE_MAKE_VARS) BINARY="$$mod"; \
+			fi; \
+		done
 
 clean:
 	@set -eu; \
