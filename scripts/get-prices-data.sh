@@ -206,7 +206,7 @@ def map_dep_token(token):
         return candidate if candidate in module_names else None
     return None
 
-for name, _ in rows:
+def add_makefile_deps(name):
     makefiles = [repo_root / name / "Makefile.local", repo_root / name / "Makefile"]
     for mk_path in makefiles:
         if not mk_path.exists():
@@ -232,7 +232,7 @@ for name, _ in rows:
             line = raw.split("#", 1)[0].strip()
             if not line:
                 continue
-            m = re.match(r"^(MODULE_(?:BIN|SRC)_DEPS)\s*(?::=|\?=|\+=|=)\s*(.*)$", line)
+            m = re.match(r"^(MODULE_SRC_DEPS)\s*(?::=|\?=|\+=|=)\s*(.*)$", line)
             if not m:
                 continue
             rhs = m.group(2).strip()
@@ -242,6 +242,7 @@ for name, _ in rows:
                     continue
                 deps[name].add(mapped)
 
+for name, _ in rows:
     go_mod = repo_root / name / "go.mod"
     if go_mod.exists():
         in_require_block = False
@@ -272,19 +273,8 @@ for name, _ in rows:
                     if mapped and mapped != name:
                         deps[name].add(mapped)
                 continue
-
-            if line.startswith("replace "):
-                rest = line[len("replace "):].strip()
-                if "=>" not in rest:
-                    continue
-                lhs, rhs = rest.split("=>", 1)
-                lhs_tok = lhs.strip().split()[0] if lhs.strip() else ""
-                rhs_tok = rhs.strip().split()[0] if rhs.strip() else ""
-                mapped_lhs = map_dep_token(lhs_tok)
-                mapped_rhs = map_dep_token(rhs_tok)
-                for mapped in (mapped_lhs, mapped_rhs):
-                    if mapped and mapped != name:
-                        deps[name].add(mapped)
+    else:
+        add_makefile_deps(name)
 
 closure_cache = {}
 

@@ -80,6 +80,8 @@ chmod +x "$tmp_costs"
 pricing_output="$(TOTAL_COSTS_CMD="$tmp_costs" scripts/get-prices-data.sh)"
 price_keys="$(printf '%s\n' "$pricing_output" | awk -F= '$1 == "PRICE_MODULE_KEYS" {print $2}')"
 pricing_total="$(printf '%s\n' "$pricing_output" | awk -F= '$1 == "TOTAL_PRICE_EUR" {print $2}')"
+bus_ui_direct_deps="$(printf '%s\n' "$pricing_output" | awk -F= '$1 == "MODULE_BUS_UI_DIRECT_DEPS" {print $2}')"
+bus_ui_all_deps="$(printf '%s\n' "$pricing_output" | awk -F= '$1 == "MODULE_BUS_UI_ALL_DEPS" {print $2}')"
 
 old_ifs="$IFS"
 IFS=,
@@ -87,17 +89,37 @@ set -- $price_keys
 IFS="$old_ifs"
 priced_module_count="$#"
 
-python3 - "$priced_module_count" "$pricing_total" <<'PY'
+python3 - "$priced_module_count" "$pricing_total" "$bus_ui_direct_deps" "$bus_ui_all_deps" <<'PY'
 from decimal import Decimal
 import sys
 
 priced_module_count = int(sys.argv[1])
 pricing_total = Decimal(sys.argv[2])
+bus_ui_direct_deps = set(filter(None, sys.argv[3].split(",")))
+bus_ui_all_deps = set(filter(None, sys.argv[4].split(",")))
 if priced_module_count <= 0:
     raise SystemExit("expected at least one generated price module")
 if pricing_total != Decimal(3):
     raise SystemExit(
         f"date baseline was not included in generated prices: got {pricing_total}, want 3"
+    )
+if bus_ui_direct_deps != {"bus-gx", "bus-help", "bus-update"}:
+    raise SystemExit(
+        "unexpected bus-ui direct source dependencies: "
+        f"got {sorted(bus_ui_direct_deps)}"
+    )
+unexpected_ui_deps = {
+    "bus-accounts",
+    "bus-bfl",
+    "bus-config",
+    "bus-data",
+    "bus-journal",
+    "bus-period",
+} & bus_ui_all_deps
+if unexpected_ui_deps:
+    raise SystemExit(
+        "bus-ui pricing closure includes domain/CLI dependencies: "
+        f"{sorted(unexpected_ui_deps)}"
     )
 PY
 
