@@ -545,4 +545,4 @@
 [submodule "bus-portal-billing"]
 	path = bus-portal-billing
 	url = git@github.com:busdk/bus-portal-billing.git
-	branch = main
+	branch = develop
