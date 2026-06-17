@@ -546,3 +546,7 @@
 	path = bus-portal-billing
 	url = git@github.com:busdk/bus-portal-billing.git
 	branch = develop
+[submodule "bus-integration-holvi"]
+	path = bus-integration-holvi
+	url = git@github.com:busdk/bus-integration-holvi.git
+	branch = develop
