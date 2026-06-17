@@ -1,13 +1,31 @@
 # PLAN.md
 
-- [ ] Bus UI package-boundary refactor from `pkg/uikit` toward `pkg/ui`, `pkg/uiportal`, `pkg/gx`, and module-local packages.
-  - Goal: replace the current mixed compatibility surface with owner-specific packages without doing a blanket import rewrite.
-  - Parallel feature sets:
-    - public `pkg/ui` facade/export alignment for reusable shared UI components
-    - low-level `pkg/gx` foundation extraction for render-tree primitives
-    - Bus-scoped extraction for portal, assistant, terminal, runtime, server, and resource helpers
-    - compatibility-only retention and staged migration for `pkg/uikit`
-  - Acceptance: the symbol-family audit is recorded, the follow-up work is split into concrete module-owned PLAN items, and any code changes are limited to one safe boundary lane at a time with focused tests.
+- [x] Bus UI package-boundary refactor from `pkg/uikit` toward `pkg/ui`, `pkg/uiportal`, `pkg/gx`, and module-local packages.
+  - Evidence: `bus-ui` commit `a2ef55a` deletes the legacy
+    `pkg/uikit` and `pkg/uikit/uikittest` packages. Current audit from the
+    supervisor checkout reports zero production Go imports of
+    `github.com/busdk/bus-ui/pkg/uikit`, zero Go test imports/calls of
+    `pkg/uikit`/`uikittest`, and `go list ./pkg/... ./examples/...` in
+    `bus-ui` lists only public owner packages such as `pkg/ui`,
+    `pkg/assistantui`, `pkg/terminalui`, `pkg/uiportal`, and `pkg/uitest`.
+  - Classification: remaining `uikit` text is docs/catalog/PLAN residue or
+    the stable `assets/uikit.css` asset URL/API field family
+    (`UIKitAssetURL`, `data-uikit-url`), not a live package dependency.
+    Treat stale implementation wording as tracker cleanup, and treat CSS URL
+    renaming as a separate compatibility decision rather than package-boundary
+    removal.
+- [ ] Clean up post-deletion Bus UI `uikit` residue without reopening the
+  removed package.
+  - Scope: current public docs/catalog/PLAN references that still teach
+    `pkg/uikit` or name deleted source files, including
+    `bus-ui/PLAN.md`, `bus-ui/pkg/uicatalog/component_catalog.go`,
+    `bus-ui/pkg/uiartifact/artifact_test.go`, module docs/SDD pages, and
+    product docs that are not explicitly historical.
+  - Acceptance: docs and catalogs point to public owner packages
+    (`pkg/ui`, `pkg/assistantui`, `pkg/terminalui`, `pkg/uiportal`,
+    `pkg/uitest`) or are marked historical; no implementation worker is
+    dispatched for `pkg/uikit`; static audits distinguish package references
+    from accepted `assets/uikit.css` URL strings.
 - [ ] Review root-level remote cleanup salvage artifacts under `logs/remote-worktree-salvage-20260610-13`, especially preserved superproject scripts/profiles and unmerged branch archives. Acceptance: route each preserved root-level patch to the owning module or root plan item, apply only still-useful deltas to `develop`, and record discarded superseded worker branches before deleting the archive.
 - [x] Fix local App Server Bus worker materialization for module-scoped tasks.
   Current `bus workers` lanes can start from stale superproject submodule pins,
@@ -38,10 +56,96 @@
   `bus-integration --provider workers` children reappeared beside the
   Services-owned wrapper/child. Treat that as worker/service lifecycle hygiene,
   not a Repos materialization failure.
-This is the active BusDK superproject work tracker. For the current H100 goal,
-treat `Current Refined Finish Line` as the active priority lane; complete its
-minimum checklist in order, using nested unchecked items under the labeled
-product lane for scoped worker actions before opening older context.
+This is the active BusDK superproject work tracker.
+
+## Worker/Offload Supervisor Queue, 2026-06-17
+
+Current audit result: do not dispatch from stale proof notes alone. The older
+H100/dev-hg smoke transcripts prove useful substrate facts, but they are not
+the current next action when H100 is paused, when service-owned relay is still
+unchecked, or when a note describes behavior already promoted in module plans.
+The accepted `bus-agent-runtime` provider bridge, self-hosted defaulting,
+local-supervisor sync bootstrap, task attachment primitive, and first local
+App Server materialization fixes are evidence to build on, not lanes to reopen
+unless a fresh regression reproduces them.
+
+Run the worker/offload board from this queue until it is superseded by accepted
+module commits and updated pins. Product implementation must be delegated to
+workers or done in worker-owned Git worktrees; this supervisor checkout may
+edit plans, memos, prompts, and review artifacts only.
+
+1. Scheduler/service loop owner: `bus-integration-worker`.
+   - Dispatch next: turn the reusable claim/replay/capacity packages into the
+     stable worker-owned service loop surface.
+   - DoD: one worker-owned branch replaces task-owned worker glue for the
+     steady monitor/reconcile/start cycle, preserves `bus.worker.supervisor.*`
+     naming, proves mixed environment capacity/routing, and passes focused
+     scheduler tests plus `go test ./...`.
+   - Stale-note guard: old `bus-integration-task --supervisor-once` proof is a
+     fixture, not accepted product ownership.
+2. App Server lifecycle productization owner: `bus-integration-worker` with
+   `bus-api-provider-worker` projection checks.
+   - Dispatch next: drive `appserver-exec` through proxied `bus.workers.*`
+     Events on `coding-agent@dev.hg.fi`, including free-port allocation,
+     existing-branch reuse, worker-local `CODEX_HOME`, metadata/log files, and
+     stop/resume status snapshots.
+   - DoD: fresh create/status/message/stop flow produces assistant text or a
+     structured runtime failure, a real worker-owned diff or no-change
+     diagnosis, and API/CLI projections agree without reading remote files.
+   - Stale-note guard: manual dev-hg Spark launcher scripts remain reference
+     artifacts only.
+3. Runtime parity owner: `bus-agent-runtime`, coordinated through
+   `docs/docs/goals/codex-fork.md`.
+   - Dispatch next: build the Codex App Server parity matrix and shared
+     runtime-adapter contract tests for Codex App Server and `bus-agent-runtime`.
+   - DoD: checked-in parity table maps observed worker behavior to
+     implemented/missing/non-goal/unknown, and every missing/unknown worker
+     behavior has an unchecked owner item and fixture or contract test.
+   - Stale-note guard: H100 Gemma real-work proof stays deferred until the
+     operator reopens H100 and local parity gates are green.
+4. Closeout/status/replay hygiene owners: `bus-integration-worker`,
+   `bus-api-provider-worker`, and `bus-worker`.
+   - Dispatch next: split three local regressions into separate worker tasks:
+     stale runtime session projection after service restart, lifecycle request
+     replay creating old workers, and host-side closeout commit when runtime
+     sandbox Git metadata prevents commit finalization.
+   - DoD: restarted services converge old `running` rows to stopped/failed
+     evidence, historical create requests do not relaunch workers, completed
+     dirty-tree runtime closeout can commit on the host boundary, and
+     list/show/status/logs/attach expose redacted diagnostics.
+5. Deterministic evidence/status owner: `bus-dev` with worker integration
+   event producers.
+   - Dispatch next: define and enforce the task-attempt evidence contract
+     across `task show`, `task monitor`, `work status`, and `work stats --all`.
+   - DoD: JSON/text surfaces classify evidence as complete, incomplete, or
+     legacy partial for success, no-change, failed worker, blocked closeout,
+     startup failure, timeout/no-output, stale refusal, and remote launch
+     failure, with requested vs observed model/profile/reasoning and remote
+     identity visible.
+6. Relay/freshness owner: `bus-events`, `bus-remote`, `bus-dev`, root scripts,
+   and deployment modules.
+   - Dispatch next: service-owned relay status plus make-owned service
+     freshness proof, so local/dev-hg work does not depend on `--sync-now`,
+     stale installed binaries, or hidden dispatcher paths.
+   - DoD: relay cursors/counters/route identity survive restart without replay
+     storms, `bus-dev` prefers relay-service health, and the proof gate reports
+     live process path/version/commit or explicit inspection-unavailable
+     diagnostics.
+7. Repeatable dev-hg/H100/offload proof owner: root supervisor after items 1,
+   2, 5, and 6 have accepted local or dev-hg evidence.
+   - Dispatch next only when prerequisites are green and H100 use is allowed:
+     issue a local task, relay it to the selected remote, let remote-local Bus
+     services claim/start/complete, sync terminal evidence and artifacts back,
+     review through task attachments, then promote/pin accepted work.
+   - DoD: proof records task ref, remote id/kind, model/reasoning, worker id,
+     branch/commit or structured no-change, verification commands, artifact
+     ids/extraction command, cleanup state, and no manual `scp` or ad hoc shell
+     correction except recorded break-glass defects.
+
+For the older H100 section below, treat `Current Refined Finish Line` as
+historical context plus the eventual proof checklist. Do not spend paid or
+fragile remote time until the service-owned queue above has produced the local
+or dev-hg evidence needed to make that proof repeatable.
 
 ## Codex Fork / Bus Agent Runtime Parity Goal
 
@@ -76,6 +180,34 @@ profiles, inspect the live process executable path from an environment that can
 see the processes, and compare command version/commit metadata against the
 expected source commits. `bus services` may report and verify service state, but
 must not build product binaries.
+
+Implementation-ready split:
+
+- Root Makefile freshness: worker owns `Makefile` and
+  `tests/superproject/test_*freshness*.sh` or a new focused superproject test.
+  Reproduce the stale case where `$(BINDIR)/bus-api` is newer than
+  `bus-api/bin/bus-api` while `bus-api` source is newer than its bin artifact;
+  `make install` must rebuild through the module Makefile before deciding the
+  installed binary is current. Checks: `make -s install CHANGED_MODULES=...`
+  fixture proof, scoped `SKIP_MODULES` proof, and
+  `make superproject-source-selftest` if the new test is included there.
+- Service-critical build metadata: workers split by module family. First add a
+  shared version metadata contract to the dispatcher/critical binaries, then
+  wire `bus`, `bus-api`, `bus-integration`, `bus-worker`/`bus-workers`,
+  `bus-services`, `bus-integration-services`, and service-critical integration
+  commands. Checks: focused `--version --format json` or equivalent tests in
+  each owning module plus a root installed-binary current-commit proof.
+- Services liveness and process identity: `bus-integration-services` owns
+  native status inspection, child executable/path/version capture, and
+  machine-readable inspection diagnostics; `bus-services` owns CLI/status
+  projection only. Checks: focused `ESRCH` versus `EPERM`/inspection-denied
+  tests, JSON status shape tests, and no secret environment values in state.
+- Make-owned proof gate: root owns `make services-refresh-proof` after the
+  preceding metadata exists. It must build/install, restart through
+  dispatcher-first Services profiles, inspect live PIDs from an environment
+  that can see them, compare dispatcher and resolved child identities, and fail
+  closed on stale or uninspectable processes unless an explicit diagnostic is
+  emitted.
 
 - [ ] Fix root `make install` freshness end to end: remove the root-level
   installed-binary-newer-than-module-bin shortcut or run the module build before
@@ -130,6 +262,27 @@ task and Notes operation events to the remote Events API, imports remote-origin
 claim/progress/terminal/lifecycle evidence back, persists checkpoints, and
 reports enough status for `bus-dev` and supervisors to know whether routing is
 healthy.
+
+Implementation-ready split:
+
+- `bus-events`: promote the existing local/testable `bus events relay` command
+  into a deployable service mode that reads route definitions derived from Bus
+  remote/environment metadata, keeps explicit durable state files, exposes
+  status JSON, and proves restart/resume/no-loop behavior.
+- `bus-services` plus `bus-integration-services`: make the normal
+  `services.yml` profile able to start the relay without proof-specific route
+  files or embedded secrets, and expose profile/status metadata for route id,
+  local/destination environment ids, state path, credential-source labels, and
+  health counters.
+- `bus-operator-deploy`: install/update the relay as part of the normal
+  user-systemd development-host profile, including config/token-file refs and
+  status diagnostics; do not require process-global `BUS_API_TOKEN`.
+- `bus-dev`: consume relay health/checkpoints for remote status/start UX and
+  treat `--sync-now` as recovery/debug once the service relay is healthy.
+- Live proof: one normal local-to-dev-hg or local-to-H100 stack creates a local
+  task, relays to remote, sees remote claim/progress/terminal Events, relays
+  evidence back, and shows local status/stats without manual import/export or
+  proof-only relay config.
 
 Current supervisor-host topology: this macOS supervisor checkout should run the
 local Bus control/Event infrastructure used for task submission, status, and
@@ -341,6 +494,17 @@ task, session, tag, source, and origin environment/system.
     - `bus-notes`: expose CLI/API query filters for module, task, session, tag,
       source kind/ref, and origin so worker notes remain discoverable after
       remote sync.
+  - Implementation-ready ordering:
+    1. `bus-events` adds the durable backend contract plus memory restart export
+       guard for visible `bus.dev.task.*` and `bus.notes.*` operation Events.
+    2. `bus-api` refuses normal service startup with implicit in-memory Events
+       unless explicitly marked disposable/test, and reports storage kind in
+       readiness/status.
+    3. `bus-operator-deploy` calls the memory export guard before
+       user-systemd install/update/restart touches a memory-backed Events
+       service, or records an explicit discard decision.
+    4. Notes modules move writes/projection/query onto the Events-backed path
+       after the storage and relay substrate can preserve operation Events.
   - Acceptance: a local-to-remote fixture or live dev-hg/H100 smoke creates a
     task and worker note, syncs out and back, restarts the relevant Events and
     Notes services, and then proves task Events and Notes can still be queried

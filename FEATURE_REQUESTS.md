@@ -14,14 +14,8 @@ Goal note:
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 ## Active requests
-- add a first-class `bus reports closing-review` report that assembles tilinpäätös preparation and review findings into one deterministic markdown/json review artifact without changing existing statutory statement commands
-- improve AI-annotated `bus-reports` `*-accounts` report usability and throughput beyond the shipped 4-way parallelism: remove bold emphasis from PDF AI child rows, expose an operator-facing fast-model / AI-runtime tuning surface, and implement the highest-signal measured speedups while preserving deterministic visible row order and same-run PDF/CSV AI result reuse
-- extract a reusable shared AI host library in `bus-agent` and/or `bus-ui` for approval handling, terminal-session state, thread-isolation/lock reporting, streamed agent event propagation, and runtime auth/login handling, then migrate `bus-chat`, `bus-ledger`, `bus-factory`, and `bus-portal` to consume that shared implementation instead of keeping per-host copies
-- add a first-class configurable Codex local-model contract across BusDK AI hosts so modules such as `bus-ledger`, `bus-portal`, and other `bus-agent` consumers can target operator-selected local models like Gemma 4 without losing current hosted-model defaults
-- add `bus-chat` as a supported optional service in `bus-gateway`, including service-catalog setup, launcher visibility, and authenticated proxy launch flow
 - add first-class Bus worker identity templates so worker creation can choose a reusable identity repo/base ref by template, model, profile, or environment, for example mapping GPT-5.4 workers to an `agents/worker:gpt54` base, while preserving old runtime `AGENTS.md`, prompts, metadata, logs, and failure traces as run history instead of cloning or discarding them
 - finish the remaining Bus Events ecosystem route-discovery and delivery-policy work: wire declared event capabilities into `bus-api` REST-to-event route validation/discovery, then define terminal-failure, dead-letter, and operator-diagnostic semantics for work-queue delivery while keeping the current memory/Redis/PostgreSQL backend set until a concrete new backend is requested
-- complete shared `bus-auth` AI Platform session support as a `bus-agent` provider/auth option for host modules that call OpenAI-compatible `/v1/*` endpoints, without removing existing providers or weakening the already implemented domain API ownership boundaries
 
 ### Add reusable worker identity templates and model/profile-based identity base selection
 
@@ -58,6 +52,23 @@ Requested capability:
   traces, task refs, model/runtime facts, and extracted lessons should be
   archived or indexed before bulky runtime cache cleanup.
 
+Acceptance:
+- `bus workers create` and the Workers API can select a template explicitly
+  and can infer one from model/profile/environment only when the match is
+  unambiguous; ambiguous inference fails with a stable diagnostic.
+- Worker status/list/show surfaces record the selected template id, model,
+  profile, identity repository reference, and identity base ref without
+  leaking local paths, tokens, prompts, or task-specific runtime state.
+- A fixture or e2e flow proves at least two templates can use different
+  identity repositories or base refs in the same Workers service without
+  requiring separate service processes.
+- Completed worker runtime records remain inspectable as run history while new
+  identities are initialized only from the configured durable template source,
+  not by cloning old task runtime directories.
+- Module tests cover the template contract across `bus-worker`,
+  `bus-api-provider-worker`, `bus-integration-worker`, and any shared
+  repository-reference helper package.
+
 Why this matters:
 - Operators need a small standing team of reusable worker identities instead
   of always creating one-off workers.
@@ -69,34 +80,50 @@ Why this matters:
 - This is safer than cloning an existing runtime directory because templates
   copy only durable identity defaults, not transient task execution state.
 
-### Support native statutory profit-and-loss lines for nonstandard tax-like adjustments without legacy mapping
+### Finish Bus Events route discovery and delivery-policy diagnostics
 
 Problem:
-- This repo no longer wants to use legacy `report-account-mapping`.
-- Current Bus statutory profit-and-loss generation is expected to rely on native account groups (`accounts.group_id` plus `account-groups.csv`).
-- We have a real sole-proprietor source case on `9950 Aiempien tilikausien verot` where the ledger posting should remain as source parity, but the account should not be shown under `pl_income_taxes / Tuloverot`.
-
-What fails today:
-- If `9950 Aiempien tilikausien verot` stays on `pl_income_taxes / Tuloverot`, Bus generates a visible `TULOVEROT` subtotal in the statutory profit-and-loss even when the desired presentation is different.
-- If the account is moved to a custom native group such as `pl_prior_year_tax_adjustments`, statutory profit-and-loss generation fails with `FR-REP-007` because the custom group has no visible statutory line.
-- If the account is moved to some other existing visible line such as `pl_other_operating_income`, statutory profit-and-loss generation can fail `FR-REP-010` because the profit-and-loss presentation no longer reconciles cleanly to the balance-sheet equity change.
+- Bus providers already declare capability documents, but the aggregate
+  `bus-api` HTTP/Event routing layer still needs to use those declarations as
+  the authoritative source for REST-to-event route validation and discovery.
+- Work-queue delivery has basic backend support, but operators still need
+  deterministic terminal-failure, dead-letter, and diagnostic semantics when a
+  request cannot be delivered, is abandoned, or repeatedly fails.
 
 Requested capability:
-- Allow native account-group based statutory profit-and-loss layouts to expose an explicit visible line for these nonstandard tax-like adjustments without requiring legacy `report-account-mapping`.
-- In practice Bus needs one of these native solutions:
-  - a supported standard statutory line id for cases like `Aiempien tilikausien verot ja palautukset`, or
-  - a way to mark a custom native account group as a visible statutory line in the profit-and-loss layout, or
-  - a first-class native classification layer that is not the removed legacy mapping model but still lets operators place exceptional accounts on a specific visible statutory line.
+- Teach `bus-api` to expose and validate discovered provider routes from the
+  declared capability set. Unknown, unsafe, disabled, or backend-unavailable
+  routes should fail with stable machine-readable diagnostics rather than
+  falling through to ad hoc provider behavior.
+- Define work-queue terminal states for retry exhaustion, handler rejection,
+  malformed payloads, authorization failures, and backend errors. Include a
+  dead-letter or equivalent operator-readable record with event id, route id,
+  provider/source labels, safe failure code, timestamps, retry count, and
+  correlation id, without leaking token values or request secrets.
+- Expose script-friendly operator diagnostics through existing Bus API/Events
+  discovery or status surfaces so supervisors can tell whether a missing route,
+  failed delivery, or dead-letter record is a routing/configuration issue, an
+  auth issue, or a provider/runtime issue.
 
-Why this matters:
-- In this repo, the accounting source should stay unchanged, but the statutory presentation should still be controllable without legacy report-mapping debt.
-- The current gap forces an unacceptable choice between:
-  - wrong presentation under `Tuloverot`
-  - hidden/unmapped groups that fail `FR-REP-007`
-  - or repointing the account to an unrelated visible line and risking `FR-REP-010`.
+Acceptance:
+- Unit and e2e coverage proves dynamic provider capability additions appear in
+  discovery and route validation without changing `bus-api` routing code.
+- Tests cover missing route, unauthorized route, unsafe/disabled route,
+  terminal worker failure, dead-letter replay/listing, and operator diagnostic
+  output across the currently supported memory, Redis, and PostgreSQL Events
+  backends, with explicit skips for unavailable external services.
+- Documentation explains the route-discovery contract and delivery terminal
+  state vocabulary without requesting a new Events backend.
 
 ## Implemented requests
 
+- add a first-class `bus reports closing-review` report: `bus-reports` now owns the deterministic markdown/json closing-review command with unit/e2e coverage and documentation
+- improve AI-annotated `bus-reports` `*-accounts` report usability and throughput: PDF AI child-row emphasis was removed, fast-model/runtime tuning is exposed, bounded parallelism and measured speedups are implemented, and same-run PDF/CSV AI result reuse is covered
+- extract a reusable shared AI host library in `bus-agent`/`bus-ui`: shared approval handling, terminal-session state, thread-isolation/lock reporting, streamed agent event propagation, runtime auth/login handling, and host migrations for `bus-chat`, `bus-ledger`, `bus-factory`, and `bus-portal` are tracked as completed in owning module plans
+- add a first-class configurable Codex local-model contract across BusDK AI hosts: `bus-agent` owns the runtime/model preference contract and host modules such as `bus-ledger` and `bus-factory` document/use it while preserving hosted defaults
+- add `bus-chat` as a supported optional service in `bus-gateway`: the gateway catalog, launcher visibility, trusted proxy launch flow, docs, unit tests, and e2e coverage are implemented
+- complete shared `bus-auth` AI Platform session support as a `bus-agent` provider/auth option for OpenAI-compatible `/v1/*` host modules, with reusable token/session loading, redaction helpers, docs, tests, and local OpenAI-compatible stub e2e coverage
+- support native statutory profit-and-loss placement for nonstandard tax-like adjustments without legacy mapping: `bus-reports` now handles cases such as `Aiempien tilikausien verot` through native account-group/statutory-line behavior with FR-REP-007/FR-REP-010 coverage
 - add metadata-driven Bus help and configuration discovery: `bus-help` owns shared OpenCLI-compatible metadata structs and live discovery, `bus-configure` consumes command stdout for metadata-driven `.env` workflows, and representative module-owned metadata including `bus-journal` is implemented with module/unit/e2e coverage
 - add `bus-work` as the generic Bus Events-backed durable work-stream module: the module owned `new/list/next/show/watch/wait/say/close/fail/block`, multi-recipient fan-out, human refs, replay/follow behavior, dedicated `bus.work.*` scopes, and generic protocol docs while keeping `bus dev task` separate; this implementation has since been retired and removed in favor of `bus-task` and `bus-worker`
 - add opt-in/operator-friendly normalized text matching for `bus files assert cell` and related assertion surfaces: string matching now trims and normalizes whitespace by default, with strict flags for exact whitespace and case-sensitive behavior
