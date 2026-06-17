@@ -542,3 +542,7 @@
 	path = bus-top
 	url = git@github.com:busdk/bus-top.git
 	branch = develop
+[submodule "bus-portal-billing"]
+	path = bus-portal-billing
+	url = git@github.com:busdk/bus-portal-billing.git
+	branch = main
