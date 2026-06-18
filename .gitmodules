@@ -331,9 +331,10 @@
 	path = bus-portal-auth
 	url = git@github.com:busdk/bus-portal-auth.git
 	branch = develop
-[submodule "bus-portal-ai"]
-	path = bus-portal-ai
-	url = git@github.com:busdk/bus-portal-ai.git
+[submodule "bus-portal-tasks"]
+	path = bus-portal-tasks
+	url = git@github.com:busdk/bus-portal-tasks.git
+	branch = develop
 	branch = develop
 [submodule "bus-api-provider-terminal"]
 	path = bus-api-provider-terminal
@@ -549,4 +550,12 @@
 [submodule "bus-integration-holvi"]
 	path = bus-integration-holvi
 	url = git@github.com:busdk/bus-integration-holvi.git
+	branch = develop
+[submodule "bus-portal-terminal"]
+	path = bus-portal-terminal
+	url = git@github.com:busdk/bus-portal-terminal.git
+	branch = develop
+[submodule "bus-portal-theme"]
+	path = bus-portal-theme
+	url = git@github.com:busdk/bus-portal-theme.git
 	branch = develop
