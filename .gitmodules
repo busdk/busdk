@@ -335,7 +335,6 @@
 	path = bus-portal-tasks
 	url = git@github.com:busdk/bus-portal-tasks.git
 	branch = develop
-	branch = develop
 [submodule "bus-api-provider-terminal"]
 	path = bus-api-provider-terminal
 	url = git@github.com:busdk/bus-api-provider-terminal.git
