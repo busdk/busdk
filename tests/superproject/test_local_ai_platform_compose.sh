@@ -18,7 +18,7 @@ if ! docker compose version >/dev/null 2>&1; then
     exit 0
 fi
 
-docker compose --env-file .env.example -f compose.yaml config > "$tmp_dir/compose.config"
+SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-}" docker compose --env-file .env.example -f compose.yaml --profile dev-task config > "$tmp_dir/compose.config"
 
 for service in postgres mailhog bus-events bus-auth bus-usage-api bus-usage-worker bus-billing-api bus-billing-worker bus-notes-api bus-stripe bus-vm bus-containers bus-docker bus-integration-task bus-codex bus-llm nginx testing-agent; do
     grep -q "^[[:space:]]*$service:" "$tmp_dir/compose.config"
