@@ -10,18 +10,20 @@ ok_count=0
 skip_count=0
 fail_count=0
 jobs=8
+verbose=0
 targets=()
 
 usage() {
   cat <<'EOF'
-Usage: scripts/sync-submodules.sh [--pull-only|--push-only] [--no-pull] [--no-push] [--jobs N] [path ...]
+Usage: scripts/sync-submodules.sh [--pull-only|--push-only] [--no-pull] [--no-push] [--jobs N] [--verbose] [path ...]
 
 Synchronize the BusDK superproject and submodules in one pass.
 
-By default this pulls with --ff-only and then pushes the superproject plus every
-submodule listed in .gitmodules, running targets in parallel batches. If path
-arguments are given, only those paths are synchronized. Use "." to include the
-superproject in a focused run.
+By default this quietly pulls with --ff-only and then pushes the superproject
+plus every submodule listed in .gitmodules, running targets in parallel
+batches. If path arguments are given, only those paths are synchronized. Use "."
+to include the superproject in a focused run. Pass --verbose to print each
+target and the final success summary.
 EOF
 }
 
@@ -52,6 +54,9 @@ while [ "$#" -gt 0 ]; do
         exit 2
       fi
       jobs="$1"
+      ;;
+    --verbose)
+      verbose=1
       ;;
     --)
       shift
@@ -163,7 +168,9 @@ sync_one() {
     return 2
   fi
 
-  echo "syncing $dir [$branch -> $upstream]"
+  if [ "$verbose" -eq 1 ]; then
+    echo "syncing $dir [$branch -> $upstream]"
+  fi
   if [ "$do_pull" -eq 1 ]; then
     if ! run_git_step "$dir" pull pull --ff-only; then
       return 1
@@ -222,5 +229,7 @@ if [ "${#pids[@]}" -gt 0 ]; then
   collect_batch
 fi
 
-echo "sync-submodules: ok=$ok_count skipped=$skip_count failed=$fail_count total=${#targets[@]}"
+if [ "$status" -ne 0 ] || [ "$verbose" -eq 1 ]; then
+  echo "sync-submodules: ok=$ok_count skipped=$skip_count failed=$fail_count total=${#targets[@]}"
+fi
 exit "$status"
