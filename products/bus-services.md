@@ -40,7 +40,7 @@ it down without guessing.
 Primary outcomes:
 
 - A user starts a project stack with `bus services up`.
-- A user verifies status with `bus services ps`.
+- A user verifies status with `bus services list`.
 - A user stops the exact running stack with `bus services down`.
 - A project replaces manual setup notes with a maintained `services.yml`.
 - A developer runs services such as PostgreSQL, a local API process, an event
@@ -93,7 +93,7 @@ Bus Services offers a project service-stack workflow:
 - Public `services.yml` stack files.
 - Runtime profiles for service definitions.
 - `bus services up` for normal startup.
-- `bus services ps` for non-secret service status.
+- `bus services list` for non-secret service status.
 - `bus services down` for stopping the resolved running stack.
 - Lower-level `bus-services stack validate`, `plan`, `up`, and `down` commands
   for explicit stack-file workflows and test smoke checks.
@@ -171,7 +171,7 @@ or another explicit security layer.
 
 Current proof should stay close to implemented or documented behavior:
 
-- `bus services up`, `bus services ps`, and `bus services down` are the normal
+- `bus services up`, `bus services list`, and `bus services down` are the normal
   operator entrypoints.
 - `bus-services stack validate --file services.yml` validates syntax and
   references.
@@ -274,7 +274,7 @@ Primary CTA:
 
 ```sh
 bus services up
-bus services ps
+bus services list
 ```
 
 Secondary CTAs:
@@ -296,8 +296,8 @@ Product marketing should be judged by:
 - Quickstart completion rate for projects and BusDK products that depend on
   services.
 - Number of projects with a `services.yml`.
-- Successful `bus services up` followed by healthy `bus services ps`.
-- Repeat usage of `up`, `ps`, and `down`.
+- Successful `bus services up` followed by healthy `bus services list`.
+- Repeat usage of `up`, `list`, and `down`.
 - Fewer support issues caused by manual startup steps.
 - Fewer docs that require hand-starting local services.
 - Reduced time from checkout to running local service stack.

@@ -1,5 +1,6 @@
 # PLAN.md
 
+- [x] 2026-06-18: update the Bus Services product brief to make `bus services list` the normal status command while preserving `ps` only as a compatibility alias in CLI/docs surfaces.
 - [x] Bus UI package-boundary refactor from `pkg/uikit` toward `pkg/ui`, `pkg/uiportal`, `pkg/gx`, and module-local packages.
   - Evidence: `bus-ui` commit `a2ef55a` deletes the legacy
     `pkg/uikit` and `pkg/uikit/uikittest` packages. Current audit from the
