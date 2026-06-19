@@ -137,6 +137,93 @@ run_git_step() {
   return 1
 }
 
+submodule_conflict_paths() {
+  local dir="$1"
+  git -C "$dir" ls-files -u | awk '$1 == "160000" { print $4 }' | sort -u
+}
+
+has_non_submodule_conflicts() {
+  local dir="$1"
+  [ -n "$(git -C "$dir" ls-files -u | awk '$1 != "160000" { print; exit }')" ]
+}
+
+resolve_rebase_submodule_conflicts() {
+  local dir="$1"
+  local original_head="$2"
+  local path
+  local desired_rev
+  local ours_rev
+  local theirs_rev
+  local paths
+
+  paths="$(submodule_conflict_paths "$dir")"
+  if [ -z "$paths" ] || has_non_submodule_conflicts "$dir"; then
+    return 1
+  fi
+
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    desired_rev="$(git -C "$dir" rev-parse "$original_head:$path" 2>/dev/null)" || return 1
+    ours_rev="$(git -C "$dir" ls-files -u -- "$path" | awk '$3 == 2 { print $2; exit }')"
+    theirs_rev="$(git -C "$dir" ls-files -u -- "$path" | awk '$3 == 3 { print $2; exit }')"
+    if [ -z "$desired_rev" ] || [ -z "$ours_rev" ] || [ -z "$theirs_rev" ]; then
+      return 1
+    fi
+    if ! git -C "$dir/$path" cat-file -e "$desired_rev^{commit}" 2>/dev/null; then
+      return 1
+    fi
+    if ! git -C "$dir/$path" merge-base --is-ancestor "$ours_rev" "$desired_rev" 2>/dev/null; then
+      return 1
+    fi
+    if ! git -C "$dir/$path" merge-base --is-ancestor "$theirs_rev" "$desired_rev" 2>/dev/null; then
+      return 1
+    fi
+    if ! git -C "$dir/$path" checkout -q "$desired_rev"; then
+      return 1
+    fi
+    if ! git -C "$dir" update-index --cacheinfo 160000 "$desired_rev" "$path"; then
+      return 1
+    fi
+  done <<<"$paths"
+
+  [ -z "$(git -C "$dir" ls-files -u)" ]
+}
+
+rebase_with_submodule_resolution() {
+  local dir="$1"
+  local upstream="$2"
+  local original_head
+  local log
+
+  original_head="$(git -C "$dir" rev-parse HEAD 2>/dev/null)" || return 1
+  log="$(mktemp "${TMPDIR:-/tmp}/sync-submodules.XXXXXX")" || return 1
+  if git -C "$dir" rebase "$upstream" >"$log" 2>&1; then
+    rm -f "$log"
+    return 0
+  fi
+
+  while has_rebase_or_merge "$dir"; do
+    if ! resolve_rebase_submodule_conflicts "$dir" "$original_head"; then
+      echo "warning: rebase failed for $dir: git rebase $upstream" >&2
+      print_log "$log"
+      rm -f "$log"
+      run_git_step "$dir" "rebase abort" rebase --abort >/dev/null 2>&1 || true
+      return 1
+    fi
+    : >"$log"
+    if git -C "$dir" -c core.editor=true rebase --continue >"$log" 2>&1; then
+      rm -f "$log"
+      return 0
+    fi
+  done
+
+  echo "warning: rebase failed for $dir: git rebase $upstream" >&2
+  print_log "$log"
+  rm -f "$log"
+  run_git_step "$dir" "rebase abort" rebase --abort >/dev/null 2>&1 || true
+  return 1
+}
+
 sync_pull() {
   local dir="$1"
   local upstream="$2"
@@ -169,11 +256,10 @@ sync_pull() {
     return 0
   fi
 
-  if run_git_step "$dir" rebase rebase "$upstream"; then
+  if rebase_with_submodule_resolution "$dir" "$upstream"; then
     return 0
   fi
 
-  run_git_step "$dir" "rebase abort" rebase --abort >/dev/null 2>&1 || true
   return 1
 }
 
