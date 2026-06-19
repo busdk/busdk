@@ -175,9 +175,6 @@ resolve_rebase_submodule_conflicts() {
     if ! git -C "$dir/$path" merge-base --is-ancestor "$ours_rev" "$desired_rev" 2>/dev/null; then
       return 1
     fi
-    if ! git -C "$dir/$path" merge-base --is-ancestor "$theirs_rev" "$desired_rev" 2>/dev/null; then
-      return 1
-    fi
     if ! git -C "$dir/$path" checkout -q "$desired_rev"; then
       return 1
     fi
