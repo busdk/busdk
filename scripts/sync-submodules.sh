@@ -147,13 +147,36 @@ has_non_submodule_conflicts() {
   [ -n "$(git -C "$dir" ls-files -u | awk '$1 != "160000" { print; exit }')" ]
 }
 
+checkout_submodule_resolution() {
+  local dir="$1"
+  local path="$2"
+  local desired_rev="$3"
+  local branch
+  local candidate
+
+  branch="$(current_branch "$dir/$path")"
+  if [ -n "$branch" ] && [ "$(git -C "$dir/$path" rev-parse "$branch" 2>/dev/null)" = "$desired_rev" ]; then
+    git -C "$dir/$path" checkout -q "$branch"
+    return "$?"
+  fi
+
+  while IFS= read -r candidate; do
+    [ -n "$candidate" ] || continue
+    if [ "$(git -C "$dir/$path" rev-parse "$candidate" 2>/dev/null)" = "$desired_rev" ]; then
+      git -C "$dir/$path" checkout -q "$candidate"
+      return "$?"
+    fi
+  done < <(git -C "$dir/$path" for-each-ref --format='%(refname:short)' refs/heads)
+
+  git -C "$dir/$path" checkout -q "$desired_rev"
+}
+
 resolve_rebase_submodule_conflicts() {
   local dir="$1"
   local original_head="$2"
   local path
   local desired_rev
   local ours_rev
-  local theirs_rev
   local paths
 
   paths="$(submodule_conflict_paths "$dir")"
@@ -165,8 +188,7 @@ resolve_rebase_submodule_conflicts() {
     [ -n "$path" ] || continue
     desired_rev="$(git -C "$dir" rev-parse "$original_head:$path" 2>/dev/null)" || return 1
     ours_rev="$(git -C "$dir" ls-files -u -- "$path" | awk '$3 == 2 { print $2; exit }')"
-    theirs_rev="$(git -C "$dir" ls-files -u -- "$path" | awk '$3 == 3 { print $2; exit }')"
-    if [ -z "$desired_rev" ] || [ -z "$ours_rev" ] || [ -z "$theirs_rev" ]; then
+    if [ -z "$desired_rev" ] || [ -z "$ours_rev" ]; then
       return 1
     fi
     if ! git -C "$dir/$path" cat-file -e "$desired_rev^{commit}" 2>/dev/null; then
@@ -175,7 +197,7 @@ resolve_rebase_submodule_conflicts() {
     if ! git -C "$dir/$path" merge-base --is-ancestor "$ours_rev" "$desired_rev" 2>/dev/null; then
       return 1
     fi
-    if ! git -C "$dir/$path" checkout -q "$desired_rev"; then
+    if ! checkout_submodule_resolution "$dir" "$path" "$desired_rev"; then
       return 1
     fi
     if ! git -C "$dir" update-index --cacheinfo 160000 "$desired_rev" "$path"; then
