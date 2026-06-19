@@ -19,11 +19,12 @@ Usage: scripts/sync-submodules.sh [--pull-only|--push-only] [--no-pull] [--no-pu
 
 Synchronize the BusDK superproject and submodules in one pass.
 
-By default this quietly pulls with --ff-only and then pushes the superproject
-plus every submodule listed in .gitmodules, running targets in parallel
-batches. If path arguments are given, only those paths are synchronized. Use "."
-to include the superproject in a focused run. Pass --verbose to print each
-target and the final success summary.
+By default this quietly fetches, fast-forwards when possible, rebases cleanly
+diverged branches onto their upstreams when possible, and then pushes the
+superproject plus every submodule listed in .gitmodules, running targets in
+parallel batches. If path arguments are given, only those paths are
+synchronized. Use "." to include the superproject in a focused run. Pass
+--verbose to print each target and the final success summary.
 EOF
 }
 
@@ -136,6 +137,46 @@ run_git_step() {
   return 1
 }
 
+sync_pull() {
+  local dir="$1"
+  local upstream="$2"
+  local local_rev
+  local upstream_rev
+  local base_rev
+  local upstream_remote
+
+  upstream_remote="${upstream%%/*}"
+
+  if ! run_git_step "$dir" fetch fetch "$upstream_remote"; then
+    return 1
+  fi
+
+  local_rev="$(git -C "$dir" rev-parse HEAD 2>/dev/null)" || return 1
+  upstream_rev="$(git -C "$dir" rev-parse "$upstream" 2>/dev/null)" || return 1
+
+  if [ "$local_rev" = "$upstream_rev" ]; then
+    return 0
+  fi
+
+  base_rev="$(git -C "$dir" merge-base HEAD "$upstream" 2>/dev/null)" || return 1
+
+  if [ "$local_rev" = "$base_rev" ]; then
+    run_git_step "$dir" fast-forward merge --ff-only "$upstream"
+    return "$?"
+  fi
+
+  if [ "$upstream_rev" = "$base_rev" ]; then
+    return 0
+  fi
+
+  if run_git_step "$dir" rebase rebase "$upstream"; then
+    return 0
+  fi
+
+  run_git_step "$dir" "rebase abort" rebase --abort >/dev/null 2>&1 || true
+  return 1
+}
+
 sync_one() {
   local dir="$1"
   local branch
@@ -172,7 +213,7 @@ sync_one() {
     echo "syncing $dir [$branch -> $upstream]"
   fi
   if [ "$do_pull" -eq 1 ]; then
-    if ! run_git_step "$dir" pull pull --ff-only; then
+    if ! sync_pull "$dir" "$upstream"; then
       return 1
     fi
   fi
