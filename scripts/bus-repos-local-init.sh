@@ -8,11 +8,16 @@ identity_repo=${BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO:-"$product_repo/agents/w
 product_base=${BUS_WORKERS_DIRECT_BASE_REF:-HEAD}
 identity_base=${BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF:-HEAD}
 stack_dir=$(cd "${BUS_SERVICES_STACK_DIR:-.}" && pwd -P)
+if [ -n "${BUS_SERVICES_BUS_DIR:-}" ]; then
+  root_dir=$(cd "$(dirname "$BUS_SERVICES_BUS_DIR")" && pwd -P)
+else
+  root_dir=$stack_dir
+fi
 
 abs_path() {
   case $1 in
     /*) printf '%s' "$1" ;;
-    *) printf '%s/%s' "$stack_dir" "$1" ;;
+    *) printf '%s/%s' "$root_dir" "$1" ;;
   esac
 }
 
