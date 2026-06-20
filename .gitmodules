@@ -558,3 +558,15 @@
 	path = bus-portal-theme
 	url = git@github.com:busdk/bus-portal-theme.git
 	branch = develop
+[submodule "bus-integration-identities"]
+	path = bus-integration-identities
+	url = git@github.com:busdk/bus-integration-identities.git
+	branch = main
+[submodule "bus-api-provider-identities"]
+	path = bus-api-provider-identities
+	url = git@github.com:busdk/bus-api-provider-identities.git
+	branch = main
+[submodule "bus-identities"]
+	path = bus-identities
+	url = git@github.com:busdk/bus-identities.git
+	branch = main
