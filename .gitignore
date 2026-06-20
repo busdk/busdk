@@ -39,6 +39,7 @@ bin/
 tmp/
 .bus/secrets
 .bus/events/
+.bus/repos/
 .bus/tokens/
 .tmp*
 .cache
