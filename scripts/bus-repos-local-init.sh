@@ -7,6 +7,19 @@ product_repo=${BUS_WORKERS_DIRECT_REPO_ROOT:-${BUS_SERVICES_STACK_DIR:-.}}
 identity_repo=${BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO:-"$product_repo/agents/worker"}
 product_base=${BUS_WORKERS_DIRECT_BASE_REF:-HEAD}
 identity_base=${BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF:-HEAD}
+stack_dir=$(cd "${BUS_SERVICES_STACK_DIR:-.}" && pwd -P)
+
+abs_path() {
+  case $1 in
+    /*) printf '%s' "$1" ;;
+    *) printf '%s/%s' "$stack_dir" "$1" ;;
+  esac
+}
+
+config_path=$(abs_path "$config_path")
+storage_root=$(abs_path "$storage_root")
+product_repo=$(abs_path "$product_repo")
+identity_repo=$(abs_path "$identity_repo")
 
 if [ -f "$config_path" ]; then
   exit 0
