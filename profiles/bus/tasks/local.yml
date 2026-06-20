@@ -43,6 +43,7 @@ runtime:
     - name: BUS_API_TOKEN
       description: Bearer token used by the integration host when calling the Bus Events API.
       value_from: env:BUS_API_TOKEN
+      default: " "
     - name: BUS_TASKS_ENVIRONMENT_ID
       description: Environment id stamped on Tasks integration data.
       value_from: env:BUS_TASKS_ENVIRONMENT_ID

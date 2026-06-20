@@ -24,7 +24,7 @@ runtime:
     - --token
     - "{param:capability_token}"
     - --port
-    - "8081"
+    - "{env:BUS_EVENTS_PORT}"
     - --provider
     - events
   env:
@@ -44,12 +44,16 @@ runtime:
     - name: BUS_EVENTS_POSTGRES_DSN
       description: PostgreSQL connection string used as the durable Events backend.
       value_from: env:BUS_EVENTS_POSTGRES_DSN
+    - name: BUS_EVENTS_PORT
+      description: TCP port for this Bus Events API process.
+      value_from: env:BUS_EVENTS_PORT
+      default: "8081"
   ports:
     - name: events-api
       protocol: tcp
       target: 8081
       host: 127.0.0.1
   healthcheck:
-    tcp_port: 8081
+    tcp_port_from: env:BUS_EVENTS_PORT
     interval: 250ms
     timeout: 20s

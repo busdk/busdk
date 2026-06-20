@@ -810,6 +810,13 @@ this root file must preserve the supervisor/worker boundary itself.
     new temporary worktrees, symlink farms, or proof checkouts under
     `projects/busdk/worktrees`; that path is visible to Git status and should
     stay empty unless a future tracked product feature explicitly owns it.
+46. `bus-integration-{name}` modules provide their services through the Bus
+    Events API only. They may own business logic, durable/runtime state,
+    background processing, and integration-side event handling, but they must
+    not expose HTTP APIs directly. HTTP/controller surfaces belong in the
+    matching `bus-api-provider-{name}` module, which validates API requests,
+    publishes canonical Events, and serves projections without taking over
+    integration runtime ownership.
 
 ## Recipient-Scoped Worker Focus
 

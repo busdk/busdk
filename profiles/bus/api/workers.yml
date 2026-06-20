@@ -38,6 +38,7 @@ runtime:
     - name: BUS_API_TOKEN
       description: Bearer token used by API providers when calling the Bus Events API.
       value_from: env:BUS_API_TOKEN
+      default: " "
     - name: BUS_WORKERS_EVENTS_TOKEN_FILE
       description: Explicit Bus Events token file used by the Workers API provider before inherited process tokens.
       value: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
