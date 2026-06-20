@@ -59,11 +59,11 @@ runtime:
     - name: BUS_REPOS_CONFIG
       description: Path to the generated Repos repository catalog file.
       value_from: env:BUS_REPOS_CONFIG
-      default: .bus/services/repos/catalog.yml
+      default: "{env:BUS_SERVICES_BUS_DIR}/repos/catalog.yml"
     - name: BUS_REPOS_STORAGE_ROOT
       description: Storage root for Bus-managed bare Git repositories.
       value_from: env:BUS_REPOS_STORAGE_ROOT
-      default: .bus/services/repos/storage
+      default: "{env:BUS_SERVICES_BUS_DIR}/repos/storage"
     - name: BUS_WORKERS_DIRECT_REPO_ROOT
       description: Product repository root used to populate the Repos catalog.
       value_from: env:BUS_WORKERS_DIRECT_REPO_ROOT
