@@ -16,9 +16,7 @@ case "$config" in
 *) config=$stack_dir/$config ;;
 esac
 
-if [ ! -f "$config" ]; then
-	"$(dirname "$0")/bus-repos-ssh-init.sh" >/dev/null
-fi
+"$(dirname "$0")/bus-repos-ssh-init.sh" >/dev/null
 
 case "$sshd_command" in
 */*) ;;
