@@ -32,9 +32,8 @@ runtime:
   kind: native
   provider: bus
   command:
-    - bus
+    - bus-integration-workers
   args:
-    - integration-workers
     - --events-url
     - "{param:events_url}"
     - --token-file
