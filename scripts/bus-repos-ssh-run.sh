@@ -16,7 +16,7 @@ case "$config" in
 *) config=$stack_dir/$config ;;
 esac
 
-"$(dirname "$0")/bus-repos-ssh-init.sh" >/dev/null
+/bin/sh "$(dirname "$0")/bus-repos-ssh-init.sh" >/dev/null
 
 case "$sshd_command" in
 */*) ;;

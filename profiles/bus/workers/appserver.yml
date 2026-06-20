@@ -32,12 +32,15 @@ runtime:
   kind: native
   provider: bus
   command:
-    - bus-integration-workers
+    - bus
   args:
+    - integration
     - --events-url
     - "{param:events_url}"
     - --token-file
     - "{param:token_file}"
+    - --provider
+    - workers
   env:
     - name: BUS_SERVICES_PROCESS_PATH
       description: Host process search path used when no stack-local Bus tool path is available.
