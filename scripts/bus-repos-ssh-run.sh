@@ -27,4 +27,4 @@ case "$sshd_command" in
 	;;
 esac
 
-exec "$sshd_command" -D -e -f "$config"
+"$sshd_command" -D -e -f "$config"
