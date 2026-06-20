@@ -3,7 +3,7 @@ aliases:
   - bus-repos-ssh
   - bus/repositories/ssh
 name: Bus Repos SSH service
-description: User-level OpenSSH transport for Bus-managed repositories.
+description: Native Git-over-SSH transport for Bus-managed repositories.
 service_kind: bus.repos.ssh
 parameters:
   - name: events_url
@@ -24,31 +24,49 @@ parameters:
     default: 127.0.0.1
 runtime:
   kind: native
-  provider: openssh
+  provider: bus
+  working_dir: "{env:BUS_SERVICES_STACK_DIR}"
   command:
-    - /bin/sh
+    - bus-integration-repos
   args:
-    - "{env:BUS_SERVICES_STACK_DIR}/scripts/bus-repos-ssh-run.sh"
+    - sshd
+    - --listen-host
+    - "{env:BUS_REPOS_SSH_LISTEN}"
+    - --port
+    - "{env:BUS_REPOS_SSH_PORT}"
+    - --state-dir
+    - "{env:BUS_REPOS_SSH_STATE_DIR}"
+    - --events-url
+    - "{param:events_url}"
+    - --token-file
+    - "{param:token_file}"
+    - --environment-id
+    - "{env:BUS_REPOS_SSH_ENVIRONMENT_ID}"
+    - --user
+    - "{env:BUS_REPOS_SSH_USER}"
+    - --actor
+    - "{env:BUS_REPOS_SSH_ACTOR}"
+    - --key-id
+    - "{env:BUS_REPOS_SSH_KEY_ID}"
   env:
     - name: BUS_SERVICES_PROCESS_PATH
       description: Host process search path used when no stack-local Bus tool path is available.
       value_from: process_env:PATH
     - name: BUS_SERVICES_STACK_DIR
-      description: Project stack directory used to locate repos SSH helper scripts.
+      description: Project stack directory used as the native repos SSH working directory.
       value_from: env:BUS_SERVICES_STACK_DIR
       default: "."
+    - name: BUS_SERVICES_BUS_DIR
+      description: Durable Bus state directory used for generated service credentials.
+      value_from: env:BUS_SERVICES_BUS_DIR
     - name: PATH
-      description: Process search path used to locate Bus dispatcher, module binaries, and OpenSSH.
-      value_from: env:BUS_SERVICES_TOOL_PATH
-      default: "{env:BUS_SERVICES_PROCESS_PATH}"
-    - name: BUS_REPOS_SSH_TOOL_PATH
-      description: Stack tool path exported inside OpenSSH forced commands after sshd resets PATH.
+      description: Process search path used to locate Bus dispatcher and module binaries.
       value_from: env:BUS_SERVICES_TOOL_PATH
       default: "{env:BUS_SERVICES_PROCESS_PATH}"
     - name: BUS_REPOS_SSH_STATE_DIR
       description: Durable state directory for repos SSH host/client keys and generated sshd config.
       value_from: env:BUS_REPOS_SSH_STATE_DIR
-      default: .bus/services/repos-ssh
+      default: "{env:BUS_SERVICES_BUS_DIR}/services/repos-ssh"
     - name: BUS_REPOS_SSH_PORT
       description: Local SSH port for repos SSH.
       value_from: env:BUS_REPOS_SSH_PORT
@@ -58,17 +76,25 @@ runtime:
       value_from: env:BUS_REPOS_SSH_LISTEN
       default: "{param:listen}"
     - name: BUS_REPOS_SSH_EVENTS_URL
-      description: Bus Events API base URL used by the forced-command adapter.
+      description: Bus Events API base URL used by the native repos SSH service.
       value_from: env:BUS_REPOS_SSH_EVENTS_URL
       default: "{param:events_url}"
+    - name: BUS_EVENTS_URL
+      description: Bus Events API base URL used to expand service parameters.
+      value_from: env:BUS_EVENTS_URL
+      default: http://127.0.0.1:8081/local/v1
     - name: BUS_REPOS_SSH_TOKEN_FILE
-      description: Bus Events API bearer token file used by the forced-command adapter.
+      description: Bus Events API bearer token file used by the native repos SSH service.
       value_from: env:BUS_REPOS_SSH_TOKEN_FILE
       default: "{param:token_file}"
     - name: BUS_REPOS_SSH_ENVIRONMENT_ID
       description: Environment id stamped on repos SSH Events.
       value_from: env:BUS_WORKERS_ENVIRONMENT_ID
       default: local-dev
+    - name: BUS_REPOS_SSH_USER
+      description: SSH username accepted by the native repos SSH server.
+      value_from: env:BUS_REPOS_SSH_USER
+      default: git
     - name: BUS_REPOS_SSH_ACTOR
       description: Default local actor id used by generated authorized_keys.
       value_from: env:BUS_REPOS_SSH_ACTOR
@@ -77,10 +103,6 @@ runtime:
       description: Default local key id used by generated authorized_keys.
       value_from: env:BUS_REPOS_SSH_KEY_ID
       default: local-worker
-    - name: BUS_REPOS_SSHD
-      description: OpenSSH sshd executable.
-      value_from: env:BUS_REPOS_SSHD
-      default: sshd
   ports:
     - name: repos-ssh
       protocol: tcp
@@ -90,10 +112,3 @@ runtime:
     tcp_port_from: env:BUS_REPOS_SSH_PORT
     interval: 250ms
     timeout: 20s
-  options:
-    init:
-      command:
-        - /bin/sh
-      args:
-        - "{env:BUS_SERVICES_STACK_DIR}/scripts/bus-repos-ssh-init.sh"
-      creates: "{env:BUS_REPOS_SSH_STATE_DIR}/sshd_config"
