@@ -95,6 +95,75 @@ git_dir_for() {
   git -C "$1" rev-parse --git-dir 2>/dev/null
 }
 
+real_path() {
+  (cd "$1" && pwd -P)
+}
+
+is_own_worktree() {
+  local dir="$1"
+  local top
+  local dir_real
+  local top_real
+
+  top="$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null)" || return 1
+  dir_real="$(real_path "$dir")" || return 1
+  top_real="$(real_path "$top")" || return 1
+  [ "$dir_real" = "$top_real" ]
+}
+
+submodule_key_for_path() {
+  local path="$1"
+  git config --file .gitmodules --get-regexp '^submodule\..*\.path$' 2>/dev/null |
+    awk -v path="$path" '
+      $2 == path {
+        key = $1
+        sub(/^submodule\./, "", key)
+        sub(/\.path$/, "", key)
+        print key
+        exit
+      }
+    '
+}
+
+submodule_branch_for_path() {
+  local key
+  key="$(submodule_key_for_path "$1")"
+  [ -n "$key" ] || return 1
+  git config --file .gitmodules --get "submodule.$key.branch" 2>/dev/null
+}
+
+ensure_submodule_target_ready() {
+  local dir="$1"
+  local branch
+  local head
+
+  [ "$dir" != "." ] || return 0
+  [ -n "$(submodule_key_for_path "$dir")" ] || return 0
+
+  if ! is_own_worktree "$dir"; then
+    if ! run_git_step "." "submodule update --init" submodule update --init -- "$dir"; then
+      return 1
+    fi
+  fi
+
+  if ! is_own_worktree "$dir"; then
+    echo "warning: $dir did not initialize as its own git worktree" >&2
+    return 1
+  fi
+
+  if [ -z "$(current_branch "$dir")" ]; then
+    branch="$(submodule_branch_for_path "$dir" || true)"
+    if [ -n "$branch" ]; then
+      head="$(git -C "$dir" rev-parse HEAD 2>/dev/null)" || return 1
+      if [ "$(git -C "$dir" rev-parse "$branch" 2>/dev/null)" = "$head" ]; then
+        git -C "$dir" checkout -q "$branch" || return 1
+      elif [ "$(git -C "$dir" rev-parse "origin/$branch" 2>/dev/null)" = "$head" ]; then
+        git -C "$dir" checkout -q -b "$branch" --track "origin/$branch" || return 1
+      fi
+    fi
+  fi
+}
+
 has_rebase_or_merge() {
   local dir="$1"
   local git_dir
@@ -288,11 +357,25 @@ sync_one() {
   local upstream
 
   if [ ! -d "$dir" ]; then
+    if [ "$dir" != "." ] && [ -n "$(submodule_key_for_path "$dir")" ]; then
+      if ! run_git_step "." "submodule update --init" submodule update --init -- "$dir"; then
+        return 1
+      fi
+    fi
+  fi
+  if [ ! -d "$dir" ]; then
     echo "warning: skipping missing path: $dir" >&2
     return 2
   fi
+  if ! ensure_submodule_target_ready "$dir"; then
+    return 1
+  fi
   if ! git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "warning: skipping non-git path: $dir" >&2
+    return 2
+  fi
+  if ! is_own_worktree "$dir"; then
+    echo "warning: skipping $dir: path resolves to another git worktree" >&2
     return 2
   fi
   if has_rebase_or_merge "$dir"; then
