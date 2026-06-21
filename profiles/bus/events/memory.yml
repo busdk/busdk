@@ -38,9 +38,9 @@ runtime:
     - name: BUS_EVENTS_BACKEND
       description: Selects the in-memory Events backend.
       value: memory
-    - name: BUS_EVENTS_JWT_SECRET
+    - name: BUS_API_JWT_SECRET
       description: HS256 secret used by the Events API to validate Bus API bearer tokens.
-      value_from: env:BUS_EVENTS_JWT_SECRET
+      value_from: env:BUS_API_JWT_SECRET
     - name: BUS_EVENTS_PORT
       description: TCP port for this Bus Events API process.
       value_from: env:BUS_EVENTS_PORT

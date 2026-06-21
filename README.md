@@ -73,7 +73,7 @@ secret and keep using the same value when issuing the local API token:
 
 ```bash
 BUS_LOCAL_SECRET="$(openssl rand -hex 32)"
-bus configure BUS_EVENTS_JWT_SECRET="$BUS_LOCAL_SECRET"
+bus configure BUS_API_JWT_SECRET="$BUS_LOCAL_SECRET"
 bus configure BUS_EVENTS_POSTGRES_DSN='postgres://bus_service@127.0.0.1:5432/postgres?sslmode=disable'
 ```
 
@@ -106,7 +106,7 @@ JWT secrets, local runtime provider choices, and provider-specific model
 settings should come from the owning Bus modules and service/profile metadata,
 not from hard-coded literals inside `bus configure`.
 
-`bus services up` uses `BUS_EVENTS_JWT_SECRET` to create the local API token
+`bus services up` uses `BUS_API_JWT_SECRET` to create the local API token
 file. Do not configure `BUS_API_TOKEN` for the normal local stack; Services
 writes the token to `.bus/tokens/local-events.jwt`. Standard local Events and
 Workers client settings are dispatcher-provided runtime defaults, so they do
@@ -151,7 +151,7 @@ BUS_WORKERS_API_TOKEN_FILE=.bus/tokens/local-events.jwt
 
 Precedence is process environment, then `.env`, then dispatcher defaults. Use
 `.env` only for explicit local overrides, private configuration, and values
-such as `BUS_EVENTS_JWT_SECRET`.
+such as `BUS_API_JWT_SECRET`.
 
 ### 4. Create And Guide A Worker
 

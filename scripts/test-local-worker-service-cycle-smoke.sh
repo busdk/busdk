@@ -133,7 +133,7 @@ fi
 
 (
   cd "$ROOT/bus-api-provider-events"
-  BUS_EVENTS_JWT_SECRET=$EVENTS_JWT_SECRET \
+  BUS_API_JWT_SECRET=$EVENTS_JWT_SECRET \
     go run ./cmd/bus-api-provider-events --addr "$ADDR" --events-backend memory
 ) >"$EVENTS_LOG" 2>&1 &
 EVENTS_PID=$!
