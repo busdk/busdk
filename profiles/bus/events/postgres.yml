@@ -44,6 +44,10 @@ runtime:
     - name: BUS_EVENTS_POSTGRES_DSN
       description: PostgreSQL connection string used as the durable Events backend.
       value_from: env:BUS_EVENTS_POSTGRES_DSN
+    - name: BUS_API_IDENTITIES_API_URL
+      description: Identities API URL used by the Events provider for JWT/API-key authorization checks.
+      value_from: env:BUS_API_IDENTITIES_API_URL
+      default: http://127.0.0.1:8091
     - name: BUS_EVENTS_PORT
       description: TCP port for this Bus Events API process.
       value_from: env:BUS_EVENTS_PORT

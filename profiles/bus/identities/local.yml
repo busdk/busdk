@@ -1,0 +1,63 @@
+id: bus/identities/local
+aliases:
+  - bus-identities-local
+  - bus/api/identities/local
+  - bus-api-identities-local
+name: Bus Identities local API
+description: Local file-backed Bus identities API for auth, API keys, and SSH keys.
+service_kind: bus.api.identities
+parameters:
+  - name: port
+    type: integer
+    description: TCP port for the local identities API process.
+    default: 8091
+  - name: listen
+    type: string
+    description: Local identities API listen address.
+    default: 127.0.0.1
+runtime:
+  kind: native
+  provider: bus
+  command:
+    - bus-api-provider-identities
+  args:
+    - --listen
+    - "{env:BUS_IDENTITIES_API_LISTEN}"
+    - --state-file
+    - "{env:BUS_IDENTITIES_STATE_FILE}"
+  env:
+    - name: BUS_SERVICES_PROCESS_PATH
+      description: Host process search path used when no stack-local Bus tool path is available.
+      value_from: process_env:PATH
+    - name: BUS_SERVICES_BUS_DIR
+      description: Durable Bus state directory used for identity state.
+      value_from: env:BUS_SERVICES_BUS_DIR
+    - name: PATH
+      description: Process search path used to locate Bus provider binaries.
+      value_from: env:BUS_SERVICES_TOOL_PATH
+      default: "{env:BUS_SERVICES_PROCESS_PATH}"
+    - name: BUS_IDENTITIES_API_PORT
+      description: TCP port for the local identities API process.
+      value_from: env:BUS_IDENTITIES_API_PORT
+      default: "{param:port}"
+    - name: BUS_IDENTITIES_API_HOST
+      description: Local identities API listen host.
+      value_from: env:BUS_IDENTITIES_API_HOST
+      default: "{param:listen}"
+    - name: BUS_IDENTITIES_API_LISTEN
+      description: Local identities API listen address.
+      value_from: env:BUS_IDENTITIES_API_LISTEN
+      default: "{env:BUS_IDENTITIES_API_HOST}:{env:BUS_IDENTITIES_API_PORT}"
+    - name: BUS_IDENTITIES_STATE_FILE
+      description: Durable JSON state file for local identities, contacts, API keys, SSH keys, and access grants.
+      value_from: env:BUS_IDENTITIES_STATE_FILE
+      default: "{env:BUS_SERVICES_BUS_DIR}/identities/state.json"
+  ports:
+    - name: identities-api
+      protocol: tcp
+      target: 8091
+      host: 127.0.0.1
+  healthcheck:
+    tcp_port_from: env:BUS_IDENTITIES_API_PORT
+    interval: 250ms
+    timeout: 20s

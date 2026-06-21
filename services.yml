@@ -12,6 +12,10 @@ groups:
       - postgres
       - events
       - events-relay
+  security:
+    name: Security
+    services:
+      - identities
   integrations:
     name: Integrations
     services:
@@ -31,11 +35,14 @@ services:
     params:
       capability_token: local
     depends_on:
+      - identities
       - postgres
   events-relay:
     profile: bus-events-relay
     depends_on:
       - events
+  identities:
+    profile: bus/identities/local
   repos:
     profile: bus/repos/local
     params:
@@ -48,6 +55,7 @@ services:
       events_url: "{env:BUS_EVENTS_URL}"
     depends_on:
       - events
+      - identities
       - repos
   workers:
     profile: bus/workers/appserver
@@ -68,6 +76,7 @@ services:
     params:
       capability_token: local
     depends_on:
+      - identities
       - events
       - workers
       - tasks

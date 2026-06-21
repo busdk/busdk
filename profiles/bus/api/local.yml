@@ -5,13 +5,17 @@ aliases:
   - bus-api-tasks-workers
   - bus-api-workers-tasks
 name: Bus API local gateway
-description: Bus API gateway with the local Tasks and Workers modules enabled.
+description: Bus API gateway with local Auth, Repos, Tasks, and Workers modules enabled.
 service_kind: bus.api
 parameters:
   - name: capability_token
     type: string
     description: Capability path token used in the Bus API base URL.
     default: local
+  - name: providers
+    type: string
+    description: Comma-separated Bus API providers mounted in the local gateway.
+    default: auth,workers,tasks,repos
 runtime:
   kind: native
   provider: bus
@@ -25,7 +29,7 @@ runtime:
     - --port
     - "{env:BUS_API_PORT}"
     - --provider
-    - workers,tasks,repos
+    - "{param:providers}"
   env:
     - name: BUS_SERVICES_PROCESS_PATH
       description: Host process search path used when no stack-local Bus tool path is available.
@@ -46,6 +50,25 @@ runtime:
       description: Bus Events API URL used by the Repos API provider.
       value_from: env:BUS_REPOS_EVENTS_URL
       default: http://127.0.0.1:8081/local/v1
+    - name: BUS_AUTH_HS256_SECRET
+      description: Required HS256 signing secret used by the Auth provider.
+      value_from: env:BUS_AUTH_HS256_SECRET
+    - name: BUS_AUTH_IDENTITIES_API_URL
+      description: Internal identities API URL used by the Auth provider.
+      value_from: env:BUS_AUTH_IDENTITIES_API_URL
+      default: http://127.0.0.1:8091
+    - name: BUS_AUTH_STORE_PATH
+      description: Durable local Auth provider state file for OTP metadata and revocations.
+      value_from: env:BUS_AUTH_STORE_PATH
+      default: "{env:BUS_SERVICES_BUS_DIR}/auth/state.json"
+    - name: BUS_AUTH_OTP_SENDER
+      description: Local OTP sender selector; memory avoids printing OTPs unless explicitly changed.
+      value_from: env:BUS_AUTH_OTP_SENDER
+      default: memory
+    - name: BUS_API_IDENTITIES_API_URL
+      description: Identities API URL used by mounted providers for JWT/API-key authorization checks.
+      value_from: env:BUS_API_IDENTITIES_API_URL
+      default: http://127.0.0.1:8091
     - name: BUS_API_TOKEN
       description: Bearer token used by API providers when calling the Bus Events API.
       value_from: env:BUS_API_TOKEN

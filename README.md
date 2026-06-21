@@ -12,10 +12,8 @@ starting the local Services stack, and running local Codex Spark workers.
 These are the required steps for a local `bus services` development stack.
 Run them from the BusDK checkout root, where `services.yml` is located.
 
-The root stack starts PostgreSQL, Events, Repos, Repos SSH, Workers, Tasks, and
-the local Bus API gateway. Identity/auth provider setup is still owned by the
-identity and auth module docs until those providers are added to this root
-stack.
+The root stack starts PostgreSQL, Events, Identities, Auth, Repos, Repos SSH,
+Workers, Tasks, and the local Bus API gateway.
 
 ### 1. Install BusDK
 
@@ -50,13 +48,14 @@ export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"
 Use `bus configure` so values are written to the local `.env` file. Do not put
 secrets or machine-specific paths in `services.yml`.
 
-Configure PostgreSQL and Events:
+Configure PostgreSQL, Events, and Auth:
 
 ```bash
 bus configure BUS_POSTGRES_PGDATA="$PWD/.bus/services/postgres/data"
 bus configure BUS_POSTGRES_PORT=5432
 BUS_LOCAL_SECRET="$(openssl rand -hex 32)"
 bus configure BUS_API_JWT_SECRET="$BUS_LOCAL_SECRET"
+bus configure BUS_AUTH_HS256_SECRET="$BUS_LOCAL_SECRET"
 bus configure BUS_EVENTS_POSTGRES_DSN='postgres://bus_service@127.0.0.1:5432/postgres?sslmode=disable'
 bus configure BUS_EVENTS_URL='http://127.0.0.1:8081/local/v1'
 ```

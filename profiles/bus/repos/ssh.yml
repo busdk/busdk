@@ -48,6 +48,8 @@ runtime:
     - "{env:BUS_REPOS_SSH_ACTOR}"
     - --key-id
     - "{env:BUS_REPOS_SSH_KEY_ID}"
+    - --identities-api-url
+    - "{env:BUS_REPOS_SSH_IDENTITIES_API_URL}"
   env:
     - name: BUS_SERVICES_PROCESS_PATH
       description: Host process search path used when no stack-local Bus tool path is available.
@@ -103,6 +105,10 @@ runtime:
       description: Default local key id used by generated authorized_keys.
       value_from: env:BUS_REPOS_SSH_KEY_ID
       default: local-worker
+    - name: BUS_REPOS_SSH_IDENTITIES_API_URL
+      description: Bus identities API base URL used to resolve SSH public keys and repo access.
+      value_from: env:BUS_REPOS_SSH_IDENTITIES_API_URL
+      default: http://127.0.0.1:8091
   ports:
     - name: repos-ssh
       protocol: tcp
