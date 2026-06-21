@@ -24,6 +24,11 @@ UI_DEPS = (
 FORBIDDEN_UIKIT_IMPORT = '"github.com/busdk/bus-ui/pkg/uikit"'
 FORBIDDEN_UIKIT_SYMBOL_RE = re.compile(r"\buikit\.[A-Z_][A-Za-z0-9_]*")
 GO_IMPORT_RE = re.compile(r'"(github\.com/busdk/(?:bus-ui|bus-gx)(?:/[^"]*)?)"')
+LOCAL_UI_MARKER_RE = re.compile(
+    r"(?i)<(section|div|form|button|input|textarea|select|table|article|main|header|footer|nav|aside|span|p|h[1-6])\b"
+    r"|js\.Value|querySelector|createElement|appendChild|innerHTML|textContent|classList|addEventListener|setAttribute|getElementById"
+    r"|aria-|data-ui-|data-bus-ui"
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -121,6 +126,10 @@ def has_forbidden_uikit(text: str) -> bool:
     return FORBIDDEN_UIKIT_IMPORT in text or FORBIDDEN_UIKIT_SYMBOL_RE.search(text) is not None
 
 
+def has_local_ui_markers(text: str) -> bool:
+    return LOCAL_UI_MARKER_RE.search(text) is not None
+
+
 def audit_module(root: Path, module_dir: Path) -> dict[str, Any]:
     go_mod = module_dir / "go.mod"
     deps = direct_ui_deps(go_mod)
@@ -129,6 +138,7 @@ def audit_module(root: Path, module_dir: Path) -> dict[str, Any]:
     ui_import_files: list[str] = []
     forbidden_uikit_files: list[str] = []
     local_ui_candidate_files: list[str] = []
+    local_ui_infrastructure_files: list[str] = []
     imports_by_file: dict[str, list[str]] = {}
 
     for path in production_files:
@@ -141,8 +151,12 @@ def audit_module(root: Path, module_dir: Path) -> dict[str, Any]:
             forbidden_uikit_files.append(rel(root, path))
         if is_app_ui_file(module_dir, path):
             ui_surface_files.append(rel(root, path))
-            if not matches:
+            if matches:
+                continue
+            if has_local_ui_markers(text):
                 local_ui_candidate_files.append(rel(root, path))
+            else:
+                local_ui_infrastructure_files.append(rel(root, path))
 
     return {
         "module": module_dir.name,
@@ -152,10 +166,12 @@ def audit_module(root: Path, module_dir: Path) -> dict[str, Any]:
         "ui_import_file_count": len(ui_import_files),
         "forbidden_uikit_file_count": len(forbidden_uikit_files),
         "local_ui_candidate_file_count": len(local_ui_candidate_files),
+        "local_ui_infrastructure_file_count": len(local_ui_infrastructure_files),
         "ui_surface_files": ui_surface_files,
         "ui_import_files": ui_import_files,
         "forbidden_uikit_files": forbidden_uikit_files,
         "local_ui_candidate_files": local_ui_candidate_files,
+        "local_ui_infrastructure_files": local_ui_infrastructure_files,
         "imports_by_file": imports_by_file,
     }
 
@@ -174,12 +190,14 @@ def audit(root: Path) -> dict[str, Any]:
     forbidden_total = sum(item["forbidden_uikit_file_count"] for item in modules)
     ui_surface_total = sum(item["ui_surface_file_count"] for item in modules)
     local_candidate_total = sum(item["local_ui_candidate_file_count"] for item in modules)
+    local_infrastructure_total = sum(item["local_ui_infrastructure_file_count"] for item in modules)
     return {
         "schema_version": "busdk.gx_ui_adopter_audit/v1",
         "root": str(root),
         "module_count": len(modules),
         "ui_surface_file_count": ui_surface_total,
         "local_ui_candidate_file_count": local_candidate_total,
+        "local_ui_infrastructure_file_count": local_infrastructure_total,
         "forbidden_uikit_file_count": forbidden_total,
         "modules": modules,
     }
@@ -191,6 +209,7 @@ def print_text(result: dict[str, Any], show_files: bool) -> None:
     print(f"modules: {result['module_count']}")
     print(f"ui surface files: {result['ui_surface_file_count']}")
     print(f"local ui candidate files: {result['local_ui_candidate_file_count']}")
+    print(f"local ui infrastructure files: {result['local_ui_infrastructure_file_count']}")
     print(f"forbidden uikit files: {result['forbidden_uikit_file_count']}")
     print()
     for module in result["modules"]:
@@ -200,12 +219,14 @@ def print_text(result: dict[str, Any], show_files: bool) -> None:
         print(f"  ui surface files: {module['ui_surface_file_count']}")
         print(f"  ui import files: {module['ui_import_file_count']}")
         print(f"  local ui candidates: {module['local_ui_candidate_file_count']}")
+        print(f"  local ui infrastructure files: {module['local_ui_infrastructure_file_count']}")
         print(f"  forbidden uikit files: {module['forbidden_uikit_file_count']}")
         if show_files:
             for key in (
                 "ui_surface_files",
                 "ui_import_files",
                 "local_ui_candidate_files",
+                "local_ui_infrastructure_files",
                 "forbidden_uikit_files",
             ):
                 if not module[key]:

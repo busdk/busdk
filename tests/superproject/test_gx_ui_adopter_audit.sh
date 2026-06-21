@@ -29,6 +29,18 @@ import ui "github.com/busdk/bus-ui/pkg/ui"
 func render() { _ = ui.Button }
 EOF
 
+cat >"$TMP_DIR/bus-ledger/internal/ui/wasm/local_view.go" <<'EOF'
+package wasm
+
+func renderLocalCard() string { return "<section class=\"local-card\">Draft</section>" }
+EOF
+
+cat >"$TMP_DIR/bus-ledger/internal/ui/wasm/logging.go" <<'EOF'
+package wasm
+
+func logDebug(message string) { _ = message }
+EOF
+
 cat >"$TMP_DIR/bus-chat/go.mod" <<'EOF'
 module github.com/busdk/bus-chat
 
@@ -67,8 +79,10 @@ assert data["forbidden_uikit_file_count"] == 1, data
 
 modules = {item["module"]: item for item in data["modules"]}
 assert "bus-ui" in modules, modules
-assert modules["bus-ledger"]["ui_surface_file_count"] == 1, modules["bus-ledger"]
+assert modules["bus-ledger"]["ui_surface_file_count"] == 3, modules["bus-ledger"]
 assert modules["bus-ledger"]["ui_import_file_count"] == 1, modules["bus-ledger"]
+assert modules["bus-ledger"]["local_ui_candidate_file_count"] == 1, modules["bus-ledger"]
+assert modules["bus-ledger"]["local_ui_infrastructure_file_count"] == 1, modules["bus-ledger"]
 assert modules["bus-chat"]["forbidden_uikit_file_count"] == 1, modules["bus-chat"]
 assert modules["bus-chat"]["local_ui_candidate_file_count"] == 0, modules["bus-chat"]
 assert "bus-not-ui" not in modules, modules
