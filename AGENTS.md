@@ -1027,6 +1027,9 @@ Before changing module boundaries, command ownership, Events/auth/config,
 AI-host behavior, provider/runtime architecture, notes modules, naming,
 private/public coupling, or cross-cutting platform behavior, read
 `docs/docs/sdd-source-index.md` and the owning module `AGENTS.md`.
+For the current identities/auth refactor, authorization is binary resource
+access: an identity either has access or not. Defer fine-grained permission
+bitmaps until a concrete product need appears.
 
 ## Product Taxonomy Guidance
 
