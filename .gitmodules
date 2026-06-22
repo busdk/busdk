@@ -590,3 +590,15 @@
 	path = bus-integration-engine
 	url = git@github.com:busdk/bus-integration-engine.git
 	branch = develop
+[submodule "bus-artifacts"]
+	path = bus-artifacts
+	url = git@github.com:busdk/bus-artifacts.git
+	branch = main
+[submodule "bus-api-provider-artifacts"]
+	path = bus-api-provider-artifacts
+	url = git@github.com:busdk/bus-api-provider-artifacts.git
+	branch = main
+[submodule "bus-integration-artifacts"]
+	path = bus-integration-artifacts
+	url = git@github.com:busdk/bus-integration-artifacts.git
+	branch = main
