@@ -66,6 +66,13 @@
       "timeout": "20s"
     },
     "options": {
+      "path_hints": [
+        "/usr/lib/postgresql/*/bin",
+        "/opt/homebrew/opt/postgresql@*/bin",
+        "/opt/homebrew/opt/postgresql/bin",
+        "/usr/local/opt/postgresql@*/bin",
+        "/usr/local/opt/postgresql/bin"
+      ],
       "init": {
         "command": ["initdb"],
         "args": [
