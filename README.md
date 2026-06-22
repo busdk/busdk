@@ -7,15 +7,7 @@ BusDK is a modular, CLI-first toolkit for running Bus services and workflows.
 This superproject is the public entrypoint for installing the `bus` dispatcher,
 starting the local Services stack, and running local Codex Spark workers.
 
-## Local Development Services
-
-These are the required steps for a local `bus services` development stack.
-Run them from the BusDK checkout root, where `services.yml` is located.
-
-The root stack starts PostgreSQL, Events, Identities, Auth, Repos, Repos SSH,
-Workers, Tasks, and the local Bus API gateway.
-
-### 1. Install BusDK
+## Install BusDK
 
 Use the release installer on Linux or macOS:
 
@@ -30,7 +22,62 @@ export PATH="$HOME/.local/bin:$PATH"
 bus --help
 ```
 
-### 2. Install Prerequisites
+## Get The Source Checkout
+
+The local Services stack and private module development use the BusDK source
+checkout. Clone the superproject before running source-tree commands:
+
+```bash
+git clone https://github.com/busdk/busdk.git
+cd busdk
+```
+
+Public users can use the released binaries with the checked-out service
+configuration. Building the full superproject from source is for private Bus
+developers with access to all pinned module repositories.
+
+Private developers can initialize all module submodules:
+
+```bash
+git submodule update --init --recursive
+```
+
+## Build From Source
+
+Build and install all module tools only after the source checkout and private
+submodules are available:
+
+```bash
+make install
+```
+
+The default install prefix is `$HOME/.local`. Override it with `PREFIX`:
+
+```bash
+make install PREFIX=/opt/busdk
+```
+
+Build without installing:
+
+```bash
+make build
+```
+
+Run repository checks:
+
+```bash
+make check
+```
+
+## Local Development Services
+
+These are the required steps for a local `bus services` development stack.
+Run them from the BusDK checkout root, where `services.yml` is located.
+
+The root stack starts PostgreSQL, Events, Identities, Auth, Repos, Repos SSH,
+Workers, Tasks, and the local Bus API gateway.
+
+### 1. Install Prerequisites
 
 Install PostgreSQL so `postgres` and `initdb` are on `PATH`. Also install
 `git`. Install and authenticate `codex` only when you plan to run local Codex
@@ -43,7 +90,7 @@ Homebrew does not link the commands globally:
 export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"
 ```
 
-### 3. Configure `.env`
+### 2. Configure `.env`
 
 Use `bus configure` so values are written to the local `.env` file. Do not put
 secrets or machine-specific paths in `services.yml`.
@@ -70,7 +117,7 @@ bus configure BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO="$PWD/agents/worker"
 Do not configure `BUS_API_TOKEN` for the normal local stack. Services writes
 the generated token file to `.bus/tokens/local-events.jwt`.
 
-### 4. Start Services
+### 3. Start Services
 
 Start the local stack:
 
@@ -93,7 +140,7 @@ bus services down
 Runtime state, generated tokens, repository storage, logs, and PostgreSQL data
 live under `.bus/` by default.
 
-### 5. Verify The Local APIs
+### 4. Verify The Local APIs
 
 ```bash
 bus services stack validate --file services.yml
@@ -102,44 +149,6 @@ bus workers list --environment local-dev
 
 Use module README files for worker creation, identity/auth setup, repository
 management, and provider-specific options.
-
-## Private Developer Source Setup
-
-Building the full superproject from source is for private Bus developers with
-access to all pinned module repositories. Public users should use the binary
-installer above.
-
-Clone the superproject and initialize submodules:
-
-```bash
-git clone https://github.com/busdk/busdk.git
-cd busdk
-git submodule update --init --recursive
-```
-
-Build and install all module tools:
-
-```bash
-make install
-```
-
-The default install prefix is `$HOME/.local`. Override it with `PREFIX`:
-
-```bash
-make install PREFIX=/opt/busdk
-```
-
-Build without installing:
-
-```bash
-make build
-```
-
-Run repository checks:
-
-```bash
-make check
-```
 
 ## Repository Layout
 
