@@ -48,6 +48,10 @@ runtime:
       description: Process search path used to locate Bus dispatcher and module binaries.
       value_from: env:BUS_SERVICES_TOOL_PATH
       default: "{env:BUS_SERVICES_PROCESS_PATH}"
+    - name: HOME
+      description: Host user home used for local Engine artifact discovery and provider tools.
+      value_from: process_env:HOME
+      default: " "
     - name: BUS_SERVICES_BUS_DIR
       description: Durable Bus state directory used for generated service credentials.
       value_from: env:BUS_SERVICES_BUS_DIR
