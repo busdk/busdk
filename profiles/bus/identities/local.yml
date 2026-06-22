@@ -56,6 +56,14 @@ runtime:
       description: Required HS256 verification secret used by the local identities API.
       value_from: env:BUS_API_JWT_SECRET
       default: "{env:BUS_AUTH_HS256_SECRET}"
+    - name: BUS_IDENTITIES_BOOTSTRAP_PRINCIPAL_ID
+      description: Local service principal seeded for default Bus services stack access.
+      value_from: env:BUS_IDENTITIES_BOOTSTRAP_PRINCIPAL_ID
+      default: local-services
+    - name: BUS_IDENTITIES_BOOTSTRAP_GRANTS
+      description: Local service access grants seeded for default Bus services stack providers.
+      value_from: env:BUS_IDENTITIES_BOOTSTRAP_GRANTS
+      default: "events:send events:listen events:relay workers:read workers:write workers:control workers:admin task:send task:read task:reply task:claim task:admin repos:read repos:write repos:admin engine:read engine:write vm:read vm:write artifacts:read artifacts:write"
   ports:
     - name: identities-api
       protocol: tcp
