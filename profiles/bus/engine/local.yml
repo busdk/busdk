@@ -10,7 +10,7 @@ parameters:
   - name: events_url
     type: string
     description: Bus Events API base URL consumed by the shared integration host.
-    default: http://127.0.0.1:8081/local/v1
+    default: "{env:BUS_EVENTS_URL}"
   - name: token_file
     type: string
     description: Bus Events API bearer token file consumed by the shared integration host.
