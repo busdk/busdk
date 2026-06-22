@@ -79,6 +79,10 @@ runtime:
       description: Optional authorized_keys file installed into the Engine guest.
       value_from: env:BUS_ENGINE_SSH_AUTHORIZED_KEYS_FILE
       default: "{env:BUS_SERVICES_BUS_DIR}/engine/authorized_keys"
+    - name: BUS_ENGINE_SSH_KEY_FILE
+      description: Local private key used by `bus engine ssh` for the default Engine guest user.
+      value_from: env:BUS_ENGINE_SSH_KEY_FILE
+      default: "{env:BUS_SERVICES_BUS_DIR}/engine/keys/client_ed25519"
     - name: BUS_ENGINE_KERNEL_IMAGE
       description: Optional local Bus Engine kernel image path used when no catalog record supplies the kernel artifact.
       value_from: env:BUS_ENGINE_KERNEL_IMAGE
