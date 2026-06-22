@@ -19,6 +19,7 @@ groups:
   integrations:
     name: Integrations
     services:
+      - engine
       - repos
       - repos-ssh
       - workers
@@ -71,6 +72,12 @@ services:
       events_url: "{env:BUS_EVENTS_URL}"
     depends_on:
       - events
+  engine:
+    profile: bus/engine/local
+    params:
+      events_url: "{env:BUS_EVENTS_URL}"
+    depends_on:
+      - events
   api:
     profile: bus/api/local
     params:
@@ -78,5 +85,6 @@ services:
     depends_on:
       - identities
       - events
+      - engine
       - workers
       - tasks

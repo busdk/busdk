@@ -15,7 +15,7 @@ parameters:
   - name: providers
     type: string
     description: Comma-separated Bus API providers mounted in the local gateway.
-    default: auth,workers,tasks,repos
+    default: auth,workers,tasks,repos,engine
 runtime:
   kind: native
   provider: bus
@@ -50,6 +50,10 @@ runtime:
       description: Bus Events API URL used by the Repos API provider.
       value_from: env:BUS_REPOS_EVENTS_URL
       default: http://127.0.0.1:8081/local/v1
+    - name: BUS_ENGINE_EVENTS_URL
+      description: Bus Events API URL used by the Engine API provider.
+      value_from: env:BUS_ENGINE_EVENTS_URL
+      default: http://127.0.0.1:8081/local/v1
     - name: BUS_AUTH_HS256_SECRET
       description: Required HS256 signing secret used by the Auth provider.
       value_from: env:BUS_AUTH_HS256_SECRET
@@ -81,6 +85,9 @@ runtime:
       value: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
     - name: BUS_REPOS_EVENTS_TOKEN_FILE
       description: Explicit Bus Events token file used by the Repos API provider before inherited process tokens.
+      value: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
+    - name: BUS_ENGINE_EVENTS_TOKEN_FILE
+      description: Explicit Bus Events token file used by the Engine API provider before inherited process tokens.
       value: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
     - name: BUS_WORKERS_ENVIRONMENT_ID
       description: Current environment id stamped as the origin of worker API Events.

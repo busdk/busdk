@@ -1,0 +1,85 @@
+id: bus/engine/local
+aliases:
+  - bus-integration-engine-local
+  - bus/engine
+  - bus-engine-local
+name: Bus Engine local service
+description: Bus Engine service backed by local QEMU and generic artifact workers.
+service_kind: bus.integration.engine
+parameters:
+  - name: events_url
+    type: string
+    description: Bus Events API base URL consumed by the shared integration host.
+    default: http://127.0.0.1:8081/local/v1
+  - name: token_file
+    type: string
+    description: Bus Events API bearer token file consumed by the shared integration host.
+    default: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
+runtime:
+  kind: native
+  provider: bus
+  command:
+    - bus
+  args:
+    - integration
+    - --events-url
+    - "{param:events_url}"
+    - --token-file
+    - "{param:token_file}"
+    - --concurrency
+    - "6"
+    - --provider
+    - bus-integration-artifacts
+    - --provider
+    - bus-integration-qemu
+    - --provider
+    - bus-integration-vm
+    - --provider
+    - bus-integration-vm-replies
+    - --provider
+    - bus-integration-engine
+    - --provider
+    - bus-integration-engine-replies
+  env:
+    - name: BUS_SERVICES_PROCESS_PATH
+      description: Host process search path used when no stack-local Bus tool path is available.
+      value_from: process_env:PATH
+    - name: PATH
+      description: Process search path used to locate Bus dispatcher and module binaries.
+      value_from: env:BUS_SERVICES_TOOL_PATH
+      default: "{env:BUS_SERVICES_PROCESS_PATH}"
+    - name: BUS_SERVICES_BUS_DIR
+      description: Durable Bus state directory used for generated service credentials.
+      value_from: env:BUS_SERVICES_BUS_DIR
+    - name: BUS_API_TOKEN
+      description: Bearer token used by the integration host when calling the Bus Events API.
+      value_from: env:BUS_API_TOKEN
+      default: " "
+    - name: BUS_EVENTS_URL
+      description: Bus Events API base URL used to expand the service events_url parameter.
+      value_from: env:BUS_EVENTS_URL
+      default: http://127.0.0.1:8081/local/v1
+    - name: BUS_ARTIFACTS_CACHE_DIR
+      description: Local cache directory used for verified Engine artifacts.
+      value_from: env:BUS_ARTIFACTS_CACHE_DIR
+      default: "{env:BUS_SERVICES_BUS_DIR}/artifacts/cache"
+    - name: BUS_ARTIFACTS_CATALOG_FILE
+      description: Optional generic artifact catalog JSON for Engine image and kernel records.
+      value_from: env:BUS_ARTIFACTS_CATALOG_FILE
+      default: " "
+    - name: BUS_QEMU_RUNTIME_DIR
+      description: Local QEMU runtime directory for Engine VM overlays and seed media.
+      value_from: env:BUS_QEMU_RUNTIME_DIR
+      default: "{env:BUS_SERVICES_BUS_DIR}/qemu"
+    - name: BUS_EVENTS_LISTENER_RETRY
+      description: Keep Engine integration workers retrying while dependent services start.
+      value_from: env:BUS_EVENTS_LISTENER_RETRY
+      default: "true"
+    - name: BUS_EVENTS_LISTENER_REQUIRED
+      description: Require listener readiness for Engine integration health.
+      value_from: env:BUS_EVENTS_LISTENER_REQUIRED
+      default: "true"
+    - name: BUS_EVENTS_TOKEN_REFRESH
+      description: Allow the Engine integration host to refresh token-file credentials.
+      value_from: env:BUS_EVENTS_TOKEN_REFRESH
+      default: "true"
