@@ -63,7 +63,7 @@ runtime:
     - name: BUS_IDENTITIES_BOOTSTRAP_GRANTS
       description: Local service access grants seeded for default Bus services stack providers.
       value_from: env:BUS_IDENTITIES_BOOTSTRAP_GRANTS
-      default: "events:send events:listen events:relay workers:read workers:write workers:control workers:admin task:send task:read task:reply task:claim task:admin repos:read repos:write repos:admin engine:read engine:write vm:read vm:write artifacts:read artifacts:write"
+      default: "events:send events:listen events:relay identities:resolve workers:read workers:write workers:control workers:admin task:send task:read task:reply task:claim task:admin repos:read repos:write repos:admin engine:read engine:write vm:read vm:write artifacts:read artifacts:write"
   ports:
     - name: identities-api
       protocol: tcp

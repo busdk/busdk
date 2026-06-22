@@ -48,7 +48,7 @@ runtime:
     - name: BUS_API_IDENTITIES_API_TOKEN_FILE
       description: Optional token file used by the Events provider for identities API calls.
       value_from: env:BUS_API_IDENTITIES_API_TOKEN_FILE
-      default: " "
+      default: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
     - name: BUS_EVENTS_PORT
       description: TCP port for this Bus Events API process.
       value_from: env:BUS_EVENTS_PORT
