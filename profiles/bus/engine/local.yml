@@ -71,6 +71,14 @@ runtime:
       description: Local QEMU runtime directory for Engine VM overlays and seed media.
       value_from: env:BUS_QEMU_RUNTIME_DIR
       default: "{env:BUS_SERVICES_BUS_DIR}/qemu"
+    - name: BUS_ENGINE_SSH_AUTHORIZED_KEYS
+      description: Optional newline-separated SSH public keys installed into the Engine guest.
+      value_from: env:BUS_ENGINE_SSH_AUTHORIZED_KEYS
+      default: " "
+    - name: BUS_ENGINE_SSH_AUTHORIZED_KEYS_FILE
+      description: Optional authorized_keys file installed into the Engine guest.
+      value_from: env:BUS_ENGINE_SSH_AUTHORIZED_KEYS_FILE
+      default: " "
     - name: BUS_EVENTS_LISTENER_RETRY
       description: Keep Engine integration workers retrying while dependent services start.
       value_from: env:BUS_EVENTS_LISTENER_RETRY
