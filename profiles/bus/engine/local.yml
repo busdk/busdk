@@ -79,6 +79,30 @@ runtime:
       description: Optional authorized_keys file installed into the Engine guest.
       value_from: env:BUS_ENGINE_SSH_AUTHORIZED_KEYS_FILE
       default: "{env:BUS_SERVICES_BUS_DIR}/engine/authorized_keys"
+    - name: BUS_ENGINE_KERNEL_IMAGE
+      description: Optional local Bus Engine kernel image path used when no catalog record supplies the kernel artifact.
+      value_from: env:BUS_ENGINE_KERNEL_IMAGE
+      default: " "
+    - name: BUS_ENGINE_KERNEL_URL
+      description: Optional Bus Engine kernel image URL used when no catalog record supplies the kernel artifact.
+      value_from: env:BUS_ENGINE_KERNEL_URL
+      default: " "
+    - name: BUS_ENGINE_KERNEL_DIGEST
+      description: Optional expected Bus Engine kernel digest.
+      value_from: env:BUS_ENGINE_KERNEL_DIGEST
+      default: " "
+    - name: BUS_ENGINE_KERNEL_SHA256
+      description: Optional expected Bus Engine kernel SHA256 digest.
+      value_from: env:BUS_ENGINE_KERNEL_SHA256
+      default: " "
+    - name: BUS_ENGINE_KERNEL_CHECKSUM_URL
+      description: Optional checksum manifest URL for the Bus Engine kernel image.
+      value_from: env:BUS_ENGINE_KERNEL_CHECKSUM_URL
+      default: " "
+    - name: BUS_ENGINE_KERNEL_CHECKSUM_FILE
+      description: Optional checksum manifest file name for the Bus Engine kernel image.
+      value_from: env:BUS_ENGINE_KERNEL_CHECKSUM_FILE
+      default: " "
     - name: BUS_EVENTS_LISTENER_RETRY
       description: Keep Engine integration workers retrying while dependent services start.
       value_from: env:BUS_EVENTS_LISTENER_RETRY

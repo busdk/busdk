@@ -87,13 +87,13 @@ On Debian or Ubuntu:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y git curl jq openssl postgresql qemu-system-x86 qemu-utils
+sudo apt-get install -y git curl jq openssl dpkg postgresql qemu-system-x86 qemu-utils
 ```
 
 On macOS with Homebrew:
 
 ```bash
-brew install git curl jq openssl postgresql@18 qemu
+brew install git curl jq openssl dpkg postgresql@18 qemu
 export PATH="$(brew --prefix postgresql@18)/bin:$PATH"
 ```
 
@@ -128,75 +128,7 @@ bus configure BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO="$PWD/agents/worker"
 Do not configure `BUS_API_TOKEN` for the normal local stack. Services writes
 the generated token file to `.bus/tokens/local-events.jwt`.
 
-### 3. Prepare Engine Artifacts
-
-Skip this step only when you do not plan to run `bus engine start`.
-
-The Engine service uses these local defaults:
-
-- artifact catalog: `.bus/artifacts/catalog.json`;
-- artifact cache: `.bus/artifacts/cache`;
-- QEMU runtime state: `.bus/qemu`;
-- guest SSH authorized keys: `.bus/engine/authorized_keys`.
-
-Download the Debian 12 Bookworm generic cloud image:
-
-```bash
-mkdir -p .bus/artifacts .bus/engine
-curl -fL \
-  -o .bus/artifacts/debian-12-genericcloud-amd64.qcow2 \
-  https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2
-```
-
-Point `KERNEL_IMAGE` at the Bus kernel image. For private Bus kernel builds this
-is normally the `vmlinuz-*` file from the built kernel package:
-
-```bash
-KERNEL_IMAGE="$HOME/git/torvalds/linux/debian/linux-image-7.1.0/boot/vmlinuz-7.1.0"
-test -f "$KERNEL_IMAGE"
-```
-
-Create the default artifact catalog:
-
-```bash
-DEBIAN_SHA256="$(openssl dgst -sha256 -r .bus/artifacts/debian-12-genericcloud-amd64.qcow2 | awk '{print $1}')"
-KERNEL_SHA256="$(openssl dgst -sha256 -r "$KERNEL_IMAGE" | awk '{print $1}')"
-
-cat > .bus/artifacts/catalog.json <<EOF
-{
-  "records": [
-    {
-      "id": "debian-cloud-generic-amd64",
-      "handle": "$PWD/.bus/artifacts/debian-12-genericcloud-amd64.qcow2",
-      "digest": "sha256:$DEBIAN_SHA256"
-    },
-    {
-      "id": "bus-engine-kernel-amd64",
-      "handle": "$KERNEL_IMAGE",
-      "digest": "sha256:$KERNEL_SHA256"
-    }
-  ]
-}
-EOF
-```
-
-Add the SSH public key that should be able to log in as `bus` inside the guest:
-
-```bash
-test -f "$HOME/.ssh/id_ed25519.pub" || ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -N ''
-cp "$HOME/.ssh/id_ed25519.pub" .bus/engine/authorized_keys
-```
-
-Only use `bus configure` for Engine paths when you want to override these
-defaults, for example with a shared artifact catalog:
-
-```bash
-bus configure BUS_ARTIFACTS_CATALOG_FILE=/path/to/catalog.json
-bus configure BUS_QEMU_RUNTIME_DIR=/path/to/qemu-runtime
-bus configure BUS_ENGINE_SSH_AUTHORIZED_KEYS_FILE=/path/to/authorized_keys
-```
-
-### 4. Start Services
+### 3. Start Services
 
 Start the local stack:
 
@@ -219,7 +151,7 @@ bus services down
 Runtime state, generated tokens, repository storage, logs, and PostgreSQL data
 live under `.bus/` by default.
 
-### 5. Verify The Local APIs
+### 4. Verify The Local APIs
 
 ```bash
 bus services stack validate --file services.yml
@@ -254,8 +186,10 @@ ssh -p 2222 bus@127.0.0.1
 bus engine stop
 ```
 
-Use module README files for worker creation, identity/auth setup, repository
-management, and provider-specific options.
+The Engine service prepares its local artifact cache and downloads the Debian
+12 cloud image when the Engine is started. Use module README files and public
+module docs for worker creation, identity/auth setup, repository management,
+Engine kernel artifacts, and provider-specific options.
 
 ## Repository Layout
 
