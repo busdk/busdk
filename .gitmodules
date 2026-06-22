@@ -570,3 +570,7 @@
 	path = bus-identities
 	url = git@github.com:busdk/bus-identities.git
 	branch = develop
+[submodule "bus-integration-qemu"]
+	path = bus-integration-qemu
+	url = git@github.com:busdk/bus-integration-qemu.git
+	branch = develop
