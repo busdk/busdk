@@ -97,38 +97,7 @@ brew install git curl jq openssl dpkg postgresql@18 qemu
 export PATH="$(brew --prefix postgresql@18)/bin:$PATH"
 ```
 
-### 2. Configure `.env`
-
-Use `bus configure` so values are written to the local `.env` file. Do not put
-secrets or machine-specific paths in `services.yml`.
-
-Configure PostgreSQL, Events, and Auth:
-
-```bash
-bus configure BUS_POSTGRES_PGDATA="$PWD/.bus/services/postgres/data"
-bus configure BUS_POSTGRES_PORT=5432
-BUS_LOCAL_SECRET="$(openssl rand -hex 32)"
-bus configure BUS_API_JWT_SECRET="$BUS_LOCAL_SECRET"
-bus configure BUS_AUTH_HS256_SECRET="$BUS_LOCAL_SECRET"
-bus configure BUS_EVENTS_POSTGRES_DSN='postgres://bus_service@127.0.0.1:5432/postgres?sslmode=disable'
-bus configure BUS_EVENTS_URL='http://127.0.0.1:8081/local/v1'
-```
-
-For the local stack, the internal auth-token bootstrap key defaults to the same
-generated local secret. Override `BUS_AUTH_INTERNAL_SHARED_KEY` only when you
-need a separate local bootstrap secret.
-
-Configure the repositories used by local workers:
-
-```bash
-bus configure BUS_WORKERS_DIRECT_REPO_ROOT="$PWD"
-bus configure BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO="$PWD/agents/worker"
-```
-
-Do not configure `BUS_API_TOKEN` for the normal local stack. Services writes
-the generated token file to `.bus/tokens/local-events.jwt`.
-
-### 3. Start Services
+### 2. Start Services
 
 Start the local stack:
 
@@ -149,29 +118,18 @@ bus services down
 ```
 
 Runtime state, generated tokens, repository storage, logs, and PostgreSQL data
-live under `.bus/` by default.
+live under `.bus/` by default. The local profile provides defaults for service
+ports, internal auth, Events, repository paths, worker identity state, and
+Engine artifacts.
 
-### 4. Verify The Local APIs
+### 3. Verify The Local APIs
 
 ```bash
 bus services stack validate --file services.yml
 bus workers list --environment local-dev
 ```
 
-For Engine, create a short-lived local API token in your shell. Do not write
-`BUS_API_TOKEN` into `.env`; this token is for the CLI process only.
-
 ```bash
-export BUS_ENGINE_API_URL='http://127.0.0.1:8090/local/v1'
-LOCAL_BOOTSTRAP_KEY="$(sed -n 's/^BUS_AUTH_HS256_SECRET=//p' .env | tail -n 1)"
-export BUS_API_TOKEN="$(
-  curl -sS -X POST "$BUS_ENGINE_API_URL/api/internal/auth/token" \
-    -H "X-Bus-Internal-Key: $LOCAL_BOOTSTRAP_KEY" \
-    -H 'content-type: application/json' \
-    -d '{"subject":"local-engine","audience":"ai.hg.fi/api","resources":"engine:read engine:write","ttl_seconds":600}' |
-    jq -r '.access_token'
-)"
-
 bus engine status
 bus engine start
 bus engine status
@@ -189,7 +147,8 @@ bus engine stop
 The Engine service prepares its local artifact cache and downloads the Debian
 12 cloud image when the Engine is started. Use module README files and public
 module docs for worker creation, identity/auth setup, repository management,
-Engine kernel artifacts, and provider-specific options.
+Engine kernel artifacts, provider-specific options, and customization
+environment variables.
 
 ## Repository Layout
 
