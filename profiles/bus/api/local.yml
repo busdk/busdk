@@ -57,6 +57,10 @@ runtime:
     - name: BUS_AUTH_HS256_SECRET
       description: Required HS256 signing secret used by the Auth provider.
       value_from: env:BUS_AUTH_HS256_SECRET
+    - name: BUS_API_JWT_SECRET
+      description: Required HS256 verification secret used by mounted API providers.
+      value_from: env:BUS_API_JWT_SECRET
+      default: "{env:BUS_AUTH_HS256_SECRET}"
     - name: BUS_AUTH_IDENTITIES_API_URL
       description: Internal identities API URL used by the Auth provider.
       value_from: env:BUS_AUTH_IDENTITIES_API_URL
@@ -73,6 +77,14 @@ runtime:
       description: Identities API URL used by mounted providers for JWT/API-key authorization checks.
       value_from: env:BUS_API_IDENTITIES_API_URL
       default: http://127.0.0.1:8091
+    - name: BUS_API_IDENTITIES_API_TOKEN
+      description: Optional bearer token used by mounted providers for identities API calls.
+      value_from: env:BUS_API_IDENTITIES_API_TOKEN
+      default: " "
+    - name: BUS_API_IDENTITIES_API_TOKEN_FILE
+      description: Optional token file used by mounted providers for identities API calls.
+      value_from: env:BUS_API_IDENTITIES_API_TOKEN_FILE
+      default: " "
     - name: BUS_API_TOKEN
       description: Bearer token used by API providers when calling the Bus Events API.
       value_from: env:BUS_API_TOKEN

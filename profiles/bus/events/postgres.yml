@@ -48,6 +48,14 @@ runtime:
       description: Identities API URL used by the Events provider for JWT/API-key authorization checks.
       value_from: env:BUS_API_IDENTITIES_API_URL
       default: http://127.0.0.1:8091
+    - name: BUS_API_IDENTITIES_API_TOKEN
+      description: Optional bearer token used by the Events provider for identities API calls.
+      value_from: env:BUS_API_IDENTITIES_API_TOKEN
+      default: " "
+    - name: BUS_API_IDENTITIES_API_TOKEN_FILE
+      description: Optional token file used by the Events provider for identities API calls.
+      value_from: env:BUS_API_IDENTITIES_API_TOKEN_FILE
+      default: " "
     - name: BUS_EVENTS_PORT
       description: TCP port for this Bus Events API process.
       value_from: env:BUS_EVENTS_PORT

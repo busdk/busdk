@@ -52,6 +52,10 @@ runtime:
       description: Durable JSON state file for local identities, contacts, API keys, SSH keys, and access grants.
       value_from: env:BUS_IDENTITIES_STATE_FILE
       default: "{env:BUS_SERVICES_BUS_DIR}/identities/state.json"
+    - name: BUS_API_JWT_SECRET
+      description: Required HS256 verification secret used by the local identities API.
+      value_from: env:BUS_API_JWT_SECRET
+      default: "{env:BUS_AUTH_HS256_SECRET}"
   ports:
     - name: identities-api
       protocol: tcp
