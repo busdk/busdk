@@ -578,3 +578,15 @@
 	path = bus-integration-vm
 	url = git@github.com:busdk/bus-integration-vm.git
 	branch = develop
+[submodule "bus-engine"]
+	path = bus-engine
+	url = git@github.com:busdk/bus-engine.git
+	branch = develop
+[submodule "bus-api-provider-engine"]
+	path = bus-api-provider-engine
+	url = git@github.com:busdk/bus-api-provider-engine.git
+	branch = develop
+[submodule "bus-integration-engine"]
+	path = bus-integration-engine
+	url = git@github.com:busdk/bus-integration-engine.git
+	branch = develop
