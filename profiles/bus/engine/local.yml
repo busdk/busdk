@@ -64,9 +64,9 @@ runtime:
       value_from: env:BUS_ARTIFACTS_CACHE_DIR
       default: "{env:BUS_SERVICES_BUS_DIR}/artifacts/cache"
     - name: BUS_ARTIFACTS_CATALOG_FILE
-      description: Optional generic artifact catalog JSON for Engine image and kernel records.
+      description: Generic artifact catalog JSON for Engine image and kernel records.
       value_from: env:BUS_ARTIFACTS_CATALOG_FILE
-      default: " "
+      default: "{env:BUS_SERVICES_BUS_DIR}/artifacts/catalog.json"
     - name: BUS_QEMU_RUNTIME_DIR
       description: Local QEMU runtime directory for Engine VM overlays and seed media.
       value_from: env:BUS_QEMU_RUNTIME_DIR
@@ -78,7 +78,7 @@ runtime:
     - name: BUS_ENGINE_SSH_AUTHORIZED_KEYS_FILE
       description: Optional authorized_keys file installed into the Engine guest.
       value_from: env:BUS_ENGINE_SSH_AUTHORIZED_KEYS_FILE
-      default: " "
+      default: "{env:BUS_SERVICES_BUS_DIR}/engine/authorized_keys"
     - name: BUS_EVENTS_LISTENER_RETRY
       description: Keep Engine integration workers retrying while dependent services start.
       value_from: env:BUS_EVENTS_LISTENER_RETRY

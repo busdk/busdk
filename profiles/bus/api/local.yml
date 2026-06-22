@@ -57,6 +57,10 @@ runtime:
     - name: BUS_AUTH_HS256_SECRET
       description: Required HS256 signing secret used by the Auth provider.
       value_from: env:BUS_AUTH_HS256_SECRET
+    - name: BUS_AUTH_INTERNAL_SHARED_KEY
+      description: Local internal auth-token bootstrap key; defaults to the local signing secret for development stacks.
+      value_from: env:BUS_AUTH_INTERNAL_SHARED_KEY
+      default: "{env:BUS_AUTH_HS256_SECRET}"
     - name: BUS_API_JWT_SECRET
       description: Required HS256 verification secret used by mounted API providers.
       value_from: env:BUS_API_JWT_SECRET
