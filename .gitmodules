@@ -602,3 +602,7 @@
 	path = bus-integration-artifacts
 	url = git@github.com:busdk/bus-integration-artifacts.git
 	branch = develop
+[submodule "bus-engine-os"]
+	path = bus-engine-os
+	url = git@github.com:busdk/bus-engine-os.git
+	branch = develop
