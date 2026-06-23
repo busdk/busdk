@@ -39,6 +39,10 @@ bin/
 tmp/
 .bus/secrets
 .bus/events/
+.bus/artifacts/
+.bus/engine/
+.bus/identities/
+.bus/qemu/
 .bus/repos/
 .bus/tokens/
 .tmp*
