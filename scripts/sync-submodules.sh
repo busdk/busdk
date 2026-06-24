@@ -5,17 +5,19 @@ cd "$(dirname "$0")/.."
 
 do_pull=1
 do_push=1
+promote_pins=1
 status=0
 ok_count=0
 skip_count=0
 fail_count=0
+promoted_pin_count=0
 jobs=8
 verbose=0
 targets=()
 
 usage() {
   cat <<'EOF'
-Usage: scripts/sync-submodules.sh [--pull-only|--push-only] [--no-pull] [--no-push] [--jobs N] [--verbose] [path ...]
+Usage: scripts/sync-submodules.sh [--pull-only|--push-only] [--no-pull] [--no-push] [--no-promote-pins] [--jobs N] [--verbose] [path ...]
 
 Synchronize the BusDK superproject and submodules in one pass.
 
@@ -25,6 +27,10 @@ superproject plus every submodule listed in .gitmodules, running targets in
 parallel batches. If path arguments are given, only those paths are
 synchronized. Use "." to include the superproject in a focused run. Pass
 --verbose to print each target and the final success summary.
+
+After a pull updates submodule worktrees, changed superproject gitlinks are
+staged by default so the checked-in BusDK pins can be committed explicitly.
+Use --no-promote-pins to leave gitlinks unstaged.
 EOF
 }
 
@@ -47,6 +53,9 @@ while [ "$#" -gt 0 ]; do
       ;;
     --no-push)
       do_push=0
+      ;;
+    --no-promote-pins)
+      promote_pins=0
       ;;
     --jobs)
       shift
@@ -159,6 +168,9 @@ ensure_submodule_target_ready() {
         git -C "$dir" checkout -q "$branch" || return 1
       elif [ "$(git -C "$dir" rev-parse "origin/$branch" 2>/dev/null)" = "$head" ]; then
         git -C "$dir" checkout -q -b "$branch" --track "origin/$branch" || return 1
+      elif git -C "$dir" rev-parse "origin/$branch" >/dev/null 2>&1; then
+        git -C "$dir" checkout -q -B "$branch" "origin/$branch" || return 1
+        git -C "$dir" branch --set-upstream-to="origin/$branch" "$branch" >/dev/null 2>&1 || return 1
       fi
     fi
   fi
@@ -214,6 +226,46 @@ submodule_conflict_paths() {
 has_non_submodule_conflicts() {
   local dir="$1"
   [ -n "$(git -C "$dir" ls-files -u | awk '$1 != "160000" { print; exit }')" ]
+}
+
+promote_changed_submodule_pins() {
+  local dir
+  local head_rev
+  local index_rev
+  local pathspecs=()
+
+  [ "$do_pull" -eq 1 ] || return 0
+  [ "$promote_pins" -eq 1 ] || return 0
+
+  for dir in "${targets[@]}"; do
+    [ "$dir" != "." ] || continue
+    [ -n "$(submodule_key_for_path "$dir")" ] || continue
+    [ -d "$dir" ] || continue
+    if ! is_own_worktree "$dir"; then
+      continue
+    fi
+    if has_rebase_or_merge "$dir" || is_dirty "$dir"; then
+      continue
+    fi
+    head_rev="$(git -C "$dir" rev-parse HEAD 2>/dev/null)" || continue
+    index_rev="$(git rev-parse ":$dir" 2>/dev/null || true)"
+    [ -n "$index_rev" ] || continue
+    [ "$head_rev" != "$index_rev" ] || continue
+    pathspecs+=("$dir")
+  done
+
+  [ "${#pathspecs[@]}" -gt 0 ] || return 0
+
+  if git add -- "${pathspecs[@]}"; then
+    promoted_pin_count="${#pathspecs[@]}"
+    printf 'sync-submodules: staged %s submodule pin(s); commit the superproject to record them.\n' "$promoted_pin_count"
+    return 0
+  fi
+
+  echo "warning: failed to stage changed submodule pins" >&2
+  fail_count=$((fail_count + 1))
+  status=1
+  return 1
 }
 
 checkout_submodule_resolution() {
@@ -457,6 +509,8 @@ done
 if [ "${#pids[@]}" -gt 0 ]; then
   collect_batch
 fi
+
+promote_changed_submodule_pins
 
 if [ "$status" -ne 0 ] || [ "$verbose" -eq 1 ]; then
   echo "sync-submodules: ok=$ok_count skipped=$skip_count failed=$fail_count total=${#targets[@]}"
