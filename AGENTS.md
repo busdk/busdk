@@ -785,18 +785,19 @@ this root file must preserve the supervisor/worker boundary itself.
     unless the operator explicitly requests another model or a task has a
     concrete model-specific requirement. When a worker must use a different
     model, record the reason in the task stream or memo.
-43. Keep the local dispatch surfaces separate. Bus task
-    creation/status/events use the Events API surface, currently
-    `bus task --api-url http://127.0.0.1:8081/local/v1 --token-file
-    .bus/tokens/local-events.jwt ...` and matching `bus events ...` commands.
-    Persistent worker list/create/control/message uses the Workers API
-    surface, currently `bus workers --api-url http://127.0.0.1:8090/local/v1
-    --token-file .bus/tokens/local-events.jwt ...`. Live worker prompts must
-    use the supported `bus workers message ... --text <prompt>` shape, not
-    guessed positional prompt text. A bare `bus workers list` may hit the
-    legacy/default surface and print no workers; do not treat that as evidence
-    that the persistent worker store is empty without checking the configured
-    Workers API.
+43. Use the default local dispatch surfaces first. The normal local Services
+    stack owns API URLs and generated local Events credentials, so local Bus
+    task and worker commands should not need explicit `--api-url`,
+    `--token-file`, `BUS_API_URL`, or `BUS_API_TOKEN` arguments. Start or
+    refresh the stack with `bus services up`, verify it with `bus services ps`
+    and `bus workers list`, and use `bus configure` for `.env` changes. The
+    local environment should be the default environment; pass `--environment`
+    only when targeting another environment or when a temporary diagnostic
+    needs explicit disambiguation. Only pass explicit API URLs or token files
+    for a documented non-default remote/proof path, and record why the default
+    dispatcher settings were insufficient. Live worker prompts must use the
+    supported `bus workers message ... --text <prompt>` shape, not guessed
+    positional prompt text.
 44. The default local Services stack must not require SSH access to
     `dev.hg.fi` or any other remote worker host. `bus services up` must start
     the local control-plane services needed for task submission, review, and
