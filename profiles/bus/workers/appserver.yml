@@ -83,11 +83,11 @@ runtime:
     - name: BUS_WORKERS_ENVIRONMENT_ID
       description: Environment id stamped on Workers integration events.
       value_from: env:BUS_WORKERS_ENVIRONMENT_ID
-      default: local-dev
+      default: local
     - name: BUS_WORKERS_ENVIRONMENT_NAME
       description: Human-readable environment name reported by worker status.
       value_from: env:BUS_WORKERS_ENVIRONMENT_NAME
-      default: Local dev
+      default: Local
     - name: BUS_WORKERS_LIFECYCLE
       description: Worker lifecycle mode selected by the Workers integration.
       value_from: env:BUS_WORKERS_LIFECYCLE
