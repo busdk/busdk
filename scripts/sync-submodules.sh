@@ -374,7 +374,7 @@ sync_pull() {
 
   upstream_remote="${upstream%%/*}"
 
-  if ! run_git_step "$dir" fetch fetch "$upstream_remote"; then
+  if ! run_git_step "$dir" fetch fetch --no-recurse-submodules "$upstream_remote"; then
     return 1
   fi
 
