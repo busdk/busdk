@@ -47,13 +47,13 @@ services:
   repos:
     profile: bus/repos/local
     params:
-      events_url: "{env:BUS_EVENTS_URL}"
+      events_url: http://127.0.0.1:8081/local/v1
     depends_on:
       - events
   repos-ssh:
     profile: bus/repos/ssh
     params:
-      events_url: "{env:BUS_EVENTS_URL}"
+      events_url: http://127.0.0.1:8081/local/v1
     depends_on:
       - events
       - identities
@@ -61,7 +61,7 @@ services:
   workers:
     profile: bus/workers/appserver
     params:
-      events_url: "{env:BUS_EVENTS_URL}"
+      events_url: http://127.0.0.1:8081/local/v1
     depends_on:
       - events
       - repos
@@ -69,13 +69,13 @@ services:
   tasks:
     profile: bus/tasks/local
     params:
-      events_url: "{env:BUS_EVENTS_URL}"
+      events_url: http://127.0.0.1:8081/local/v1
     depends_on:
       - events
   engine:
     profile: bus/engine/local
     params:
-      events_url: "{env:BUS_EVENTS_URL}"
+      events_url: http://127.0.0.1:8081/local/v1
     depends_on:
       - events
   api:
