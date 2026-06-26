@@ -606,3 +606,7 @@
 	path = bus-engine-os
 	url = git@github.com:busdk/bus-engine-os.git
 	branch = develop
+[submodule "bus-net"]
+	path = bus-net
+	url = git@github.com:busdk/bus-net.git
+	branch = develop
