@@ -140,7 +140,7 @@ SSH details and log in:
 
 ```bash
 bus engine ssh
-ssh -p 2222 bus@127.0.0.1
+ssh -i .bus/engine/keys/client_ed25519 -o IdentitiesOnly=yes -p 20222 bus@127.0.0.1
 bus engine stop
 ```
 
