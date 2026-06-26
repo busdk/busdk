@@ -87,7 +87,7 @@ On Debian or Ubuntu:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y git curl jq openssl dpkg postgresql qemu-system-x86 qemu-utils
+sudo apt-get install -y git curl jq openssl dpkg postgresql qemu-system-arm qemu-system-x86 qemu-utils
 ```
 
 On macOS with Homebrew:
@@ -144,10 +144,12 @@ ssh -p 2222 bus@127.0.0.1
 bus engine stop
 ```
 
-The Engine service prepares its local artifact cache and downloads the Debian
-12 cloud image when the Engine is started. Use module README files and public
-module docs for worker creation, identity/auth setup, repository management,
-Engine kernel artifacts, provider-specific options, and customization
+The Engine service uses Bus Engine OS artifacts by default. Build
+`bus-engine-os`, register the resulting `rootfs.raw` and `Image` files with
+`bus artifacts`, or set `BUS_ENGINE_OS_ARTIFACT_DIR` to the image artifact
+directory before starting the Engine. Use module README files and public module
+docs for worker creation, identity/auth setup, repository management, Engine
+artifacts, provider-specific options, and customization
 environment variables.
 
 ## Repository Layout
