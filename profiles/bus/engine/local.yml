@@ -87,29 +87,29 @@ runtime:
       description: Local private key used by `bus engine ssh` for the default Engine guest user.
       value_from: env:BUS_ENGINE_SSH_KEY_FILE
       default: "{env:BUS_SERVICES_BUS_DIR}/engine/keys/client_ed25519"
-    - name: BUS_ENGINE_KERNEL_IMAGE
-      description: Optional local Bus Engine kernel image path used when no catalog record supplies the kernel artifact.
-      value_from: env:BUS_ENGINE_KERNEL_IMAGE
+    - name: BUS_ENGINE_OS_ARTIFACT_DIR
+      description: Optional directory containing Bus Engine OS rootfs.raw and Image artifacts.
+      value_from: env:BUS_ENGINE_OS_ARTIFACT_DIR
       default: " "
-    - name: BUS_ENGINE_KERNEL_URL
-      description: Optional Bus Engine kernel image URL used when no catalog record supplies the kernel artifact.
-      value_from: env:BUS_ENGINE_KERNEL_URL
+    - name: BUS_ENGINE_OS_ROOTFS_IMAGE
+      description: Optional local Bus Engine OS raw rootfs image path.
+      value_from: env:BUS_ENGINE_OS_ROOTFS_IMAGE
       default: " "
-    - name: BUS_ENGINE_KERNEL_DIGEST
-      description: Optional expected Bus Engine kernel digest.
-      value_from: env:BUS_ENGINE_KERNEL_DIGEST
+    - name: BUS_ENGINE_OS_ROOTFS_DIGEST
+      description: Optional expected Bus Engine OS raw rootfs digest.
+      value_from: env:BUS_ENGINE_OS_ROOTFS_DIGEST
       default: " "
-    - name: BUS_ENGINE_KERNEL_SHA256
-      description: Optional expected Bus Engine kernel SHA256 digest.
-      value_from: env:BUS_ENGINE_KERNEL_SHA256
+    - name: BUS_ENGINE_OS_KERNEL_IMAGE
+      description: Optional local Bus Engine OS direct kernel image path.
+      value_from: env:BUS_ENGINE_OS_KERNEL_IMAGE
       default: " "
-    - name: BUS_ENGINE_KERNEL_CHECKSUM_URL
-      description: Optional checksum manifest URL for the Bus Engine kernel image.
-      value_from: env:BUS_ENGINE_KERNEL_CHECKSUM_URL
+    - name: BUS_ENGINE_OS_KERNEL_DIGEST
+      description: Optional expected Bus Engine OS direct kernel image digest.
+      value_from: env:BUS_ENGINE_OS_KERNEL_DIGEST
       default: " "
-    - name: BUS_ENGINE_KERNEL_CHECKSUM_FILE
-      description: Optional checksum manifest file name for the Bus Engine kernel image.
-      value_from: env:BUS_ENGINE_KERNEL_CHECKSUM_FILE
+    - name: BUS_ENGINE_OS_KERNEL_SHA256
+      description: Optional expected Bus Engine OS direct kernel image SHA256 digest.
+      value_from: env:BUS_ENGINE_OS_KERNEL_SHA256
       default: " "
     - name: BUS_EVENTS_LISTENER_RETRY
       description: Keep Engine integration workers retrying while dependent services start.
