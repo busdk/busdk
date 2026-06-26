@@ -87,6 +87,10 @@ runtime:
       description: Local private key used by `bus engine ssh` for the default Engine guest user.
       value_from: env:BUS_ENGINE_SSH_KEY_FILE
       default: "{env:BUS_SERVICES_BUS_DIR}/engine/keys/client_ed25519"
+    - name: BUS_ENGINE_SSH_PORT
+      description: Local host port forwarded to the Engine guest sshd.
+      value_from: env:BUS_ENGINE_SSH_PORT
+      default: "20222"
     - name: BUS_ENGINE_OS_ARTIFACT_DIR
       description: Optional directory containing Bus Engine OS rootfs.raw and Image artifacts.
       value_from: env:BUS_ENGINE_OS_ARTIFACT_DIR
