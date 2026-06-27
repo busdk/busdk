@@ -28,6 +28,18 @@ Merged guidance from `.cursor/rules/*.mdc`.
   architecture candidates, leave compact triggers and follow-up notes unless a
   task explicitly asks for public documentation edits.
 
+## Public Surface Naming
+
+Public API names, command names, package-set names, artifact IDs, config schema
+names, service names, event names, and documented user workflows must be named
+for the finished BusDK product, not for temporary milestones or prototype
+phases. Do not put terms such as `mvp`, `prototype`, `temporary`, or
+`experimental` into public surfaces that would become stale or deprecated once
+the product is complete. Milestone wording may appear in planning notes or
+historical evidence, but active user-facing interfaces should use durable
+product concepts such as package, image, profile, release, task, worker,
+service, event, artifact, or acceptance.
+
 ## Live Working Memo
 
 This section is core operating memory for Codex agents in this repository. Do
