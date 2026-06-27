@@ -785,6 +785,11 @@ this root file must preserve the supervisor/worker boundary itself.
     unless the operator explicitly requests another model or a task has a
     concrete model-specific requirement. When a worker must use a different
     model, record the reason in the task stream or memo.
+    Use configured Bus worker templates for model/runtime selection whenever
+    a suitable template exists. Do not compose ad hoc model IDs to encode
+    effort or runtime policy, such as adding `-high` to a model name. Exact
+    provider model names and tuning fields belong in the template catalog for
+    the active environment, for example `.bus/worker/templates.json`.
 43. Use the default local dispatch surfaces first. The normal local Services
     stack owns API URLs and generated local Events credentials, so local Bus
     task and worker commands should not need explicit `--api-url`,

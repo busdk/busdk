@@ -1,0 +1,63 @@
+{
+  "templates": [
+    {
+      "id": "codex-53-spark",
+      "label": "Codex 5.3 Spark",
+      "default_profile": "codex-spark",
+      "default_model": "gpt-5.3-codex-spark",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": ["go", "shell"],
+      "eligible_environments": ["local"],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-53-spark",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "codex-54-mini",
+      "label": "Codex 5.4 Mini",
+      "default_profile": "codex-mini",
+      "default_model": "gpt-5.4-mini",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": ["go", "shell"],
+      "eligible_environments": ["local"],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-54-mini",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "codex-55",
+      "label": "Codex 5.5",
+      "default_profile": "codex-55",
+      "default_model": "gpt-5.5",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": ["go", "shell"],
+      "eligible_environments": ["local"],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-55",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "codex-55-high",
+      "label": "Codex 5.5 High",
+      "default_profile": "codex-55",
+      "default_model": "gpt-5.5",
+      "reasoning_effort": "high",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": ["go", "shell"],
+      "eligible_environments": ["local"],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-55-high",
+      "identity_base_ref": "refs/heads/main"
+    }
+  ]
+}
