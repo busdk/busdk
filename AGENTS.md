@@ -787,12 +787,14 @@ this root file must preserve the supervisor/worker boundary itself.
     provider model names, profile names, reasoning effort, verbosity, sandbox,
     runner provider, and identity repo settings. Supervisor goals, PLAN items,
     worker briefs, scripts, and live `bus workers create` commands must select
-    a template id and describe the capability needed; they must not hard-code
-    provider model IDs or individual model settings. Do not compose ad hoc
-    model IDs or command flags to encode effort or runtime policy, such as
-    adding `-high` to a model name. If a suitable template is missing, add or
-    request the environment template first, then dispatch through that template
-    and record the reason in the task stream or memo.
+    a template id discovered from the target environment and describe the
+    capability needed; they must not hard-code provider model IDs, assume
+    portable template ids across environments, or pass individual model
+    settings. Do not compose ad hoc model IDs, template IDs, or command flags to
+    encode effort or runtime policy, such as adding `-high` to a model name. If
+    a suitable template is missing, add or request the environment template
+    first, then dispatch through that template and record the reason in the
+    task stream or memo.
 43. Use the default local dispatch surfaces first. The normal local Services
     stack owns API URLs and generated local Events credentials, so local Bus
     task and worker commands should not need explicit `--api-url`,
