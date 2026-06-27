@@ -8,6 +8,7 @@ set -eu
 # first through scripts/install-ssh-docker-worker-image.sh.
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+. "$ROOT/scripts/lib-worker-template.sh"
 
 REMOTE_ID=${BUS_SSH_DOCKER_SMOKE_REMOTE_ID:-dev-hg}
 SMOKE_DIR=${BUS_SSH_DOCKER_SMOKE_DIR:-${TMPDIR:-/tmp}/bus-ssh-docker-smoke}
@@ -30,6 +31,7 @@ WORKER_KEEP_CONTAINER=${BUS_SSH_DOCKER_SMOKE_KEEP_CONTAINER:-false}
 WORKER_AGENT_BACKEND=${BUS_SSH_DOCKER_SMOKE_AGENT_BACKEND:-self-test}
 WORKER_CONTAINER_IMAGE=${BUS_SSH_DOCKER_SMOKE_CONTAINER_IMAGE:-}
 WORKER_CONTAINER_PROFILE=${BUS_SSH_DOCKER_SMOKE_CONTAINER_PROFILE:-}
+WORKER_TEMPLATE=${BUS_SSH_DOCKER_SMOKE_WORKER_TEMPLATE:-}
 WORKER_PROFILE=${BUS_SSH_DOCKER_SMOKE_WORKER_PROFILE:-}
 WORKER_CODEX_MODEL=${BUS_SSH_DOCKER_SMOKE_CODEX_MODEL:-}
 WORKER_REASONING_EFFORT=${BUS_SSH_DOCKER_SMOKE_REASONING_EFFORT:-}
@@ -92,6 +94,7 @@ a stable approved command prefix.
   --agent-backend BACKEND        dev-task agent backend
   --container-image IMAGE        container backend image
   --container-profile PROFILE    container backend profile
+  --worker-template TEMPLATE     worker template ref used to derive runtime defaults
   --worker-profile PROFILE       worker profile label for status/evidence
   --codex-model MODEL            requested Codex/App Server model
   --reasoning-effort VALUE       requested model reasoning effort
@@ -161,6 +164,7 @@ while [ "$#" -gt 0 ]; do
 		--agent-backend) need_arg "$@"; WORKER_AGENT_BACKEND=$2; shift 2 ;;
 		--container-image) need_arg "$@"; WORKER_CONTAINER_IMAGE=$2; shift 2 ;;
 		--container-profile) need_arg "$@"; WORKER_CONTAINER_PROFILE=$2; shift 2 ;;
+		--worker-template) need_arg "$@"; WORKER_TEMPLATE=$2; shift 2 ;;
 		--worker-profile) need_arg "$@"; WORKER_PROFILE=$2; shift 2 ;;
 		--codex-model) need_arg "$@"; WORKER_CODEX_MODEL=$2; shift 2 ;;
 		--reasoning-effort) need_arg "$@"; WORKER_REASONING_EFFORT=$2; shift 2 ;;
@@ -212,6 +216,16 @@ while [ "$#" -gt 0 ]; do
 			;;
 	esac
 done
+
+if [ -n "$WORKER_TEMPLATE" ]; then
+	resolve_worker_template "$ROOT" "$WORKER_TEMPLATE"
+	WORKER_PROFILE=${WORKER_PROFILE:-$BUS_WORKER_TEMPLATE_PROFILE}
+	WORKER_CODEX_MODEL=${WORKER_CODEX_MODEL:-$BUS_WORKER_TEMPLATE_MODEL}
+	WORKER_REASONING_EFFORT=${WORKER_REASONING_EFFORT:-$BUS_WORKER_TEMPLATE_REASONING_EFFORT}
+	if [ -z "$WORKER_SANDBOX" ] && [ -z "$WORKER_CODEX_SANDBOX" ]; then
+		WORKER_SANDBOX=$BUS_WORKER_TEMPLATE_SANDBOX
+	fi
+fi
 
 worker_sandbox_to_codex() {
 	case "$1" in
@@ -432,6 +446,7 @@ run_start() {
 	BUS_TASK_AGENT_BACKEND="$WORKER_AGENT_BACKEND" \
 	BUS_TASK_CONTAINER_IMAGE="$WORKER_CONTAINER_IMAGE" \
 	BUS_TASK_CONTAINER_PROFILE="$WORKER_CONTAINER_PROFILE" \
+	BUS_TASK_WORKER_TEMPLATE="$WORKER_TEMPLATE" \
 	BUS_TASK_WORKER_PROFILE="$WORKER_PROFILE" \
 	BUS_TASK_CODEX_MODEL="$WORKER_CODEX_MODEL" \
 	BUS_TASK_CODEX_ARGS="$WORKER_CODEX_ARGS_JSON" \

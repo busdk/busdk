@@ -7,10 +7,12 @@ set -eu
 # report through Bus Events, and finish without editing files.
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+. "$ROOT/scripts/lib-worker-template.sh"
 
 REMOTE_ID=${BUS_SSH_DOCKER_SPARK_SMOKE_REMOTE_ID:-dev-hg}
-PROFILE=${BUS_SSH_DOCKER_SPARK_SMOKE_PROFILE:-codex-spark}
-MODEL=${BUS_SSH_DOCKER_SPARK_SMOKE_MODEL:-gpt-5.3-codex-spark}
+TEMPLATE=${BUS_SSH_DOCKER_SPARK_SMOKE_TEMPLATE:-codex-53-spark}
+PROFILE=${BUS_SSH_DOCKER_SPARK_SMOKE_PROFILE:-}
+MODEL=${BUS_SSH_DOCKER_SPARK_SMOKE_MODEL:-}
 REASONING_EFFORT=${BUS_SSH_DOCKER_SPARK_SMOKE_REASONING_EFFORT:-}
 SANDBOX=${BUS_SSH_DOCKER_SPARK_SMOKE_SANDBOX:-read}
 AUTH_MODE=${BUS_SSH_DOCKER_SPARK_SMOKE_AUTH_MODE:-chatgpt-subscription}
@@ -35,8 +37,9 @@ test-ssh-docker-codex-smoke.sh.
 
 Options:
   --remote-id ID                 Bus remote id (default: dev-hg)
-  --profile NAME                 Worker profile label (default: codex-spark)
-  --model MODEL                  Requested worker model (default: gpt-5.3-codex-spark)
+  --template TEMPLATE            Worker template ref (default: codex-53-spark)
+  --profile NAME                 Worker profile label override
+  --model MODEL                  Requested worker model override
   --reasoning-effort VALUE       Requested worker reasoning effort
   --sandbox MODE                 Worker sandbox mode: read, write, or full
   --auth-mode MODE               Worker auth mode label (default: chatgpt-subscription)
@@ -76,6 +79,7 @@ $1"
 while [ "$#" -gt 0 ]; do
 	case "$1" in
 		--remote-id) need_arg "$@"; REMOTE_ID=$2; shift 2 ;;
+		--template) need_arg "$@"; TEMPLATE=$2; shift 2 ;;
 		--profile) need_arg "$@"; PROFILE=$2; shift 2 ;;
 		--model) need_arg "$@"; MODEL=$2; shift 2 ;;
 		--reasoning-effort) need_arg "$@"; REASONING_EFFORT=$2; shift 2 ;;
@@ -123,6 +127,12 @@ if [ -n "$forwarded_args" ]; then
 	IFS=$OLD_IFS
 fi
 
+resolve_worker_template "$ROOT" "$TEMPLATE"
+PROFILE=${PROFILE:-$BUS_WORKER_TEMPLATE_PROFILE}
+MODEL=${MODEL:-$BUS_WORKER_TEMPLATE_MODEL}
+REASONING_EFFORT=${REASONING_EFFORT:-$BUS_WORKER_TEMPLATE_REASONING_EFFORT}
+
+BUS_SSH_DOCKER_CODEX_SMOKE_WORKER_TEMPLATE=$TEMPLATE \
 BUS_SSH_DOCKER_CODEX_SMOKE_REMOTE_ID=$REMOTE_ID \
 BUS_SSH_DOCKER_CODEX_SMOKE_WORKER_PROFILE=$PROFILE \
 BUS_SSH_DOCKER_CODEX_SMOKE_MODEL=$MODEL \

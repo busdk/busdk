@@ -10,6 +10,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 PROMPT=${BUS_SSH_DOCKER_CODEX_SMOKE_PROMPT:-SSH-Docker real Codex smoke: do not edit files. Inspect /workspace/bus-dev/go.mod, report the module path in one sentence, and finish with app_server_closeout JSON where task_complete=true, changed_files=[], plan_closed=false, no_matching_plan_item=true, no_matching_plan_reason explains this is a read-only smoke, required_checks includes the go.mod inspection, and remaining_blockers=[]. Do not run bus task close; the bridge will publish the terminal event. If Bus Notes are unavailable, state that as non-blocking evidence, not as a blocker.}
 TIMEOUT=${BUS_SSH_DOCKER_CODEX_SMOKE_WAIT_TIMEOUT:-15m}
 START_TIMEOUT=${BUS_SSH_DOCKER_CODEX_SMOKE_START_TIMEOUT:-5m}
+WORKER_TEMPLATE=${BUS_SSH_DOCKER_CODEX_SMOKE_WORKER_TEMPLATE:-}
 WORKER_PROFILE=${BUS_SSH_DOCKER_CODEX_SMOKE_WORKER_PROFILE:-}
 CODEX_MODEL=${BUS_SSH_DOCKER_CODEX_SMOKE_MODEL:-}
 REASONING_EFFORT=${BUS_SSH_DOCKER_CODEX_SMOKE_REASONING_EFFORT:-}
@@ -23,6 +24,7 @@ CREDENTIAL_SOURCE_REF=${BUS_SSH_DOCKER_CODEX_SMOKE_CREDENTIAL_SOURCE_REF:-}
 EVIDENCE_DIR=${BUS_SSH_DOCKER_CODEX_SMOKE_EVIDENCE_DIR:-}
 
 BUS_SSH_DOCKER_SMOKE_AGENT_BACKEND=codex-appserver \
+BUS_SSH_DOCKER_SMOKE_WORKER_TEMPLATE="$WORKER_TEMPLATE" \
 BUS_SSH_DOCKER_SMOKE_WORKER_PROFILE="$WORKER_PROFILE" \
 BUS_SSH_DOCKER_SMOKE_CODEX_MODEL="$CODEX_MODEL" \
 BUS_SSH_DOCKER_SMOKE_REASONING_EFFORT="$REASONING_EFFORT" \

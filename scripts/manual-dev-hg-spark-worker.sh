@@ -6,12 +6,14 @@ set -eu
 
 SCRIPT_DIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
 DEFAULT_REPO=$(CDPATH= cd "$SCRIPT_DIR/.." && pwd)
+. "$DEFAULT_REPO/scripts/lib-worker-template.sh"
 
 HOST=${BUS_MANUAL_SPARK_HOST:-local}
 REPO=${BUS_MANUAL_SPARK_REPO:-$DEFAULT_REPO}
 WORKER_ROOT=${BUS_MANUAL_SPARK_WORKER_ROOT:-$REPO/tmp/workers}
 WORKER_REPO=${BUS_MANUAL_SPARK_WORKER_REPO:-$REPO/agents/worker}
-MODEL=${BUS_MANUAL_SPARK_MODEL:-gpt-5.3-codex-spark}
+TEMPLATE=${BUS_MANUAL_SPARK_TEMPLATE:-codex-53-spark}
+MODEL=${BUS_MANUAL_SPARK_MODEL:-}
 SANDBOX=${BUS_MANUAL_SPARK_SANDBOX:-workspace-write}
 CODEX_CMD=${BUS_MANUAL_SPARK_CODEX:-codex}
 AUTH_HOME=${BUS_MANUAL_SPARK_AUTH_HOME:-${CODEX_HOME:-$HOME/.codex}}
@@ -44,7 +46,8 @@ Environment overrides:
   BUS_MANUAL_SPARK_REPO             default parent of this script directory
   BUS_MANUAL_SPARK_WORKER_ROOT      default $REPO/tmp/workers
   BUS_MANUAL_SPARK_WORKER_REPO      default $REPO/agents/worker
-  BUS_MANUAL_SPARK_MODEL            default gpt-5.3-codex-spark
+  BUS_MANUAL_SPARK_TEMPLATE         default codex-53-spark
+  BUS_MANUAL_SPARK_MODEL            optional explicit model override
   BUS_MANUAL_SPARK_SANDBOX          default workspace-write
   BUS_MANUAL_SPARK_CODEX            default codex
   BUS_MANUAL_SPARK_AUTH_HOME        default CODEX_HOME or $HOME/.codex
@@ -205,6 +208,7 @@ write_worker_identity_files() {
 Worker: $wwif_name
 Module: $wwif_module
 Implementation branch: $wwif_branch
+Template: $TEMPLATE
 Model: $MODEL
 Sandbox: $SANDBOX
 
@@ -280,6 +284,10 @@ start)
 	require_command go
 	require_command make
 	require_command "$CODEX_CMD"
+	if [ -z "$MODEL" ]; then
+		resolve_worker_template "$REPO" "$TEMPLATE"
+		MODEL=$BUS_WORKER_TEMPLATE_MODEL
+	fi
 	if [ "$SESSION_BACKEND" = "screen" ]; then
 		require_command screen
 	else
@@ -368,6 +376,7 @@ runner=$runner
 session_backend=$SESSION_BACKEND
 session_name=$session
 pid_file=$pid_file
+template=$TEMPLATE
 model=$MODEL
 sandbox=$SANDBOX
 codex_cmd=$CODEX_CMD
@@ -379,8 +388,8 @@ EOF
 	(cd "$logs_path" && screen -L -dmS "$session" /bin/sh "$runner")
 	printf '%s\n' "$$" >"$pid_file"
 
-	printf 'worker=%s\nsession=%s\nproduct_worktree=%s\nmodule=%s\nbranch=%s\nidentity_branch=%s\nidentity_worktree=%s\nlogs=%s\ncodex_home=%s\nmodel=%s\nsandbox=%s\n' \
-		"$name" "$session" "$product_worktree" "$module" "$branch" "$identity_branch" "$identity_worktree" "$logs_path" "$codex_home" "$MODEL" "$SANDBOX"
+	printf 'worker=%s\nsession=%s\nproduct_worktree=%s\nmodule=%s\nbranch=%s\nidentity_branch=%s\nidentity_worktree=%s\nlogs=%s\ncodex_home=%s\ntemplate=%s\nmodel=%s\nsandbox=%s\n' \
+		"$name" "$session" "$product_worktree" "$module" "$branch" "$identity_branch" "$identity_worktree" "$logs_path" "$codex_home" "$TEMPLATE" "$MODEL" "$SANDBOX"
 	printf '\nAttach with:\n  %s attach %s\n' "$0" "$name"
 	printf '\nSend more guidance with:\n  %s prompt %s /path/to/prompt.md\n' "$0" "$name"
 	;;
