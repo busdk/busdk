@@ -41,6 +41,10 @@ runtime:
     - name: BUS_API_JWT_SECRET
       description: HS256 secret used by the Events API to validate Bus API bearer tokens.
       value_from: env:BUS_API_JWT_SECRET
+    - name: BUS_API_IDENTITIES_API_URL
+      description: Identities API URL used by the Events provider for JWT/API-key authorization checks.
+      value_from: env:BUS_API_IDENTITIES_API_URL
+      default: http://127.0.0.1:8091
     - name: BUS_API_IDENTITIES_API_TOKEN
       description: Optional bearer token used by the Events provider for identities API calls.
       value_from: env:BUS_API_IDENTITIES_API_TOKEN
