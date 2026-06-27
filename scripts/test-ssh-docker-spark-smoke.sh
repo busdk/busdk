@@ -7,7 +7,6 @@ set -eu
 # report through Bus Events, and finish without editing files.
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-. "$ROOT/scripts/lib-worker-template.sh"
 
 REMOTE_ID=${BUS_SSH_DOCKER_SPARK_SMOKE_REMOTE_ID:-dev-hg}
 TEMPLATE=${BUS_SSH_DOCKER_SPARK_SMOKE_TEMPLATE:-codex-53-spark}
@@ -126,11 +125,6 @@ if [ -n "$forwarded_args" ]; then
 	done
 	IFS=$OLD_IFS
 fi
-
-resolve_worker_template "$ROOT" "$TEMPLATE"
-PROFILE=${PROFILE:-$BUS_WORKER_TEMPLATE_PROFILE}
-MODEL=${MODEL:-$BUS_WORKER_TEMPLATE_MODEL}
-REASONING_EFFORT=${REASONING_EFFORT:-$BUS_WORKER_TEMPLATE_REASONING_EFFORT}
 
 BUS_SSH_DOCKER_CODEX_SMOKE_WORKER_TEMPLATE=$TEMPLATE \
 BUS_SSH_DOCKER_CODEX_SMOKE_REMOTE_ID=$REMOTE_ID \

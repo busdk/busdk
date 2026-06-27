@@ -8,7 +8,6 @@ set -eu
 # first through scripts/install-ssh-docker-worker-image.sh.
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-. "$ROOT/scripts/lib-worker-template.sh"
 
 REMOTE_ID=${BUS_SSH_DOCKER_SMOKE_REMOTE_ID:-dev-hg}
 SMOKE_DIR=${BUS_SSH_DOCKER_SMOKE_DIR:-${TMPDIR:-/tmp}/bus-ssh-docker-smoke}
@@ -216,16 +215,6 @@ while [ "$#" -gt 0 ]; do
 			;;
 	esac
 done
-
-if [ -n "$WORKER_TEMPLATE" ]; then
-	resolve_worker_template "$ROOT" "$WORKER_TEMPLATE"
-	WORKER_PROFILE=${WORKER_PROFILE:-$BUS_WORKER_TEMPLATE_PROFILE}
-	WORKER_CODEX_MODEL=${WORKER_CODEX_MODEL:-$BUS_WORKER_TEMPLATE_MODEL}
-	WORKER_REASONING_EFFORT=${WORKER_REASONING_EFFORT:-$BUS_WORKER_TEMPLATE_REASONING_EFFORT}
-	if [ -z "$WORKER_SANDBOX" ] && [ -z "$WORKER_CODEX_SANDBOX" ]; then
-		WORKER_SANDBOX=$BUS_WORKER_TEMPLATE_SANDBOX
-	fi
-fi
 
 worker_sandbox_to_codex() {
 	case "$1" in

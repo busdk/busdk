@@ -40,6 +40,7 @@ default_from_task_env BUS_DEV_TASK_REMOTE_KIND BUS_TASK_REMOTE_KIND
 default_from_task_env BUS_DEV_TASK_CONTAINER_IMAGE BUS_TASK_CONTAINER_IMAGE
 default_from_task_env BUS_DEV_TASK_CONTAINER_PROFILE BUS_TASK_CONTAINER_PROFILE
 default_from_task_env BUS_DEV_TASK_AGENT_BACKEND BUS_TASK_AGENT_BACKEND
+default_from_task_env BUS_DEV_TASK_WORKER_TEMPLATE BUS_TASK_WORKER_TEMPLATE
 default_from_task_env BUS_DEV_TASK_CODEX_ARGS BUS_TASK_CODEX_ARGS
 default_from_task_env BUS_DEV_TASK_CODEX_MODEL BUS_TASK_CODEX_MODEL
 default_from_task_env BUS_DEV_TASK_CODEX_SANDBOX BUS_TASK_CODEX_SANDBOX
@@ -80,9 +81,43 @@ fi
 : "${BUS_DEV_TASK_ONCE:=true}"
 : "${BUS_DEV_TASK_IDLE_TIMEOUT:=10m}"
 
+worker_template_value() {
+  wtv_output=$1
+  wtv_key=$2
+  printf '%s\n' "$wtv_output" | awk -F '	' -v key="$wtv_key" '
+    $1 == key {
+      print $2
+      found = 1
+      exit
+    }
+    END {
+      if (!found) {
+        exit 1
+      }
+    }
+  '
+}
+
+if [ -n "${BUS_DEV_TASK_WORKER_TEMPLATE:-}" ] && { [ -z "${BUS_DEV_TASK_CODEX_MODEL:-}" ] || [ -z "${BUS_DEV_TASK_CODEX_SANDBOX:-}" ]; }; then
+  worker_template_cli=${BUS_DEV_TASK_WORKER_TEMPLATE_CLI:-$workspace_root/bus-worker/bin/bus-worker}
+  if [ ! -x "$worker_template_cli" ]; then
+    printf 'worker template resolver not executable: %s\n' "$worker_template_cli" >&2
+    exit 2
+  fi
+  worker_template_output=$("$worker_template_cli" -C "$workspace_root" template show "$BUS_DEV_TASK_WORKER_TEMPLATE")
+  if [ -z "${BUS_DEV_TASK_CODEX_MODEL:-}" ]; then
+    BUS_DEV_TASK_CODEX_MODEL=$(worker_template_value "$worker_template_output" default_model)
+  fi
+  if [ -z "${BUS_DEV_TASK_CODEX_SANDBOX:-}" ]; then
+    BUS_DEV_TASK_CODEX_SANDBOX=$(worker_template_value "$worker_template_output" sandbox)
+  fi
+fi
+
 export BUS_DEV_TASK_AGENT_BACKEND
+export BUS_DEV_TASK_WORKER_TEMPLATE
 export BUS_DEV_TASK_CODEX_COMMAND
 export BUS_DEV_TASK_CODEX_ARGS
+export BUS_DEV_TASK_CODEX_MODEL
 export BUS_DEV_TASK_CODEX_APPROVAL_POLICY
 export BUS_DEV_TASK_CODEX_SANDBOX
 export BUS_DEV_TASK_CODEX_NETWORK_ACCESS

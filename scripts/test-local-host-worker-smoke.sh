@@ -30,7 +30,6 @@ if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
 fi
 
 ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
-. "$ROOT/scripts/lib-worker-template.sh"
 ADDR=${BUS_LOCAL_HOST_WORKER_SMOKE_ADDR:-127.0.0.1:8081}
 API_URL="http://$ADDR"
 TOKEN_FILE=${BUS_LOCAL_HOST_WORKER_SMOKE_TOKEN_FILE:-$ROOT/tmp/local-ai-platform/bus-config/auth/api-token}
@@ -162,12 +161,6 @@ if [ -z "$work_ref" ]; then
 fi
 
 run_bus_task --api-url "$API_URL" --token-file "$TOKEN_FILE" ready "$work_ref" "$READY_TEXT"
-
-if [ -n "$TEMPLATE" ]; then
-  resolve_worker_template "$ROOT" "$TEMPLATE"
-  PROFILE=${PROFILE:-$BUS_WORKER_TEMPLATE_PROFILE}
-  MODEL=${MODEL:-$BUS_WORKER_TEMPLATE_MODEL}
-fi
 
 worker_token=$(
   BUS_API_TOKEN=$(cat "$TOKEN_FILE") \

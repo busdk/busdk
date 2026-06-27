@@ -35,6 +35,23 @@ sanitize() {
   printf '%s' "$1" | tr -cs '[:alnum:]._-#' '-'
 }
 
+worker_template_value() {
+  wtv_output=$1
+  wtv_key=$2
+  printf '%s\n' "$wtv_output" | awk -F '	' -v key="$wtv_key" '
+    $1 == key {
+      print $2
+      found = 1
+      exit
+    }
+    END {
+      if (!found) {
+        exit 1
+      }
+    }
+  '
+}
+
 require_env BUS_API_TOKEN
 require_env BUS_EVENTS_API_URL
 require_env BUS_TASK_RECIPIENT
@@ -84,6 +101,21 @@ BUSDK_TOOL_BIN_DIR=$ROOT/tmp/busdk-tools \
   "$ROOT/scripts/busdk-refresh-tools.sh" --refresh-only >/dev/null
 
 export PATH=$ROOT/.busdk-tools/bin:$PATH
+
+if [ -n "${BUS_TASK_WORKER_TEMPLATE:-}" ] && { [ -z "${BUS_TASK_CODEX_MODEL:-}" ] || [ -z "${BUS_TASK_CODEX_SANDBOX:-}" ]; }; then
+  worker_template_cli=${BUS_TASK_WORKER_TEMPLATE_CLI:-$ROOT/bus-worker/bin/bus-worker}
+  if [ ! -x "$worker_template_cli" ]; then
+    printf 'worker template resolver not executable: %s\n' "$worker_template_cli" >&2
+    exit 2
+  fi
+  worker_template_output=$("$worker_template_cli" -C "$ROOT" template show "$BUS_TASK_WORKER_TEMPLATE")
+  if [ -z "${BUS_TASK_CODEX_MODEL:-}" ]; then
+    export BUS_TASK_CODEX_MODEL=$(worker_template_value "$worker_template_output" default_model)
+  fi
+  if [ -z "${BUS_TASK_CODEX_SANDBOX:-}" ]; then
+    export BUS_TASK_CODEX_SANDBOX=$(worker_template_value "$worker_template_output" sandbox)
+  fi
+fi
 
 stamp=$(date '+%Y%m%d-%H%M%S')
 token=$(sanitize "${recipient}-${work_ref}")
