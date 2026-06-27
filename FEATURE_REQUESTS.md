@@ -14,10 +14,10 @@ Goal note:
 - Operators should not need shell text pipelines (`grep`/`sed`/`awk`/`column`) to answer accounting control questions.
 
 ## Active requests
-- add first-class Bus worker identity templates so worker creation can choose a reusable identity repo/base ref by template, model, profile, or environment, for example mapping GPT-5.4 workers to an `agents/worker:gpt54` base, while preserving old runtime `AGENTS.md`, prompts, metadata, logs, and failure traces as run history instead of cloning or discarding them
+- add first-class Bus worker identity templates so worker creation can choose a reusable identity repo/base ref by explicit environment-local template id, while keeping exact provider model/profile/runtime settings inside the active environment's template catalog and preserving old runtime `AGENTS.md`, prompts, metadata, logs, and failure traces as run history instead of cloning or discarding them
 - finish the remaining Bus Events ecosystem route-discovery and delivery-policy work: wire declared event capabilities into `bus-api` REST-to-event route validation/discovery, then define terminal-failure, dead-letter, and operator-diagnostic semantics for work-queue delivery while keeping the current memory/Redis/PostgreSQL backend set until a concrete new backend is requested
 
-### Add reusable worker identity templates and model/profile-based identity base selection
+### Add reusable worker identity templates and environment-local identity base selection
 
 Problem:
 - Bus direct worker creation already has the low-level ability to initialize a
@@ -40,9 +40,12 @@ Requested capability:
     `agents/worker:gpt54`
   - optional product base defaults and module-family hints
   - durable guidance/memory policy for what may be copied into new workers
-- Allow `bus workers create` and the workers API to choose a template
-  explicitly, for example `--template gpt54`, or infer one from model/profile
-  when unambiguous.
+- Allow `bus workers create` and the workers API to choose an environment-local
+  template explicitly, for example `--template <template-id>`. Template ids are
+  stable operator handles; exact provider model names, profile names, reasoning
+  settings, sandbox policy, runner provider, and identity refs belong inside
+  the active environment's template catalog, not in normal worker launch
+  commands.
 - Support multiple worker identity repositories and multiple base branches
   without requiring a separate workers service process per model family.
 - Record the selected template, identity repo, and identity base ref in worker
@@ -54,8 +57,9 @@ Requested capability:
 
 Acceptance:
 - `bus workers create` and the Workers API can select a template explicitly
-  and can infer one from model/profile/environment only when the match is
-  unambiguous; ambiguous inference fails with a stable diagnostic.
+  from the active environment template catalog; a missing or unavailable
+  template fails with a stable diagnostic that tells the operator to configure
+  the environment template before dispatch.
 - Worker status/list/show surfaces record the selected template id, model,
   profile, identity repository reference, and identity base ref without
   leaking local paths, tokens, prompts, or task-specific runtime state.
@@ -72,9 +76,9 @@ Acceptance:
 Why this matters:
 - Operators need a small standing team of reusable worker identities instead
   of always creating one-off workers.
-- Different model families can need different durable identity guidance, for
-  example GPT-5.4 using a `gpt54` base branch while Spark or local runtimes use
-  another base.
+- Different template policies can need different durable identity guidance,
+  for example a high-reasoning template using one worker identity base branch
+  while a compact local-runtime template uses another base.
 - A template/base-ref approach keeps worker creation clean and repeatable
   without losing the learning value in old worker directories.
 - This is safer than cloning an existing runtime directory because templates
