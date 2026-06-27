@@ -16,7 +16,7 @@ Defaults are deterministic and quota-safe:
 
 Useful overrides:
   BUS_LOCAL_HOST_WORKER_SMOKE_AGENT_BACKEND=codex-appserver
-  BUS_LOCAL_HOST_WORKER_SMOKE_TEMPLATE=codex-53-spark
+  BUS_LOCAL_HOST_WORKER_SMOKE_TEMPLATE=<environment-template-id>
   BUS_LOCAL_HOST_WORKER_SMOKE_PROFILE=<explicit compatibility override>
   BUS_LOCAL_HOST_WORKER_SMOKE_MODEL=<explicit compatibility override>
   BUS_LOCAL_HOST_WORKER_SMOKE_RECIPIENT=bus-worker

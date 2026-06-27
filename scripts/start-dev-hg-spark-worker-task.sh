@@ -21,7 +21,7 @@ unit tests; do not ask for e2e or integration tests here.
 
 Environment overrides:
   BUS_DEV_HG_SPARK_START_REMOTE_ID      default dev-hg
-  BUS_DEV_HG_SPARK_START_TEMPLATE       default codex-53-spark
+  BUS_DEV_HG_SPARK_START_TEMPLATE       required unless using explicit model compatibility override
   BUS_DEV_HG_SPARK_START_IMAGE          default bus-integration-task:local-image-smoke
   BUS_DEV_HG_SPARK_START_LOCAL_TAG      default bus-integration-task:local-image-smoke
   BUS_DEV_HG_SPARK_START_INSTALL_IMAGE  default false
@@ -43,7 +43,7 @@ if [ ! -f "$PROMPT_FILE" ]; then
 fi
 
 REMOTE_ID=${BUS_DEV_HG_SPARK_START_REMOTE_ID:-dev-hg}
-TEMPLATE=${BUS_DEV_HG_SPARK_START_TEMPLATE:-codex-53-spark}
+TEMPLATE=${BUS_DEV_HG_SPARK_START_TEMPLATE:-}
 IMAGE=${BUS_DEV_HG_SPARK_START_IMAGE:-bus-integration-task:local-image-smoke}
 LOCAL_TAG=${BUS_DEV_HG_SPARK_START_LOCAL_TAG:-bus-integration-task:local-image-smoke}
 INSTALL_IMAGE=${BUS_DEV_HG_SPARK_START_INSTALL_IMAGE:-false}
@@ -60,6 +60,11 @@ TASK_ONCE=${BUS_DEV_HG_SPARK_START_ONCE:-false}
 MODEL=${BUS_DEV_HG_SPARK_START_MODEL:-}
 PROFILE=${BUS_DEV_HG_SPARK_START_PROFILE:-}
 REASONING_EFFORT=${BUS_DEV_HG_SPARK_START_REASONING_EFFORT:-}
+
+if [ -z "$TEMPLATE" ] && [ -z "$MODEL" ]; then
+	printf 'set BUS_DEV_HG_SPARK_START_TEMPLATE to an environment-local worker template, or set BUS_DEV_HG_SPARK_START_MODEL as a compatibility override\n' >&2
+	exit 2
+fi
 
 PROMPT=$(cat "$PROMPT_FILE")
 

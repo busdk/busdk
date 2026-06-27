@@ -12,7 +12,7 @@ HOST=${BUS_MANUAL_SPARK_HOST:-local}
 REPO=${BUS_MANUAL_SPARK_REPO:-$DEFAULT_REPO}
 WORKER_ROOT=${BUS_MANUAL_SPARK_WORKER_ROOT:-$REPO/tmp/workers}
 WORKER_REPO=${BUS_MANUAL_SPARK_WORKER_REPO:-$REPO/agents/worker}
-TEMPLATE=${BUS_MANUAL_SPARK_TEMPLATE:-codex-53-spark}
+TEMPLATE=${BUS_MANUAL_SPARK_TEMPLATE:-}
 MODEL=${BUS_MANUAL_SPARK_MODEL:-}
 SANDBOX=${BUS_MANUAL_SPARK_SANDBOX:-workspace-write}
 CODEX_CMD=${BUS_MANUAL_SPARK_CODEX:-codex}
@@ -46,7 +46,7 @@ Environment overrides:
   BUS_MANUAL_SPARK_REPO             default parent of this script directory
   BUS_MANUAL_SPARK_WORKER_ROOT      default $REPO/tmp/workers
   BUS_MANUAL_SPARK_WORKER_REPO      default $REPO/agents/worker
-  BUS_MANUAL_SPARK_TEMPLATE         default codex-53-spark
+  BUS_MANUAL_SPARK_TEMPLATE         required unless using BUS_MANUAL_SPARK_MODEL compatibility override
   BUS_MANUAL_SPARK_MODEL            optional explicit model override
   BUS_MANUAL_SPARK_SANDBOX          default workspace-write
   BUS_MANUAL_SPARK_CODEX            default codex
@@ -285,6 +285,10 @@ start)
 	require_command make
 	require_command "$CODEX_CMD"
 	if [ -z "$MODEL" ]; then
+		if [ -z "$TEMPLATE" ]; then
+			printf 'set BUS_MANUAL_SPARK_TEMPLATE to an environment-local worker template, or set BUS_MANUAL_SPARK_MODEL as a compatibility override\n' >&2
+			exit 2
+		fi
 		resolve_worker_template "$REPO" "$TEMPLATE"
 		MODEL=$BUS_WORKER_TEMPLATE_MODEL
 	fi

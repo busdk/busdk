@@ -9,7 +9,7 @@ set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
 REMOTE_ID=${BUS_SSH_DOCKER_SPARK_SMOKE_REMOTE_ID:-dev-hg}
-TEMPLATE=${BUS_SSH_DOCKER_SPARK_SMOKE_TEMPLATE:-codex-53-spark}
+TEMPLATE=${BUS_SSH_DOCKER_SPARK_SMOKE_TEMPLATE:-}
 PROFILE=${BUS_SSH_DOCKER_SPARK_SMOKE_PROFILE:-}
 MODEL=${BUS_SSH_DOCKER_SPARK_SMOKE_MODEL:-}
 REASONING_EFFORT=${BUS_SSH_DOCKER_SPARK_SMOKE_REASONING_EFFORT:-}
@@ -36,7 +36,7 @@ test-ssh-docker-codex-smoke.sh.
 
 Options:
   --remote-id ID                 Bus remote id (default: dev-hg)
-  --template TEMPLATE            Worker template ref (default: codex-53-spark)
+  --template TEMPLATE            Worker template ref; required unless using --model compatibility override
   --profile NAME                 Worker profile label override
   --model MODEL                  Requested worker model override
   --reasoning-effort VALUE       Requested worker reasoning effort
@@ -114,6 +114,11 @@ while [ "$#" -gt 0 ]; do
 			;;
 	esac
 done
+
+if [ -z "$TEMPLATE" ] && [ -z "$MODEL" ]; then
+	printf 'set --template or BUS_SSH_DOCKER_SPARK_SMOKE_TEMPLATE to an environment-local worker template, or set --model as a compatibility override\n' >&2
+	exit 2
+fi
 
 set --
 if [ -n "$forwarded_args" ]; then
