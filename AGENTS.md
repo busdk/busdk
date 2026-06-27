@@ -180,10 +180,10 @@ this root file must preserve the supervisor/worker boundary itself.
    planning gate before the next implementation attempt. The planning artifact
    must name the exact owner for node types, helper symbols, facade alias
    removals, file targets, and focused tests. If ownership or API shape is
-   still conceptually ambiguous, use a
-   `gpt-5.5` planning/source-map pass to produce the mechanical patch plan,
-   then delegate that simplified implementation to the normal supported worker
-   first. Escalate the implementation worker to `gpt-5.4` or `gpt-5.5` only
+   still conceptually ambiguous, use a configured high-capability planning
+   template pass to produce the mechanical patch plan, then delegate that
+   simplified implementation to the normal supported worker template first.
+   Escalate the implementation worker to a stronger configured template only
    after the simplified task still fails because of reasoning or API-shape
    complexity, not because of checkout materialization, prompt shape, or
    tool-router errors. Otherwise escalate the execution path: choose a
@@ -239,10 +239,11 @@ this root file must preserve the supervisor/worker boundary itself.
    `--environment local` has accepted create requests that did not materialize
    in the live local pool or produced unusable module roots. Treat an
    accidental `local` create as an environment-routing mistake, stop or ignore
-   it immediately, and do not wait on it as product capacity. For
-   tonight's GX/UI data/evidence lanes, prefer `gpt-5.4-mini` on the local App
-   Server substrate unless Spark first passes a fresh assistant-output smoke;
-   Spark materialization without assistant text is false-active capacity.
+   it immediately, and do not wait on it as product capacity. For tonight's
+   GX/UI data/evidence lanes, prefer the configured local mini/evidence worker
+   template on the local App Server substrate unless the default implementation
+   template first passes a fresh assistant-output smoke; materialization without
+   assistant text is false-active capacity.
    For GX/UI render tests, verify the target package's GX intrinsic elements
    or constructors before writing expected markup, or reuse elements already
    proven in neighboring tests. Do not assume generic HTML tags such as
@@ -429,10 +430,10 @@ this root file must preserve the supervisor/worker boundary itself.
     `last_agent_message=null`, malformed output, or an oversized transcript,
     and one corrective nudge still produces no usable table, park that
     worker/runtime shape immediately and relaunch with a smaller prompt or a
-    different model. When a probe table creates core follow-up tasks, rebaseline
-    the inventory at once with those task refs and mark which module-family
-    rows are blocked on each core task, so backlog and velocity reporting count
-    newly split architecture work explicitly.
+    different configured template/runtime shape. When a probe table creates
+    core follow-up tasks, rebaseline the inventory at once with those task refs
+    and mark which module-family rows are blocked on each core task, so backlog
+    and velocity reporting count newly split architecture work explicitly.
 13c. Keep GX/UI backlog and dispatch reporting scope-gated against the active
     milestone. Every unfinished item counted in velocity or backlog should
     cite a goal-document inventory row, accepted/pending core slice, or task
@@ -677,15 +678,14 @@ this root file must preserve the supervisor/worker boundary itself.
     provider as the operator-facing worker path; add new providers such as
     `bus-agent-runtime` behind the worker provider/App Server-style contract.
     When a normal implementation worker stalls, simplify the task before
-    switching it to a smarter model: split planning from implementation,
-    narrow the files, and make the implementation DoD mechanical. For hard or
-    unclear architecture/source-map work, use `gpt-5.5` for the planning or
-    table artifact when needed, then delegate the simplified implementation to
-    the normal supported implementation worker first, such as Spark on the
-    current App Server substrate or Mini only where that model is actually
-    supported. Escalate implementation to `gpt-5.4` or `gpt-5.5` only after
-    the simplified implementation still fails because of reasoning or behavior
-    complexity, not because of checkout materialization, unsupported model
+    switching templates: split planning from implementation, narrow the files,
+    and make the implementation DoD mechanical. For hard or unclear
+    architecture/source-map work, use the environment's configured
+    high-capability planning template when needed, then delegate the simplified
+    implementation to the normal supported implementation template first.
+    Escalate implementation to a stronger configured template only after the
+    simplified implementation still fails because of reasoning or behavior
+    complexity, not because of checkout materialization, unsupported template
     mapping, bad prompt shape, missing hard gates, or quota state.
 29. Treat important operator corrections, focus reminders, naming lessons, and
     repeated “don’t do that” guidance as durable memory work, not just chat.
@@ -781,15 +781,17 @@ this root file must preserve the supervisor/worker boundary itself.
     promote accepted branches. Supervisors do not directly implement product
     changes or run direct compile/test/install loops as a substitute for worker
     work.
-42. Prefer `gpt-5.3-codex-spark` for BusDK worker identities and dispatches
-    unless the operator explicitly requests another model or a task has a
-    concrete model-specific requirement. When a worker must use a different
-    model, record the reason in the task stream or memo.
-    Use configured Bus worker templates for model/runtime selection whenever
-    a suitable template exists. Do not compose ad hoc model IDs to encode
-    effort or runtime policy, such as adding `-high` to a model name. Exact
-    provider model names and tuning fields belong in the template catalog for
-    the active environment, for example `.bus/worker/templates.json`.
+42. Use configured Bus worker templates for all normal BusDK worker identities
+    and dispatches. The active environment's template catalog, such as
+    `.bus/worker/templates.json`, is the source of truth for exact provider
+    model names, profile names, reasoning effort, sandbox, runner provider, and
+    identity repo settings. Supervisor goals, worker briefs, and live
+    `bus workers create` commands should select a template id, not hard-code a
+    provider model id. Do not compose ad hoc model IDs to encode effort or
+    runtime policy, such as adding `-high` to a model name. If a suitable
+    template is missing, add or request the environment template first, then
+    dispatch through that template and record the reason in the task stream or
+    memo.
 43. Use the default local dispatch surfaces first. The normal local Services
     stack owns API URLs and generated local Events credentials, so local Bus
     task and worker commands should not need explicit `--api-url`,
