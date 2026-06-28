@@ -778,6 +778,12 @@ this root file must preserve the supervisor/worker boundary itself.
     and remote checkout before changing product logic. If `make clean build
     install` or submodule refresh is the intended release step, run it before
     judging runtime behavior.
+39a. When a Bus tool, service, or worker command behaves inconsistently, check
+     freshness in order before adding product workarounds: verify the installed
+     CLI/binary was rebuilt from the current owning module source, verify the
+     running service process was restarted and is using that installed binary
+     and current source config, then inspect or fix the owning Bus module
+     source. Treat `dev` or stale version output as a release-skew symptom.
 40. When Events relay behavior surprises task or worker flows, inspect Event
     metadata first: origin environment, destination environment,
     sync-target ids, recipient ids, task ref, worker id, correlation id, route

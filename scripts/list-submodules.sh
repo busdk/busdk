@@ -2,7 +2,21 @@
 cd "$(dirname "$0")/.."
 #set -x
 
-FORMAT='%-27s %-19s %-35s %9s %8s\n'
+FORMAT='%-27s %-24s %-35s %9s %8s\n'
+
+describe_version() {
+  local version
+
+  version="$(git describe --tags --long --always --dirty 2>/dev/null || true)"
+  if test "x$version" = x; then
+    version="$(git rev-parse --short HEAD 2>/dev/null || true)"
+  fi
+  if test "x$version" = x; then
+    version="unknown"
+  fi
+
+  printf '%s' "$version"
+}
 
 count_worktrees() {
   git worktree list --porcelain \
@@ -47,21 +61,15 @@ ROOT_BRANCH="$(
      | tr -d '\n'
 )"
 
-ROOT_TAG=$((git describe --tags 2>/dev/null)|sort -n|tail -n1)
-if test "x$ROOT_TAG" = x; then
-  ROOT_TAG="$(git rev-parse --short HEAD)"
-fi
+ROOT_TAG="$(describe_version)"
 
 printf "$FORMAT" "module" "tag" "branch" "worktrees" "branches"
 printf "$FORMAT" "." "$ROOT_TAG" "$ROOT_BRANCH" "$(count_worktrees)" "$(count_branches)"
 
-cat .gitmodules |grep -F path|awk '{print $3}'|while read DIR; do  
+git config --file .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}' | while read DIR; do
   (
-    cd $DIR
-    TAG=$((git describe --tags 2>/dev/null)|sort -n|tail -n1)
-    if test "x$TAG" = x; then
-      TAG="$(git rev-parse --short HEAD)"
-    fi
+    cd "$DIR"
+    TAG="$(describe_version)"
     BRANCH="$(
       git branch \
        | grep -E '^\*' \
