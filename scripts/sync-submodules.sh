@@ -424,12 +424,55 @@ cached_changes_are_only_submodule_pins() {
   done < <(git diff --cached --name-only)
 }
 
+unstaged_changes_are_only_clean_submodule_pins() {
+  local path
+  local head_mode
+  local index_mode
+
+  if git diff --quiet; then
+    return 1
+  fi
+
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    head_mode="$(git ls-tree HEAD -- "$path" | awk '{ print $1; exit }')"
+    index_mode="$(git ls-files -s -- "$path" | awk '{ print $1; exit }')"
+    [ "$head_mode" = "160000" ] || return 1
+    [ "$index_mode" = "160000" ] || return 1
+    [ -n "$(submodule_key_for_path "$path")" ] || return 1
+    [ -d "$path" ] || return 1
+    is_own_worktree "$path" || return 1
+    has_rebase_or_merge "$path" && return 1
+    is_dirty "$path" && return 1
+  done < <(git diff --name-only)
+
+  return 0
+}
+
+stage_unstaged_submodule_pins() {
+  local pathspecs=()
+  local path
+
+  unstaged_changes_are_only_clean_submodule_pins || return 0
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    pathspecs+=("$path")
+  done < <(git diff --name-only)
+
+  [ "${#pathspecs[@]}" -gt 0 ] || return 0
+  git add -- "${pathspecs[@]}"
+}
+
 commit_promoted_submodule_pins() {
   [ "$do_push" -eq 1 ] || return 0
-  cached_changes_are_only_submodule_pins || return 0
-  if ! git diff --quiet; then
+  if ! git diff --cached --quiet && ! cached_changes_are_only_submodule_pins; then
     return 0
   fi
+  if ! git diff --quiet; then
+    unstaged_changes_are_only_clean_submodule_pins || return 0
+    stage_unstaged_submodule_pins || return 0
+  fi
+  cached_changes_are_only_submodule_pins || return 0
   run_git_step "." "commit promoted submodule pins" commit -m "BusDK: sync submodule pins"
 }
 
