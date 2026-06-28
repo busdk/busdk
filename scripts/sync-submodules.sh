@@ -300,6 +300,56 @@ has_non_submodule_conflicts() {
   [ -n "$(git -C "$dir" ls-files -u | awk '$1 != "160000" { print; exit }')" ]
 }
 
+path_list_contains() {
+  local needle="$1"
+  local haystack="$2"
+  local path
+
+  while IFS= read -r path; do
+    [ "$path" = "$needle" ] && return 0
+  done <<<"$haystack"
+  return 1
+}
+
+rebase_commit_touches_only_paths() {
+  local dir="$1"
+  local paths="$2"
+  local commit
+  local changed_path
+  local changed_paths
+  local mode
+
+  commit="$(git -C "$dir" rev-parse -q --verify REBASE_HEAD 2>/dev/null || true)"
+  [ -n "$commit" ] || return 1
+
+  changed_paths="$(git -C "$dir" diff-tree --no-commit-id --name-only -r "$commit" 2>/dev/null)" || return 1
+  [ -n "$changed_paths" ] || return 1
+
+  while IFS= read -r changed_path; do
+    [ -n "$changed_path" ] || continue
+    path_list_contains "$changed_path" "$paths" || return 1
+    mode="$(git -C "$dir" ls-tree "$commit" -- "$changed_path" | awk '{ print $1; exit }')"
+    [ "$mode" = "160000" ] || return 1
+  done <<<"$changed_paths"
+}
+
+submodule_head_contains_any_known_rev() {
+  local submodule_dir="$1"
+  local head_rev="$2"
+  shift 2
+  local rev
+
+  for rev in "$@"; do
+    [ -n "$rev" ] || continue
+    if git -C "$submodule_dir" cat-file -e "$rev^{commit}" 2>/dev/null &&
+      git -C "$submodule_dir" merge-base --is-ancestor "$rev" "$head_rev" 2>/dev/null; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
 promote_changed_submodule_pins() {
   local dir
   local head_rev
@@ -378,11 +428,18 @@ resolve_rebase_submodule_conflicts() {
   local theirs_rev
   local head_rev
   local candidate_rev
+  local allow_branch_head_resolution
   local paths
+  local pin_only_rebase_conflict
 
   paths="$(submodule_conflict_paths "$dir")"
   if [ -z "$paths" ] || has_non_submodule_conflicts "$dir"; then
     return 1
+  fi
+  if rebase_commit_touches_only_paths "$dir" "$paths"; then
+    pin_only_rebase_conflict=1
+  else
+    pin_only_rebase_conflict=0
   fi
 
   while IFS= read -r path; do
@@ -407,17 +464,33 @@ resolve_rebase_submodule_conflicts() {
         candidate_rev="$head_rev"
       fi
     fi
+    allow_branch_head_resolution=0
+    if [ -z "$candidate_rev" ] &&
+      [ "$pin_only_rebase_conflict" -eq 1 ] &&
+      [ -d "$dir/$path" ] &&
+      is_own_worktree "$dir/$path" &&
+      ! has_rebase_or_merge "$dir/$path" &&
+      ! is_dirty "$dir/$path"; then
+      head_rev="$(git -C "$dir/$path" rev-parse HEAD 2>/dev/null)" || head_rev=""
+      if [ -n "$head_rev" ] &&
+        submodule_head_contains_any_known_rev "$dir/$path" "$head_rev" "$desired_rev" "$ours_rev" "$theirs_rev"; then
+        candidate_rev="$head_rev"
+        allow_branch_head_resolution=1
+      fi
+    fi
     if [ -z "$candidate_rev" ]; then
       candidate_rev="$desired_rev"
     fi
     if ! git -C "$dir/$path" cat-file -e "$candidate_rev^{commit}" 2>/dev/null; then
       return 1
     fi
-    if ! git -C "$dir/$path" merge-base --is-ancestor "$ours_rev" "$candidate_rev" 2>/dev/null; then
-      return 1
-    fi
-    if ! git -C "$dir/$path" merge-base --is-ancestor "$theirs_rev" "$candidate_rev" 2>/dev/null; then
-      return 1
+    if [ "$allow_branch_head_resolution" -eq 0 ]; then
+      if ! git -C "$dir/$path" merge-base --is-ancestor "$ours_rev" "$candidate_rev" 2>/dev/null; then
+        return 1
+      fi
+      if ! git -C "$dir/$path" merge-base --is-ancestor "$theirs_rev" "$candidate_rev" 2>/dev/null; then
+        return 1
+      fi
     fi
     if ! checkout_submodule_resolution "$dir" "$path" "$candidate_rev"; then
       return 1
