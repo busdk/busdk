@@ -14,6 +14,7 @@ promoted_pin_count=0
 jobs=8
 verbose=0
 targets=()
+syncs_superproject=0
 
 usage() {
   cat <<'EOF'
@@ -405,6 +406,33 @@ promote_changed_submodule_pins() {
   return 1
 }
 
+cached_changes_are_only_submodule_pins() {
+  local path
+  local head_mode
+  local index_mode
+
+  if git diff --cached --quiet; then
+    return 1
+  fi
+
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    head_mode="$(git ls-tree HEAD -- "$path" | awk '{ print $1; exit }')"
+    index_mode="$(git ls-files -s -- "$path" | awk '{ print $1; exit }')"
+    [ "$head_mode" = "160000" ] || return 1
+    [ "$index_mode" = "160000" ] || return 1
+  done < <(git diff --cached --name-only)
+}
+
+commit_promoted_submodule_pins() {
+  [ "$do_push" -eq 1 ] || return 0
+  cached_changes_are_only_submodule_pins || return 0
+  if ! git diff --quiet; then
+    return 0
+  fi
+  run_git_step "." "commit promoted submodule pins" commit -m "BusDK: sync submodule pins"
+}
+
 checkout_submodule_resolution() {
   local dir="$1"
   local path="$2"
@@ -629,8 +657,12 @@ sync_one() {
     return 2
   fi
   if is_dirty "$dir"; then
+    if [ "$dir" = "." ] && commit_promoted_submodule_pins && ! is_dirty "$dir"; then
+      :
+    else
     echo "warning: skipping $dir: working tree has uncommitted changes" >&2
     return 2
+    fi
   fi
 
   if [ "$verbose" -eq 1 ]; then
@@ -681,6 +713,13 @@ pids=()
 logs=()
 
 for dir in "${targets[@]}"; do
+  if [ "$dir" = "." ]; then
+    syncs_superproject=1
+    if [ "${#pids[@]}" -gt 0 ]; then
+      collect_batch
+    fi
+    promote_changed_submodule_pins
+  fi
   log="$(mktemp "${TMPDIR:-/tmp}/sync-submodules.XXXXXX")" || exit 1
   (sync_one "$dir") >"$log" 2>&1 &
   pids+=("$!")
@@ -694,7 +733,9 @@ if [ "${#pids[@]}" -gt 0 ]; then
   collect_batch
 fi
 
-promote_changed_submodule_pins
+if [ "$syncs_superproject" -eq 0 ]; then
+  promote_changed_submodule_pins
+fi
 
 if [ "$status" -ne 0 ] || [ "$verbose" -eq 1 ]; then
   echo "sync-submodules: ok=$ok_count skipped=$skip_count failed=$fail_count total=${#targets[@]}"

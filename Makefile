@@ -142,6 +142,7 @@ superproject-selftest:
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_services_api_profile_token_files.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_sync_submodules_init.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_sync_submodules_existing_branch.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_sync_submodules_commit_promoted_pins.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_sync_submodules_rebased_pin_conflict.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_dev_task_supervisor_heartbeat.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_dev_task_docker_compose_config.sh
@@ -160,6 +161,7 @@ superproject-source-selftest:
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_services_api_profile_token_files.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_sync_submodules_init.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_sync_submodules_existing_branch.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_sync_submodules_commit_promoted_pins.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_sync_submodules_rebased_pin_conflict.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_changed_scope.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_quiet.sh
