@@ -94,11 +94,31 @@ if [ "$do_pull" -eq 0 ] && [ "$do_push" -eq 0 ]; then
 fi
 
 if [ "${#targets[@]}" -eq 0 ]; then
-  targets+=(".")
   while IFS= read -r dir; do
     targets+=("$dir")
   done < <(git config --file .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}')
+  targets+=(".")
 fi
+
+order_superproject_last() {
+  local target
+  local seen_superproject=0
+  local ordered=()
+
+  for target in "${targets[@]}"; do
+    if [ "$target" = "." ]; then
+      seen_superproject=1
+      continue
+    fi
+    ordered+=("$target")
+  done
+  if [ "$seen_superproject" -eq 1 ]; then
+    ordered+=(".")
+  fi
+  targets=("${ordered[@]}")
+}
+
+order_superproject_last
 
 git_dir_for() {
   git -C "$1" rev-parse --git-dir 2>/dev/null
@@ -355,6 +375,9 @@ resolve_rebase_submodule_conflicts() {
   local path
   local desired_rev
   local ours_rev
+  local theirs_rev
+  local head_rev
+  local candidate_rev
   local paths
 
   paths="$(submodule_conflict_paths "$dir")"
@@ -366,19 +389,40 @@ resolve_rebase_submodule_conflicts() {
     [ -n "$path" ] || continue
     desired_rev="$(git -C "$dir" rev-parse "$original_head:$path" 2>/dev/null)" || return 1
     ours_rev="$(git -C "$dir" ls-files -u -- "$path" | awk '$3 == 2 { print $2; exit }')"
-    if [ -z "$desired_rev" ] || [ -z "$ours_rev" ]; then
+    theirs_rev="$(git -C "$dir" ls-files -u -- "$path" | awk '$3 == 3 { print $2; exit }')"
+    if [ -z "$desired_rev" ] || [ -z "$ours_rev" ] || [ -z "$theirs_rev" ]; then
       return 1
     fi
-    if ! git -C "$dir/$path" cat-file -e "$desired_rev^{commit}" 2>/dev/null; then
+    candidate_rev=""
+    if [ -d "$dir/$path" ] &&
+      is_own_worktree "$dir/$path" &&
+      ! has_rebase_or_merge "$dir/$path" &&
+      ! is_dirty "$dir/$path"; then
+      head_rev="$(git -C "$dir/$path" rev-parse HEAD 2>/dev/null)" || head_rev=""
+      if [ -n "$head_rev" ] &&
+        git -C "$dir/$path" cat-file -e "$ours_rev^{commit}" 2>/dev/null &&
+        git -C "$dir/$path" cat-file -e "$theirs_rev^{commit}" 2>/dev/null &&
+        git -C "$dir/$path" merge-base --is-ancestor "$ours_rev" "$head_rev" 2>/dev/null &&
+        git -C "$dir/$path" merge-base --is-ancestor "$theirs_rev" "$head_rev" 2>/dev/null; then
+        candidate_rev="$head_rev"
+      fi
+    fi
+    if [ -z "$candidate_rev" ]; then
+      candidate_rev="$desired_rev"
+    fi
+    if ! git -C "$dir/$path" cat-file -e "$candidate_rev^{commit}" 2>/dev/null; then
       return 1
     fi
-    if ! git -C "$dir/$path" merge-base --is-ancestor "$ours_rev" "$desired_rev" 2>/dev/null; then
+    if ! git -C "$dir/$path" merge-base --is-ancestor "$ours_rev" "$candidate_rev" 2>/dev/null; then
       return 1
     fi
-    if ! checkout_submodule_resolution "$dir" "$path" "$desired_rev"; then
+    if ! git -C "$dir/$path" merge-base --is-ancestor "$theirs_rev" "$candidate_rev" 2>/dev/null; then
       return 1
     fi
-    if ! git -C "$dir" update-index --cacheinfo 160000 "$desired_rev" "$path"; then
+    if ! checkout_submodule_resolution "$dir" "$path" "$candidate_rev"; then
+      return 1
+    fi
+    if ! git -C "$dir" update-index --cacheinfo 160000 "$candidate_rev" "$path"; then
       return 1
     fi
   done <<<"$paths"
