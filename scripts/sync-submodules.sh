@@ -233,7 +233,17 @@ ensure_submodule_target_ready() {
       if [ "$(git -C "$dir" rev-parse "$branch" 2>/dev/null)" = "$head" ]; then
         git -C "$dir" checkout -q "$branch" || return 1
       elif [ "$(git -C "$dir" rev-parse "origin/$branch" 2>/dev/null)" = "$head" ]; then
-        git -C "$dir" checkout -q -b "$branch" --track "origin/$branch" || return 1
+        if git -C "$dir" rev-parse "$branch" >/dev/null 2>&1; then
+          if git -C "$dir" merge-base --is-ancestor "$branch" "$head" 2>/dev/null; then
+            checkout_submodule_at_rev "$dir" "$head" || return 1
+          elif git -C "$dir" merge-base --is-ancestor "$head" "$branch" 2>/dev/null; then
+            git -C "$dir" checkout -q "$branch" || return 1
+          else
+            return 1
+          fi
+        else
+          git -C "$dir" checkout -q -b "$branch" --track "origin/$branch" || return 1
+        fi
       elif git -C "$dir" rev-parse "$branch" >/dev/null 2>&1 &&
         git -C "$dir" merge-base --is-ancestor "$branch" "$head" 2>/dev/null; then
         checkout_submodule_at_rev "$dir" "$head" || return 1
