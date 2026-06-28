@@ -22,6 +22,10 @@ Merged guidance from `.cursor/rules/*.mdc`.
 - Put module-specific implementation, command behavior, and local workflow
   rules in the owning module's `AGENTS.md`; those files must stand alone for
   independently checked out modules.
+- Keep module README files focused on simple end-user orientation and default
+  use. Put fuller end-user module documentation under `docs/docs/modules/`,
+  and put implementation contracts, boundaries, and design traceability under
+  `sdd/docs/modules/` or the owning module's `AGENTS.md`.
 - Use repo-local skills in `./skills` for detailed operational runbooks. Mount
   those skills into worker containers when practical.
 - Keep public docs free of agent-only process rules. For SDD/public-doc
