@@ -44,21 +44,18 @@ fi
 make -s print-test-modules TEST_SCOPE=all CHANGED_MODULES="bus-reports" >"$OUT_ALL_TEST"
 grep -q '^bus-accounts$' "$OUT_ALL_TEST"
 grep -q '^bus-reports$' "$OUT_ALL_TEST"
+grep -q '^bus-engine-os$' "$OUT_ALL_TEST"
+
+make -s print-test-modules TEST_SCOPE=all CHANGED_MODULES="bus-reports" SKIP_MODULES=bus-engine-os >"$OUT_ALL_TEST"
 if grep -q '^bus-engine-os$' "$OUT_ALL_TEST"; then
-	echo "expected default all-scope test run to skip out-of-scope bus-engine-os" >&2
+	echo "expected explicit SKIP_MODULES=bus-engine-os to skip bus-engine-os" >&2
 	exit 1
 fi
-
-make -s print-test-modules TEST_SCOPE=all CHANGED_MODULES="bus-reports" SKIP_MODULES= >"$OUT_ALL_TEST"
-grep -q '^bus-engine-os$' "$OUT_ALL_TEST"
 
 make -s print-quality-modules QUALITY_SCOPE=all >"$OUT_ALL_TEST"
 grep -q '^bus-accounts$' "$OUT_ALL_TEST"
 grep -q '^bus-reports$' "$OUT_ALL_TEST"
-if grep -q '^bus-engine-os$' "$OUT_ALL_TEST"; then
-	echo "expected default all-scope quality run to skip out-of-scope bus-engine-os" >&2
-	exit 1
-fi
+grep -q '^bus-engine-os$' "$OUT_ALL_TEST"
 
 make -s print-test-modules TEST_SCOPE=changed CHANGED_MODULES="docs" >"$OUT_NONE_TEST"
 test ! -s "$OUT_NONE_TEST"
