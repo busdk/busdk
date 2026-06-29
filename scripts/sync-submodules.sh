@@ -27,8 +27,8 @@ Synchronize the BusDK superproject and submodules in one pass.
 
 By default this quietly fetches, fast-forwards when possible, rebases cleanly
 diverged branches onto their upstreams when possible, and then pushes the
-superproject plus every submodule listed in .gitmodules, running targets in
-parallel batches. If path arguments are given, only those paths are
+superproject plus every submodule listed in .gitmodules, running targets in a
+rolling parallel worker pool. If path arguments are given, only those paths are
 synchronized. Use "." to include the superproject in a focused run. Pass
 --verbose to print each target and the final success summary.
 
@@ -723,53 +723,82 @@ sync_one() {
   return 0
 }
 
-collect_batch() {
-  local i
+record_result() {
   local rc
-  for i in "${!pids[@]}"; do
-    wait "${pids[$i]}"
-    rc="$?"
-    if [ -s "${logs[$i]}" ]; then
-      cat "${logs[$i]}"
-    fi
-    rm -f "${logs[$i]}"
-    case "$rc" in
-      0)
-        ok_count=$((ok_count + 1))
-        ;;
-      2)
-        skip_count=$((skip_count + 1))
-        status=1
-        ;;
-      3)
-        defer_count=$((defer_count + 1))
-        ;;
-      *)
-        fail_count=$((fail_count + 1))
-        status=1
-        ;;
-    esac
-  done
-  pids=()
-  logs=()
+  local log
+
+  rc="$1"
+  log="$2"
+
+  if [ -s "$log" ]; then
+    cat "$log"
+  fi
+  rm -f "$log"
+  case "$rc" in
+    0)
+      ok_count=$((ok_count + 1))
+      ;;
+    2)
+      skip_count=$((skip_count + 1))
+      status=1
+      ;;
+    3)
+      defer_count=$((defer_count + 1))
+      ;;
+    *)
+      fail_count=$((fail_count + 1))
+      status=1
+      ;;
+  esac
 }
 
-pids=()
-logs=()
+launch_target() {
+  local dir="$1"
+  local log
+
+  log="$(mktemp "${TMPDIR:-/tmp}/sync-submodules.XXXXXX")" || exit 1
+  (
+    sync_one "$dir" >"$log" 2>&1
+    printf '%s\t%s\n' "$?" "$log" >&4
+  ) &
+  active_count=$((active_count + 1))
+}
+
+collect_one() {
+  local rc
+  local log
+
+  if ! IFS="$(printf '\t')" read -r rc log <&3; then
+    echo "warning: failed to read worker completion" >&2
+    status=1
+    return 1
+  fi
+  record_result "$rc" "$log"
+  active_count=$((active_count - 1))
+}
+
+scheduler_tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/sync-submodules.XXXXXX")" || exit 1
+completion_fifo="$scheduler_tmp_dir/completions"
+mkfifo "$completion_fifo" || exit 1
+exec 3<>"$completion_fifo"
+exec 4>"$completion_fifo"
+active_count=0
 
 for dir in "${targets[@]}"; do
-  log="$(mktemp "${TMPDIR:-/tmp}/sync-submodules.XXXXXX")" || exit 1
-  (sync_one "$dir") >"$log" 2>&1 &
-  pids+=("$!")
-  logs+=("$log")
-  if [ "${#pids[@]}" -ge "$jobs" ]; then
-    collect_batch
+  launch_target "$dir"
+  if [ "$active_count" -ge "$jobs" ]; then
+    collect_one || break
   fi
 done
 
-if [ "${#pids[@]}" -gt 0 ]; then
-  collect_batch
-fi
+while [ "$active_count" -gt 0 ]; do
+  collect_one || break
+done
+
+wait >/dev/null 2>&1 || true
+exec 3<&-
+exec 4>&-
+rm -rf "$scheduler_tmp_dir"
 
 promote_changed_submodule_pins
 
