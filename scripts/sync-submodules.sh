@@ -301,6 +301,22 @@ run_git_step() {
   return 1
 }
 
+initialize_missing_submodule_targets() {
+  local dir
+  local init_targets=()
+
+  for dir in "${targets[@]}"; do
+    [ "$dir" != "." ] || continue
+    [ -n "$(submodule_key_for_path "$dir")" ] || continue
+    if [ ! -d "$dir" ] || ! is_own_worktree "$dir"; then
+      init_targets+=("$dir")
+    fi
+  done
+
+  [ "${#init_targets[@]}" -gt 0 ] || return 0
+  run_git_step "." "submodule update --init" submodule update --init -- "${init_targets[@]}"
+}
+
 submodule_conflict_paths() {
   local dir="$1"
   git -C "$dir" ls-files -u | awk '$1 == "160000" { print $4 }' | sort -u
@@ -754,6 +770,8 @@ collect_batch() {
 
 pids=()
 logs=()
+
+initialize_missing_submodule_targets || true
 
 for dir in "${targets[@]}"; do
   if [ "$dir" = "." ]; then
