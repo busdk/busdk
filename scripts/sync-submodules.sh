@@ -10,11 +10,11 @@ status=0
 ok_count=0
 skip_count=0
 fail_count=0
-defer_count=0
 promoted_pin_count=0
 jobs=8
 verbose=0
 targets=()
+syncs_superproject=0
 submodule_keys=()
 submodule_paths=()
 submodule_branches=()
@@ -322,26 +322,6 @@ is_dirty() {
   [ -n "$(git -C "$1" status --porcelain 2>/dev/null)" ]
 }
 
-has_only_submodule_pin_changes() {
-  local dir="$1"
-  local changed_paths
-  local path
-  local mode
-
-  [ "$dir" = "." ] || return 1
-  [ -z "$(git ls-files --others --exclude-standard)" ] || return 1
-
-  changed_paths="$(git diff --name-only HEAD --)" || return 1
-  [ -n "$changed_paths" ] || return 1
-
-  while IFS= read -r path; do
-    [ -n "$path" ] || continue
-    submodule_key_for_path "$path" >/dev/null || return 1
-    mode="$(git ls-files -s -- "$path" | awk '{ print $1; exit }')"
-    [ "$mode" = "160000" ] || return 1
-  done <<<"$changed_paths"
-}
-
 print_log() {
   local file="$1"
   if [ -s "$file" ]; then
@@ -363,6 +343,22 @@ run_git_step() {
   print_log "$log"
   rm -f "$log"
   return 1
+}
+
+initialize_missing_submodule_targets() {
+  local dir
+  local init_targets=()
+
+  for dir in "${targets[@]}"; do
+    [ "$dir" != "." ] || continue
+    [ -n "$(submodule_key_for_path "$dir")" ] || continue
+    if [ ! -d "$dir" ] || ! is_own_worktree "$dir"; then
+      init_targets+=("$dir")
+    fi
+  done
+
+  [ "${#init_targets[@]}" -gt 0 ] || return 0
+  run_git_step "." "submodule update --init" submodule update --init -- "${init_targets[@]}"
 }
 
 submodule_conflict_paths() {
@@ -468,6 +464,76 @@ promote_changed_submodule_pins() {
   fail_count=$((fail_count + 1))
   status=1
   return 1
+}
+
+cached_changes_are_only_submodule_pins() {
+  local path
+  local head_mode
+  local index_mode
+
+  if git diff --cached --quiet; then
+    return 1
+  fi
+
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    head_mode="$(git ls-tree HEAD -- "$path" | awk '{ print $1; exit }')"
+    index_mode="$(git ls-files -s -- "$path" | awk '{ print $1; exit }')"
+    [ "$head_mode" = "160000" ] || return 1
+    [ "$index_mode" = "160000" ] || return 1
+  done < <(git diff --cached --name-only)
+}
+
+unstaged_changes_are_only_clean_submodule_pins() {
+  local path
+  local head_mode
+  local index_mode
+
+  if git diff --quiet; then
+    return 1
+  fi
+
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    head_mode="$(git ls-tree HEAD -- "$path" | awk '{ print $1; exit }')"
+    index_mode="$(git ls-files -s -- "$path" | awk '{ print $1; exit }')"
+    [ "$head_mode" = "160000" ] || return 1
+    [ "$index_mode" = "160000" ] || return 1
+    [ -n "$(submodule_key_for_path "$path")" ] || return 1
+    [ -d "$path" ] || return 1
+    is_own_worktree "$path" || return 1
+    has_rebase_or_merge "$path" && return 1
+    is_dirty "$path" && return 1
+  done < <(git diff --name-only)
+
+  return 0
+}
+
+stage_unstaged_submodule_pins() {
+  local pathspecs=()
+  local path
+
+  unstaged_changes_are_only_clean_submodule_pins || return 0
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    pathspecs+=("$path")
+  done < <(git diff --name-only)
+
+  [ "${#pathspecs[@]}" -gt 0 ] || return 0
+  git add -- "${pathspecs[@]}"
+}
+
+commit_promoted_submodule_pins() {
+  [ "$do_push" -eq 1 ] || return 0
+  if ! git diff --cached --quiet && ! cached_changes_are_only_submodule_pins; then
+    return 0
+  fi
+  if ! git diff --quiet; then
+    unstaged_changes_are_only_clean_submodule_pins || return 0
+    stage_unstaged_submodule_pins || return 0
+  fi
+  cached_changes_are_only_submodule_pins || return 0
+  run_git_step "." "commit promoted submodule pins" commit -m "BusDK: sync submodule pins"
 }
 
 checkout_submodule_resolution() {
@@ -694,13 +760,8 @@ sync_one() {
     return 2
   fi
   if is_dirty "$dir"; then
-    if [ "$dir" = "." ] && has_only_submodule_pin_changes "$dir"; then
-      if [ "$do_pull" -eq 1 ]; then
-        if [ "$verbose" -eq 1 ]; then
-          echo "sync-submodules: deferring . until submodule pins are committed."
-        fi
-        return 3
-      fi
+    if [ "$dir" = "." ] && commit_promoted_submodule_pins && ! is_dirty "$dir"; then
+      :
     else
       echo "warning: skipping $dir: working tree has uncommitted changes" >&2
       return 2
@@ -742,9 +803,6 @@ record_result() {
       skip_count=$((skip_count + 1))
       status=1
       ;;
-    3)
-      defer_count=$((defer_count + 1))
-      ;;
     *)
       fail_count=$((fail_count + 1))
       status=1
@@ -777,6 +835,12 @@ collect_one() {
   active_count=$((active_count - 1))
 }
 
+drain_workers() {
+  while [ "$active_count" -gt 0 ]; do
+    collect_one || break
+  done
+}
+
 scheduler_tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/sync-submodules.XXXXXX")" || exit 1
 completion_fifo="$scheduler_tmp_dir/completions"
 mkfifo "$completion_fifo" || exit 1
@@ -784,33 +848,32 @@ exec 3<>"$completion_fifo"
 exec 4>"$completion_fifo"
 active_count=0
 
+initialize_missing_submodule_targets || true
+
 for dir in "${targets[@]}"; do
+  if [ "$dir" = "." ]; then
+    syncs_superproject=1
+    drain_workers
+    promote_changed_submodule_pins
+  fi
   launch_target "$dir"
   if [ "$active_count" -ge "$jobs" ]; then
     collect_one || break
   fi
 done
 
-while [ "$active_count" -gt 0 ]; do
-  collect_one || break
-done
+drain_workers
 
 wait >/dev/null 2>&1 || true
 exec 3<&-
 exec 4>&-
 rm -rf "$scheduler_tmp_dir"
 
-promote_changed_submodule_pins
-
-if [ "$defer_count" -gt 0 ]; then
-  echo "sync-submodules: deferred $defer_count superproject target(s); commit staged submodule pins before pulling the superproject."
+if [ "$syncs_superproject" -eq 0 ]; then
+  promote_changed_submodule_pins
 fi
 
-if [ "$status" -ne 0 ] || [ "$defer_count" -gt 0 ] || [ "$verbose" -eq 1 ]; then
-  if [ "$defer_count" -gt 0 ]; then
-    echo "sync-submodules: ok=$ok_count deferred=$defer_count skipped=$skip_count failed=$fail_count total=${#targets[@]}"
-  else
-    echo "sync-submodules: ok=$ok_count skipped=$skip_count failed=$fail_count total=${#targets[@]}"
-  fi
+if [ "$status" -ne 0 ] || [ "$verbose" -eq 1 ]; then
+  echo "sync-submodules: ok=$ok_count skipped=$skip_count failed=$fail_count total=${#targets[@]}"
 fi
 exit "$status"
