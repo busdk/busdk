@@ -10,10 +10,14 @@ status=0
 ok_count=0
 skip_count=0
 fail_count=0
+defer_count=0
 promoted_pin_count=0
 jobs=8
 verbose=0
 targets=()
+submodule_keys=()
+submodule_paths=()
+submodule_branches=()
 
 usage() {
   cat <<'EOF'
@@ -32,6 +36,37 @@ After a pull updates submodule worktrees, changed superproject gitlinks are
 staged by default so the checked-in BusDK pins can be committed explicitly.
 Use --no-promote-pins to leave gitlinks unstaged.
 EOF
+}
+
+load_submodule_metadata() {
+  local config_key
+  local path
+  local key
+  local branch
+  local i
+
+  while IFS=' ' read -r config_key path; do
+    [ -n "${config_key:-}" ] || continue
+    key="$config_key"
+    key="${key#submodule.}"
+    key="${key%.path}"
+    submodule_keys+=("$key")
+    submodule_paths+=("$path")
+    submodule_branches+=("")
+  done < <(git config --file .gitmodules --get-regexp '^submodule\..*\.path$')
+
+  while IFS=' ' read -r config_key branch; do
+    [ -n "${config_key:-}" ] || continue
+    key="$config_key"
+    key="${key#submodule.}"
+    key="${key%.branch}"
+    for i in "${!submodule_keys[@]}"; do
+      if [ "${submodule_keys[$i]}" = "$key" ]; then
+        submodule_branches[$i]="$branch"
+        break
+      fi
+    done
+  done < <(git config --file .gitmodules --get-regexp '^submodule\..*\.branch$' 2>/dev/null || true)
 }
 
 while [ "$#" -gt 0 ]; do
@@ -93,10 +128,12 @@ if [ "$do_pull" -eq 0 ] && [ "$do_push" -eq 0 ]; then
   exit 2
 fi
 
+load_submodule_metadata
+
 if [ "${#targets[@]}" -eq 0 ]; then
-  while IFS= read -r dir; do
+  for dir in "${submodule_paths[@]}"; do
     targets+=("$dir")
-  done < <(git config --file .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}')
+  done
   targets+=(".")
 fi
 
@@ -142,23 +179,31 @@ is_own_worktree() {
 
 submodule_key_for_path() {
   local path="$1"
-  git config --file .gitmodules --get-regexp '^submodule\..*\.path$' 2>/dev/null |
-    awk -v path="$path" '
-      $2 == path {
-        key = $1
-        sub(/^submodule\./, "", key)
-        sub(/\.path$/, "", key)
-        print key
-        exit
-      }
-    '
+  local i
+
+  for i in "${!submodule_paths[@]}"; do
+    if [ "${submodule_paths[$i]}" = "$path" ]; then
+      printf '%s\n' "${submodule_keys[$i]}"
+      return 0
+    fi
+  done
+
+  return 1
 }
 
 submodule_branch_for_path() {
-  local key
-  key="$(submodule_key_for_path "$1")"
-  [ -n "$key" ] || return 1
-  git config --file .gitmodules --get "submodule.$key.branch" 2>/dev/null
+  local path="$1"
+  local i
+
+  for i in "${!submodule_paths[@]}"; do
+    if [ "${submodule_paths[$i]}" = "$path" ]; then
+      [ -n "${submodule_branches[$i]}" ] || return 1
+      printf '%s\n' "${submodule_branches[$i]}"
+      return 0
+    fi
+  done
+
+  return 1
 }
 
 checkout_submodule_at_rev() {
@@ -275,6 +320,26 @@ current_upstream() {
 
 is_dirty() {
   [ -n "$(git -C "$1" status --porcelain 2>/dev/null)" ]
+}
+
+has_only_submodule_pin_changes() {
+  local dir="$1"
+  local changed_paths
+  local path
+  local mode
+
+  [ "$dir" = "." ] || return 1
+  [ -z "$(git ls-files --others --exclude-standard)" ] || return 1
+
+  changed_paths="$(git diff --name-only HEAD --)" || return 1
+  [ -n "$changed_paths" ] || return 1
+
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    submodule_key_for_path "$path" >/dev/null || return 1
+    mode="$(git ls-files -s -- "$path" | awk '{ print $1; exit }')"
+    [ "$mode" = "160000" ] || return 1
+  done <<<"$changed_paths"
 }
 
 print_log() {
@@ -629,8 +694,17 @@ sync_one() {
     return 2
   fi
   if is_dirty "$dir"; then
-    echo "warning: skipping $dir: working tree has uncommitted changes" >&2
-    return 2
+    if [ "$dir" = "." ] && has_only_submodule_pin_changes "$dir"; then
+      if [ "$do_pull" -eq 1 ]; then
+        if [ "$verbose" -eq 1 ]; then
+          echo "sync-submodules: deferring . until submodule pins are committed."
+        fi
+        return 3
+      fi
+    else
+      echo "warning: skipping $dir: working tree has uncommitted changes" >&2
+      return 2
+    fi
   fi
 
   if [ "$verbose" -eq 1 ]; then
@@ -667,6 +741,9 @@ collect_batch() {
         skip_count=$((skip_count + 1))
         status=1
         ;;
+      3)
+        defer_count=$((defer_count + 1))
+        ;;
       *)
         fail_count=$((fail_count + 1))
         status=1
@@ -696,7 +773,15 @@ fi
 
 promote_changed_submodule_pins
 
-if [ "$status" -ne 0 ] || [ "$verbose" -eq 1 ]; then
-  echo "sync-submodules: ok=$ok_count skipped=$skip_count failed=$fail_count total=${#targets[@]}"
+if [ "$defer_count" -gt 0 ]; then
+  echo "sync-submodules: deferred $defer_count superproject target(s); commit staged submodule pins before pulling the superproject."
+fi
+
+if [ "$status" -ne 0 ] || [ "$defer_count" -gt 0 ] || [ "$verbose" -eq 1 ]; then
+  if [ "$defer_count" -gt 0 ]; then
+    echo "sync-submodules: ok=$ok_count deferred=$defer_count skipped=$skip_count failed=$fail_count total=${#targets[@]}"
+  else
+    echo "sync-submodules: ok=$ok_count skipped=$skip_count failed=$fail_count total=${#targets[@]}"
+  fi
 fi
 exit "$status"

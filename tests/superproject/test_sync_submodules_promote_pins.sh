@@ -37,16 +37,34 @@ git_config -C "$tmp_dir/sub-src" commit -m 'submodule update' >/dev/null
 sub_head="$(git -C "$tmp_dir/sub-src" rev-parse HEAD)"
 
 sync_out="$tmp_dir/sync.out"
-if ! GIT_ALLOW_PROTOCOL=file "$tmp_dir/root-checkout/scripts/sync-submodules.sh" --pull-only --jobs 1 --verbose module-a >"$sync_out"; then
+if ! GIT_ALLOW_PROTOCOL=file "$tmp_dir/root-checkout/scripts/sync-submodules.sh" --pull-only --jobs 1 --verbose module-a . >"$sync_out"; then
 	cat "$sync_out" >&2
 	exit 1
 fi
 grep -Fq 'sync-submodules: staged 1 submodule pin(s); commit the superproject to record them.' "$sync_out"
-grep -Fq 'sync-submodules: ok=1 skipped=0 failed=0 total=1' "$sync_out"
+grep -Fq 'sync-submodules: deferred 1 superproject target(s); commit staged submodule pins before pulling the superproject.' "$sync_out"
+grep -Fq 'sync-submodules: ok=1 deferred=1 skipped=0 failed=0 total=2' "$sync_out"
+if grep -Fq 'warning: skipping .: working tree has uncommitted changes' "$sync_out"; then
+	cat "$sync_out" >&2
+	exit 1
+fi
 
 test "$(git -C "$tmp_dir/root-checkout/module-a" rev-parse HEAD)" = "$sub_head"
 test "$(git -C "$tmp_dir/root-checkout" rev-parse HEAD:module-a)" = "$sub_base"
 test "$(git -C "$tmp_dir/root-checkout" rev-parse :module-a)" = "$sub_head"
 test "$(git -C "$tmp_dir/root-checkout" status --porcelain -- module-a)" = "M  module-a"
+
+rerun_out="$tmp_dir/rerun.out"
+if ! GIT_ALLOW_PROTOCOL=file "$tmp_dir/root-checkout/scripts/sync-submodules.sh" --pull-only --jobs 1 --verbose . >"$rerun_out"; then
+	cat "$rerun_out" >&2
+	exit 1
+fi
+grep -Fq 'sync-submodules: deferring . until submodule pins are committed.' "$rerun_out"
+grep -Fq 'sync-submodules: deferred 1 superproject target(s); commit staged submodule pins before pulling the superproject.' "$rerun_out"
+grep -Fq 'sync-submodules: ok=0 deferred=1 skipped=0 failed=0 total=1' "$rerun_out"
+if grep -Fq 'warning: skipping .: working tree has uncommitted changes' "$rerun_out"; then
+	cat "$rerun_out" >&2
+	exit 1
+fi
 
 printf 'sync submodules promote pins OK\n'
