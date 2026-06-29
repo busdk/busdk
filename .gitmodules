@@ -626,3 +626,7 @@
 	path = bus-integration-systemd
 	url = git@github.com:busdk/bus-integration-systemd.git
 	branch = develop
+[submodule "bus-integration-linux"]
+	path = bus-integration-linux
+	url = git@github.com:busdk/bus-integration-linux.git
+	branch = develop
