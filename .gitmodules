@@ -610,3 +610,19 @@
 	path = bus-net
 	url = git@github.com:busdk/bus-net.git
 	branch = develop
+[submodule "bus-portal-greeter"]
+	path = bus-portal-greeter
+	url = git@github.com:busdk/bus-portal-greeter.git
+	branch = develop
+[submodule "bus-api-provider-desktop"]
+	path = bus-api-provider-desktop
+	url = git@github.com:busdk/bus-api-provider-desktop.git
+	branch = develop
+[submodule "bus-integration-desktop"]
+	path = bus-integration-desktop
+	url = git@github.com:busdk/bus-integration-desktop.git
+	branch = develop
+[submodule "bus-integration-systemd"]
+	path = bus-integration-systemd
+	url = git@github.com:busdk/bus-integration-systemd.git
+	branch = develop
