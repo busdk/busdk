@@ -634,7 +634,3 @@
 	path = bus-pkg
 	url = git@github.com:busdk/bus-pkg.git
 	branch = develop
-[submodule "qemu"]
-	path = qemu
-	url = git@github.com:busdk/qemu.git
-	branch = develop
