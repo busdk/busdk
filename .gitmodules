@@ -630,3 +630,7 @@
 	path = bus-integration-linux
 	url = git@github.com:busdk/bus-integration-linux.git
 	branch = develop
+[submodule "bus-pkg"]
+	path = bus-pkg
+	url = git@github.com:busdk/bus-pkg.git
+	branch = develop
