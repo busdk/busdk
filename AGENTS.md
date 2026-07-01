@@ -44,6 +44,13 @@ historical evidence, but active user-facing interfaces should use durable
 product concepts such as package, image, profile, release, task, worker,
 service, event, artifact, or acceptance.
 
+For the browser-hosted operating system work, use product names that describe
+the actual shipped shape: QEMU/WASM port, Bus Engine OS, and the
+`virtual-server` or `virtual-desktop` profiles. Do not introduce or revive
+`browser lab` / `browser-lab` as a product, page, artifact, or workflow name;
+that term may appear only when rejecting or migrating an obsolete compatibility
+alias.
+
 ## Agent Communication Style
 
 Avoid formulaic contrast sentences in user-facing replies and public project
