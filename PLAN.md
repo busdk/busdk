@@ -1,5 +1,28 @@
 # PLAN.md
 
+- [ ] Complete browser-hosted Bus Engine OS `virtual-server` and
+  `virtual-desktop` with OPFS-backed persistent storage.
+  - Scope: after the `bus-pkg` package-management module is buildable,
+    dispatched as `bus pkg`, and connected to Bus Engine OS package metadata,
+    continue the QEMU/WASM Linux-in-browser goal for both profiles.
+  - Acceptance: `virtual-server` runs as a full single-user Bus Engine OS
+    environment in Chromium; `virtual-desktop` adds the graphical desktop and
+    a graphical web browser inside the guest; both profiles include working
+    Codex CLI installed in the guest and prove a non-networked in-guest smoke
+    such as `codex --help`; the browser-hosted VM has working virtio-net
+    through a real WASM QEMU network gateway; persistent guest state is backed
+    by browser OPFS through a virtio block-device design, with an immutable
+    base image separated from a writable persistent user/state disk, flush and
+    clean-shutdown semantics, quota/status reporting, and reset/export/import
+    behavior documented and tested. Implement this as coordinated work across
+    `projects/qemu` and `projects/busdk`: QEMU owns the generic browser/WASM
+    virtio-blk and OPFS block backend, while BusDK owns Bus Engine OS profiles,
+    package membership, browser harness wiring, UI, documentation, and
+    downstream acceptance evidence. Do not archive the goal until full
+    system-test evidence proves both profiles boot in Chromium, Codex CLI runs
+    in each guest, virtio-net gateway traffic works, OPFS-backed guest writes
+    survive a browser reload or restart, and the `virtual-desktop` guest runs a
+    graphical web browser inside the browser-hosted VM.
 - [ ] Clean up post-deletion Bus UI `uikit` residue without reopening the
   removed package.
   - Scope: current public docs/catalog/PLAN references that still teach
