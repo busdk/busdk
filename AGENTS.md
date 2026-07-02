@@ -50,7 +50,9 @@ repeats, promote the first diagnostic and normal handling rule to the nearest
 Use the workspace `./tmp` directory for large generated artifacts, copied
 rootfs/disk images, browser/QEMU bundles, build evidence, and anything that may
 need inspection or promotion. Host `/tmp` is small and should be reserved for
-small throwaway files.
+small throwaway files. If a temporary artifact may later become workspace
+evidence or an input to a promoted workflow, create it under workspace `./tmp`
+from the start instead of moving it from host `/tmp`.
 
 ## Public Surface Naming
 
