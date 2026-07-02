@@ -47,6 +47,11 @@ an independent lane from the active plan. When an environment workaround
 repeats, promote the first diagnostic and normal handling rule to the nearest
 `AGENTS.md`, runbook, or module plan instead of re-explaining it in memos.
 
+Use the workspace `./tmp` directory for large generated artifacts, copied
+rootfs/disk images, browser/QEMU bundles, build evidence, and anything that may
+need inspection or promotion. Host `/tmp` is small and should be reserved for
+small throwaway files.
+
 ## Public Surface Naming
 
 Public API names, command names, package-set names, artifact IDs, config schema
