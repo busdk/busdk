@@ -54,6 +54,32 @@
   `bus-integration --provider workers` children reappeared beside the
   Services-owned wrapper/child. Treat that as worker/service lifecycle hygiene,
   not a Repos materialization failure.
+- [ ] Make Bus Workers honor the existing `{org}/{repo}` product repository
+  target contract across arbitrary Git and GitHub projects.
+  - Owner: `bus-integration-worker`, with projection checks in
+    `bus-api-provider-worker` and CLI/status compatibility in `bus-worker`
+    when needed.
+  - Scope: worker creation must resolve and materialize the requested product
+    repository by canonical Bus repo id, for example `busdk/qemu`, instead of
+    assuming the BusDK superproject layout. Repository identity is separate
+    from remotes: one `repo_id` may have multiple configured remotes/URLs, and
+    worker creation should select a configured remote by name or environment
+    policy without treating the URL as the product target. GitHub owner/name
+    targets map to the same `{org}/{repo}` id shape. Supported targets include
+    BusDK modules, nested BusDK submodules, standalone Git repositories, and
+    GitHub-hosted repositories such as QEMU.
+  - Acceptance: `bus workers create` can launch a worker whose product
+    worktree is the requested `repo_id`, with the requested branch checked out,
+    non-secret status metadata recording repo id/selected remote/base/worktree/
+    current module or path/resolver, and unsafe repo/path/ref inputs rejected
+    before Git operations. Prove this with unit tests plus an end-to-end local
+    worker-create flow using `repo_id=busdk/qemu` or an external-repository
+    fixture where `git remote -v`, `git rev-parse --show-toplevel`, and branch
+    status all point to the product repo rather than the BusDK root checkout.
+    This item tracks the regression where `--module qemu` still produced a
+    BusDK product worktree because the create path did not carry the intended
+    `busdk/qemu` product target.
+
 This is the active BusDK superproject work tracker.
 
 ## Worker/Offload Supervisor Queue, 2026-06-17
