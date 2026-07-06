@@ -128,6 +128,18 @@ runtime:
       description: Command used to launch the local Codex executable.
       value_from: env:BUS_WORKERS_DIRECT_CODEX_COMMAND
       default: codex
+    - name: BUS_WORKERS_CLAUDE_MODEL
+      description: Default model for claude-appserver workers when a worker create request omits one.
+      value_from: env:BUS_WORKERS_CLAUDE_MODEL
+      default: " "
+    - name: BUS_WORKERS_CLAUDE_PERMISSION_MODE
+      description: Permission mode passed to claude-appserver worker sessions. Autonomous workers have no operator to answer tool prompts, so default to bypassPermissions (the Claude analog of the Codex danger-full-access sandbox); tighten per deployment via .env.
+      value_from: env:BUS_WORKERS_CLAUDE_PERMISSION_MODE
+      default: bypassPermissions
+    - name: BUS_WORKERS_CLAUDE_MESSAGE_TIMEOUT
+      description: Per-turn timeout for claude-appserver worker messages.
+      value_from: env:BUS_WORKERS_CLAUDE_MESSAGE_TIMEOUT
+      default: 15m
     - name: BUS_WORKERS_DIRECT_CODEX_AUTH_HOME
       description: Explicit Codex auth/config directory copied into each isolated App Server worker CODEX_HOME.
       value_from: env:BUS_WORKERS_DIRECT_CODEX_AUTH_HOME
