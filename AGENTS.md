@@ -1125,6 +1125,26 @@ read `skills/bus-dev-task-worker-ops/SKILL.md` and the owning module
 `AGENTS.md`/`PLAN.md`. Root policy: Codex App Server is the normal development
 worker backend, one-shot Codex is legacy compatibility, and durable worker
 lanes must not use the Events `memory` backend for retained task history.
+Engine choice is the `(runner_kind, runner_provider)` pair resolved through
+the `WorkerRunnerProvider` registry in
+`bus-integration-worker/pkg/workersintegration/runner_provider.go`; providers
+`codex-direct`, `codex-appserver`, and `bus-agent-runtime` coexist today. For
+a Claude-backed provider design (Agent SDK vs persistent stream-json stdio vs
+`ModelProvider`, Codex concept mapping, auth policy), read the research note
+`docs/docs/research/claude-worker-backend.md` before re-researching.
+
+Engine-integration architecture (operator, 2026-07-06): each AI engine gets
+its own `bus-integration-<engine>` module that OWNS that engine's main App
+Server / agent process instance and exposes it to the rest of Bus through the
+Bus Events API under a matching `bus.<engine>.*` event namespace
+(`bus-integration-codex` -> `bus.codex.*`, `bus-integration-claude` ->
+`bus.claude.*`). Naming must stay aligned module <-> namespace. No one-shot
+engine turns anywhere in the codebase: sessions are persistent and steerable.
+Other modules (workers, chat, LLM API providers) integrate with engines only
+through those events, never by spawning or dialing engine processes directly.
+The current `bus-integration-codex` `bus.llm.*` one-shot turn path and the
+direct per-worker `codex app-server` spawning in `bus-integration-worker`
+predate this rule and are refactoring targets, not precedent.
 
 ## Supervisor Host And Remote Environment
 
