@@ -1034,3 +1034,28 @@ Historical context for the current first-priority worker-offload lane:
     - [ ] Route accounting/filesystem/destructive CLI docs/help cleanup into
       explicit owner tasks for the modules whose help/docs affect safe scripted
       release and customer smoke usage.
+- [ ] Claude engine integration: add `bus-integration-claude` owning
+  persistent Claude sessions over `bus.claude.*` (operator-approved design,
+  2026-07-06).
+  - Scope: initialize the `bus-integration-claude` module (operator
+    initializes the scaffold); implement a session manager that maps Bus
+    session ids onto supervised one-process-per-session `claude` stream-json
+    processes (`--session-id` at spawn, `--resume` for crash recovery and
+    idle eviction, concurrency caps, per-session `CLAUDE_CONFIG_DIR`,
+    recorded `claude --version`, fail-with-evidence on unknown protocol
+    events); define the engine-neutral session event schema shared in shape
+    with `bus.codex.*`; auth via profile-provided key/config home; consumers
+    integrate via Bus Events only - first consumer is the
+    `bus-integration-worker` `claude-appserver` runner provider. Design
+    source: `docs/docs/research/claude-worker-backend.md`. Cross-module
+    sequencing: (1) engine-neutral session event schema (with
+    `bus-integration-codex`), (2) `bus-integration-claude` MVP, (3)
+    `bus-integration-worker` provider + `bus-worker` template, (4)
+    `bus-integration-codex` `bus.codex.*` refactor and one-shot turn
+    retirement (including the `bus-agent` helper removal). Per-module items
+    live in each module's PLAN.md (bus-agent, bus-worker,
+    bus-integration-codex, bus-integration-worker).
+  - Acceptance: per-module PLAN.md items landed; module scaffold initialized;
+    implementation items stay unchecked until each module's own acceptance
+    evidence lands; a local end-to-end proof (worker create -> message ->
+    reply through `bus.claude.*`) closes the umbrella item.
