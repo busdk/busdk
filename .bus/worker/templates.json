@@ -3,6 +3,8 @@
     {
       "id": "codex-53-spark",
       "label": "Codex 5.3 Spark",
+      "summary": "Near-instant Codex worker for small focused edits, quick scans, and low-latency follow-up.",
+      "description": "Use for cheap parallel exploration, simple fixes, log triage, and short reviews. Escalate to Codex 5.5 when the task needs sustained reasoning, broad code changes, or sub-supervision.",
       "default_profile": "codex-spark",
       "default_model": "gpt-5.3-codex-spark",
       "runner_kind": "appserver",
@@ -22,6 +24,8 @@
     {
       "id": "codex-54-mini",
       "label": "Codex 5.4 Mini",
+      "summary": "Fast Codex worker for lighter implementation, read-heavy scans, and parallel support tasks.",
+      "description": "Use when the task is bounded and speed matters more than maximum reasoning depth. Good for narrow code changes, focused audits, log summarization, and helper lanes feeding a stronger supervisor.",
       "default_profile": "codex-mini",
       "default_model": "gpt-5.4-mini",
       "runner_kind": "appserver",
@@ -41,6 +45,8 @@
     {
       "id": "codex-55",
       "label": "Codex 5.5",
+      "summary": "Default Codex worker for complex coding, debugging, review, and tool-driven validation.",
+      "description": "Use for normal implementation lanes that need source reading, edits, tests, and follow-through. This is the default when the work is not tiny and does not require explicit high-effort reasoning.",
       "default_profile": "codex-55",
       "default_model": "gpt-5.5",
       "runner_kind": "appserver",
@@ -60,6 +66,8 @@
     {
       "id": "codex-55-high",
       "label": "Codex 5.5 High",
+      "summary": "High-effort Codex worker for difficult root-cause analysis, broad changes, and Bus sub-supervision.",
+      "description": "Use when a worker should act as a sub-supervisor, use Codex App Server thread/goal tooling, investigate opaque failures, or coordinate several Codex worker lanes. Prefer this for hard blockers, security review, and cross-module changes.",
       "default_profile": "codex-55",
       "default_model": "gpt-5.5",
       "reasoning_effort": "high",
@@ -82,6 +90,8 @@
     {
       "id": "claude-fable-5",
       "label": "Claude Fable 5",
+      "summary": "Highest-capability Claude worker for long-running agents, deep research synthesis, architecture, and hard reviews.",
+      "description": "Use as the deep-research lead: Fable synthesizes final findings and plans, can guide Haiku extraction and Sonnet follow-through, and should use approved source URLs only. Also use for difficult architecture and multi-hour reasoning; expect slower replies.",
       "default_profile": "claude",
       "default_model": "claude-fable-5",
       "runner_kind": "appserver",
@@ -101,6 +111,8 @@
     {
       "id": "claude-opus-4-8",
       "label": "Claude Opus 4.8",
+      "summary": "Strong Claude worker for complex agentic coding, architecture review, and high-quality second opinions.",
+      "description": "Use for demanding implementation review, architecture alternatives, and correctness checks where quality matters more than latency. Opus is a good reviewer for a Codex lane or a fallback deep-research synthesizer.",
       "default_profile": "claude",
       "default_model": "claude-opus-4-8",
       "runner_kind": "appserver",
@@ -120,6 +132,8 @@
     {
       "id": "claude-sonnet-5",
       "label": "Claude Sonnet 5",
+      "summary": "Balanced Claude worker for coding, planning, and research follow-through when speed and quality both matter.",
+      "description": "Use for implementation follow-through after Fable or Opus research, medium-depth code review, and practical planning. Sonnet is the balanced Claude choice when the task is more than extraction but not the hardest synthesis step.",
       "default_profile": "claude",
       "default_model": "claude-sonnet-5",
       "runner_kind": "appserver",
@@ -139,6 +153,8 @@
     {
       "id": "claude-haiku-4-5",
       "label": "Claude Haiku 4.5",
+      "summary": "Fast Claude worker for cheap parallel extraction, log triage, simple checks, and first-pass research.",
+      "description": "Use for parallel source extraction, finding exact quoted evidence, summarizing logs, and quick sanity checks. Haiku is best as a scout feeding a Fable, Opus, Sonnet, or Codex supervisor rather than owning hard synthesis.",
       "default_profile": "claude",
       "default_model": "claude-haiku-4-5",
       "runner_kind": "appserver",

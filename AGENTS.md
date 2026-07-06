@@ -856,7 +856,10 @@ this root file must preserve the supervisor/worker boundary itself.
     encode effort or runtime policy, such as adding `-high` to a model name. If
     a suitable template is missing, add or request the environment template
     first, then dispatch through that template and record the reason in the
-    task stream or memo.
+    task stream or memo. Reuse
+    `docs/docs/research/worker-template-model-selection.md` when choosing
+    Codex/Claude profiles or splitting a deep-research workflow across
+    extraction, synthesis, implementation, and review phases.
 43. Use the default local dispatch surfaces first. The normal local Services
     stack owns API URLs and generated local Events credentials, so local Bus
     task and worker commands should not need explicit `--api-url`,
