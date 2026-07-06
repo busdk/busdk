@@ -97,6 +97,63 @@
       "worker_home_policy": "managed-repo",
       "identity_repo_ref": "repos://workers/claude-fable-5",
       "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "claude-opus-4-8",
+      "label": "Claude Opus 4.8",
+      "default_profile": "claude",
+      "default_model": "claude-opus-4-8",
+      "runner_kind": "appserver",
+      "runner_provider": "claude-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/claude-opus-4-8",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "claude-sonnet-5",
+      "label": "Claude Sonnet 5",
+      "default_profile": "claude",
+      "default_model": "claude-sonnet-5",
+      "runner_kind": "appserver",
+      "runner_provider": "claude-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/claude-sonnet-5",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "claude-haiku-4-5",
+      "label": "Claude Haiku 4.5",
+      "default_profile": "claude",
+      "default_model": "claude-haiku-4-5",
+      "runner_kind": "appserver",
+      "runner_provider": "claude-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/claude-haiku-4-5",
+      "identity_base_ref": "refs/heads/main"
     }
   ]
 }

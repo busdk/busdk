@@ -139,7 +139,11 @@ runtime:
     - name: BUS_WORKERS_CLAUDE_MESSAGE_TIMEOUT
       description: Per-turn timeout for claude-appserver worker messages.
       value_from: env:BUS_WORKERS_CLAUDE_MESSAGE_TIMEOUT
-      default: 15m
+      default: 30m
+    - name: BUS_CLAUDE_DEBUG
+      description: When 1, emit BUS_CLAUDE_CLIENT_DEBUG traces of the claude-appserver session event round-trips to the service log for diagnostics.
+      value_from: env:BUS_CLAUDE_DEBUG
+      default: " "
     - name: BUS_WORKERS_DIRECT_CODEX_AUTH_HOME
       description: Explicit Codex auth/config directory copied into each isolated App Server worker CODEX_HOME.
       value_from: env:BUS_WORKERS_DIRECT_CODEX_AUTH_HOME
