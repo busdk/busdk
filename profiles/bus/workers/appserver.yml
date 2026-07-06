@@ -42,6 +42,10 @@ runtime:
     - --provider
     - workers
   env:
+    - name: BUS_HOST
+      description: Stack-wide loopback bind/dial address for Bus services (worker Codex App Servers bind and the service dials it). Set to a dedicated loopback (e.g. 127.0.0.2) via .env to isolate this stack's port space from a co-tenant Bus stack on the same machine.
+      value_from: env:BUS_HOST
+      default: "127.0.0.1"
     - name: BUS_SERVICES_PROCESS_PATH
       description: Host process search path used when no stack-local Bus tool path is available.
       value_from: process_env:PATH
