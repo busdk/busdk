@@ -8,8 +8,13 @@
       "runner_kind": "appserver",
       "runner_provider": "codex-appserver",
       "sandbox": "workspace-write",
-      "capability_tags": ["go", "shell"],
-      "eligible_environments": ["local"],
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
       "worker_home_policy": "managed-repo",
       "identity_repo_ref": "repos://workers/codex-53-spark",
       "identity_base_ref": "refs/heads/main"
@@ -22,8 +27,13 @@
       "runner_kind": "appserver",
       "runner_provider": "codex-appserver",
       "sandbox": "workspace-write",
-      "capability_tags": ["go", "shell"],
-      "eligible_environments": ["local"],
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
       "worker_home_policy": "managed-repo",
       "identity_repo_ref": "repos://workers/codex-54-mini",
       "identity_base_ref": "refs/heads/main"
@@ -36,8 +46,13 @@
       "runner_kind": "appserver",
       "runner_provider": "codex-appserver",
       "sandbox": "workspace-write",
-      "capability_tags": ["go", "shell"],
-      "eligible_environments": ["local"],
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
       "worker_home_policy": "managed-repo",
       "identity_repo_ref": "repos://workers/codex-55",
       "identity_base_ref": "refs/heads/main"
@@ -53,10 +68,34 @@
       "runner_kind": "appserver",
       "runner_provider": "codex-appserver",
       "sandbox": "workspace-write",
-      "capability_tags": ["go", "shell"],
-      "eligible_environments": ["local"],
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
       "worker_home_policy": "managed-repo",
       "identity_repo_ref": "repos://workers/codex-55-high",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "claude-fable-5",
+      "label": "Claude Fable 5",
+      "default_profile": "claude",
+      "default_model": "claude-fable-5",
+      "runner_kind": "appserver",
+      "runner_provider": "claude-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/claude-fable-5",
       "identity_base_ref": "refs/heads/main"
     }
   ]
