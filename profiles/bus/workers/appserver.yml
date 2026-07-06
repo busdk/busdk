@@ -139,7 +139,7 @@ runtime:
     - name: BUS_WORKERS_CLAUDE_MESSAGE_TIMEOUT
       description: Per-turn timeout for claude-appserver worker messages.
       value_from: env:BUS_WORKERS_CLAUDE_MESSAGE_TIMEOUT
-      default: 30m
+      default: 2h
     - name: BUS_CLAUDE_DEBUG
       description: When 1, emit BUS_CLAUDE_CLIENT_DEBUG traces of the claude-appserver session event round-trips to the service log for diagnostics.
       value_from: env:BUS_CLAUDE_DEBUG
@@ -183,7 +183,7 @@ runtime:
     - name: BUS_WORKERS_DIRECT_MESSAGE_EVIDENCE_TIMEOUT
       description: Timeout while waiting for App Server worker message evidence.
       value_from: env:BUS_WORKERS_DIRECT_MESSAGE_EVIDENCE_TIMEOUT
-      default: 3m
+      default: 2h
     - name: BUS_PREFERENCES_PATH
       description: Bus preferences JSON path used by provider discovery.
       value_from: env:BUS_PREFERENCES_PATH
