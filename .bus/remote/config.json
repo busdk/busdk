@@ -14,12 +14,12 @@
       "compose_file": "compose.yaml",
       "ssh_target": "dev.hg.fi",
       "ssh_host": "dev.hg.fi",
-      "remote_workdir": "/home/coding-agent/coding-agent/git/busdk/busdk",
+      "remote_workdir": "/home/nor-agent/nor-agent/git/busdk/agent-supervisor/projects/busdk",
       "controller_events_url": "http://127.0.0.1:8081",
       "worker_events_url": "http://127.0.0.1:8081/local/v1",
       "credential_source": {
         "kind": "ssh-issued-token",
-        "ref": "bus operator-token --format json --local issue events-relay",
+        "ref": "/home/nor-agent/nor-agent/.local/bin/bus-operator-token --format json --local issue events-relay",
         "lifetime_seconds": 86400,
         "refresh_before_seconds": 3600
       },
@@ -49,11 +49,13 @@
       },
       "worker_environment": {
         "path_additions": [
-          "/home/coding-agent/coding-agent/.nvm/versions/node/v22.19.0/bin"
+          "/home/nor-agent/nor-agent/.local/bin",
+          "/home/nor-agent/nor-agent/.nvm/versions/node/v24.18.0/bin"
         ],
         "tool_paths": {
-          "codex": "/home/coding-agent/coding-agent/.nvm/versions/node/v22.19.0/bin/codex",
-          "node": "/home/coding-agent/coding-agent/.nvm/versions/node/v22.19.0/bin/node"
+          "bus": "/home/nor-agent/nor-agent/.local/bin/bus",
+          "codex": "/home/nor-agent/nor-agent/.local/bin/codex",
+          "node": "/home/nor-agent/nor-agent/.nvm/versions/node/v24.18.0/bin/node"
         }
       }
     },
