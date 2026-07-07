@@ -43,6 +43,7 @@ tmp/
 .bus/engine/
 .bus/identities/
 .bus/qemu/
+.bus/claude/
 .bus/repos/
 .bus/tokens/
 .tmp*

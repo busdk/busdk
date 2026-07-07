@@ -55,9 +55,9 @@ runtime:
       value_from: env:BUS_CLAUDE_COMMAND
       default: claude
     - name: BUS_CLAUDE_BASE_DIR
-      description: Per-session Claude config directory root for the service.
+      description: Optional per-session Claude config directory root. Empty uses the host Claude login.
       value_from: env:BUS_CLAUDE_BASE_DIR
-      default: "{env:BUS_SERVICES_BUS_DIR}/claude/sessions"
+      default: " "
     - name: BUS_CLAUDE_MODEL
       description: Optional default Claude model.
       value_from: env:BUS_CLAUDE_MODEL
