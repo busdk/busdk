@@ -84,14 +84,22 @@ runtime:
       description: Bus Events API base URL used to expand the service events_url parameter.
       value_from: env:BUS_EVENTS_URL
       default: http://127.0.0.1:8081/local/v1
+    - name: BUS_ENVIRONMENT_ID
+      description: Generic Bus environment id used as the Workers integration default when no worker-specific id is set.
+      value_from: env:BUS_ENVIRONMENT_ID
+      default: local
+    - name: BUS_ENVIRONMENT_NAME
+      description: Generic Bus environment name used as the Workers integration default when no worker-specific name is set.
+      value_from: env:BUS_ENVIRONMENT_NAME
+      default: Local
     - name: BUS_WORKERS_ENVIRONMENT_ID
       description: Environment id stamped on Workers integration events.
       value_from: env:BUS_WORKERS_ENVIRONMENT_ID
-      default: local
+      default: "{env:BUS_ENVIRONMENT_ID}"
     - name: BUS_WORKERS_ENVIRONMENT_NAME
       description: Human-readable environment name reported by worker status.
       value_from: env:BUS_WORKERS_ENVIRONMENT_NAME
-      default: Local
+      default: "{env:BUS_ENVIRONMENT_NAME}"
     - name: BUS_WORKERS_LIFECYCLE
       description: Worker lifecycle mode selected by the Workers integration.
       value_from: env:BUS_WORKERS_LIFECYCLE
