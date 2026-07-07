@@ -50,6 +50,12 @@ runtime:
     - "{env:BUS_REPOS_SSH_KEY_ID}"
     - --identities-api-url
     - "{env:BUS_REPOS_SSH_IDENTITIES_API_URL}"
+    - --identities-token-file
+    - "{env:BUS_REPOS_SSH_IDENTITIES_TOKEN_FILE}"
+    - --bootstrap-identities
+    - "{env:BUS_REPOS_SSH_BOOTSTRAP_IDENTITIES}"
+    - --bootstrap-repo-access
+    - "{env:BUS_REPOS_SSH_BOOTSTRAP_REPO_ACCESS}"
   env:
     - name: BUS_SERVICES_PROCESS_PATH
       description: Host process search path used when no stack-local Bus tool path is available.
@@ -109,6 +115,18 @@ runtime:
       description: Bus identities API base URL used to resolve SSH public keys and repo access.
       value_from: env:BUS_REPOS_SSH_IDENTITIES_API_URL
       default: http://127.0.0.1:8091
+    - name: BUS_REPOS_SSH_IDENTITIES_TOKEN_FILE
+      description: Bus identities API bearer token file used by the native repos SSH service.
+      value_from: env:BUS_REPOS_SSH_IDENTITIES_TOKEN_FILE
+      default: "{param:token_file}"
+    - name: BUS_REPOS_SSH_BOOTSTRAP_IDENTITIES
+      description: Whether the local repos SSH service registers its generated client public key with Bus identities on startup.
+      value_from: env:BUS_REPOS_SSH_BOOTSTRAP_IDENTITIES
+      default: "true"
+    - name: BUS_REPOS_SSH_BOOTSTRAP_REPO_ACCESS
+      description: Identity access resources granted to the local repos SSH generated client key.
+      value_from: env:BUS_REPOS_SSH_BOOTSTRAP_REPO_ACCESS
+      default: "repo:*"
   ports:
     - name: repos-ssh
       protocol: tcp
