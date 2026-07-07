@@ -15,6 +15,7 @@
         "shell"
       ],
       "eligible_environments": [
+        "dev.hg.fi",
         "local"
       ],
       "worker_home_policy": "managed-repo",
