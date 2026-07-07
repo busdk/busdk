@@ -1,0 +1,88 @@
+id: bus/claude/engine
+aliases:
+  - bus-integration-claude
+  - bus/claude
+  - claude-engine
+name: Bus Claude engine service
+description: Bus integration service that owns Claude engine sessions for Claude-backed Bus Workers.
+service_kind: bus.integration.claude
+parameters:
+  - name: events_url
+    type: string
+    description: Bus Events API base URL consumed by the Claude engine integration.
+    default: http://127.0.0.1:8081/local/v1
+  - name: token_file
+    type: string
+    description: Bus Events API bearer token file consumed by the Claude engine integration.
+    default: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
+runtime:
+  kind: native
+  provider: bus
+  command:
+    - bus-integration-claude
+  args:
+    - --events-url
+    - "{param:events_url}"
+    - --token-file
+    - "{param:token_file}"
+    - --provider
+    - "{env:BUS_CLAUDE_PROVIDER}"
+  env:
+    - name: BUS_SERVICES_PROCESS_PATH
+      description: Host process search path used when no stack-local Bus tool path is available.
+      value_from: process_env:PATH
+    - name: PATH
+      description: Process search path used to locate Bus dispatcher and module binaries.
+      value_from: env:BUS_SERVICES_TOOL_PATH
+      default: "{env:BUS_SERVICES_PROCESS_PATH}"
+    - name: HOME
+      description: Host home directory used by the Claude CLI.
+      value_from: process_env:HOME
+      default: " "
+    - name: BUS_SERVICES_BUS_DIR
+      description: Durable Bus state directory used for generated service credentials and Claude session data.
+      value_from: env:BUS_SERVICES_BUS_DIR
+    - name: BUS_EVENTS_URL
+      description: Bus Events API base URL used to expand the service events_url parameter.
+      value_from: env:BUS_EVENTS_URL
+      default: http://127.0.0.1:8081/local/v1
+    - name: BUS_CLAUDE_PROVIDER
+      description: Claude session backend for this service.
+      value_from: env:BUS_CLAUDE_PROVIDER
+      default: claude
+    - name: BUS_CLAUDE_COMMAND
+      description: Claude executable path.
+      value_from: env:BUS_CLAUDE_COMMAND
+      default: claude
+    - name: BUS_CLAUDE_BASE_DIR
+      description: Per-session Claude config directory root for the service.
+      value_from: env:BUS_CLAUDE_BASE_DIR
+      default: "{env:BUS_SERVICES_BUS_DIR}/claude/sessions"
+    - name: BUS_CLAUDE_MODEL
+      description: Optional default Claude model.
+      value_from: env:BUS_CLAUDE_MODEL
+      default: " "
+    - name: BUS_CLAUDE_MAX_SESSIONS
+      description: Concurrent Claude engine session cap.
+      value_from: env:BUS_CLAUDE_MAX_SESSIONS
+      default: "8"
+    - name: BUS_CLAUDE_TIMEOUT
+      description: Per-turn Claude engine timeout.
+      value_from: env:BUS_CLAUDE_TIMEOUT
+      default: 5m
+    - name: BUS_CLAUDE_DEBUG
+      description: Emit non-secret Claude request/response diagnostics when set to 1.
+      value_from: env:BUS_CLAUDE_DEBUG
+      default: " "
+    - name: BUS_EVENTS_LISTENER_RETRY
+      description: Keep the Claude integration worker retrying while dependent services start.
+      value_from: env:BUS_EVENTS_LISTENER_RETRY
+      default: "true"
+    - name: BUS_EVENTS_LISTENER_REQUIRED
+      description: Require listener readiness for Claude integration health.
+      value_from: env:BUS_EVENTS_LISTENER_REQUIRED
+      default: "true"
+    - name: BUS_EVENTS_TOKEN_REFRESH
+      description: Allow Events API token refresh where supported.
+      value_from: env:BUS_EVENTS_TOKEN_REFRESH
+      default: "true"

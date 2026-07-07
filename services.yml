@@ -20,6 +20,7 @@ groups:
     name: Integrations
     services:
       - engine
+      - claude-engine
       - repos
       - repos-ssh
       - workers
@@ -64,6 +65,7 @@ services:
       events_url: "{env:BUS_EVENTS_URL}"
     depends_on:
       - events
+      - claude-engine
       - repos
       - repos-ssh
   tasks:
@@ -74,6 +76,12 @@ services:
       - events
   engine:
     profile: bus/engine/local
+    params:
+      events_url: "{env:BUS_EVENTS_URL}"
+    depends_on:
+      - events
+  claude-engine:
+    profile: bus/claude/engine
     params:
       events_url: "{env:BUS_EVENTS_URL}"
     depends_on:
