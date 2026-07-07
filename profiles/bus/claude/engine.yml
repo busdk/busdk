@@ -67,9 +67,9 @@ runtime:
       value_from: env:BUS_CLAUDE_MAX_SESSIONS
       default: "8"
     - name: BUS_CLAUDE_TIMEOUT
-      description: Per-turn Claude engine timeout.
+      description: Per-turn Claude engine timeout. Must cover long implementation worker turns.
       value_from: env:BUS_CLAUDE_TIMEOUT
-      default: 5m
+      default: 2h
     - name: BUS_CLAUDE_DEBUG
       description: Emit non-secret Claude request/response diagnostics when set to 1.
       value_from: env:BUS_CLAUDE_DEBUG
