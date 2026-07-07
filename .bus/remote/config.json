@@ -24,7 +24,7 @@
         "refresh_before_seconds": 3600
       },
       "events_relay": {
-        "owner_environment_id": "local-dev",
+        "owner_environment_id": "local",
         "route_pair_id": "local_dev_hg_events"
       },
       "worker_defaults": {

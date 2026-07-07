@@ -41,6 +41,8 @@ services:
       - postgres
   events-relay:
     profile: bus-events-relay
+    params:
+      local_environment_id: local
     depends_on:
       - events
   identities:
