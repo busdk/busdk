@@ -18,6 +18,7 @@ syncs_superproject=0
 submodule_keys=()
 submodule_paths=()
 submodule_branches=()
+superproject_pull_done=0
 
 usage() {
   cat <<'EOF'
@@ -44,6 +45,10 @@ load_submodule_metadata() {
   local key
   local branch
   local i
+
+  submodule_keys=()
+  submodule_paths=()
+  submodule_branches=()
 
   while IFS=' ' read -r config_key path; do
     [ -n "${config_key:-}" ] || continue
@@ -128,14 +133,17 @@ if [ "$do_pull" -eq 0 ] && [ "$do_push" -eq 0 ]; then
   exit 2
 fi
 
-load_submodule_metadata
+explicit_target_count="${#targets[@]}"
 
-if [ "${#targets[@]}" -eq 0 ]; then
+populate_default_targets() {
+  local dir
+
+  targets=()
   for dir in "${submodule_paths[@]}"; do
     targets+=("$dir")
   done
   targets+=(".")
-fi
+}
 
 order_superproject_last() {
   local target
@@ -155,10 +163,8 @@ order_superproject_last() {
   targets=("${ordered[@]}")
 }
 
-order_superproject_last
-
 git_dir_for() {
-  git -C "$1" rev-parse --git-dir 2>/dev/null
+  git -C "$1" rev-parse --absolute-git-dir 2>/dev/null
 }
 
 real_path() {
@@ -371,20 +377,8 @@ has_non_submodule_conflicts() {
   [ -n "$(git -C "$dir" ls-files -u | awk '$1 != "160000" { print; exit }')" ]
 }
 
-path_list_contains() {
-  local needle="$1"
-  local haystack="$2"
-  local path
-
-  while IFS= read -r path; do
-    [ "$path" = "$needle" ] && return 0
-  done <<<"$haystack"
-  return 1
-}
-
-rebase_commit_touches_only_paths() {
+rebase_commit_touches_only_submodule_pins() {
   local dir="$1"
-  local paths="$2"
   local commit
   local changed_path
   local changed_paths
@@ -398,7 +392,6 @@ rebase_commit_touches_only_paths() {
 
   while IFS= read -r changed_path; do
     [ -n "$changed_path" ] || continue
-    path_list_contains "$changed_path" "$paths" || return 1
     mode="$(git -C "$dir" ls-tree "$commit" -- "$changed_path" | awk '{ print $1; exit }')"
     [ "$mode" = "160000" ] || return 1
   done <<<"$changed_paths"
@@ -577,7 +570,7 @@ resolve_rebase_submodule_conflicts() {
   if [ -z "$paths" ] || has_non_submodule_conflicts "$dir"; then
     return 1
   fi
-  if rebase_commit_touches_only_paths "$dir" "$paths"; then
+  if rebase_commit_touches_only_submodule_pins "$dir"; then
     pin_only_rebase_conflict=1
   else
     pin_only_rebase_conflict=0
@@ -718,6 +711,57 @@ sync_pull() {
   return 1
 }
 
+targets_include_superproject() {
+  local dir
+
+  for dir in "${targets[@]}"; do
+    [ "$dir" = "." ] && return 0
+  done
+
+  return 1
+}
+
+pull_superproject_before_submodules() {
+  local branch
+  local upstream
+
+  [ "$do_pull" -eq 1 ] || return 0
+  targets_include_superproject || return 0
+
+  if ! git -C "." rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "warning: cannot pull superproject first: . is not a git worktree" >&2
+    return 1
+  fi
+  if ! is_own_worktree "."; then
+    echo "warning: cannot pull superproject first: . resolves to another git worktree" >&2
+    return 1
+  fi
+  if has_rebase_or_merge "."; then
+    echo "warning: cannot pull superproject first: merge/rebase/cherry-pick in progress" >&2
+    return 1
+  fi
+  branch="$(current_branch ".")"
+  if [ -z "$branch" ]; then
+    echo "warning: cannot pull superproject first: HEAD is detached; checkout the intended branch first" >&2
+    return 1
+  fi
+  upstream="$(current_upstream ".")"
+  if [ -z "$upstream" ]; then
+    echo "warning: cannot pull superproject first: branch $branch has no upstream" >&2
+    return 1
+  fi
+  if is_dirty "."; then
+    echo "warning: cannot pull superproject first: working tree has uncommitted changes" >&2
+    return 1
+  fi
+
+  if [ "$verbose" -eq 1 ]; then
+    echo "syncing . [$branch -> $upstream] before submodules"
+  fi
+  sync_pull "." "$upstream" || return 1
+  superproject_pull_done=1
+}
+
 sync_one() {
   local dir="$1"
   local branch
@@ -772,8 +816,12 @@ sync_one() {
     echo "syncing $dir [$branch -> $upstream]"
   fi
   if [ "$do_pull" -eq 1 ]; then
-    if ! sync_pull "$dir" "$upstream"; then
-      return 1
+    if [ "$dir" = "." ] && [ "$superproject_pull_done" -eq 1 ]; then
+      :
+    else
+      if ! sync_pull "$dir" "$upstream"; then
+        return 1
+      fi
     fi
   fi
   if [ "$do_push" -eq 1 ]; then
@@ -840,6 +888,29 @@ drain_workers() {
     collect_one || break
   done
 }
+
+load_submodule_metadata
+if [ "$explicit_target_count" -eq 0 ]; then
+  populate_default_targets
+fi
+order_superproject_last
+
+if ! pull_superproject_before_submodules; then
+  fail_count=1
+  status=1
+  if [ "$status" -ne 0 ] || [ "$verbose" -eq 1 ]; then
+    echo "sync-submodules: ok=$ok_count skipped=$skip_count failed=$fail_count total=${#targets[@]}"
+  fi
+  exit "$status"
+fi
+
+if [ "$superproject_pull_done" -eq 1 ]; then
+  load_submodule_metadata
+  if [ "$explicit_target_count" -eq 0 ]; then
+    populate_default_targets
+  fi
+  order_superproject_last
+fi
 
 scheduler_tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/sync-submodules.XXXXXX")" || exit 1
 completion_fifo="$scheduler_tmp_dir/completions"
