@@ -23,6 +23,9 @@ fake_codex_args_json='["run","/workspace/tests/superproject/fake_codex_appserver
 counts="${BUS_DEV_TASK_WORKER_BENCH_COUNTS:-1 2 3 4 6}"
 recipients=(bus-dev bus-events bus-filing bus-data bus-integration-task bus-integration-docker bus-journal bus-reconcile)
 worker_names=()
+bus_host=${BUS_HOST:-127.0.0.1}
+bus_events_api_url="http://$bus_host:8081"
+bus_containers_api_url="http://$bus_host:8080/api/v1/containers/status"
 
 now_ms() {
   python3 -c 'import time; print(int(time.time() * 1000))'
@@ -64,13 +67,13 @@ export BUS_API_TOKEN="$(
     --ttl 2h
 )"
 printf '%s' "$BUS_API_TOKEN" > "$token_file"
-export BUS_EVENTS_API_URL=http://127.0.0.1:8081
+export BUS_EVENTS_API_URL="$bus_events_api_url"
 
 ready=0
 for _ in $(seq 1 120); do
   if curl --fail --show-error --connect-timeout 2 --max-time 5 --output "$workspace/containers-status.json" \
     --header "Authorization: Bearer $BUS_API_TOKEN" \
-    http://127.0.0.1:8080/api/v1/containers/status; then
+    "$bus_containers_api_url"; then
     ready=1
     break
   fi

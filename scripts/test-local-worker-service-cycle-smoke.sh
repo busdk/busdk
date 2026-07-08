@@ -10,7 +10,8 @@ and runs one bus-integration-task supervisor cycle that observes the task via
 bus task monitor and publishes worker-start/progress/health evidence.
 
 Configuration via environment:
-  BUS_WORKER_SERVICE_CYCLE_SMOKE_ADDR=127.0.0.1:18087
+  BUS_HOST=127.0.0.2
+  BUS_WORKER_SERVICE_CYCLE_SMOKE_ADDR=127.0.0.2:18087
   BUS_WORKER_SERVICE_CYCLE_SMOKE_RECIPIENT=bus-integration-task
   BUS_WORKER_SERVICE_CYCLE_SMOKE_TOKEN_FILE=/path/to/api-token
   BUS_WORKER_SERVICE_CYCLE_SMOKE_MINT_TOKEN=true
@@ -27,7 +28,8 @@ if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
 fi
 
 ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
-ADDR=${BUS_WORKER_SERVICE_CYCLE_SMOKE_ADDR:-127.0.0.1:18087}
+BUS_TEST_HOST=${BUS_HOST:-127.0.0.1}
+ADDR=${BUS_WORKER_SERVICE_CYCLE_SMOKE_ADDR:-$BUS_TEST_HOST:18087}
 API_URL="http://$ADDR"
 TOKEN_FILE=${BUS_WORKER_SERVICE_CYCLE_SMOKE_TOKEN_FILE:-$ROOT/tmp/local-ai-platform/bus-config/auth/api-token}
 MINT_TOKEN=${BUS_WORKER_SERVICE_CYCLE_SMOKE_MINT_TOKEN:-true}

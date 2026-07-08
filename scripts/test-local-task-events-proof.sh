@@ -5,11 +5,12 @@ usage() {
   cat <<'EOF'
 usage: scripts/test-local-task-events-proof.sh
 
-Starts a disposable local Bus Events API from source on 127.0.0.1:8081,
+Starts a disposable local Bus Events API from source on BUS_HOST:8081,
 creates one bus task, marks it ready, and prints list/show/monitor evidence.
 
 Configuration via environment:
-  BUS_LOCAL_TASK_EVENTS_PROOF_ADDR=127.0.0.1:8081
+  BUS_HOST=127.0.0.2
+  BUS_LOCAL_TASK_EVENTS_PROOF_ADDR=127.0.0.2:8081
   BUS_LOCAL_TASK_EVENTS_PROOF_TOKEN_FILE=/path/to/api-token
   BUS_LOCAL_TASK_EVENTS_PROOF_EVENTS_JWT_SECRET=...
   BUS_LOCAL_TASK_EVENTS_PROOF_RECIPIENT=bus-worker
@@ -29,7 +30,8 @@ if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
 fi
 
 ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
-ADDR=${BUS_LOCAL_TASK_EVENTS_PROOF_ADDR:-127.0.0.1:8081}
+BUS_TEST_HOST=${BUS_HOST:-127.0.0.1}
+ADDR=${BUS_LOCAL_TASK_EVENTS_PROOF_ADDR:-$BUS_TEST_HOST:8081}
 API_URL="http://$ADDR"
 TOKEN_FILE=${BUS_LOCAL_TASK_EVENTS_PROOF_TOKEN_FILE:-$ROOT/tmp/local-ai-platform/bus-config/auth/api-token}
 MINT_TOKEN=${BUS_LOCAL_TASK_EVENTS_PROOF_MINT_TOKEN:-true}

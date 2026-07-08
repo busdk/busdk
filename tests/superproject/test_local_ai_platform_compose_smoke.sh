@@ -6,6 +6,7 @@ root_dir="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$root_dir"
 
 export BUS_LOCAL_AI_PLATFORM_PROJECT_NAME="${BUS_LOCAL_AI_PLATFORM_PROJECT_NAME:-bus-local-ai-platform-smoke-$$}"
+bus_host=${BUS_HOST:-127.0.0.1}
 
 compose_env_file="${BUS_LOCAL_AI_PLATFORM_ENV_FILE:-}"
 if [ -z "$compose_env_file" ]; then
@@ -119,7 +120,7 @@ printf 'PASS notes PostgreSQL persistence check\n'
 
 printf 'RUN host dev task route\n'
 test -s tmp/local-ai-platform/bus-config/auth/api-token
-host_api_url="http://127.0.0.1:${LOCAL_AI_PLATFORM_PORT:-8080}"
+host_api_url="http://$bus_host:${LOCAL_AI_PLATFORM_PORT:-8080}"
 HOST_TASK_REF="$(cd bus-dev && go run ./cmd/bus-dev task --api-url "$host_api_url" --timeout 30s new @bus-dev "Show the Codex CLI version." | awk "/ -> / {print \$2; exit}")"
 test -n "$HOST_TASK_REF"
 HOST_TASK_OUTPUT="$(cd bus-dev && go run ./cmd/bus-dev task --api-url "$host_api_url" --timeout 5m watch "$HOST_TASK_REF")"

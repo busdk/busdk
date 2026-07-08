@@ -2,7 +2,8 @@
 set -eu
 
 models="gemma4:31b,gpt-oss:120b"
-endpoint="http://127.0.0.1:11434/api/generate"
+bus_host=${BUS_HOST:-127.0.0.1}
+endpoint="http://$bus_host:11434/api/generate"
 prompt="Reply with exactly: Bus benchmark ok"
 repeats=1
 output="-"
