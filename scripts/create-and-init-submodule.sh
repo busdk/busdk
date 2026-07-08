@@ -17,3 +17,14 @@ sleep 3
 ./scripts/create-submodule-feature-issue.sh "$NAME"
 sleep 3
 ./scripts/init-submodule-golang.sh "$NAME"
+
+(
+  cd "$NAME"
+  git add -A
+  if git diff --cached --quiet; then
+    echo "no skeleton changes to commit in $NAME"
+  else
+    git commit -m "chore: initialize module skeleton"
+    git push -u origin HEAD
+  fi
+)
