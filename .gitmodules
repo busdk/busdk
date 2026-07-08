@@ -642,3 +642,15 @@
 	path = bus-vies
 	url = git@github.com:busdk/bus-vies.git
 	branch = develop
+[submodule "bus-thread"]
+	path = bus-thread
+	url = git@github.com:busdk/bus-thread.git
+	branch = develop
+[submodule "bus-api-provider-thread"]
+	path = bus-api-provider-thread
+	url = git@github.com:busdk/bus-api-provider-thread.git
+	branch = develop
+[submodule "bus-integration-thread"]
+	path = bus-integration-thread
+	url = git@github.com:busdk/bus-integration-thread.git
+	branch = develop
