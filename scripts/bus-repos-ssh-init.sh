@@ -4,8 +4,9 @@ set -eu
 stack_dir=$(pwd)
 state_dir=${BUS_REPOS_SSH_STATE_DIR:-.bus/services/repos-ssh}
 port=${BUS_REPOS_SSH_PORT:-2222}
-listen=${BUS_REPOS_SSH_LISTEN:-127.0.0.1}
-events_url=${BUS_REPOS_SSH_EVENTS_URL:-http://127.0.0.1:8081/local/v1}
+bus_host=${BUS_HOST:-127.0.0.1}
+listen=${BUS_REPOS_SSH_LISTEN:-$bus_host}
+events_url=${BUS_REPOS_SSH_EVENTS_URL:-http://$bus_host:8081/local/v1}
 token_file=${BUS_REPOS_SSH_TOKEN_FILE:-.bus/tokens/local-events.jwt}
 environment_id=${BUS_REPOS_SSH_ENVIRONMENT_ID:-local-dev}
 actor=${BUS_REPOS_SSH_ACTOR:-local-worker}

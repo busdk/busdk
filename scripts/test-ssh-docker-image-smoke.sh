@@ -8,6 +8,7 @@ set -eu
 # first through scripts/install-ssh-docker-worker-image.sh.
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+BUS_TEST_HOST=${BUS_HOST:-127.0.0.1}
 
 REMOTE_ID=${BUS_SSH_DOCKER_SMOKE_REMOTE_ID:-dev-hg}
 SMOKE_DIR=${BUS_SSH_DOCKER_SMOKE_DIR:-${TMPDIR:-/tmp}/bus-ssh-docker-smoke}
@@ -61,7 +62,7 @@ BASE_BRANCH=${BUS_SSH_DOCKER_SMOKE_BASE_BRANCH:-}
 PROMPT=${BUS_SSH_DOCKER_SMOKE_PROMPT:-SSH-Docker image smoke: do not edit files; verify the worker can claim this task, send a short progress message, and mark it done.}
 LOCAL_SECRET=${BUS_AUTH_HS256_SECRET:-not-a-secret-local-development-hs256-key}
 ACCOUNT_ID=${BUS_LOCAL_ACCOUNT_ID:-00000000-0000-4000-8000-000000000001}
-CONTROLLER_URL=${BUS_SSH_DOCKER_SMOKE_CONTROLLER_URL:-http://127.0.0.1:${TUNNEL_PORT}}
+CONTROLLER_URL=${BUS_SSH_DOCKER_SMOKE_CONTROLLER_URL:-http://$BUS_TEST_HOST:${TUNNEL_PORT}}
 RUNNER_LOG=${BUS_SSH_DOCKER_SMOKE_RUNNER_LOG:-${TMPDIR:-/tmp}/bus-ssh-runner-smoke.log}
 EVIDENCE_DIR=${BUS_SSH_DOCKER_SMOKE_EVIDENCE_DIR:-}
 START_ONLY=${BUS_SSH_DOCKER_SMOKE_START_ONLY:-false}
@@ -384,7 +385,7 @@ print_image_pull_hint() {
 
 case "$USE_TUNNEL" in
 	true|1|yes|on)
-		ssh -A -N -o BatchMode=yes -o ConnectTimeout=15 -o ExitOnForwardFailure=yes -L "127.0.0.1:${TUNNEL_PORT}:${REMOTE_EVENTS_HOST}:${REMOTE_EVENTS_PORT}" "$SSH_TARGET" &
+		ssh -A -N -o BatchMode=yes -o ConnectTimeout=15 -o ExitOnForwardFailure=yes -L "$BUS_TEST_HOST:${TUNNEL_PORT}:${REMOTE_EVENTS_HOST}:${REMOTE_EVENTS_PORT}" "$SSH_TARGET" &
 		tunnel=$!
 		;;
 	false|0|no|off|'')

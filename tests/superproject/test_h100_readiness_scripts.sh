@@ -4,6 +4,8 @@ set -euo pipefail
 root_dir=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 tmp_dir=$(mktemp -d)
 trap 'rm -rf "$tmp_dir"' EXIT
+bus_host=${BUS_HOST:-127.0.0.1}
+events_url="http://$bus_host:8081"
 
 mkdir -p "$tmp_dir/bin"
 
@@ -15,7 +17,7 @@ for arg in "$@"; do
 	last=$arg
 done
 printf '%s\n' "$last" >"$H100_SSH_REMOTE_SCRIPT_LOG"
-printf 'preflight ok: root=/remote image=worker model=model events=http://127.0.0.1:8081 token_refreshed=true token_file=/home/dev/.config/bus/auth/api-token\n'
+printf 'preflight ok: root=/remote image=worker model=model events=%s token_refreshed=true token_file=/home/dev/.config/bus/auth/api-token\n' "${H100_EXPECTED_EVENTS_URL:-http://127.0.0.1:8081}"
 SH
 chmod +x "$tmp_dir/bin/ssh"
 
@@ -28,7 +30,7 @@ PATH="$tmp_dir/bin:$PATH" H100_SSH_REMOTE_SCRIPT_LOG="$tmp_dir/h100.remote-scrip
 	--remote-root /remote \
 	--model model \
 	--image worker \
-	--events-url http://127.0.0.1:8081 \
+	--events-url "$events_url" \
 	--timeout 7 \
 	--ensure-services \
 	--refresh-token \
@@ -60,7 +62,7 @@ if PATH="$tmp_dir/bin:$PATH" "$root_dir/scripts/h100-offload-runner.sh" \
 	--remote-root /remote \
 	--model model \
 	--image worker \
-	--events-url http://127.0.0.1:8081 \
+	--events-url "$events_url" \
 	--timeout 1 >"$timeout_out" 2>"$timeout_err"; then
 	printf 'FAIL h100 runner timeout preflight unexpectedly passed\n' >&2
 	exit 1
@@ -135,8 +137,8 @@ PATH="$tmp_dir/bin:$PATH" H100_RUNNER_ARGS_LOG="$tmp_dir/h100-runner.args" \
 	"$root_dir/scripts/sync-events-over-ssh.sh" \
 	--ssh-target dev@ai.hg.fi \
 	--remote-root /home/dev/workspace/busdk/busdk \
-	--local-api-url http://127.0.0.1:8081 \
-	--remote-api-url http://127.0.0.1:8081 \
+	--local-api-url "$events_url" \
+	--remote-api-url "$events_url" \
 	--local-token-file "$tmp_dir/local-token" \
 	--remote-token-file /home/dev/.config/bus/auth/api-token \
 	--local-events-bin "$tmp_dir/local-bus-events" \
@@ -174,8 +176,8 @@ skip_err="$tmp_dir/sync-skip.err"
 PATH="$tmp_dir/bin:$PATH" "$root_dir/scripts/sync-events-over-ssh.sh" \
 	--ssh-target dev@ai.hg.fi \
 	--remote-root /home/dev/workspace/busdk/busdk \
-	--local-api-url http://127.0.0.1:8081 \
-	--remote-api-url http://127.0.0.1:8081 \
+	--local-api-url "$events_url" \
+	--remote-api-url "$events_url" \
 	--local-token-file "$tmp_dir/local-token" \
 	--remote-token-file /home/dev/.config/bus/auth/api-token \
 	--local-events-bin "$tmp_dir/local-bus-events" \
@@ -201,8 +203,8 @@ fail_err="$tmp_dir/sync-fail.err"
 if PATH="$tmp_dir/bin:$PATH" "$root_dir/scripts/sync-events-over-ssh.sh" \
 	--ssh-target dev@ai.hg.fi \
 	--remote-root /home/dev/workspace/busdk/busdk \
-	--local-api-url http://127.0.0.1:8081 \
-	--remote-api-url http://127.0.0.1:8081 \
+	--local-api-url "$events_url" \
+	--remote-api-url "$events_url" \
 	--local-token-file "$tmp_dir/local-token" \
 	--remote-token-file /home/dev/.config/bus/auth/api-token \
 	--local-events-bin "$tmp_dir/local-bus-events" \

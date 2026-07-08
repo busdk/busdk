@@ -6,10 +6,14 @@ name: Bus Repos SSH service
 description: Native Git-over-SSH transport for Bus-managed repositories.
 service_kind: bus.repos.ssh
 parameters:
+  - name: host
+    type: string
+    description: Local loopback host used for this service.
+    default: 127.0.0.1
   - name: events_url
     type: string
     description: Bus Events API base URL used for repos mutation grants.
-    default: http://127.0.0.1:8081/local/v1
+    default: http://{param:host}:8081/local/v1
   - name: token_file
     type: string
     description: Bus Events API bearer token file used for repos mutation grants.
@@ -21,7 +25,7 @@ parameters:
   - name: listen
     type: string
     description: Host-local SSH listen address.
-    default: 127.0.0.1
+    default: "{param:host}"
 runtime:
   kind: native
   provider: bus
@@ -90,7 +94,7 @@ runtime:
     - name: BUS_EVENTS_URL
       description: Bus Events API base URL used to expand service parameters.
       value_from: env:BUS_EVENTS_URL
-      default: http://127.0.0.1:8081/local/v1
+      default: http://{param:host}:8081/local/v1
     - name: BUS_REPOS_SSH_TOKEN_FILE
       description: Bus Events API bearer token file used by the native repos SSH service.
       value_from: env:BUS_REPOS_SSH_TOKEN_FILE
@@ -114,7 +118,7 @@ runtime:
     - name: BUS_REPOS_SSH_IDENTITIES_API_URL
       description: Bus identities API base URL used to resolve SSH public keys and repo access.
       value_from: env:BUS_REPOS_SSH_IDENTITIES_API_URL
-      default: http://127.0.0.1:8091
+      default: http://{param:host}:8091
     - name: BUS_REPOS_SSH_IDENTITIES_TOKEN_FILE
       description: Bus identities API bearer token file used by the native repos SSH service.
       value_from: env:BUS_REPOS_SSH_IDENTITIES_TOKEN_FILE
@@ -131,7 +135,7 @@ runtime:
     - name: repos-ssh
       protocol: tcp
       target: 2222
-      host: 127.0.0.1
+      host: "{param:host}"
   healthcheck:
     tcp_port_from: env:BUS_REPOS_SSH_PORT
     interval: 250ms

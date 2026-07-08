@@ -638,3 +638,7 @@
 	path = bus-integration-claude
 	url = git@github.com:busdk/bus-integration-claude.git
 	branch = develop
+[submodule "bus-vies"]
+	path = bus-vies
+	url = git@github.com:busdk/bus-vies.git
+	branch = develop

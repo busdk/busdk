@@ -30,7 +30,8 @@ if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
 fi
 
 ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
-ADDR=${BUS_LOCAL_HOST_WORKER_SMOKE_ADDR:-127.0.0.1:8081}
+BUS_TEST_HOST=${BUS_HOST:-127.0.0.1}
+ADDR=${BUS_LOCAL_HOST_WORKER_SMOKE_ADDR:-$BUS_TEST_HOST:8081}
 API_URL="http://$ADDR"
 TOKEN_FILE=${BUS_LOCAL_HOST_WORKER_SMOKE_TOKEN_FILE:-$ROOT/tmp/local-ai-platform/bus-config/auth/api-token}
 MINT_TOKEN=${BUS_LOCAL_HOST_WORKER_SMOKE_MINT_TOKEN:-true}

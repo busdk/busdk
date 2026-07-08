@@ -7,6 +7,10 @@ name: Bus Identities local API
 description: Local file-backed Bus identities API for auth, API keys, and SSH keys.
 service_kind: bus.api.identities
 parameters:
+  - name: host
+    type: string
+    description: Local loopback host used for this service.
+    default: 127.0.0.1
   - name: port
     type: integer
     description: TCP port for the local identities API process.
@@ -14,7 +18,7 @@ parameters:
   - name: listen
     type: string
     description: Local identities API listen address.
-    default: 127.0.0.1
+    default: "{param:host}"
 runtime:
   kind: native
   provider: bus
@@ -68,7 +72,7 @@ runtime:
     - name: identities-api
       protocol: tcp
       target: 8091
-      host: 127.0.0.1
+      host: "{param:host}"
   healthcheck:
     tcp_port_from: env:BUS_IDENTITIES_API_PORT
     interval: 250ms

@@ -9,6 +9,10 @@ name: Bus Events API memory backend
 description: Bus Events API provider using the in-memory backend for local development.
 service_kind: bus.api.events
 parameters:
+  - name: host
+    type: string
+    description: Local loopback host used for this service.
+    default: 127.0.0.1
   - name: capability_token
     type: string
     description: Capability path token used in the Bus API base URL.
@@ -44,7 +48,7 @@ runtime:
     - name: BUS_API_IDENTITIES_API_URL
       description: Identities API URL used by the Events provider for JWT/API-key authorization checks.
       value_from: env:BUS_API_IDENTITIES_API_URL
-      default: http://127.0.0.1:8091
+      default: http://{param:host}:8091
     - name: BUS_API_IDENTITIES_API_TOKEN
       description: Optional bearer token used by the Events provider for identities API calls.
       value_from: env:BUS_API_IDENTITIES_API_TOKEN
@@ -61,7 +65,7 @@ runtime:
     - name: events-api
       protocol: tcp
       target: 8081
-      host: 127.0.0.1
+      host: "{param:host}"
   healthcheck:
     tcp_port_from: env:BUS_EVENTS_PORT
     interval: 250ms

@@ -33,6 +33,9 @@ question_one_id="live-q1-${run_id}"
 question_two_id="live-q2-${run_id}"
 expected_module_path="$(awk '/^module / {print $2; exit}' bus-dev/go.mod)"
 expected_go_version="$(awk '/^go / {print $2; exit}' bus-dev/go.mod)"
+bus_host=${BUS_HOST:-127.0.0.1}
+bus_events_api_url="http://$bus_host:8081"
+bus_containers_api_url="http://$bus_host:8080/api/v1/containers/status"
 
 cleanup() {
   docker rm -f "$worker_name" || true
@@ -63,13 +66,13 @@ export BUS_API_TOKEN="$(
     --ttl 2h
 )"
 printf '%s' "$BUS_API_TOKEN" > "$token_file"
-export BUS_EVENTS_API_URL=http://127.0.0.1:8081
+export BUS_EVENTS_API_URL="$bus_events_api_url"
 
 ready=0
 for _ in $(seq 1 120); do
   if curl --fail --show-error --connect-timeout 2 --max-time 5 --output "$workspace/containers-status.json" \
     --header "Authorization: Bearer $BUS_API_TOKEN" \
-    http://127.0.0.1:8080/api/v1/containers/status; then
+    "$bus_containers_api_url"; then
     ready=1
     break
   fi
