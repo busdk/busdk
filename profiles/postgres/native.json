@@ -4,6 +4,14 @@
   "name": "PostgreSQL native process",
   "description": "PostgreSQL database server using installed PostgreSQL binaries and a native local process.",
   "service_kind": "database.postgres",
+  "parameters": [
+    {
+      "name": "host",
+      "type": "string",
+      "description": "Local loopback host used for this service.",
+      "default": "127.0.0.1"
+    }
+  ],
   "runtime": {
     "kind": "native",
     "provider": "homebrew",
@@ -12,7 +20,7 @@
       "-p",
       "{env:BUS_POSTGRES_PORT}",
       "-c",
-      "listen_addresses=127.0.0.1",
+      "listen_addresses={param:host}",
       "-c",
       "unix_socket_directories={env:BUS_POSTGRES_SOCKET_DIR}"
     ],
@@ -57,7 +65,8 @@
       {
         "name": "postgres",
         "protocol": "tcp",
-        "target": 5432
+        "target": 5432,
+        "host": "{param:host}"
       }
     ],
     "healthcheck": {
