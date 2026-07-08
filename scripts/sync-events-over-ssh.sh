@@ -10,8 +10,10 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
 SSH_TARGET=${BUS_EVENTS_SSH_SYNC_TARGET:-dev@ai.hg.fi}
 REMOTE_ROOT=${BUS_EVENTS_SSH_SYNC_REMOTE_ROOT:-/home/dev/workspace/busdk/busdk}
-LOCAL_API_URL=${BUS_EVENTS_SSH_SYNC_LOCAL_API_URL:-http://127.0.0.1:8081}
-REMOTE_API_URL=${BUS_EVENTS_SSH_SYNC_REMOTE_API_URL:-http://127.0.0.1:8081}
+local_bus_host=${BUS_HOST:-127.0.0.1}
+remote_bus_host=${BUS_EVENTS_SSH_SYNC_REMOTE_HOST:-127.0.0.1}
+LOCAL_API_URL=${BUS_EVENTS_SSH_SYNC_LOCAL_API_URL:-http://$local_bus_host:8081}
+REMOTE_API_URL=${BUS_EVENTS_SSH_SYNC_REMOTE_API_URL:-http://$remote_bus_host:8081}
 LOCAL_TOKEN_FILE=${BUS_EVENTS_SSH_SYNC_LOCAL_TOKEN_FILE:-tmp/local-ai-platform/bus-config/auth/api-token}
 REMOTE_TOKEN_FILE=${BUS_EVENTS_SSH_SYNC_REMOTE_TOKEN_FILE:-.config/bus/auth/api-token}
 LOCAL_ENV_ID=${BUS_EVENTS_SSH_SYNC_LOCAL_ENV_ID:-env_local_supervisor}
