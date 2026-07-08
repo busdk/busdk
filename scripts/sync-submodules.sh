@@ -257,7 +257,10 @@ upgrade_submodule_to_recorded_pin() {
 ensure_submodule_target_ready() {
   local dir="$1"
   local branch
+  local branch_rev
+  local current
   local head
+  local origin_rev
 
   [ "$dir" != "." ] || return 0
   [ -n "$(submodule_key_for_path "$dir")" ] || return 0
@@ -306,6 +309,35 @@ ensure_submodule_target_ready() {
         fi
       fi
     fi
+  fi
+
+  branch="$(submodule_branch_for_path "$dir" || true)"
+  [ -n "$branch" ] || return 0
+
+  current="$(current_branch "$dir" || true)"
+  head="$(git -C "$dir" rev-parse HEAD 2>/dev/null)" || return 1
+  branch_rev="$(git -C "$dir" rev-parse --verify "$branch^{commit}" 2>/dev/null || true)"
+  origin_rev="$(git -C "$dir" rev-parse --verify "origin/$branch^{commit}" 2>/dev/null || true)"
+
+  if [ -n "$current" ] && [ "$current" != "$branch" ]; then
+    if [ -n "$branch_rev" ] && [ "$branch_rev" = "$head" ]; then
+      git -C "$dir" checkout -q "$branch" || return 1
+    elif [ -n "$origin_rev" ] && [ "$origin_rev" = "$head" ]; then
+      checkout_submodule_at_rev "$dir" "$head" || return 1
+    elif [ -n "$branch_rev" ] &&
+      git -C "$dir" merge-base --is-ancestor "$head" "$branch_rev" 2>/dev/null; then
+      git -C "$dir" checkout -q "$branch" || return 1
+    elif [ -n "$origin_rev" ] &&
+      git -C "$dir" merge-base --is-ancestor "$head" "$origin_rev" 2>/dev/null; then
+      checkout_submodule_at_rev "$dir" "$origin_rev" || return 1
+    fi
+  fi
+
+  current="$(current_branch "$dir" || true)"
+  if [ "$current" = "$branch" ] &&
+    [ -z "$(current_upstream "$dir")" ] &&
+    [ -n "$origin_rev" ]; then
+    git -C "$dir" branch --set-upstream-to="origin/$branch" "$branch" >/dev/null 2>&1 || true
   fi
 }
 
