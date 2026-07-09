@@ -3,7 +3,10 @@ set -euo pipefail
 
 root_dir="$(cd "$(dirname "$0")/../.." && pwd)"
 tmp_dir="$(mktemp -d)"
-trap 'rm -rf "$tmp_dir"; rm -f "$root_dir"/tmp/local-task-host-workers/logs/*-bus-template-test-any.log*' EXIT
+invocation_id=${tmp_dir##*/}
+artifact_recipient="bus-template-test-${invocation_id}"
+artifact_work_prefix="work-${invocation_id}"
+trap 'rm -rf "$tmp_dir"; rm -f "$root_dir"/tmp/local-task-host-workers/logs/*-"$artifact_recipient"-"$artifact_work_prefix"-*.log*' EXIT
 
 cd "$root_dir"
 
@@ -159,10 +162,13 @@ launch_host_worker() {
   shift 3
   bus_host=127.0.0.2
   sentinel_url="http://${bus_host}:1"
+  launch_id=${env_log##*/}
+  launch_id=${launch_id%.*}
   if ! BUS_HOST="$bus_host" \
     BUS_API_TOKEN=redacted-test-token \
     BUS_EVENTS_API_URL="$sentinel_url" \
-    BUS_TASK_RECIPIENT=bus-template-test \
+    BUS_TASK_RECIPIENT="$artifact_recipient" \
+    BUS_TASK_WORK_REF="${artifact_work_prefix}-${launch_id}" \
     BUS_TASK_AGENT_BACKEND=fake-appserver \
     BUS_TASK_WORKER_TEMPLATE_CLI="$resolver" \
     BUS_TASK_WORKER_TEMPLATE="$template" \
