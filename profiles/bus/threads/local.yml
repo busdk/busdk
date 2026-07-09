@@ -1,0 +1,58 @@
+id: bus/threads/local
+aliases:
+  - bus-integration-threads-local
+  - bus/integration/threads/local
+  - bus/integration-threads/local
+  - bus-threads-local
+name: Bus Threads local service
+description: Bus Threads integration service backed by Bus Events API.
+service_kind: bus.integration.threads
+parameters:
+  - name: host
+    type: string
+    description: Local loopback host used for this service.
+    default: 127.0.0.1
+  - name: events_url
+    type: string
+    description: Bus Events API base URL consumed by the shared integration host.
+    default: http://{param:host}:8081/local/v1
+  - name: token_file
+    type: string
+    description: Bus Events API bearer token file consumed by the shared integration host.
+    default: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"
+runtime:
+  kind: native
+  provider: bus
+  command:
+    - bus
+  args:
+    - integration
+    - --events-url
+    - "{param:events_url}"
+    - --token-file
+    - "{param:token_file}"
+    - --provider
+    - thread
+  env:
+    - name: BUS_SERVICES_PROCESS_PATH
+      description: Host process search path used when no stack-local Bus tool path is available.
+      value_from: process_env:PATH
+    - name: PATH
+      description: Process search path used to locate Bus dispatcher and module binaries.
+      value_from: env:BUS_SERVICES_TOOL_PATH
+      default: "{env:BUS_SERVICES_PROCESS_PATH}"
+    - name: BUS_SERVICES_BUS_DIR
+      description: Durable Bus state directory used for generated service credentials.
+      value_from: env:BUS_SERVICES_BUS_DIR
+    - name: BUS_API_TOKEN
+      description: Bearer token used by the integration host when calling the Bus Events API.
+      value_from: env:BUS_API_TOKEN
+      default: " "
+    - name: BUS_EVENTS_URL
+      description: Bus Events API base URL used to expand the service events_url parameter.
+      value_from: env:BUS_EVENTS_URL
+      default: http://{param:host}:8081/local/v1
+    - name: BUS_THREAD_INTEGRATION_SOURCE
+      description: Deterministic source and consumer id used by the Thread integration registration.
+      value_from: env:BUS_THREAD_INTEGRATION_SOURCE
+      default: bus-integration-thread

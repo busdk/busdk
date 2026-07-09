@@ -25,6 +25,7 @@ groups:
       - repos-ssh
       - workers
       - tasks
+      - threads
   gateways:
     name: API gateways
     services:
@@ -76,6 +77,12 @@ services:
       events_url: "{env:BUS_EVENTS_URL}"
     depends_on:
       - events
+  threads:
+    profile: bus/threads/local
+    params:
+      events_url: "{env:BUS_EVENTS_URL}"
+    depends_on:
+      - events
   engine:
     profile: bus/engine/local
     params:
@@ -98,3 +105,4 @@ services:
       - engine
       - workers
       - tasks
+      - threads
