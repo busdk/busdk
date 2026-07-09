@@ -152,6 +152,34 @@ docs for worker creation, identity/auth setup, repository management, Engine
 artifacts, provider-specific options, and customization
 environment variables.
 
+### Worker Template Catalog
+
+Local worker launches should choose an environment-local template from
+`.bus/worker/templates.json` instead of hard-coding provider model names in
+task prompts or shell commands. Inspect a configured template before dispatch:
+
+```bash
+bus workers template show codex-56-sol-ultra
+```
+
+The GPT-5.6 catalog uses exact model IDs and explicit effort in every template:
+
+| Family | Model | Efforts | Primary roles |
+| --- | --- | --- | --- |
+| Sol | `gpt-5.6-sol` | `high`, `xhigh`, `max`, `ultra` | hard debugging, architecture diagnosis, deep review, orchestration |
+| Terra | `gpt-5.6-terra` | `medium`, `high`, `max` | implementation follow-through, integration debugging, compatibility review |
+| Luna | `gpt-5.6-luna` | `low`, `medium`, `max` | quick audits, bounded fixes, focused final review |
+
+Choose the role-based template id, such as `codex-56-terra-high` or
+`codex-56-sol-max`, and let the launcher inherit the model, sandbox, reasoning
+summary, verbosity, and identity settings from the catalog. Use Sol `max` for
+deep review and Sol `ultra` for orchestration lanes.
+
+This template UX is scoped to supported `bus workers` dispatch and
+`bus-integration-worker` App Server paths. Dev-task container entrypoints stay
+out of scope until the owning `bus-integration-task` contract exposes and
+verifies worker-launch model, reasoning, summary, and verbosity behavior.
+
 ## Repository Layout
 
 BusDK is a superproject of smaller `bus-*` modules. The root repository pins

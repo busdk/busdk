@@ -32,7 +32,7 @@ require_env() {
 }
 
 sanitize() {
-  printf '%s' "$1" | tr -cs '[:alnum:]._-#' '-'
+  printf '%s' "$1" | tr -cs '[:alnum:]._#-' '-'
 }
 
 worker_template_value() {
@@ -50,6 +50,38 @@ worker_template_value() {
       }
     }
   '
+}
+
+worker_template_optional_value() {
+  worker_template_value "$@" || printf ''
+}
+
+worker_template_empty_dash() {
+  case "$1" in
+    -) printf '' ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
+is_unset() {
+  eval '[ -z "${'"$1"'+x}" ]'
+}
+
+template_resolver_exists() {
+  tr_bin=$1
+  case "$tr_bin" in
+    */*) [ -x "$tr_bin" ] ;;
+    *) command -v "$tr_bin" >/dev/null 2>&1 ;;
+  esac
+}
+
+run_worker_template_resolver() {
+  rtr_bin=$1
+  rtr_template=$2
+  (
+    cd "$ROOT"
+    "$rtr_bin" workers template show "$rtr_template"
+  )
 }
 
 require_env BUS_API_TOKEN
@@ -102,28 +134,44 @@ BUSDK_TOOL_BIN_DIR=$ROOT/tmp/busdk-tools \
 
 export PATH=$ROOT/.busdk-tools/bin:$PATH
 
-if [ -n "${BUS_TASK_WORKER_TEMPLATE:-}" ] && { [ -z "${BUS_TASK_CODEX_MODEL:-}" ] || [ -z "${BUS_TASK_CODEX_SANDBOX:-}" ]; }; then
-  worker_template_cli=${BUS_TASK_WORKER_TEMPLATE_CLI:-$ROOT/bus-worker/bin/bus-worker}
-  if [ ! -x "$worker_template_cli" ]; then
+if [ -n "${BUS_TASK_WORKER_TEMPLATE:-}" ] && {
+  is_unset BUS_TASK_CODEX_MODEL ||
+    is_unset BUS_TASK_CODEX_SANDBOX ||
+    is_unset BUS_TASK_CODEX_REASONING_EFFORT ||
+    is_unset BUS_TASK_CODEX_REASONING_SUMMARY ||
+    is_unset BUS_TASK_CODEX_MODEL_VERBOSITY
+}; then
+  worker_template_cli=${BUS_TASK_WORKER_TEMPLATE_CLI:-bus}
+  if ! template_resolver_exists "$worker_template_cli"; then
     printf 'worker template resolver not executable: %s\n' "$worker_template_cli" >&2
     exit 2
   fi
-  worker_template_output=$("$worker_template_cli" -C "$ROOT" template show "$BUS_TASK_WORKER_TEMPLATE")
-  if [ -z "${BUS_TASK_CODEX_MODEL:-}" ]; then
+  worker_template_output=$(run_worker_template_resolver "$worker_template_cli" "$BUS_TASK_WORKER_TEMPLATE")
+  if is_unset BUS_TASK_CODEX_MODEL; then
     export BUS_TASK_CODEX_MODEL=$(worker_template_value "$worker_template_output" default_model)
   fi
-  if [ -z "${BUS_TASK_CODEX_SANDBOX:-}" ]; then
+  if is_unset BUS_TASK_CODEX_SANDBOX; then
     export BUS_TASK_CODEX_SANDBOX=$(worker_template_value "$worker_template_output" sandbox)
+  fi
+  if is_unset BUS_TASK_CODEX_REASONING_EFFORT; then
+    export BUS_TASK_CODEX_REASONING_EFFORT=$(worker_template_empty_dash "$(worker_template_optional_value "$worker_template_output" reasoning_effort)")
+  fi
+  if is_unset BUS_TASK_CODEX_REASONING_SUMMARY; then
+    export BUS_TASK_CODEX_REASONING_SUMMARY=$(worker_template_empty_dash "$(worker_template_optional_value "$worker_template_output" reasoning_summary)")
+  fi
+  if is_unset BUS_TASK_CODEX_MODEL_VERBOSITY; then
+    export BUS_TASK_CODEX_MODEL_VERBOSITY=$(worker_template_empty_dash "$(worker_template_optional_value "$worker_template_output" model_verbosity)")
   fi
 fi
 
 stamp=$(date '+%Y%m%d-%H%M%S')
 token=$(sanitize "${recipient}-${work_ref}")
 log_file=$ROOT/tmp/local-task-host-workers/logs/${stamp}-${token}.log
+task_bin=${BUS_TASK_INTEGRATION_TASK_BIN:-$ROOT/.busdk-tools/bin/bus-integration-task}
 
 (
   cd "$ROOT"
-  nohup "$ROOT/.busdk-tools/bin/bus-integration-task" >"$log_file" 2>&1 &
+  nohup "$task_bin" >"$log_file" 2>&1 &
   pid=$!
   printf '%s\n' "$pid" >"${log_file}.pid"
   printf '%s\n' "$log_file" >"${log_file}.path"

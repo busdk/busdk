@@ -150,6 +150,7 @@ superproject-selftest:
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_quiet.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_complete.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_gx_ui_adopter_audit.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_worker_template_catalog.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_dev_task_run_worker_script.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= sh ./tests/superproject/test_pricing_costs.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_agent_container.sh
@@ -167,6 +168,7 @@ superproject-source-selftest:
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_quiet.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_quality_complete.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_gx_ui_adopter_audit.sh
+	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_worker_template_catalog.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= sh ./tests/superproject/test_pricing_costs.sh
 	@MAKEFLAGS= MFLAGS= MAKELEVEL= bash ./tests/superproject/test_agent_container.sh
 

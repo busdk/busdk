@@ -20,7 +20,10 @@
       ],
       "worker_home_policy": "managed-repo",
       "identity_repo_ref": "repos://workers/codex-53-spark",
-      "identity_base_ref": "refs/heads/main"
+      "identity_base_ref": "refs/heads/main",
+      "reasoning_effort": "low",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium"
     },
     {
       "id": "codex-54-mini",
@@ -41,7 +44,10 @@
       ],
       "worker_home_policy": "managed-repo",
       "identity_repo_ref": "repos://workers/codex-54-mini",
-      "identity_base_ref": "refs/heads/main"
+      "identity_base_ref": "refs/heads/main",
+      "reasoning_effort": "low",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium"
     },
     {
       "id": "codex-55",
@@ -62,7 +68,10 @@
       ],
       "worker_home_policy": "managed-repo",
       "identity_repo_ref": "repos://workers/codex-55",
-      "identity_base_ref": "refs/heads/main"
+      "identity_base_ref": "refs/heads/main",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium"
     },
     {
       "id": "codex-55-high",
@@ -86,6 +95,246 @@
       ],
       "worker_home_policy": "managed-repo",
       "identity_repo_ref": "repos://workers/codex-55-high",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "codex-56-sol-high",
+      "label": "GPT-5.6 Sol High",
+      "summary": "GPT-5.6 Sol worker for hard debugging and cross-file implementation.",
+      "description": "Use for difficult implementation, opaque failures, and changes spanning several files or contracts.",
+      "default_profile": "codex-56-sol",
+      "default_model": "gpt-5.6-sol",
+      "reasoning_effort": "high",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-56-sol-high",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "codex-56-sol-xhigh",
+      "label": "GPT-5.6 Sol XHigh",
+      "summary": "GPT-5.6 Sol worker for architecture diagnosis and difficult root-cause work.",
+      "description": "Use for architecture diagnosis, hard root-cause analysis, and plans that need stronger reasoning before patching.",
+      "default_profile": "codex-56-sol",
+      "default_model": "gpt-5.6-sol",
+      "reasoning_effort": "xhigh",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-56-sol-xhigh",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "codex-56-sol-max",
+      "label": "GPT-5.6 Sol Max",
+      "summary": "GPT-5.6 Sol worker for deep review of risky changes before acceptance.",
+      "description": "Use as a deep-review lane for acceptance-critical diffs, security-sensitive behavior, and high-risk regressions.",
+      "default_profile": "codex-56-sol",
+      "default_model": "gpt-5.6-sol",
+      "reasoning_effort": "max",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-56-sol-max",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "codex-56-sol-ultra",
+      "label": "GPT-5.6 Sol Ultra",
+      "summary": "GPT-5.6 Sol worker for orchestration lanes that plan, split, and review worker work.",
+      "description": "Use as an orchestration lane for splitting complex work, supervising worker outputs, and reviewing final evidence.",
+      "default_profile": "codex-56-sol",
+      "default_model": "gpt-5.6-sol",
+      "reasoning_effort": "ultra",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-56-sol-ultra",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "codex-56-terra-medium",
+      "label": "GPT-5.6 Terra Medium",
+      "summary": "GPT-5.6 Terra worker for default implementation follow-through.",
+      "description": "Use for default Terra implementation lanes with explicit medium reasoning effort.",
+      "default_profile": "codex-56-terra",
+      "default_model": "gpt-5.6-terra",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-56-terra-medium",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "codex-56-terra-high",
+      "label": "GPT-5.6 Terra High",
+      "summary": "GPT-5.6 Terra worker for broad implementation and integration debugging.",
+      "description": "Use for broader implementation and integration debugging where Terra should spend more effort before patching.",
+      "default_profile": "codex-56-terra",
+      "default_model": "gpt-5.6-terra",
+      "reasoning_effort": "high",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-56-terra-high",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "codex-56-terra-max",
+      "label": "GPT-5.6 Terra Max",
+      "summary": "GPT-5.6 Terra worker for migration, compatibility, and regression review.",
+      "description": "Use for migration, compatibility, and regression review when the patch is risky but does not need orchestration.",
+      "default_profile": "codex-56-terra",
+      "default_model": "gpt-5.6-terra",
+      "reasoning_effort": "max",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-56-terra-max",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "codex-56-luna-low",
+      "label": "GPT-5.6 Luna Low",
+      "summary": "GPT-5.6 Luna worker for quick audits and small deterministic changes.",
+      "description": "Use for quick audits, deterministic checks, and tiny patches using exact GPT-5.6 Luna behavior.",
+      "default_profile": "codex-56-luna",
+      "default_model": "gpt-5.6-luna",
+      "reasoning_effort": "low",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-56-luna-low",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "codex-56-luna-medium",
+      "label": "GPT-5.6 Luna Medium",
+      "summary": "GPT-5.6 Luna worker for small implementation with practical reasoning.",
+      "description": "Use for small implementation tasks where Luna should balance speed and reasoning.",
+      "default_profile": "codex-56-luna",
+      "default_model": "gpt-5.6-luna",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-56-luna-medium",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
+      "id": "codex-56-luna-max",
+      "label": "GPT-5.6 Luna Max",
+      "summary": "GPT-5.6 Luna worker for final focused review before promotion.",
+      "description": "Use for final focused review of a bounded diff before promotion; choose Sol or Terra for ultra orchestration.",
+      "default_profile": "codex-56-luna",
+      "default_model": "gpt-5.6-luna",
+      "reasoning_effort": "max",
+      "reasoning_summary": "auto",
+      "model_verbosity": "medium",
+      "runner_kind": "appserver",
+      "runner_provider": "codex-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/codex-56-luna-max",
       "identity_base_ref": "refs/heads/main"
     },
     {
