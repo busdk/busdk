@@ -33,6 +33,9 @@ rolling parallel worker pool. If path arguments are given, only those paths are
 synchronized. Use "." to include the superproject in a focused run. Pass
 --verbose to print each target and the final success summary.
 
+When a superproject pull adds new .gitmodules entries, their submodules are
+discovered and initialized serially before parallel synchronization begins.
+
 After a pull updates submodule worktrees, changed superproject gitlinks are
 staged by default so the checked-in BusDK pins can be committed explicitly.
 Use --no-promote-pins to leave gitlinks unstaged.
