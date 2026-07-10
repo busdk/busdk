@@ -1,0 +1,72 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd "$(dirname "$0")/.." && pwd -P)
+script="$repo_root/scripts/bus-repos-local-init.sh"
+tmp=$(mktemp -d "${TMPDIR:-/tmp}/bus-repos-local-init.XXXXXX")
+trap 'rm -rf "$tmp"' EXIT HUP INT TERM
+
+fail() {
+	printf 'bus-repos-local-init test: %s\n' "$*" >&2
+	exit 1
+}
+
+expect_line() {
+	file=$1
+	line=$2
+	grep -F -x "$line" "$file" >/dev/null || fail "missing line $line"
+}
+
+init_repo() {
+	path=$1
+	branch=$2
+	git init -q -b "$branch" "$path"
+	git -C "$path" config user.email repos-test@example.invalid
+	git -C "$path" config user.name 'Repos Test'
+	printf '%s\n' "$branch" >"$path/README.md"
+	git -C "$path" add README.md
+	git -C "$path" commit -q -m initial
+}
+
+run_init() {
+	config=$1
+	storage=$2
+	shift 2
+	BUS_SERVICES_STACK_DIR="$tmp/stack" \
+	BUS_REPOS_CONFIG="$config" \
+	BUS_REPOS_STORAGE_ROOT="$storage" \
+	BUS_WORKERS_DIRECT_REPO_ROOT="$product_repo" \
+	BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO="$identity_repo" \
+	"$@" \
+	sh "$script"
+}
+
+mkdir -p "$tmp/stack"
+product_repo="$tmp/product"
+identity_repo="$tmp/identity"
+init_repo "$product_repo" 'product/release'
+init_repo "$identity_repo" 'identity/bootstrap'
+
+catalog="$tmp/catalog.yml"
+run_init "$catalog" "$tmp/storage" env
+expect_line "$catalog" "    defaultBranch: 'product/release'"
+expect_line "$catalog" "    defaultBranch: 'identity/bootstrap'"
+
+explicit_catalog="$tmp/explicit.yml"
+run_init "$explicit_catalog" "$tmp/explicit-storage" env \
+	BUS_WORKERS_DIRECT_BASE_REF='refs/heads/product/release' \
+	BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF='refs/heads/identity/bootstrap'
+expect_line "$explicit_catalog" "    defaultBranch: 'refs/heads/product/release'"
+expect_line "$explicit_catalog" "    defaultBranch: 'refs/heads/identity/bootstrap'"
+
+git -C "$product_repo" checkout -q --detach
+if run_init "$tmp/detached.yml" "$tmp/detached-storage" env >"$tmp/detached.out" 2>&1; then
+	fail 'detached product HEAD unexpectedly succeeded'
+fi
+expect_line "$tmp/detached.out" 'bus repos init: product source HEAD is detached; configured base ref HEAD requires a symbolic local branch'
+
+git -C "$product_repo" symbolic-ref HEAD refs/tags/not-a-branch
+if run_init "$tmp/non-branch.yml" "$tmp/non-branch-storage" env >"$tmp/non-branch.out" 2>&1; then
+	fail 'non-branch product HEAD unexpectedly succeeded'
+fi
+expect_line "$tmp/non-branch.out" 'bus repos init: product source HEAD is not a local branch: refs/tags/not-a-branch'

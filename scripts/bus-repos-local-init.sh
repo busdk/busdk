@@ -54,6 +54,40 @@ ensure_source_repo() {
   fi
 }
 
+resolve_base_ref() {
+  label=$1
+  repo=$2
+  base_ref=$3
+  if [ "$base_ref" != "HEAD" ]; then
+    printf '%s' "$base_ref"
+    return 0
+  fi
+
+  if head_ref=$(git -C "$repo" symbolic-ref --quiet HEAD 2>/dev/null); then
+    :
+  else
+    status=$?
+    if [ "$status" -eq 1 ]; then
+      printf 'bus repos init: %s source HEAD is detached; configured base ref HEAD requires a symbolic local branch\n' "$label" >&2
+    else
+      printf 'bus repos init: cannot resolve %s source HEAD\n' "$label" >&2
+    fi
+    exit 1
+  fi
+  case $head_ref in
+    refs/heads/*) ;;
+    *)
+      printf 'bus repos init: %s source HEAD is not a local branch: %s\n' "$label" "$head_ref" >&2
+      exit 1
+      ;;
+  esac
+  if ! git -C "$repo" show-ref --verify --quiet "$head_ref"; then
+    printf 'bus repos init: %s source HEAD local branch does not exist: %s\n' "$label" "$head_ref" >&2
+    exit 1
+  fi
+  printf '%s' "${head_ref#refs/heads/}"
+}
+
 ensure_bare_repo() {
   id=$1
   source=$2
@@ -67,6 +101,9 @@ ensure_bare_repo() {
 
 ensure_source_repo product "$product_repo"
 ensure_source_repo worker-identity "$identity_repo"
+
+product_base=$(resolve_base_ref product "$product_repo" "$product_base")
+identity_base=$(resolve_base_ref worker-identity "$identity_repo" "$identity_base")
 
 product_path=$(ensure_bare_repo product "$product_repo")
 identity_path=$(ensure_bare_repo worker-identity "$identity_repo")
