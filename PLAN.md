@@ -2,11 +2,17 @@
 
 ## Active Thread Mutation Goal, 2026-07-10
 
-- [ ] Add a canonical thread structural-update event and user workflow that
+- [x] Add a canonical thread structural-update event and user workflow that
   can rename a thread, move it beneath another thread, detach it to the root,
   reject missing/self/descendant parents, and keep `bus-thread`,
   `bus-api-provider-thread`, `bus-integration-thread`, public docs, and replayed
   list/show/tree views consistent.
+
+Accepted evidence: `bus-thread` `8794cc6`, `bus-api-provider-thread` `ccd4c59`,
+`bus-integration-thread` `190efc4`, public docs `231ec1d`, and SDD `c1ecff4` are
+on their local `develop` branches and pinned here. Module unit/build/E2E checks,
+the nine-page Bus lint run, and aggregate `bus-api/internal/backends` plus
+`bus-integration/cmd/bus-integration` tests passed.
 
 ## Worker/Offload Supervisor Queue, 2026-06-17
 
