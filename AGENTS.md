@@ -866,7 +866,11 @@ this root file must preserve the supervisor/worker boundary itself.
     `--token-file`, `BUS_API_URL`, or `BUS_API_TOKEN` arguments. Start or
     refresh the stack with `bus services up`, verify it with `bus services ps`
     and `bus workers list`, and use `bus configure` for `.env` changes. The
-    local environment should be the default environment; pass `--environment`
+    working directory for every `bus ...` command is the BusDK checkout root;
+    running it from a supervisor or module root can select the wrong `.env`,
+    token directory, and Services runtime and must not be used as evidence of
+    an infrastructure failure. The local environment should be the default
+    environment; pass `--environment`
     only when targeting another environment or when a temporary diagnostic
     needs explicit disambiguation. Only pass explicit API URLs or token files
     for a documented non-default remote/proof path, and record why the default
