@@ -1,5 +1,13 @@
 # PLAN.md
 
+## Active Thread Mutation Goal, 2026-07-10
+
+- [ ] Add a canonical thread structural-update event and user workflow that
+  can rename a thread, move it beneath another thread, detach it to the root,
+  reject missing/self/descendant parents, and keep `bus-thread`,
+  `bus-api-provider-thread`, `bus-integration-thread`, public docs, and replayed
+  list/show/tree views consistent.
+
 ## Worker/Offload Supervisor Queue, 2026-06-17
 
 Current audit result: do not dispatch from stale proof notes alone. The older
