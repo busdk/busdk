@@ -191,11 +191,12 @@ this root file must preserve the supervisor/worker boundary itself.
 4. Decompose broad work into the smallest independently implementable,
    testable, reviewable, and promotable increments. Require each active lane to
    publish an ordered commit queue before broad implementation, with one
-   focused behavior and gate per commit. Run disjoint increments in parallel
-   only up to the current execution cap; review and promote each compatible
-   slice as soon as it passes instead of waiting for an all-or-nothing module
-   rewrite. Under a rolling cap, immediately refill a completed lane with the
-   next smallest critical queued slice only after process state is quiescent.
+   focused behavior and gate per commit. Run disjoint source-edit and bounded
+   Go-test increments in parallel under the current resource-class admission
+   policy; separately serialize heavyweight builds, images, containers, and
+   stress. Review and promote each compatible slice as soon as it passes
+   instead of waiting for an all-or-nothing module rewrite. Before reusing
+   shared mutable resources, prove the prior process tree is quiescent.
 5. Codex background threads for BusDK superproject work must make the owning
    repository or module path operationally real before edits. Prefer opening
    the thread on the exact saved module project when available. If only the
