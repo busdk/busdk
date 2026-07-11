@@ -1,5 +1,44 @@
 # PLAN.md
 
+## Active Bus Services Stability Correction, 2026-07-11
+
+This release is one current-host anti-DDOS repair for Bus Services as an
+ordinary service. It uses direct Linux cgroup-v2 mechanics and does not attempt
+the broader PID1 or systemd-replacement product in this gate.
+
+Minimum release boundary:
+
+1. one root-run Bus bootstrap validates cgroup2/controllers, creates one
+   delegated Bus root with exactly `control` and `work`, applies the static
+   policy, starts the uid/gid 1004 daemon in control, and exits;
+2. apply and exactly read back work `memory.high`, `memory.max`,
+   `memory.swap.max=0`, lower `cpu.weight`, bounded `pids.max`, and control/host
+   reserve directly through cgroupfs;
+3. route every Bus workload through one trusted self-attach-before-exec wrapper
+   into work; no per-service or per-worker cgroups;
+4. hold one secure host-wide blocking inherited flock for every explicitly
+   classified heavy native or Bus-owned Docker operation;
+5. run the Bus-owned rootless Docker daemon/build path inside work and reject
+   external or uncontained Docker in protected mode;
+6. stop dispatch, write `cgroup.kill` for work, wait boundedly for
+   `cgroup.events populated=0`, stop control, and return nonzero on missing
+   evidence, timeout, or survivors; and
+7. install the composed source and run one bounded proof that heavy attempts do
+   not overlap, work pressure does not cause global OOM, the API remains
+   responsive, and down leaves work empty.
+
+The current host is uid/gid 1004 with no effective capabilities, and its
+session cgroup is root-owned/non-writable. It therefore cannot create the
+independent subtree itself. The privileged boundary is one root-run bootstrap;
+a tiny broker is allowed only if a real kernel permission test proves the
+one-shot model insufficient. No setuid helper, systemd D-Bus/unit API,
+generalized privileged protocol, or PID1 work belongs in this release. Systemd
+integration is optional adapter work only. The promoted
+`bus-integration-systemd` slices and held D-Bus adapter remain evidence and
+possible donor code, but do not satisfy this release. Defer new resource
+protocols/DTOs, per-workload trees, tickets/fairness/leases/TTL, Podman/provider
+parity, Prometheus, rich telemetry, and proof frameworks.
+
 ## Active Thread Mutation Goal, 2026-07-10
 
 - [x] Add a canonical thread structural-update event and user workflow that
