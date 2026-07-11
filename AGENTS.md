@@ -188,14 +188,22 @@ this root file must preserve the supervisor/worker boundary itself.
    accepted commits, and keep the board moving.
 3. The supervisor may edit repo guidance, `PLAN.md`, live memos, and narrow
    coordination artifacts when those edits are themselves supervision work.
-4. Codex background threads for BusDK superproject work must make the owning
+4. Decompose broad work into the smallest independently implementable,
+   testable, reviewable, and promotable increments. Require each active lane to
+   publish an ordered commit queue before broad implementation, with one
+   focused behavior and gate per commit. Run disjoint increments in parallel
+   only up to the current execution cap; review and promote each compatible
+   slice as soon as it passes instead of waiting for an all-or-nothing module
+   rewrite. Under a rolling cap, immediately refill a completed lane with the
+   next smallest critical queued slice only after process state is quiescent.
+5. Codex background threads for BusDK superproject work must make the owning
    repository or module path operationally real before edits. Prefer opening
    the thread on the exact saved module project when available. If only the
    supervisor project is a saved Codex project, the thread may start there
    only when its first product step is to create and use an isolated worktree
    for the single target module. Split broad cleanup or salvage reviews by
    module owner when any follow-up edit may be needed.
-5. For local App Server workers on BusDK submodules, send the worker the exact
+6. For local App Server workers on BusDK submodules, send the worker the exact
    absolute product-worktree path as soon as `bus workers status` reports it,
    then tell it to `cd <module>` inside that tree before any file edit. Also
    name the primary checkout path as out of scope. If a worker log or command
@@ -203,7 +211,7 @@ this root file must preserve the supervisor/worker boundary itself.
    preserve any leaked patch, restore only the leaked primary files, and
    relaunch with stricter path guardrails. Do not trust a worker diff until the
    primary checkout for that module has been checked clean.
-6. Worker creation is not proof of execution. After creating a worker, send an
+7. Worker creation is not proof of execution. After creating a worker, send an
    explicit start message unless the worker stream already shows assistant
    output from the intended prompt. Count a lane as active only after three
    signals exist: the assistant/event stream has started, the worker-owned
