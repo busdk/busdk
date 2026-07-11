@@ -946,9 +946,13 @@ worker infrastructure rather than through agent prompts.
 - Record the owner, resource class, cgroup/container identity, configured
   limits, peak CPU/RSS/swap/I/O/process count, throttle events, OOM/exit reason,
   and cleanup result in lifecycle evidence.
-- Provide separate quiesce, drain, and emergency-stop semantics. Service
-  shutdown must stop new dispatch immediately and report any surviving worker
-  descendants or containers rather than implying they stopped.
+- Provide separate quiesce, drain, and emergency-stop semantics. Normal service
+  shutdown must stop new dispatch, allow only its bounded grace period, and
+  then terminate the complete Bus-owned resource domain: every service process,
+  worker, task process, descendant, and container launched through that service,
+  including detached processes re-parented to PID 1. A successful shutdown must
+  verify that the domain is empty; report surviving owned work as a shutdown
+  failure. Only an explicit drain operation may let existing owned work continue.
 
 Resource scheduling must use explicit policy and measured state, not LLM
 judgment. Resource isolation is an availability and correctness requirement,
