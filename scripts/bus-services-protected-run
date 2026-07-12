@@ -14,6 +14,32 @@ die() {
 	exit 1
 }
 
+trusted_binary() {
+	binary=$1
+
+	case "$binary" in
+		/*) ;;
+		*) die "trusted binary path must be absolute: $binary" ;;
+	esac
+
+	[ -f "$binary" ] || die "trusted binary is not a regular file: $binary"
+
+	owner=$("$stat_bin" -c %u "$binary") || die "cannot determine trusted binary owner: $binary"
+	mode=$("$stat_bin" -c %a "$binary") || die "cannot determine trusted binary mode: $binary"
+	[ "$owner" = 0 ] || die "trusted binary is not root-owned: $binary"
+
+	case "$mode" in
+		[0-7][0-7][0-7]) permissions=$mode ;;
+		[0-7][0-7][0-7][0-7]) permissions=${mode#?} ;;
+		*) die "trusted binary has an invalid mode: $binary" ;;
+	esac
+	group_mode=${permissions#?}
+	group_mode=${group_mode%?}
+	other_mode=${permissions#??}
+	case "$group_mode" in 2|3|6|7) die "trusted binary is group-writable: $binary" ;; esac
+	case "$other_mode" in 2|3|6|7) die "trusted binary is other-writable: $binary" ;; esac
+}
+
 if [ "$#" -lt 3 ] || [ "$2" != "--" ]; then
 	usage
 fi
@@ -32,8 +58,12 @@ if [ "$("$id_bin" -u)" != "0" ]; then
 	die "must run as root"
 fi
 
-linux_bin=$(command -v bus-integration-linux) || die "bus-integration-linux command is required"
+stat_bin=$(command -v stat) || die "stat command is required"
+launcher_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P) || die "cannot resolve launcher directory"
+linux_bin=$launcher_dir/bus-integration-linux
 privdrop_bin=$(command -v runuser) || die "runuser command is required"
+trusted_binary "$linux_bin"
+trusted_binary "$privdrop_bin"
 
 runtime_uid=$("$id_bin" -u "$runtime_user") || die "runtime user $runtime_user does not exist"
 runtime_gid=$("$id_bin" -g "$runtime_user") || die "runtime user $runtime_user does not exist"
@@ -48,6 +78,11 @@ case "$runtime_gid" in
 		die "runtime user $runtime_user has a non-numeric uid or gid"
 		;;
 esac
+
+export BUS_SERVICES_PROTECTED=1
+export BUS_SERVICES_CGROUP_MOUNT=$cgroup_mount
+export BUS_SERVICES_CGROUP_IDENTITY=$cgroup_domain
+export BUS_SERVICES_LINUX_INTEGRATION_BIN=$linux_bin
 
 "$linux_bin" cgroup bootstrap \
 	--mount-path "$cgroup_mount" \
@@ -67,10 +102,9 @@ control_path=$cgroup_mount/$cgroup_domain/control
 
 exec "$privdrop_bin" --user "$runtime_user" -- sh -ceu '
 control_path=$1
-linux_bin=$2
-mount_path=$3
-domain=$4
-shift 4
+shift
 printf "%s\\n" "$$" >"$control_path/cgroup.procs"
-exec "$linux_bin" cgroup work-exec --mount-path "$mount_path" --identity "$domain" --class light -- "$@"
-' sh "$control_path" "$linux_bin" "$cgroup_mount" "$cgroup_domain" "$@"
+attached_pid=$(cat "$control_path/cgroup.procs") || exit 1
+[ "$attached_pid" = "$$" ] || exit 1
+exec "$@"
+' sh "$control_path" "$@"
