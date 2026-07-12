@@ -634,7 +634,9 @@ install:
 				fi; \
 				"$(MAKE)" -C "$$mod" install $(MODULE_MAKE_VARS) BINARY="$$mod"; \
 			fi; \
-		done
+		done; \
+	"$(INSTALL)" -d "$(DESTDIR)$(BINDIR)"; \
+	"$(INSTALL)" -m 0755 scripts/bus-services-protected-run "$(DESTDIR)$(BINDIR)/bus-services-protected-run"
 
 clean:
 	@set -eu; \
