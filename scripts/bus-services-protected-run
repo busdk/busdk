@@ -1,8 +1,17 @@
 #!/bin/sh
 set -eu
 
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+LC_ALL=C
+export LC_ALL
+
 cgroup_mount=/sys/fs/cgroup
 cgroup_domain=bus-services
+id_bin=/usr/bin/id
+stat_bin=/usr/bin/stat
+readlink_bin=/usr/bin/readlink
+privdrop_bin=/usr/sbin/runuser
 
 usage() {
 	printf '%s\n' "usage: $0 RUNTIME-USER -- COMMAND [ARG...]" >&2
@@ -14,30 +23,65 @@ die() {
 	exit 1
 }
 
-trusted_binary() {
-	binary=$1
+trusted_path() {
+	path=$1
+	expected_type=$2
 
-	case "$binary" in
+	case "$path" in
 		/*) ;;
-		*) die "trusted binary path must be absolute: $binary" ;;
+		*) die "trusted path must be absolute: $path" ;;
+	esac
+	case "$path" in
+		*//*|*/./*|*/../*|*/.|*/..) die "trusted path is not canonical: $path" ;;
 	esac
 
-	[ -f "$binary" ] || die "trusted binary is not a regular file: $binary"
+	if "$readlink_bin" -- "$path" >/dev/null 2>&1; then
+		die "trusted path must not be a symbolic link: $path"
+	fi
 
-	owner=$("$stat_bin" -c %u "$binary") || die "cannot determine trusted binary owner: $binary"
-	mode=$("$stat_bin" -c %a "$binary") || die "cannot determine trusted binary mode: $binary"
-	[ "$owner" = 0 ] || die "trusted binary is not root-owned: $binary"
+	path_type=$("$stat_bin" -c %F -- "$path") || die "cannot determine trusted path type: $path"
+	[ "$path_type" = "$expected_type" ] || die "trusted path has type $path_type, expected $expected_type: $path"
+
+	owner=$("$stat_bin" -c %u -- "$path") || die "cannot determine trusted path owner: $path"
+	mode=$("$stat_bin" -c %a -- "$path") || die "cannot determine trusted path mode: $path"
+	[ "$owner" = 0 ] || die "trusted path is not root-owned: $path"
 
 	case "$mode" in
 		[0-7][0-7][0-7]) permissions=$mode ;;
 		[0-7][0-7][0-7][0-7]) permissions=${mode#?} ;;
-		*) die "trusted binary has an invalid mode: $binary" ;;
+		*) die "trusted path has an invalid mode: $path" ;;
 	esac
 	group_mode=${permissions#?}
 	group_mode=${group_mode%?}
 	other_mode=${permissions#??}
-	case "$group_mode" in 2|3|6|7) die "trusted binary is group-writable: $binary" ;; esac
-	case "$other_mode" in 2|3|6|7) die "trusted binary is other-writable: $binary" ;; esac
+	case "$group_mode" in 2|3|6|7) die "trusted path is group-writable: $path" ;; esac
+	case "$other_mode" in 2|3|6|7) die "trusted path is other-writable: $path" ;; esac
+}
+
+trusted_ancestors() {
+	path=$1
+	remainder=${path#/}
+	ancestor=/
+	trusted_path "$ancestor" directory
+
+	while [ -n "$remainder" ]; do
+		component=${remainder%%/*}
+		if [ "$ancestor" = / ]; then
+			ancestor=/$component
+		else
+			ancestor=$ancestor/$component
+		fi
+		remainder=${remainder#"$component"}
+		remainder=${remainder#/}
+		[ -n "$remainder" ] || break
+		trusted_path "$ancestor" directory
+	done
+}
+
+trusted_binary() {
+	binary=$1
+	trusted_ancestors "$binary"
+	trusted_path "$binary" 'regular file'
 }
 
 if [ "$#" -lt 3 ] || [ "$2" != "--" ]; then
@@ -53,15 +97,26 @@ case "$runtime_user" in
 		;;
 esac
 
-id_bin=$(command -v id) || die "id command is required"
 if [ "$("$id_bin" -u)" != "0" ]; then
 	die "must run as root"
 fi
 
-stat_bin=$(command -v stat) || die "stat command is required"
-launcher_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P) || die "cannot resolve launcher directory"
+launcher_path=$0
+case "$launcher_path" in
+	/*) ;;
+	*) die "unsafe launcher path: $launcher_path" ;;
+esac
+case "$launcher_path" in
+	*/.local/bin/*|*/scripts/bus-services-protected-run)
+		die "unsafe launcher path: $launcher_path"
+		;;
+esac
+launcher_dir=${launcher_path%/*}
+[ "$launcher_dir" != "$launcher_path" ] || die "unsafe launcher path: $launcher_path"
 linux_bin=$launcher_dir/bus-integration-linux
-privdrop_bin=$(command -v runuser) || die "runuser command is required"
+
+trusted_path "$launcher_dir" directory
+trusted_binary "$launcher_path"
 trusted_binary "$linux_bin"
 trusted_binary "$privdrop_bin"
 
@@ -100,11 +155,11 @@ export BUS_SERVICES_LINUX_INTEGRATION_BIN=$linux_bin
 
 control_path=$cgroup_mount/$cgroup_domain/control
 
-exec "$privdrop_bin" --user "$runtime_user" -- sh -ceu '
+exec "$privdrop_bin" --user "$runtime_user" -- /bin/sh -ceu '
 control_path=$1
 shift
 printf "%s\\n" "$$" >"$control_path/cgroup.procs"
-attached_pid=$(cat "$control_path/cgroup.procs") || exit 1
+IFS= read -r attached_pid <"$control_path/cgroup.procs" || exit 1
 [ "$attached_pid" = "$$" ] || exit 1
 exec "$@"
 ' sh "$control_path" "$@"
