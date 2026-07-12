@@ -126,34 +126,38 @@ cat >"$fake_bin/sh" <<'SH'
 #!/bin/sh
 set -eu
 
-case "$1" in
-	-ceu) shift ;;
-	*) exit 1 ;;
-esac
-body=$1
-shift
-case "$1" in
-	sh) ;;
-	*) exit 1 ;;
-esac
+[ "$1" = -ceu ] || exit 1
+body=$2
+shift 2
+zero=$1
 shift
 control_path=$1
 shift
 control_file=$control_path/cgroup.procs
 
-printf '%s\n' "$$" >"$control_file"
-
 if [ "${FAKE_CONTROL_READ_FAIL:-0}" = 1 ]; then
 	rm -f "$control_file"
+	touch "$control_file"
+	chmod 200 "$control_file"
+elif [ "${FAKE_CONTROL_MISMATCH_PID:-0}" = 1 ]; then
+	rm -f "$control_file"
+	mkfifo "$control_file"
+	(
+		IFS= read -r attached_pid <"$control_file" || exit 1
+		printf '0\n' >"$control_file"
+	) &
+	control_hook=$!
 fi
 
-if [ "${FAKE_CONTROL_MISMATCH_PID:-0}" = 1 ]; then
-	printf '0\n' >"$control_file"
+status=0
+/bin/sh -ceu "$body" "$zero" "$control_path" "$@" || status=$?
+if [ "${FAKE_CONTROL_READ_FAIL:-0}" = 1 ]; then
+	rm -f "$control_file"
+elif [ -n "${control_hook:-}" ]; then
+	wait "$control_hook" || :
+	rm -f "$control_file"
 fi
-
-IFS= read -r attached_pid <"$control_file" || exit 1
-[ "$attached_pid" = "$$" ] || exit 1
-exec "$@"
+exit "$status"
 SH
 
 cat >"$fake_bin/bus-integration-linux" <<'SH'
