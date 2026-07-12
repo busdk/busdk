@@ -1,6 +1,7 @@
 version: "0"
 env_files:
   - .env
+  - config/services-protected.env
 profile_dirs:
   - profiles
 default_services:

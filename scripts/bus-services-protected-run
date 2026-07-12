@@ -1,0 +1,76 @@
+#!/bin/sh
+set -eu
+
+cgroup_mount=/sys/fs/cgroup
+cgroup_domain=bus-services
+
+usage() {
+	printf '%s\n' "usage: $0 RUNTIME-USER -- COMMAND [ARG...]" >&2
+	exit 2
+}
+
+die() {
+	printf '%s\n' "bus-services-protected-run: $*" >&2
+	exit 1
+}
+
+if [ "$#" -lt 3 ] || [ "$2" != "--" ]; then
+	usage
+fi
+
+runtime_user=$1
+shift 2
+
+case "$runtime_user" in
+	''|-*|*/*)
+		usage
+		;;
+esac
+
+id_bin=$(command -v id) || die "id command is required"
+if [ "$("$id_bin" -u)" != "0" ]; then
+	die "must run as root"
+fi
+
+linux_bin=$(command -v bus-integration-linux) || die "bus-integration-linux command is required"
+privdrop_bin=$(command -v runuser) || die "runuser command is required"
+
+runtime_uid=$("$id_bin" -u "$runtime_user") || die "runtime user $runtime_user does not exist"
+runtime_gid=$("$id_bin" -g "$runtime_user") || die "runtime user $runtime_user does not exist"
+
+case "$runtime_uid" in
+	''|*[!0-9]*)
+		die "runtime user $runtime_user has a non-numeric uid or gid"
+		;;
+esac
+case "$runtime_gid" in
+	''|*[!0-9]*)
+		die "runtime user $runtime_user has a non-numeric uid or gid"
+		;;
+esac
+
+"$linux_bin" cgroup bootstrap \
+	--mount-path "$cgroup_mount" \
+	--domain "$cgroup_domain" \
+	--uid "$runtime_uid" \
+	--gid "$runtime_gid" \
+	--work-memory-high 21474836480 \
+	--work-memory-max 25769803776 \
+	--work-swap-max 0 \
+	--work-cpu-weight 50 \
+	--work-pids-max 4096 \
+	--control-memory-min 2147483648 \
+	--control-memory-low 4294967296 \
+	--control-cpu-weight 200
+
+control_path=$cgroup_mount/$cgroup_domain/control
+
+exec "$privdrop_bin" --user "$runtime_user" -- sh -ceu '
+control_path=$1
+linux_bin=$2
+mount_path=$3
+domain=$4
+shift 4
+printf "%s\\n" "$$" >"$control_path/cgroup.procs"
+exec "$linux_bin" cgroup work-exec --mount-path "$mount_path" --identity "$domain" --class light -- "$@"
+' sh "$control_path" "$linux_bin" "$cgroup_mount" "$cgroup_domain" "$@"
