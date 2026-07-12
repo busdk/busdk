@@ -158,10 +158,10 @@ if [ "$ready" != true ]; then
   exit 1
 fi
 
-create_output=$(run_bus_task --api-url "$API_URL" --token-file "$TOKEN_FILE" new @"$RECIPIENT" "$TASK_TEXT")
+create_output=$(run_bus_task --api-url "$API_URL" --token-file "$TOKEN_FILE" --format json new @"$RECIPIENT" "$TASK_TEXT")
 printf '%s\n' "$create_output"
 
-work_ref=$(printf '%s\n' "$create_output" | sed -n 's/^created \(bus[^ ]*#[0-9][^ ]*\) ->.*/\1/p' | head -n 1)
+work_ref=$(printf '%s\n' "$create_output" | jq -er '.task_ref | strings | select(length > 0)')
 if [ -z "$work_ref" ]; then
   printf 'could not determine task ref from create output\n' >&2
   exit 1
