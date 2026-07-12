@@ -127,10 +127,16 @@ case "$runtime_uid" in
 	''|*[!0-9]*)
 		die "runtime user $runtime_user has a non-numeric uid or gid"
 		;;
+	0)
+		die "runtime user $runtime_user has forbidden uid 0"
+		;;
 esac
 case "$runtime_gid" in
 	''|*[!0-9]*)
 		die "runtime user $runtime_user has a non-numeric uid or gid"
+		;;
+	0)
+		die "runtime user $runtime_user has forbidden gid 0"
 		;;
 esac
 
