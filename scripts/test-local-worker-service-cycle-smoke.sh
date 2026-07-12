@@ -127,7 +127,7 @@ mint_local_token() {
       --format token issue --local \
       --subject acct_worker_service_cycle \
       --audience ai.hg.fi/api \
-      --scope 'events:send events:listen identities:resolve task:send task:read workers:write workers:read dev:task:send dev:task:read dev:task:reply dev:task:claim container:run notes.write notes.read notes.search' \
+      --scope 'events:send events:listen identities:resolve task:send task:read workers:write workers:read' \
       --ttl 2h
     return
   fi
@@ -138,7 +138,7 @@ mint_local_token() {
       --format token issue --local \
       --subject acct_worker_service_cycle \
       --audience ai.hg.fi/api \
-      --scope 'events:send events:listen identities:resolve task:send task:read workers:write workers:read dev:task:send dev:task:read dev:task:reply dev:task:claim container:run notes.write notes.read notes.search' \
+      --scope 'events:send events:listen identities:resolve task:send task:read workers:write workers:read' \
       --ttl 2h
   )
 }
@@ -154,7 +154,7 @@ fi
 
 BUS_API_JWT_SECRET=$EVENTS_JWT_SECRET \
 BUS_IDENTITIES_BOOTSTRAP_PRINCIPAL_ID=acct_worker_service_cycle \
-BUS_IDENTITIES_BOOTSTRAP_GRANTS='identities:resolve events:send events:listen events:relay task:send task:read workers:write workers:read' \
+BUS_IDENTITIES_BOOTSTRAP_GRANTS='identities:resolve events:send events:listen task:send task:read workers:write workers:read' \
 run_bus_identities_provider \
   --listen "$IDENTITIES_ADDR" \
   --state-file "$PROOF_DIR/identities-state.json" >"$IDENTITIES_LOG" 2>&1 &
