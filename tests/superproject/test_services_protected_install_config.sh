@@ -56,8 +56,20 @@ if [ "$1" = '-u' ] && [ "$#" -eq 1 ]; then
 fi
 if [ "${FAKE_MISSING_USER:-0}" = 1 ]; then exit 1; fi
 case "$1:$2" in
-	-u:bus-runtime) printf '1004\n' ;;
-	-g:bus-runtime) printf '1005\n' ;;
+	-u:bus-runtime)
+		if [ "${FAKE_ROOT_UID:-0}" = 1 ]; then
+			printf '0\n'
+		else
+			printf '1004\n'
+		fi
+		;;
+	-g:bus-runtime)
+		if [ "${FAKE_ROOT_GID:-0}" = 1 ]; then
+			printf '0\n'
+		else
+			printf '1005\n'
+		fi
+		;;
 	*) exit 1 ;;
 esac
 SH
@@ -110,6 +122,40 @@ esac
 printf '/unsafe/link-target\n'
 SH
 
+cat >"$fake_bin/sh" <<'SH'
+#!/bin/sh
+set -eu
+
+case "$1" in
+	-ceu) shift ;;
+	*) exit 1 ;;
+esac
+body=$1
+shift
+case "$1" in
+	sh) ;;
+	*) exit 1 ;;
+esac
+shift
+control_path=$1
+shift
+control_file=$control_path/cgroup.procs
+
+printf '%s\n' "$$" >"$control_file"
+
+if [ "${FAKE_CONTROL_READ_FAIL:-0}" = 1 ]; then
+	rm -f "$control_file"
+fi
+
+if [ "${FAKE_CONTROL_MISMATCH_PID:-0}" = 1 ]; then
+	printf '0\n' >"$control_file"
+fi
+
+IFS= read -r attached_pid <"$control_file" || exit 1
+[ "$attached_pid" = "$$" ] || exit 1
+exec "$@"
+SH
+
 cat >"$fake_bin/bus-integration-linux" <<'SH'
 #!/bin/sh
 set -eu
@@ -144,7 +190,7 @@ if [ "${FAKE_ATTACH_FAIL:-0}" = 1 ]; then
 else
 	control=${FAKE_CONTROL_FILE%/*}
 fi
-exec /bin/sh -ceu "$body" "$zero" "$control" "$@"
+exec "$FAKE_FIXED_TOOLS/sh" -ceu "$body" "$zero" "$control" "$@"
 SH
 
 cat >"$fake_bin/exec-target" <<'SH'
@@ -163,7 +209,7 @@ exit 99
 SH
 	chmod 0755 "$poison_bin/$helper"
 done
-chmod 0755 "$fake_bin/id" "$fake_bin/stat" "$fake_bin/readlink" "$fake_bin/bus-integration-linux" "$fake_bin/runuser" "$fake_bin/exec-target"
+chmod 0755 "$fake_bin/id" "$fake_bin/stat" "$fake_bin/readlink" "$fake_bin/sh" "$fake_bin/bus-integration-linux" "$fake_bin/runuser" "$fake_bin/exec-target"
 
 run_script() {
 	PATH="$poison_bin:$PATH" \
@@ -186,6 +232,10 @@ run_script() {
 	FAKE_BOOTSTRAP_FAIL="${FAKE_BOOTSTRAP_FAIL:-0}" \
 	FAKE_ATTACH_FAIL="${FAKE_ATTACH_FAIL:-0}" \
 	FAKE_PRIVDROP_FAIL="${FAKE_PRIVDROP_FAIL:-0}" \
+	FAKE_ROOT_UID="${FAKE_ROOT_UID:-0}" \
+	FAKE_ROOT_GID="${FAKE_ROOT_GID:-0}" \
+	FAKE_CONTROL_READ_FAIL="${FAKE_CONTROL_READ_FAIL:-0}" \
+	FAKE_CONTROL_MISMATCH_PID="${FAKE_CONTROL_MISMATCH_PID:-0}" \
 	"$launcher_under_test" "$@"
 }
 
@@ -249,10 +299,10 @@ test "$(wc -l <"$config")" -eq 4
 git show d109f1b:services.yml >"$tmp_dir/expected-services.yml"
 cmp "$tmp_dir/expected-services.yml" "$services"
 
-make -C "$root_dir" -n install DESTDIR="$tmp_dir/install-root" BINDIR=/test/bin >"$tmp_dir/install-dry-run"
+make -C "$root_dir" -n install DESTDIR="$tmp_dir/install-root" BINDIR=/usr/local/bin >"$tmp_dir/install-dry-run"
 grep -Fq 'scripts/bus-services-protected-run' "$tmp_dir/install-dry-run"
-make -C "$root_dir" install DESTDIR="$tmp_dir/install-root" BINDIR=/test/bin
-installed_launcher="$tmp_dir/install-root/test/bin/bus-services-protected-run"
+make -C "$root_dir" install DESTDIR="$tmp_dir/install-root" BINDIR=/usr/local/bin
+installed_launcher="$tmp_dir/install-root/usr/local/bin/bus-services-protected-run"
 [ -f "$installed_launcher" ]
 [ "$(stat -c %a "$installed_launcher")" = 755 ]
 
@@ -319,9 +369,13 @@ expect_failure_without_bootstrap FAKE_UNSAFE_LINUX=2 bus-runtime -- "$fake_bin/e
 expect_failure_without_bootstrap FAKE_SYMLINK_LINUX=1 bus-runtime -- "$fake_bin/exec-target"
 expect_failure_without_bootstrap FAKE_UNSAFE_PRIVDROP=1 bus-runtime -- "$fake_bin/exec-target"
 expect_failure_without_bootstrap FAKE_UNSAFE_PRIVDROP=2 bus-runtime -- "$fake_bin/exec-target"
+expect_failure_without_bootstrap FAKE_ROOT_UID=1 bus-runtime -- "$fake_bin/exec-target"
+expect_failure_without_bootstrap FAKE_ROOT_GID=1 bus-runtime -- "$fake_bin/exec-target"
 expect_failure_after_bootstrap FAKE_BOOTSTRAP_FAIL=1 bus-runtime -- "$fake_bin/exec-target"
 expect_failure_after_bootstrap FAKE_ATTACH_FAIL=1 bus-runtime -- "$fake_bin/exec-target"
 expect_failure_after_bootstrap FAKE_PRIVDROP_FAIL=1 bus-runtime -- "$fake_bin/exec-target"
+expect_failure_after_bootstrap FAKE_CONTROL_READ_FAIL=1 bus-runtime -- "$fake_bin/exec-target"
+expect_failure_after_bootstrap FAKE_CONTROL_MISMATCH_PID=1 bus-runtime -- "$fake_bin/exec-target"
 
 ! grep -Eq '(^|[[:space:]])(systemctl|systemd-run|sudo)([[:space:]]|$)' "$source_script"
 ! grep -q 'cgroup work-exec' "$source_script"
