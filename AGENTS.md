@@ -32,6 +32,48 @@ Merged guidance from `.cursor/rules/*.mdc`.
   architecture candidates, leave compact triggers and follow-up notes unless a
   task explicitly asks for public documentation edits.
 
+## Architecture Stability And Decision Briefs
+
+Before planning or implementing a change that affects module ownership,
+deployment authority, process lifecycle, resource control, provider/runtime
+boundaries, or cross-module contracts, read
+`sdd/docs/architecture/architecture-decision-register.md` and the owning module
+SDD. The register is the current cross-module architecture authority. Module
+SDDs refine it; module `AGENTS.md` files provide operational rules; public docs
+describe user-visible behavior. Goal pages, plans, threads, memos, rejected
+branches, and historical reports are evidence and history, not architecture
+authority.
+
+Name the accepted decision IDs and fixed constraints before dispatch or code.
+An implementation problem does not reopen architecture by itself. First repair
+the smallest failing behavior inside the accepted design and inventory existing
+branches, commits, tests, and primitives that can be reused. Changing an
+accepted decision requires all of: the exact failing acceptance evidence, the
+current decision that cannot satisfy it, options considered, the smallest
+replacement delta, migration and compatibility impact, reusable work retained,
+and explicit operator approval when the change alters an operator constraint or
+the active product outcome. Do not implement competing architectures while the
+decision remains unresolved.
+
+Describe proposed solutions to the operator with this compact brief:
+
+1. Current outcome and exact failure.
+2. Fixed constraints and applicable decision IDs.
+3. Existing usable implementation or evidence.
+4. Options, each with capability, limitation, and change required.
+5. Recommended smallest path and why it wins.
+6. Independent work items, each with one behavior, owner module, branch,
+   focused test, and promotion gate.
+7. Composition, user-local install, live acceptance check, and explicitly
+   deferred scope.
+
+Keep independently useful fixes separate through implementation and review.
+Use one branch and focused commit series per behavior, then compose only
+accepted tips in a dedicated integration lane. A rejected optional fix must not
+hold back unrelated accepted value. Do not report architecture work as complete
+until the SDD, implementation, tests, installed composition, and operator brief
+describe the same design.
+
 ## Experiment And Proof Discipline
 
 For performance, build, boot, sync, or browser-proof goals, size work to the
