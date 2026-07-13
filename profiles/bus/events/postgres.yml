@@ -17,6 +17,14 @@ parameters:
     type: string
     description: Capability path token used in the Bus API base URL.
     default: local
+  - name: postgres_host
+    type: string
+    description: PostgreSQL host used by the default local Events connection.
+    default: 127.0.0.1
+  - name: postgres_port
+    type: integer
+    description: PostgreSQL port used by the default local Events connection.
+    default: 5432
 runtime:
   kind: native
   provider: bus
@@ -48,6 +56,7 @@ runtime:
     - name: BUS_EVENTS_POSTGRES_DSN
       description: PostgreSQL connection string used as the durable Events backend.
       value_from: env:BUS_EVENTS_POSTGRES_DSN
+      default: postgres://bus_service@{param:postgres_host}:{param:postgres_port}/postgres?sslmode=disable
     - name: BUS_API_IDENTITIES_API_URL
       description: Identities API URL used by the Events provider for JWT/API-key authorization checks.
       value_from: env:BUS_API_IDENTITIES_API_URL
