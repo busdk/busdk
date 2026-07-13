@@ -19,11 +19,46 @@ trap 'rm -rf "$TMP_DIR"' EXIT
     --format json
 ) >"$TMP_DIR/workers-profile.json"
 
-python3 - "$TMP_DIR/local-profile.json" "$TMP_DIR/workers-profile.json" <<'PY'
+(
+  cd "$ROOT_DIR/bus-services"
+  go run ./cmd/bus-services profile bus/threads/local \
+    --profile-dir "$ROOT_DIR/profiles" \
+    --format json
+) >"$TMP_DIR/threads-profile.json"
+
+(
+  cd "$ROOT_DIR/bus-services"
+  go run ./cmd/bus-services profile bus/tasks/local \
+    --profile-dir "$ROOT_DIR/profiles" \
+    --format json
+) >"$TMP_DIR/tasks-profile.json"
+
+(
+  cd "$ROOT_DIR/bus-services"
+  go run ./cmd/bus-services profile bus/repos/local \
+    --profile-dir "$ROOT_DIR/profiles" \
+    --format json
+) >"$TMP_DIR/repos-profile.json"
+
+(
+  cd "$ROOT_DIR/bus-services"
+  go run ./cmd/bus-services profile bus/workers/appserver \
+    --profile-dir "$ROOT_DIR/profiles" \
+    --format json
+) >"$TMP_DIR/workers-appserver-profile.json"
+
+python3 - \
+  "$TMP_DIR/local-profile.json" \
+  "$TMP_DIR/workers-profile.json" \
+  "$TMP_DIR/threads-profile.json" \
+  "$TMP_DIR/tasks-profile.json" \
+  "$TMP_DIR/repos-profile.json" \
+  "$TMP_DIR/workers-appserver-profile.json" \
+  <<'PY'
 import json
 import sys
 
-local_path, workers_path = sys.argv[1:]
+local_path, workers_path, threads_path, tasks_path, repos_path, workers_appserver_path = sys.argv[1:]
 
 def assert_profile(path, expected_envs):
     profile = json.load(open(path, encoding="utf-8"))
@@ -37,6 +72,19 @@ def assert_profile(path, expected_envs):
     if "BUS_API_TOKEN" not in env:
         raise SystemExit(f"{profile.get('id')} missing BUS_API_TOKEN fallback env")
 
+def assert_refresh_env(path):
+    profile = json.load(open(path, encoding="utf-8"))
+    env = {item["name"]: item for item in profile.get("runtime", {}).get("env", [])}
+    item = env.get("BUS_EVENTS_TOKEN_REFRESH")
+    if not item:
+        raise SystemExit(f"{profile.get('id')} missing BUS_EVENTS_TOKEN_REFRESH")
+    if item.get("default") != "true":
+        raise SystemExit(f"{profile.get('id')} BUS_EVENTS_TOKEN_REFRESH = {item.get('default')!r}")
+
 assert_profile(local_path, ("BUS_TASK_EVENTS_TOKEN_FILE", "BUS_WORKERS_EVENTS_TOKEN_FILE", "BUS_EVENTS_TOKEN_FILE"))
 assert_profile(workers_path, ("BUS_WORKERS_EVENTS_TOKEN_FILE", "BUS_EVENTS_TOKEN_FILE"))
+assert_refresh_env(threads_path)
+assert_refresh_env(tasks_path)
+assert_refresh_env(repos_path)
+assert_refresh_env(workers_appserver_path)
 PY

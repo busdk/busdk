@@ -48,6 +48,10 @@ runtime:
       description: Bearer token used by the integration host when calling the Bus Events API.
       value_from: env:BUS_API_TOKEN
       default: " "
+    - name: BUS_EVENTS_TOKEN_REFRESH
+      description: Allow integration listeners to refresh token-file credentials when supported.
+      value_from: env:BUS_EVENTS_TOKEN_REFRESH
+      default: "true"
     - name: BUS_EVENTS_URL
       description: Bus Events API base URL used to expand the service events_url parameter.
       value_from: env:BUS_EVENTS_URL
