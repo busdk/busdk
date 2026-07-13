@@ -84,6 +84,10 @@ runtime:
       description: Git repository used for worker identity project data.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
       default: "{env:BUS_SERVICES_STACK_DIR}/agents/worker"
+    - name: BUS_WORKER_TEMPLATES_FILE
+      description: Worker template catalog whose logical identity repository refs are provisioned through Repos.
+      value_from: env:BUS_WORKER_TEMPLATES_FILE
+      default: "{env:BUS_SERVICES_STACK_DIR}/.bus/worker/templates.json"
     - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF
       description: Default Git base ref used for worker identity worktrees.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF

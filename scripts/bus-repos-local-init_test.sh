@@ -42,6 +42,16 @@ run_init() {
 }
 
 mkdir -p "$tmp/stack"
+mkdir -p "$tmp/stack/.bus/worker"
+cat >"$tmp/stack/.bus/worker/templates.json" <<'EOF'
+{
+  "templates": [
+    {"id":"claude-fable-5","identity_repo_ref":"repos://workers/claude-fable-5"},
+    {"id":"codex-55-high","identity_repo_ref":"repos://workers/codex-55-high"},
+    {"id":"duplicate","identity_repo_ref":"repos://workers/codex-55-high"}
+  ]
+}
+EOF
 product_repo="$tmp/product"
 identity_repo="$tmp/identity"
 init_repo "$product_repo" 'product/release'
@@ -51,6 +61,11 @@ catalog="$tmp/catalog.yml"
 run_init "$catalog" "$tmp/storage" env
 expect_line "$catalog" "    defaultBranch: 'product/release'"
 expect_line "$catalog" "    defaultBranch: 'identity/bootstrap'"
+expect_line "$catalog" "  - id: workers/claude-fable-5"
+expect_line "$catalog" "  - id: workers/codex-55-high"
+if [ "$(grep -F -c '  - id: workers/codex-55-high' "$catalog")" -ne 1 ]; then
+	fail 'duplicate template identity refs were not deduplicated'
+fi
 
 explicit_catalog="$tmp/explicit.yml"
 run_init "$explicit_catalog" "$tmp/explicit-storage" env \

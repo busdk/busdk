@@ -8,6 +8,7 @@ identity_repo=${BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO:-"$product_repo/agents/w
 product_base=${BUS_WORKERS_DIRECT_BASE_REF:-HEAD}
 identity_base=${BUS_WORKERS_DIRECT_WORKER_IDENTITY_BASE_REF:-HEAD}
 stack_dir=$(cd "${BUS_SERVICES_STACK_DIR:-.}" && pwd -P)
+template_catalog=${BUS_WORKER_TEMPLATES_FILE:-"$stack_dir/.bus/worker/templates.json"}
 if [ -n "${BUS_SERVICES_BUS_DIR:-}" ]; then
   root_dir=$(cd "$(dirname "$BUS_SERVICES_BUS_DIR")" && pwd -P)
 else
@@ -25,6 +26,7 @@ config_path=$(abs_path "$config_path")
 storage_root=$(abs_path "$storage_root")
 product_repo=$(abs_path "$product_repo")
 identity_repo=$(abs_path "$identity_repo")
+template_catalog=$(abs_path "$template_catalog")
 
 if [ -f "$config_path" ]; then
   exit 0
@@ -135,6 +137,21 @@ trap 'rm -f "$tmp"' EXIT
   printf '    remotes:\n'
   printf '      - name: origin\n'
   printf '        url: %s\n' "$(yaml_quote "$identity_remote")"
+  if [ -f "$template_catalog" ]; then
+    sed -n 's/.*"identity_repo_ref":[[:space:]]*"repos:\/\/\([^"]*\)".*/\1/p' "$template_catalog" |
+      LC_ALL=C sort -u |
+      while IFS= read -r repo_id; do
+        [ -n "$repo_id" ] || continue
+        printf '  - id: %s\n' "$repo_id"
+        printf '    group: local\n'
+        printf '    name: %s\n' "$(yaml_quote "$repo_id")"
+        printf '    defaultBranch: %s\n' "$(yaml_quote "$identity_base")"
+        printf '    path: %s\n' "$(yaml_quote "$identity_path")"
+        printf '    remotes:\n'
+        printf '      - name: origin\n'
+        printf '        url: %s\n' "$(yaml_quote "$identity_remote")"
+      done
+  fi
 } >"$tmp"
 
 mv "$tmp" "$config_path"
