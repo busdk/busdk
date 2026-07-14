@@ -636,7 +636,8 @@ install:
 			fi; \
 		done; \
 	"$(INSTALL)" -d "$(DESTDIR)$(BINDIR)"; \
-	"$(INSTALL)" -m 0755 scripts/bus-services-protected-run "$(DESTDIR)$(BINDIR)/bus-services-protected-run"
+	"$(INSTALL)" -m 0755 scripts/bus-services-protected-run "$(DESTDIR)$(BINDIR)/bus-services-protected-run"; \
+	"$(INSTALL)" -m 0644 config/services-protected.env "$(DESTDIR)$(BINDIR)/bus-services-protected.env"
 
 clean:
 	@set -eu; \
