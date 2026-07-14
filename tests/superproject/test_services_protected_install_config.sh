@@ -6,6 +6,18 @@ source_script="$root_dir/scripts/bus-services-protected-run"
 config="$root_dir/config/services-protected.env"
 services="$root_dir/services.yml"
 tmp_dir=$(mktemp -d)
+tmp_dir=$(CDPATH= cd -- "$tmp_dir" && pwd -P)
+fixture_ancestors=/
+fixture_ancestor=${tmp_dir%/*}
+while [ "$fixture_ancestor" != / ]; do
+	fixture_ancestors="$fixture_ancestors
+$fixture_ancestor"
+	fixture_ancestor=${fixture_ancestor%/*}
+	[ -n "$fixture_ancestor" ] || fixture_ancestor=/
+done
+# Keep the fake trust model tied to the selected fixture instead of /tmp.
+legacy_tmp_trust_pattern='/tmp|/tmp/'"*"') kind=directory'
+! grep -Fq "$legacy_tmp_trust_pattern" "$0"
 real_fixture_pid=
 cleanup() {
 	if [ -n "$real_fixture_pid" ] && kill -0 "$real_fixture_pid" 2>/dev/null; then
@@ -131,7 +143,18 @@ unsafe=0
 owner=0
 group=0
 mode=755
-case "$path" in
+fixture_ancestor_match=0
+while IFS= read -r trusted_fixture_ancestor; do
+	if [ "$path" = "$trusted_fixture_ancestor" ]; then
+		fixture_ancestor_match=1
+	fi
+done <<ANCESTORS
+$FAKE_FIXTURE_ANCESTORS
+ANCESTORS
+if [ "$fixture_ancestor_match" = 1 ]; then
+	kind=directory
+else
+	case "$path" in
 	/|/usr|/usr/local|/usr/sbin) kind=directory ;;
 	/usr/local/bin) kind=directory; unsafe=${FAKE_UNSAFE_LAUNCHER_DIR:-0} ;;
 	/usr/local/bin/bus-services-protected-run) kind='regular file'; unsafe=${FAKE_UNSAFE_LAUNCHER:-0} ;;
@@ -196,9 +219,10 @@ case "$path" in
 		group=1005
 		mode=644
 		;;
-	/tmp|/tmp/*) kind=directory ;;
+	"$FAKE_FIXTURE_ROOT"|"$FAKE_FIXTURE_ROOT"/*) kind=directory ;;
 	*) exit 1 ;;
-esac
+	esac
+fi
 
 if { [ "$path" = /usr/local ] || [ "$path" = "${FAKE_FIXED_TOOLS%/*}" ]; } && [ "${FAKE_UNSAFE_LAUNCHER_PARENT:-0}" != 0 ]; then
 	unsafe=$FAKE_UNSAFE_LAUNCHER_PARENT
@@ -445,6 +469,8 @@ run_script() {
 	PATH="$poison_bin:$PATH" \
 	FAKE_LOG="$log" \
 	FAKE_PHASE_LOG="$phase_log" \
+	FAKE_FIXTURE_ROOT="$tmp_dir" \
+	FAKE_FIXTURE_ANCESTORS="$fixture_ancestors" \
 	FAKE_FIXED_TOOLS="$fake_bin" \
 	FAKE_LAUNCHER_DIR="${launcher_under_test%/*}" \
 	FAKE_RUNTIME_DIR="$runtime_dir" \
