@@ -159,18 +159,26 @@ create_or_validate_heavy_lock() {
 
 protected_launch_command() {
 	[ "$#" -ge 2 ] || return 1
-	protected_command=${1##*/}
-	protected_action=$2
-	case "$protected_command:$protected_action" in
-		bus-services:up|bus-integration-services:serve)
-			return 0
+	case "$1" in
+		"$services_bin")
+			case "$2" in
+				up) ;;
+				stack) [ "$#" -ge 3 ] && [ "$3" = up ] || return 1 ;;
+				*) return 1 ;;
+			esac
+			protected_command_path=$services_bin
 			;;
-		bus-services:stack|bus-integration-services:stack)
-			[ "$#" -ge 3 ] && [ "$3" = up ]
-			return
+		"$integration_services_bin")
+			case "$2" in
+				serve) ;;
+				stack) [ "$#" -ge 3 ] && [ "$3" = up ] || return 1 ;;
+				*) return 1 ;;
+			esac
+			protected_command_path=$integration_services_bin
 			;;
+		*) return 1 ;;
 	esac
-	return 1
+	return 0
 }
 
 construct_protected_env() {
@@ -233,6 +241,8 @@ esac
 launcher_dir=${launcher_path%/*}
 [ "$launcher_dir" != "$launcher_path" ] || die "unsafe launcher path: $launcher_path"
 linux_bin=$launcher_dir/bus-integration-linux
+services_bin=$launcher_dir/bus-services
+integration_services_bin=$launcher_dir/bus-integration-services
 protected_env_source=$launcher_dir/bus-services-protected.env
 
 trusted_path "$launcher_dir" directory
@@ -264,7 +274,11 @@ case "$runtime_gid" in
 		;;
 esac
 
+protected_command_path=
 protected_launch_command "$@" || die "unsupported protected launch command"
+trusted_binary "$protected_command_path"
+shift
+set -- "$protected_command_path" "$@"
 
 domain_path=$cgroup_mount/$cgroup_domain
 control_path=$domain_path/control

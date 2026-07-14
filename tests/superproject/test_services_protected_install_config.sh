@@ -139,6 +139,7 @@ case "$path" in
 	"$FAKE_FIXED_TOOLS") kind=directory; unsafe=${FAKE_UNSAFE_LAUNCHER_DIR:-0} ;;
 	"$FAKE_FIXED_TOOLS"/bus-services-protected-run) kind='regular file'; unsafe=${FAKE_UNSAFE_LAUNCHER:-0} ;;
 	"$FAKE_FIXED_TOOLS"/bus-integration-linux) kind='regular file'; unsafe=${FAKE_UNSAFE_LINUX:-0} ;;
+	"$FAKE_FIXED_TOOLS"/bus-services|"$FAKE_FIXED_TOOLS"/bus-integration-services) kind='regular file' ;;
 	"$FAKE_FIXED_TOOLS"/bus-services-protected.env) kind='regular file'; mode=644; unsafe=${FAKE_UNSAFE_PROTECTED_SOURCE:-0} ;;
 	"$FAKE_FIXED_TOOLS"/setpriv) kind='regular file'; unsafe=${FAKE_UNSAFE_PRIVDROP:-0} ;;
 	"$FAKE_FIXED_TOOLS"/mkdir) kind='regular file'; unsafe=${FAKE_UNSAFE_MKDIR:-0} ;;
@@ -148,6 +149,7 @@ case "$path" in
 	"$FAKE_LAUNCHER_DIR") kind=directory; unsafe=${FAKE_UNSAFE_LAUNCHER_DIR:-0} ;;
 	"$FAKE_LAUNCHER_DIR"/bus-services-protected-run) kind='regular file'; unsafe=${FAKE_UNSAFE_LAUNCHER:-0} ;;
 	"$FAKE_LAUNCHER_DIR"/bus-integration-linux) kind='regular file'; unsafe=${FAKE_UNSAFE_LINUX:-0} ;;
+	"$FAKE_LAUNCHER_DIR"/bus-services|"$FAKE_LAUNCHER_DIR"/bus-integration-services) kind='regular file' ;;
 	"$FAKE_LAUNCHER_DIR"/bus-services-protected.env) kind='regular file'; mode=644; unsafe=${FAKE_UNSAFE_PROTECTED_SOURCE:-0} ;;
 	"${FAKE_RUNTIME_DIR%/*}") kind=directory; unsafe=${FAKE_UNSAFE_RUNTIME_PARENT:-0} ;;
 	"$FAKE_RUNTIME_DIR")
@@ -236,9 +238,11 @@ case "$path" in
 	/usr/local/bin/bus-integration-linux) [ "${FAKE_SYMLINK_LINUX:-0}" = 1 ] || exit 1 ;;
 	"$FAKE_FIXED_TOOLS"/bus-services-protected-run) [ "${FAKE_SYMLINK_LAUNCHER:-0}" = 1 ] || exit 1 ;;
 	"$FAKE_FIXED_TOOLS"/bus-integration-linux) [ "${FAKE_SYMLINK_LINUX:-0}" = 1 ] || exit 1 ;;
+	"$FAKE_FIXED_TOOLS"/bus-services|"$FAKE_FIXED_TOOLS"/bus-integration-services) [ "${FAKE_SYMLINK_TARGET:-0}" = 1 ] || exit 1 ;;
 	"$FAKE_FIXED_TOOLS"/bus-services-protected.env) [ "${FAKE_SYMLINK_PROTECTED_SOURCE:-0}" = 1 ] || exit 1 ;;
 	"$FAKE_LAUNCHER_DIR"/bus-services-protected-run) [ "${FAKE_SYMLINK_LAUNCHER:-0}" = 1 ] || exit 1 ;;
 	"$FAKE_LAUNCHER_DIR"/bus-integration-linux) [ "${FAKE_SYMLINK_LINUX:-0}" = 1 ] || exit 1 ;;
+	"$FAKE_LAUNCHER_DIR"/bus-services|"$FAKE_LAUNCHER_DIR"/bus-integration-services) [ "${FAKE_SYMLINK_TARGET:-0}" = 1 ] || exit 1 ;;
 	"$FAKE_LAUNCHER_DIR"/bus-services-protected.env) [ "${FAKE_SYMLINK_PROTECTED_SOURCE:-0}" = 1 ] || exit 1 ;;
 	"$FAKE_RUNTIME_DIR") [ "${FAKE_SYMLINK_RUNTIME_DIR:-0}" = 1 ] || exit 1 ;;
 	"$FAKE_HEAVY_LOCK") [ "${FAKE_SYMLINK_HEAVY_LOCK:-0}" = 1 ] || exit 1 ;;
@@ -476,6 +480,7 @@ run_script() {
 	FAKE_UNSAFE_PROTECTED_SOURCE="${FAKE_UNSAFE_PROTECTED_SOURCE:-0}" \
 	FAKE_SYMLINK_LAUNCHER="${FAKE_SYMLINK_LAUNCHER:-0}" \
 	FAKE_SYMLINK_LINUX="${FAKE_SYMLINK_LINUX:-0}" \
+	FAKE_SYMLINK_TARGET="${FAKE_SYMLINK_TARGET:-0}" \
 	FAKE_SYMLINK_RUNTIME_DIR="${FAKE_SYMLINK_RUNTIME_DIR:-0}" \
 	FAKE_SYMLINK_HEAVY_LOCK="${FAKE_SYMLINK_HEAVY_LOCK:-0}" \
 	FAKE_SYMLINK_PROTECTED_ENV="${FAKE_SYMLINK_PROTECTED_ENV:-0}" \
@@ -543,6 +548,37 @@ assert_target_not_run() {
 	[ ! -e "$command_identity" ]
 	[ ! -e "$privdrop_pid" ]
 }
+
+alternate_target_dir="$tmp_dir/alternate-target"
+lookalike_target_dir="$tmp_dir/lookalike-target"
+/usr/bin/mkdir -p "$alternate_target_dir" "$lookalike_target_dir"
+/usr/bin/cp "$fake_bin/stack-target" "$alternate_target_dir/bus-services"
+/usr/bin/ln -s "$fake_bin/bus-services" "$lookalike_target_dir/bus-services"
+
+expect_untrusted_target_rejected() {
+	target_label=$1
+	shift
+	reset_cold_state
+	set +e
+	run_script bus-runtime -- "$@" >/dev/null 2>&1
+	status=$?
+	set -e
+	if [ "$status" -eq 0 ]; then
+		printf 'untrusted protected target accepted: %s\n' "$target_label" >&2
+		return 1
+	fi
+	[ ! -e "$runtime_dir" ]
+	[ ! -e "$bootstrap_args" ]
+	assert_target_not_run
+	[ ! -s "$phase_log" ]
+}
+
+expect_untrusted_target_rejected alternate-directory "$alternate_target_dir/bus-services" up
+expect_untrusted_target_rejected symlink-lookalike "$lookalike_target_dir/bus-services" up
+grep -Fxq 'services_bin=$launcher_dir/bus-services' "$source_script"
+grep -Fxq 'integration_services_bin=$launcher_dir/bus-integration-services' "$source_script"
+grep -Fxq 'trusted_binary "$protected_command_path"' "$source_script"
+! grep -Fq 'protected_command=${1##*/}' "$source_script"
 
 project_env="$tmp_dir/project.env"
 reset_cold_state
@@ -824,6 +860,7 @@ expect_failure_without_bootstrap FAKE_UNSAFE_LAUNCHER_PARENT=1 bus-runtime -- "$
 expect_failure_without_bootstrap FAKE_UNSAFE_LINUX=1 bus-runtime -- "$fake_bin/bus-services" up
 expect_failure_without_bootstrap FAKE_UNSAFE_LINUX=2 bus-runtime -- "$fake_bin/bus-services" up
 expect_failure_without_bootstrap FAKE_SYMLINK_LINUX=1 bus-runtime -- "$fake_bin/bus-services" up
+expect_failure_without_bootstrap FAKE_SYMLINK_TARGET=1 bus-runtime -- "$fake_bin/bus-services" up
 expect_failure_without_bootstrap FAKE_UNSAFE_PRIVDROP=1 bus-runtime -- "$fake_bin/bus-services" up
 expect_failure_without_bootstrap FAKE_UNSAFE_PRIVDROP=2 bus-runtime -- "$fake_bin/bus-services" up
 expect_failure_without_bootstrap FAKE_UNSAFE_MKDIR=1 bus-runtime -- "$fake_bin/bus-services" up
