@@ -18,7 +18,7 @@ mkdir_bin=/usr/bin/mkdir
 chown_bin=/usr/bin/chown
 chmod_bin=/usr/bin/chmod
 mv_bin=/usr/bin/mv
-privdrop_bin=/usr/sbin/runuser
+privdrop_bin=/usr/bin/setpriv
 
 usage() {
 	printf '%s\n' "usage: $0 RUNTIME-USER -- COMMAND [ARG...]" >&2
@@ -138,6 +138,8 @@ ensure_runtime_dir() {
 		fi
 	fi
 	trusted_path "$runtime_dir" directory
+	runtime_dir_mode=$("$stat_bin" -c %a -- "$runtime_dir") || die "cannot determine trusted runtime directory mode: $runtime_dir"
+	[ "$runtime_dir_mode" = 755 ] || die "trusted runtime directory mode is $runtime_dir_mode, expected 755: $runtime_dir"
 }
 
 create_or_validate_heavy_lock() {
@@ -155,13 +157,17 @@ create_or_validate_heavy_lock() {
 	trusted_runtime_file "$heavy_lock_path" "$runtime_uid" "$runtime_gid" 'heavy lock'
 }
 
-protected_stack_command() {
+protected_launch_command() {
 	[ "$#" -ge 2 ] || return 1
 	protected_command=${1##*/}
 	protected_action=$2
 	case "$protected_command:$protected_action" in
-		bus-services:up|bus-services:restart|bus-services:stack|bus-integration-services:serve|bus-integration-services:stack)
+		bus-services:up|bus-integration-services:serve)
 			return 0
+			;;
+		bus-services:stack|bus-integration-services:stack)
+			[ "$#" -ge 3 ] && [ "$3" = up ]
+			return
 			;;
 	esac
 	return 1
@@ -258,13 +264,18 @@ case "$runtime_gid" in
 		;;
 esac
 
+protected_launch_command "$@" || die "unsupported protected launch command"
+
+domain_path=$cgroup_mount/$cgroup_domain
+control_path=$domain_path/control
+control_procs_path=$control_path/cgroup.procs
+if path_exists "$domain_path"; then
+	die "protected cgroup domain already exists; use the ordinary unprivileged service CLI"
+fi
+
 ensure_runtime_dir
 create_or_validate_heavy_lock
-stack_env_path=
-if protected_stack_command "$@"; then
-	construct_protected_env
-	stack_env_path=$protected_env_path
-fi
+construct_protected_env
 
 export BUS_SERVICES_PROTECTED=1
 export BUS_SERVICES_CGROUP_MOUNT=$cgroup_mount
@@ -285,17 +296,15 @@ export BUS_SERVICES_LINUX_INTEGRATION_BIN=$linux_bin
 	--control-memory-low 4294967296 \
 	--control-cpu-weight 200
 
-control_path=$cgroup_mount/$cgroup_domain/control
+path_exists "$control_procs_path" || die "protected control cgroup is missing after bootstrap: $control_procs_path"
+printf '%s\n' "$$" >"$control_procs_path" || die "cannot attach launcher to protected control cgroup"
+attached_self=0
+while IFS= read -r member_pid; do
+	if [ "$member_pid" = "$$" ]; then
+		attached_self=1
+	fi
+done <"$control_procs_path" || die "cannot read protected control cgroup membership"
+[ "$attached_self" = 1 ] || die "launcher is not attached to the protected control cgroup"
 
-exec "$privdrop_bin" --user "$runtime_user" -- /bin/sh -ceu '
-control_path=$1
-protected_env_path=$2
-shift 2
-printf "%s\\n" "$$" >"$control_path/cgroup.procs"
-IFS= read -r attached_pid <"$control_path/cgroup.procs" || exit 1
-[ "$attached_pid" = "$$" ] || exit 1
-if [ -n "$protected_env_path" ]; then
-	exec "$@" --env-file "$protected_env_path"
-fi
-exec "$@"
-' sh "$control_path" "$stack_env_path" "$@"
+set -- "$@" --env-file "$protected_env_path"
+exec "$privdrop_bin" --reuid "$runtime_uid" --regid "$runtime_gid" --clear-groups --no-new-privs -- "$@"
