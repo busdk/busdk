@@ -131,6 +131,18 @@ runtime:
       description: Current environment id stamped as the origin of worker API Events.
       value_from: env:BUS_WORKERS_ENVIRONMENT_ID
       default: local
+    - name: BUS_WORKERS_SYNTHESIS_BLOB_ROOT
+      description: Private immutable blob root used to exchange worker identity merge synthesis inputs and outputs.
+      value_from: env:BUS_WORKERS_SYNTHESIS_BLOB_ROOT
+      default: "{env:BUS_SERVICES_BUS_DIR}/workers/merge-synthesis"
+    - name: BUS_WORKERS_SYNTHESIS_ENVIRONMENT_ID
+      description: Single worker environment authorized for the mounted merge synthesis store.
+      value_from: env:BUS_WORKERS_SYNTHESIS_ENVIRONMENT_ID
+      default: "{env:BUS_WORKERS_ENVIRONMENT_ID}"
+    - name: BUS_WORKERS_SYNTHESIS_STORE_MODE
+      description: Storage topology for merge synthesis blobs; the local stack uses one owning API instance.
+      value_from: env:BUS_WORKERS_SYNTHESIS_STORE_MODE
+      default: local-single-instance
     - name: BUS_EVENTS_TOKEN_FILE
       description: Shared Bus Events token file fallback for mounted API providers.
       value: "{env:BUS_SERVICES_BUS_DIR}/tokens/local-events.jwt"

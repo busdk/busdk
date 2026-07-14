@@ -47,6 +47,13 @@ trap 'rm -rf "$TMP_DIR"' EXIT
     --format json
 ) >"$TMP_DIR/workers-appserver-profile.json"
 
+(
+  cd "$ROOT_DIR/bus-services"
+  go run ./cmd/bus-services profile bus/identities/local \
+    --profile-dir "$ROOT_DIR/profiles" \
+    --format json
+) >"$TMP_DIR/identities-profile.json"
+
 python3 - \
   "$TMP_DIR/local-profile.json" \
   "$TMP_DIR/workers-profile.json" \
@@ -54,11 +61,12 @@ python3 - \
   "$TMP_DIR/tasks-profile.json" \
   "$TMP_DIR/repos-profile.json" \
   "$TMP_DIR/workers-appserver-profile.json" \
+  "$TMP_DIR/identities-profile.json" \
   <<'PY'
 import json
 import sys
 
-local_path, workers_path, threads_path, tasks_path, repos_path, workers_appserver_path = sys.argv[1:]
+local_path, workers_path, threads_path, tasks_path, repos_path, workers_appserver_path, identities_path = sys.argv[1:]
 
 def assert_profile(path, expected_envs):
     profile = json.load(open(path, encoding="utf-8"))
@@ -87,4 +95,24 @@ assert_refresh_env(threads_path)
 assert_refresh_env(tasks_path)
 assert_refresh_env(repos_path)
 assert_refresh_env(workers_appserver_path)
+
+local = json.load(open(local_path, encoding="utf-8"))
+local_env = {item["name"]: item for item in local.get("runtime", {}).get("env", [])}
+expected_synthesis = {
+    "BUS_WORKERS_SYNTHESIS_BLOB_ROOT": "{env:BUS_SERVICES_BUS_DIR}/workers/merge-synthesis",
+    "BUS_WORKERS_SYNTHESIS_ENVIRONMENT_ID": "{env:BUS_WORKERS_ENVIRONMENT_ID}",
+    "BUS_WORKERS_SYNTHESIS_STORE_MODE": "local-single-instance",
+}
+for name, value in expected_synthesis.items():
+    item = local_env.get(name, {})
+    configured = item.get("value", item.get("default"))
+    if configured != value:
+        raise SystemExit(f"{local.get('id')} {name} value = {configured!r}")
+
+identities = json.load(open(identities_path, encoding="utf-8"))
+identities_env = {item["name"]: item for item in identities.get("runtime", {}).get("env", [])}
+grant_item = identities_env.get("BUS_IDENTITIES_BOOTSTRAP_GRANTS", {})
+grants = grant_item.get("value", grant_item.get("default", "")).split()
+if "workers:merge-synthesis:local" not in grants:
+    raise SystemExit(f"{identities.get('id')} missing local worker merge synthesis grant")
 PY
