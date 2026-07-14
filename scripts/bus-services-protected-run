@@ -8,9 +8,16 @@ export LC_ALL
 
 cgroup_mount=/sys/fs/cgroup
 cgroup_domain=bus-services
+runtime_dir=/run/busdk
+heavy_lock_path=$runtime_dir/heavy.lock
+protected_env_path=$runtime_dir/services-protected.env
 id_bin=/usr/bin/id
 stat_bin=/usr/bin/stat
 readlink_bin=/usr/bin/readlink
+mkdir_bin=/usr/bin/mkdir
+chown_bin=/usr/bin/chown
+chmod_bin=/usr/bin/chmod
+mv_bin=/usr/bin/mv
 privdrop_bin=/usr/sbin/runuser
 
 usage() {
@@ -43,8 +50,10 @@ trusted_path() {
 	[ "$path_type" = "$expected_type" ] || die "trusted path has type $path_type, expected $expected_type: $path"
 
 	owner=$("$stat_bin" -c %u -- "$path") || die "cannot determine trusted path owner: $path"
+	group=$("$stat_bin" -c %g -- "$path") || die "cannot determine trusted path group: $path"
 	mode=$("$stat_bin" -c %a -- "$path") || die "cannot determine trusted path mode: $path"
 	[ "$owner" = 0 ] || die "trusted path is not root-owned: $path"
+	[ "$group" = 0 ] || die "trusted path group is not root-owned: $path"
 
 	case "$mode" in
 		[0-7][0-7][0-7]) permissions=$mode ;;
@@ -84,6 +93,110 @@ trusted_binary() {
 	trusted_path "$binary" 'regular file'
 }
 
+path_exists() {
+	"$stat_bin" -c %F -- "$1" >/dev/null 2>&1
+}
+
+trusted_runtime_file() {
+	file_path=$1
+	expected_uid=$2
+	expected_gid=$3
+	file_label=$4
+
+	case "$file_path" in
+		/*) ;;
+		*) die "$file_label path must be absolute: $file_path" ;;
+	esac
+	case "$file_path" in
+		*//*|*/./*|*/../*|*/.|*/..) die "$file_label path is not canonical: $file_path" ;;
+	esac
+
+	if "$readlink_bin" -- "$file_path" >/dev/null 2>&1; then
+		die "$file_label must not be a symbolic link: $file_path"
+	fi
+
+	file_type=$("$stat_bin" -c %F -- "$file_path") || die "cannot determine $file_label type: $file_path"
+	[ "$file_type" = 'regular file' ] || die "$file_label has type $file_type, expected regular file: $file_path"
+
+	file_uid=$("$stat_bin" -c %u -- "$file_path") || die "cannot determine $file_label owner: $file_path"
+	file_gid=$("$stat_bin" -c %g -- "$file_path") || die "cannot determine $file_label group: $file_path"
+	file_mode=$("$stat_bin" -c %a -- "$file_path") || die "cannot determine $file_label mode: $file_path"
+	[ "$file_uid" = "$expected_uid" ] || die "$file_label is not owned by runtime uid:gid $expected_uid:$expected_gid: $file_path"
+	[ "$file_gid" = "$expected_gid" ] || die "$file_label is not owned by runtime uid:gid $expected_uid:$expected_gid: $file_path"
+	[ "$file_mode" = 600 ] || die "$file_label mode is $file_mode, expected 600: $file_path"
+}
+
+ensure_runtime_dir() {
+	trusted_ancestors "$runtime_dir"
+	if ! path_exists "$runtime_dir"; then
+		if "$readlink_bin" -- "$runtime_dir" >/dev/null 2>&1; then
+			die "trusted runtime directory must not be a symbolic link: $runtime_dir"
+		fi
+		if "$mkdir_bin" --mode=0755 -- "$runtime_dir"; then
+			"$chown_bin" 0:0 -- "$runtime_dir" || die "cannot set trusted runtime directory owner: $runtime_dir"
+			"$chmod_bin" 0755 -- "$runtime_dir" || die "cannot set trusted runtime directory mode: $runtime_dir"
+		fi
+	fi
+	trusted_path "$runtime_dir" directory
+}
+
+create_or_validate_heavy_lock() {
+	if path_exists "$heavy_lock_path"; then
+		trusted_runtime_file "$heavy_lock_path" "$runtime_uid" "$runtime_gid" 'heavy lock'
+		return
+	fi
+	if "$readlink_bin" -- "$heavy_lock_path" >/dev/null 2>&1; then
+		die "heavy lock must not be a symbolic link: $heavy_lock_path"
+	fi
+	if (umask 077; set -C; : >"$heavy_lock_path") 2>/dev/null; then
+		"$chown_bin" "$runtime_uid:$runtime_gid" -- "$heavy_lock_path" || die "cannot set heavy lock owner: $heavy_lock_path"
+		"$chmod_bin" 0600 -- "$heavy_lock_path" || die "cannot set heavy lock mode: $heavy_lock_path"
+	fi
+	trusted_runtime_file "$heavy_lock_path" "$runtime_uid" "$runtime_gid" 'heavy lock'
+}
+
+protected_stack_command() {
+	[ "$#" -ge 2 ] || return 1
+	protected_command=${1##*/}
+	protected_action=$2
+	case "$protected_command:$protected_action" in
+		bus-services:up|bus-services:restart|bus-services:stack|bus-integration-services:serve|bus-integration-services:stack)
+			return 0
+			;;
+	esac
+	return 1
+}
+
+construct_protected_env() {
+	trusted_path "$protected_env_source" 'regular file'
+	if path_exists "$protected_env_path"; then
+		trusted_runtime_file "$protected_env_path" "$runtime_uid" "$runtime_gid" 'protected env file'
+	elif "$readlink_bin" -- "$protected_env_path" >/dev/null 2>&1; then
+		die "protected env file must not be a symbolic link: $protected_env_path"
+	fi
+
+	protected_env_tmp=$runtime_dir/.services-protected.env.$$
+	if path_exists "$protected_env_tmp" || "$readlink_bin" -- "$protected_env_tmp" >/dev/null 2>&1; then
+		die "protected env temporary path already exists: $protected_env_tmp"
+	fi
+	if ! (umask 077; set -C; integration_bin_lines=0; while IFS= read -r env_line || [ -n "$env_line" ]; do
+		case "$env_line" in
+			BUS_SERVICES_LINUX_INTEGRATION_BIN=*)
+				env_line=BUS_SERVICES_LINUX_INTEGRATION_BIN=$linux_bin
+				integration_bin_lines=$((integration_bin_lines + 1))
+				;;
+		esac
+		printf '%s\n' "$env_line"
+	done <"$protected_env_source" >"$protected_env_tmp"; [ "$integration_bin_lines" -eq 1 ]); then
+		die "cannot construct protected env file: $protected_env_tmp"
+	fi
+	"$chown_bin" "$runtime_uid:$runtime_gid" -- "$protected_env_tmp" || die "cannot set protected env owner: $protected_env_tmp"
+	"$chmod_bin" 0600 -- "$protected_env_tmp" || die "cannot set protected env mode: $protected_env_tmp"
+	trusted_runtime_file "$protected_env_tmp" "$runtime_uid" "$runtime_gid" 'protected env temporary file'
+	"$mv_bin" -- "$protected_env_tmp" "$protected_env_path" || die "cannot publish protected env file: $protected_env_path"
+	trusted_runtime_file "$protected_env_path" "$runtime_uid" "$runtime_gid" 'protected env file'
+}
+
 if [ "$#" -lt 3 ] || [ "$2" != "--" ]; then
 	usage
 fi
@@ -114,11 +227,16 @@ esac
 launcher_dir=${launcher_path%/*}
 [ "$launcher_dir" != "$launcher_path" ] || die "unsafe launcher path: $launcher_path"
 linux_bin=$launcher_dir/bus-integration-linux
+protected_env_source=$launcher_dir/bus-services-protected.env
 
 trusted_path "$launcher_dir" directory
 trusted_binary "$launcher_path"
 trusted_binary "$linux_bin"
 trusted_binary "$privdrop_bin"
+trusted_binary "$mkdir_bin"
+trusted_binary "$chown_bin"
+trusted_binary "$chmod_bin"
+trusted_binary "$mv_bin"
 
 runtime_uid=$("$id_bin" -u "$runtime_user") || die "runtime user $runtime_user does not exist"
 runtime_gid=$("$id_bin" -g "$runtime_user") || die "runtime user $runtime_user does not exist"
@@ -139,6 +257,14 @@ case "$runtime_gid" in
 		die "runtime user $runtime_user has forbidden gid 0"
 		;;
 esac
+
+ensure_runtime_dir
+create_or_validate_heavy_lock
+stack_env_path=
+if protected_stack_command "$@"; then
+	construct_protected_env
+	stack_env_path=$protected_env_path
+fi
 
 export BUS_SERVICES_PROTECTED=1
 export BUS_SERVICES_CGROUP_MOUNT=$cgroup_mount
@@ -163,9 +289,13 @@ control_path=$cgroup_mount/$cgroup_domain/control
 
 exec "$privdrop_bin" --user "$runtime_user" -- /bin/sh -ceu '
 control_path=$1
-shift
+protected_env_path=$2
+shift 2
 printf "%s\\n" "$$" >"$control_path/cgroup.procs"
 IFS= read -r attached_pid <"$control_path/cgroup.procs" || exit 1
 [ "$attached_pid" = "$$" ] || exit 1
+if [ -n "$protected_env_path" ]; then
+	exec "$@" --env-file "$protected_env_path"
+fi
 exec "$@"
-' sh "$control_path" "$@"
+' sh "$control_path" "$stack_env_path" "$@"
