@@ -341,7 +341,7 @@
       "id": "claude-fable-5",
       "label": "Claude Fable 5",
       "summary": "Fable: architecture, supply-chain, and exact-byte challenge review.",
-      "description": "Use only for architecture, supply-chain, exact-byte, and specification review. Keep vendor positioning out of the catalog.",
+      "description": "Use only for architecture, supply-chain, exact-byte, and specification review.",
       "default_profile": "claude",
       "default_model": "claude-fable-5",
       "reasoning_effort": "high",

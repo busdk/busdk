@@ -134,10 +134,13 @@ fable_text = " ".join((
     templates["claude-fable-5"]["summary"],
     templates["claude-fable-5"]["description"],
 )).lower()
+expected_fable_description = "Use only for architecture, supply-chain, exact-byte, and specification review."
+if templates["claude-fable-5"]["description"] != expected_fable_description:
+    raise SystemExit("Fable description must be the exact evidenced operator-use sentence")
 for required in ("architecture", "supply-chain", "exact-byte", "specification review"):
     if required not in fable_text:
         raise SystemExit(f"Fable must retain {required!r} review scope")
-for prohibited in ("deep-research lead", "guide haiku", "multi-hour reasoning", "slower replies"):
+for prohibited in ("deep-research lead", "guide haiku", "multi-hour reasoning", "slower replies", "vendor positioning"):
     if prohibited in fable_text:
         raise SystemExit(f"Fable must reject local-performance claim {prohibited!r}")
 skill_text = Path("skills/bus-dev-task-worker-ops/SKILL.md").read_text()
@@ -164,15 +167,21 @@ for required in (
     "docs/docs/reports/2026-07-15-bus-worker-model-performance.md",
     "audited local record, not a future probability or universal ranking",
     "Terra High: complex implementation",
-    "Spark, Mini, GPT-5.5 medium, and Sonnet: bounded work plus independent review",
+    "Historical Mini/GPT-5.5 and Spark-family evidence supports bounded trials; exact current Mini-low/GPT-5.5-medium are evidence-limited; current Spark-low is incomplete and cannot solely accept; Sonnet medium has direct accepted bounded evidence",
     "Sol XHigh: architecture/root cause",
-    "Sol, Luna, Terra Max, and Fable: risk-matched review",
+    "Sol Max, Luna Max, Terra Max, and Fable: risk-matched review",
     "Luna Low: docs, diagnosis, and smoke",
     "Sol Ultra: no self-acceptance",
     "current-target composed E2E",
 ):
     if required not in normalized_skill_text:
         raise SystemExit(f"worker-ops skill must contain routing anchor {required!r}")
+for unsupported in (
+    "Spark, Mini, GPT-5.5 medium, and Sonnet: bounded work plus independent review",
+    "Sol, Luna, Terra Max, and Fable: risk-matched review",
+):
+    if unsupported in normalized_skill_text:
+        raise SystemExit(f"worker-ops skill must reject unsupported routing claim {unsupported!r}")
 if "provider-diverse fallback" not in templates["claude-sonnet-5"]["summary"]:
     raise SystemExit("Sonnet must remain the provider-diverse fallback")
 if "read-only consultation" not in templates["claude-opus-4-8"]["summary"]:
