@@ -28,8 +28,8 @@
     {
       "id": "codex-54-mini",
       "label": "Codex 5.4 Mini",
-      "summary": "Mini: bounded implementation and support work with low-evidence review.",
-      "description": "Use when the task is bounded and speed matters more than maximum reasoning depth. Mini is a low-evidence lane for narrow code changes, focused audits, log summarization, and helper work feeding a stronger reviewer.",
+      "summary": "Mini: bounded implementation and support work with compact evidence.",
+      "description": "Use when the task is bounded and speed matters more than maximum reasoning depth. Historical Mini was useful for bounded work. current Mini-low is evidence-limited and cannot own acceptance; it is a compact bounded lane for narrow edits, focused audits, log summarization, and helper work feeding a stronger reviewer.",
       "default_profile": "codex-mini",
       "default_model": "gpt-5.4-mini",
       "runner_kind": "appserver",
@@ -52,8 +52,8 @@
     {
       "id": "codex-55",
       "label": "Codex 5.5",
-      "summary": "GPT-5.5 medium: default implementation with bounded reasoning and independent review.",
-      "description": "Use for normal implementation lanes that need source reading, edits, tests, and follow-through. GPT-5.5 medium is the bounded implementation default, not the low-evidence claim, and it should still hand off to independent review when risk rises.",
+      "summary": "GPT-5.5 medium: evidence-limited bounded implementation lane with independent review.",
+      "description": "Use for bounded implementation lanes that need source reading, edits, tests, and follow-through. GPT-5.5 medium is evidence-limited and intended for independent review-ready work; it is not the broad acceptance lead.",
       "default_profile": "codex-55",
       "default_model": "gpt-5.5",
       "runner_kind": "appserver",
@@ -76,8 +76,8 @@
     {
       "id": "codex-55-high",
       "label": "Codex 5.5 High",
-      "summary": "Terra High: complex implementation, review-driven follow-through, and broad coordination.",
-      "description": "Use when a worker should act as a review-driven implementer, use Codex App Server thread/goal tooling, investigate opaque failures, or coordinate several Codex worker lanes. Terra High fits complex implementation and broad coordination before independent review.",
+      "summary": "GPT-5.5 High: complex implementation, review-driven follow-through, and broad coordination.",
+      "description": "Use when a worker should act as a review-driven implementer, use Codex App Server thread/goal tooling, investigate opaque failures, or coordinate several Codex worker lanes. GPT-5.5 high is a stronger bounded lane, while GPT-5.5 medium and current Mini-low remain evidence-limited bounded options that cannot be broad defaults or sole acceptance owners.",
       "default_profile": "codex-55",
       "default_model": "gpt-5.5",
       "reasoning_effort": "high",

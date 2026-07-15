@@ -77,10 +77,53 @@ if "required evidence gate" not in templates["claude-haiku-4-5"]["description"]:
     raise SystemExit("Haiku must not own required evidence gates")
 if "low evidence overhead" not in templates["codex-53-spark"]["summary"]:
     raise SystemExit("Spark must remain low evidence overhead")
-if "low-evidence lane" not in templates["codex-54-mini"]["description"]:
-    raise SystemExit("Mini must remain a low-evidence lane")
-if "bounded implementation default" not in templates["codex-55"]["description"]:
-    raise SystemExit("GPT-5.5 medium must stay the bounded implementation default")
+if "low-evidence" in templates["codex-54-mini"]["summary"] or "low-evidence" in templates["codex-54-mini"]["description"]:
+    raise SystemExit("Mini must reject low-evidence wording")
+if "Historical Mini was useful for bounded work" not in templates["codex-54-mini"]["description"]:
+    raise SystemExit("Mini must keep historical bounded-work context")
+if "current Mini-low" not in templates["codex-54-mini"]["description"]:
+    raise SystemExit("Mini must keep current Mini-low context")
+if "evidence-limited" not in templates["codex-54-mini"]["description"]:
+    raise SystemExit("Mini description must use evidence-limited constraint language")
+if "GPT-5.5 medium" not in templates["codex-55"]["description"]:
+    raise SystemExit("GPT-5.5 medium must be explicitly named in its description")
+if "evidence-limited" not in templates["codex-55"]["description"]:
+    raise SystemExit("GPT-5.5 medium must be evidence-limited")
+if "default" in templates["codex-55"]["summary"]:
+    raise SystemExit("GPT-5.5 medium summary must not claim default ownership")
+if "default" in templates["codex-55"]["description"]:
+    raise SystemExit("GPT-5.5 medium description must not claim default ownership")
+if "Terra" in templates["codex-55"]["summary"] or "Terra" in templates["codex-55"]["description"]:
+    raise SystemExit("GPT-5.5 medium must not carry Terra wording")
+if "Terra High" in templates["codex-55-high"]["summary"] or "Terra High" in templates["codex-55-high"]["description"]:
+    raise SystemExit("codex-55-high must not use Terra High wording")
+if "evidence-limited bounded options" not in templates["codex-55-high"]["description"]:
+    raise SystemExit("codex-55-high must document evidence-limited GPT-5.5 medium and Mini-low")
+skill_text = Path("skills/bus-dev-task-worker-ops/SKILL.md").read_text()
+if "polling them on a timer wastes" in skill_text or "sleep 45" in skill_text:
+    raise SystemExit("worker-ops skill must not keep the stale polling loop wording")
+if "bus thread wait" not in skill_text:
+    raise SystemExit("worker-ops skill must teach event-driven bus thread wait practice")
+if "current Mini-low" not in skill_text:
+    raise SystemExit("worker-ops skill must mention current Mini-low")
+if "evidence-limited" not in skill_text:
+    raise SystemExit("worker-ops skill must mention evidence-limited profile behavior")
+if "risk-matched heterogeneous review relay" not in skill_text:
+    raise SystemExit("worker-ops skill must mention risk-matched heterogeneous review relay")
+if "quota and substrate separate" not in skill_text:
+    raise SystemExit("worker-ops skill must mention quota and substrate separation")
+if "independent acceptance" not in skill_text:
+    raise SystemExit("worker-ops skill must mention independent acceptance")
+if "installed event-driven multi-thread wait" not in skill_text:
+    raise SystemExit("worker-ops skill must mention installed event-driven multi-thread wait")
+if "complete active catalog" not in skill_text:
+    raise SystemExit("worker-ops skill must mention complete active catalog")
+if "provider-diverse fallback" not in templates["claude-sonnet-5"]["summary"]:
+    raise SystemExit("Sonnet must remain the provider-diverse fallback")
+if "read-only consultation" not in templates["claude-opus-4-8"]["summary"]:
+    raise SystemExit("Opus summary must advertise the read-only consultation limit")
+if "required evidence gate" not in templates["claude-haiku-4-5"]["description"]:
+    raise SystemExit("Haiku must not own required evidence gates")
 PY
 
 public_bin="$tmp_dir/public-bin"
