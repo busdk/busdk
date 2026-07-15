@@ -65,6 +65,10 @@ if "exact-contract review" not in templates["codex-56-sol-max"]["summary"]:
     raise SystemExit("Sol max must carry the exact-contract review role")
 if "split work" not in templates["codex-56-sol-ultra"]["summary"]:
     raise SystemExit("Sol ultra must carry the split-work orchestration role")
+if "without self-acceptance" not in templates["codex-56-sol-ultra"]["summary"]:
+    raise SystemExit("Sol ultra summary must forbid self-acceptance")
+if "never owns terminal self-acceptance" not in templates["codex-56-sol-ultra"]["description"]:
+    raise SystemExit("Sol ultra description must forbid terminal self-acceptance")
 if "architecture and root-cause" not in templates["codex-56-sol-xhigh"]["summary"]:
     raise SystemExit("Sol xhigh must carry the architecture/root-cause role")
 if "evidence-limited" not in templates["codex-56-terra-medium"]["summary"]:
