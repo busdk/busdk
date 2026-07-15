@@ -1,12 +1,13 @@
 # PLAN.md
 
-## Active Bus Services Stability Correction, 2026-07-11
+## Accepted Bus Services Stability Correction, 2026-07-11
 
-This release is one current-host anti-DDOS repair for Bus Services as an
-ordinary service. It uses direct Linux cgroup-v2 mechanics and does not attempt
-the broader PID1 or systemd-replacement product in this gate.
+This historical gate delivered the current-host anti-DDOS repair for Bus
+Services as an ordinary service. The accepted no-sudo composition, install,
+and bounded live proof are recorded in Bus Thread 85. It no longer defines the
+active queue; the cold browser vertical slice in the supervisor `GOAL.md` does.
 
-Minimum release boundary:
+Original planned release boundary, retained for history:
 
 1. one root-run Bus bootstrap validates cgroup2/controllers, creates one
    delegated Bus root with exactly `control` and `work`, applies the static
@@ -27,17 +28,12 @@ Minimum release boundary:
    not overlap, work pressure does not cause global OOM, the API remains
    responsive, and down leaves work empty.
 
-The current host is uid/gid 1004 with no effective capabilities, and its
-session cgroup is root-owned/non-writable. It therefore cannot create the
-independent subtree itself. The privileged boundary is one root-run bootstrap;
-a tiny broker is allowed only if a real kernel permission test proves the
-one-shot model insufficient. No setuid helper, systemd D-Bus/unit API,
-generalized privileged protocol, or PID1 work belongs in this release. Systemd
-integration is optional adapter work only. The promoted
-`bus-integration-systemd` slices and held D-Bus adapter remain evidence and
-possible donor code, but do not satisfy this release. Defer new resource
-protocols/DTOs, per-workload trees, tickets/fairness/leases/TTL, Podman/provider
-parity, Prometheus, rich telemetry, and proof frameworks.
+The final accepted implementation uses the reviewed no-sudo current-host path;
+the earlier root-run bootstrap and systemd-dependent paths remain historical
+donor evidence only. New resource protocols/DTOs, per-workload trees,
+tickets/fairness/leases/TTL, Podman parity, Prometheus, rich telemetry, and
+proof frameworks remain deferred until the active product milestone needs a
+specific behavior from them.
 
 ## Active Thread Mutation Goal, 2026-07-10
 
