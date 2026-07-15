@@ -61,10 +61,26 @@ for template in catalog["templates"]:
     if template.get("default_model") == "gpt-5.6":
         raise SystemExit(f"generic GPT-5.6 model slug is not allowed: {template['id']}")
 
-if "deep review" not in templates["codex-56-sol-max"]["summary"]:
-    raise SystemExit("Sol max must carry the deep-review role")
-if "orchestration" not in templates["codex-56-sol-ultra"]["summary"]:
-    raise SystemExit("Sol ultra must carry the orchestration role")
+if "exact-contract review" not in templates["codex-56-sol-max"]["summary"]:
+    raise SystemExit("Sol max must carry the exact-contract review role")
+if "split work" not in templates["codex-56-sol-ultra"]["summary"]:
+    raise SystemExit("Sol ultra must carry the split-work orchestration role")
+if "architecture and root-cause" not in templates["codex-56-sol-xhigh"]["summary"]:
+    raise SystemExit("Sol xhigh must carry the architecture/root-cause role")
+if "evidence-limited" not in templates["codex-56-terra-medium"]["summary"]:
+    raise SystemExit("Terra medium must be evidence-limited")
+if "provider-diverse fallback" not in templates["claude-sonnet-5"]["summary"]:
+    raise SystemExit("Sonnet must be the provider-diverse fallback")
+if "read-only consultation" not in templates["claude-opus-4-8"]["summary"]:
+    raise SystemExit("Opus summary must advertise the read-only consultation limit")
+if "required evidence gate" not in templates["claude-haiku-4-5"]["description"]:
+    raise SystemExit("Haiku must not own required evidence gates")
+if "low evidence overhead" not in templates["codex-53-spark"]["summary"]:
+    raise SystemExit("Spark must remain low evidence overhead")
+if "low-evidence lane" not in templates["codex-54-mini"]["description"]:
+    raise SystemExit("Mini must remain a low-evidence lane")
+if "bounded implementation default" not in templates["codex-55"]["description"]:
+    raise SystemExit("GPT-5.5 medium must stay the bounded implementation default")
 PY
 
 public_bin="$tmp_dir/public-bin"
