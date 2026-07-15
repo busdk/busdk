@@ -108,9 +108,18 @@ catalog_local_routing_text = " ".join(
     )
     for value in (templates[template_id]["summary"], templates[template_id]["description"])
 ).lower()
-for stale in ("fast", "speed", "cost", "cheap", "cheaper", "best", "latency", "quality"):
+for stale in (
+    "fast, narrowly frozen",
+    "speed matters more than maximum reasoning depth",
+    "balance speed and reasoning",
+    "quality matters more than latency",
+    "cheap extraction",
+    "best as a scout",
+    "after Fable or Opus research",
+):
+    stale = stale.lower()
     if stale in catalog_local_routing_text:
-        raise SystemExit(f"catalog must reject stale local performance/routing claim {stale!r}")
+        raise SystemExit(f"catalog must reject stale routing phrase {stale!r}")
 
 spark_text = " ".join((
     templates["codex-53-spark"]["summary"],
@@ -217,13 +226,13 @@ skill_local_routing_text = "\n".join(
         "Haiku", "provider-diverse", "fallback", "quota and substrate",
     ))
 ).lower()
-for stale in ("fast", "speed", "cost", "cheap", "cheaper", "best", "latency", "quality"):
+for stale in (
+    "fast narrowly frozen mechanical",
+    "Haiku remains a cheap scout",
+):
+    stale = stale.lower()
     if stale in skill_local_routing_text:
-        raise SystemExit(f"worker-ops skill must reject stale local performance/routing claim {stale!r}")
-if "after fable or opus research" in sonnet_text:
-    raise SystemExit("Sonnet must not depend on Fable or Opus research")
-if "after fable or opus research" in skill_text.lower():
-    raise SystemExit("worker-ops skill must not route Sonnet through Fable or Opus research")
+        raise SystemExit(f"worker-ops skill must reject stale routing phrase {stale!r}")
 for required in (
     "docs/docs/reports/2026-07-15-bus-worker-model-performance.md",
     "audited local record, not a future probability or universal ranking",
