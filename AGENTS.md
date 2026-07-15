@@ -1079,11 +1079,11 @@ the `skills/` directory.
    supervision, worker dispatch, monitoring, review, process improvement,
    throughput analysis, heartbeat/progress/closeout reporting, and GX/UI
    roadmap coordination. Use it before running supervisor mode.
-2. `skills/bus-dev-task-worker-ops/SKILL.md`: concrete `bus dev work` /
-   `bus dev task` dispatch, Compose/App Server workers, monitoring, reopen,
-   closeout, promotion, auth/token handling, write scopes, worker infrastructure
-   troubleshooting, and generated-artifact promotion hazards. Use it before
-   touching worker ops.
+2. `skills/bus-dev-task-worker-ops/SKILL.md`: concrete `bus task` / `bus
+   workers` dispatch, event-driven wait, evidence-based template routing,
+   Compose/App Server workers, monitoring, reopen, closeout, promotion,
+   auth/token handling, write scopes, worker infrastructure troubleshooting,
+   and generated-artifact promotion hazards. Use it before touching worker ops.
 3. `skills/bus-plan-memory-maintainer/SKILL.md`: `PLAN.md`, `AGENTS.md`,
    Bus Notes/hourly memo practice, tracker-file processing, durable lessons,
    historical verification, commit/tracker closeout, and planning granularity.

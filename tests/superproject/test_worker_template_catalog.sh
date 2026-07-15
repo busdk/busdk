@@ -75,8 +75,16 @@ if "read-only consultation" not in templates["claude-opus-4-8"]["summary"]:
     raise SystemExit("Opus summary must advertise the read-only consultation limit")
 if "required evidence gate" not in templates["claude-haiku-4-5"]["description"]:
     raise SystemExit("Haiku must not own required evidence gates")
-if "low evidence overhead" not in templates["codex-53-spark"]["summary"]:
-    raise SystemExit("Spark must remain low evidence overhead")
+spark_text = " ".join((
+    templates["codex-53-spark"]["summary"],
+    templates["codex-53-spark"]["description"],
+)).lower()
+if "low evidence" in spark_text or "low-evidence" in spark_text:
+    raise SystemExit("Spark must reject low evidence wording")
+if "fast, narrowly frozen mechanical work" not in spark_text:
+    raise SystemExit("Spark must be fast, narrowly frozen mechanical work")
+if "independent review" not in spark_text or "sole acceptance" not in spark_text:
+    raise SystemExit("Spark must require independent review and forbid sole acceptance")
 if "low-evidence" in templates["codex-54-mini"]["summary"] or "low-evidence" in templates["codex-54-mini"]["description"]:
     raise SystemExit("Mini must reject low-evidence wording")
 if "Historical Mini was useful for bounded work" not in templates["codex-54-mini"]["description"]:
@@ -95,11 +103,45 @@ if "default" in templates["codex-55"]["description"]:
     raise SystemExit("GPT-5.5 medium description must not claim default ownership")
 if "Terra" in templates["codex-55"]["summary"] or "Terra" in templates["codex-55"]["description"]:
     raise SystemExit("GPT-5.5 medium must not carry Terra wording")
-if "Terra High" in templates["codex-55-high"]["summary"] or "Terra High" in templates["codex-55-high"]["description"]:
-    raise SystemExit("codex-55-high must not use Terra High wording")
-if "evidence-limited bounded options" not in templates["codex-55-high"]["description"]:
-    raise SystemExit("codex-55-high must document evidence-limited GPT-5.5 medium and Mini-low")
+gpt55_high_text = " ".join((
+    templates["codex-55-high"]["summary"],
+    templates["codex-55-high"]["description"],
+))
+if "hard bounded source/rescue candidate" not in gpt55_high_text:
+    raise SystemExit("GPT-5.5 high must be a hard bounded source/rescue candidate")
+if "independent review" not in gpt55_high_text or "current-target composed E2E" not in gpt55_high_text:
+    raise SystemExit("GPT-5.5 high must require independent review and composed E2E")
+for prohibited in ("Terra", "complex implementation", "broad coordination", "default"):
+    if prohibited in gpt55_high_text:
+        raise SystemExit(f"GPT-5.5 high must reject {prohibited!r} wording")
+terra_medium_text = " ".join((
+    templates["codex-56-terra-medium"]["summary"],
+    templates["codex-56-terra-medium"]["description"],
+))
+if "evidence-limited" not in terra_medium_text or "independent review" not in terra_medium_text:
+    raise SystemExit("Terra medium must be evidence-limited and independently reviewed")
+if "default implementation" in terra_medium_text:
+    raise SystemExit("Terra medium must reject default implementation wording")
+sol_high_text = " ".join((
+    templates["codex-56-sol-high"]["summary"],
+    templates["codex-56-sol-high"]["description"],
+))
+if "focused repair" not in sol_high_text or "bounded diagnostics" not in sol_high_text:
+    raise SystemExit("Sol high must be limited to focused repair and diagnostics")
+if "general difficult initial implementer" not in sol_high_text or "Terra High is available" not in sol_high_text:
+    raise SystemExit("Sol high must defer general difficult initial implementation while Terra High is available")
+fable_text = " ".join((
+    templates["claude-fable-5"]["summary"],
+    templates["claude-fable-5"]["description"],
+)).lower()
+for required in ("architecture", "supply-chain", "exact-byte", "specification review"):
+    if required not in fable_text:
+        raise SystemExit(f"Fable must retain {required!r} review scope")
+for prohibited in ("deep-research lead", "guide haiku", "multi-hour reasoning", "slower replies"):
+    if prohibited in fable_text:
+        raise SystemExit(f"Fable must reject local-performance claim {prohibited!r}")
 skill_text = Path("skills/bus-dev-task-worker-ops/SKILL.md").read_text()
+normalized_skill_text = " ".join(skill_text.split())
 if "polling them on a timer wastes" in skill_text or "sleep 45" in skill_text:
     raise SystemExit("worker-ops skill must not keep the stale polling loop wording")
 if "bus thread wait" not in skill_text:
@@ -118,6 +160,19 @@ if "installed event-driven multi-thread wait" not in skill_text:
     raise SystemExit("worker-ops skill must mention installed event-driven multi-thread wait")
 if "complete active catalog" not in skill_text:
     raise SystemExit("worker-ops skill must mention complete active catalog")
+for required in (
+    "docs/docs/reports/2026-07-15-bus-worker-model-performance.md",
+    "audited local record, not a future probability or universal ranking",
+    "Terra High: complex implementation",
+    "Spark, Mini, GPT-5.5 medium, and Sonnet: bounded work plus independent review",
+    "Sol XHigh: architecture/root cause",
+    "Sol, Luna, Terra Max, and Fable: risk-matched review",
+    "Luna Low: docs, diagnosis, and smoke",
+    "Sol Ultra: no self-acceptance",
+    "current-target composed E2E",
+):
+    if required not in normalized_skill_text:
+        raise SystemExit(f"worker-ops skill must contain routing anchor {required!r}")
 if "provider-diverse fallback" not in templates["claude-sonnet-5"]["summary"]:
     raise SystemExit("Sonnet must remain the provider-diverse fallback")
 if "read-only consultation" not in templates["claude-opus-4-8"]["summary"]:
