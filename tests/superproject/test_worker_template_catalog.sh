@@ -115,7 +115,6 @@ for stale in (
     "quality matters more than latency",
     "cheap extraction",
     "best as a scout",
-    "after Fable or Opus research",
 ):
     stale = stale.lower()
     if stale in catalog_local_routing_text:
