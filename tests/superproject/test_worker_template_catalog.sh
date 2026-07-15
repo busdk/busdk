@@ -75,28 +75,71 @@ if "evidence-limited" not in templates["codex-56-terra-medium"]["summary"]:
     raise SystemExit("Terra medium must be evidence-limited")
 if "provider-diverse fallback" not in templates["claude-sonnet-5"]["summary"]:
     raise SystemExit("Sonnet must be the provider-diverse fallback")
+sonnet_text = " ".join((
+    templates["claude-sonnet-5"]["summary"],
+    templates["claude-sonnet-5"]["description"],
+))
+if "after Fable or Opus research" in sonnet_text:
+    raise SystemExit("Sonnet must not depend on Fable or Opus research")
+for required in ("bounded implementation and follow-through", "medium-depth code review", "practical planning", "provider-diverse fallback"):
+    if required not in sonnet_text:
+        raise SystemExit(f"Sonnet must retain {required!r} role wording")
 if "read-only consultation" not in templates["claude-opus-4-8"]["summary"]:
     raise SystemExit("Opus summary must advertise the read-only consultation limit")
-if "required evidence gate" not in templates["claude-haiku-4-5"]["description"]:
-    raise SystemExit("Haiku must not own required evidence gates")
+haiku_text = " ".join((
+    templates["claude-haiku-4-5"]["summary"],
+    templates["claude-haiku-4-5"]["description"],
+)).lower()
+for required in ("evidence-limited", "experimental", "low-risk", "independent confirmation", "required evidence gate"):
+    if required not in haiku_text:
+        raise SystemExit(f"Haiku must retain {required!r} constraint wording")
+if "never owns a required evidence gate" not in haiku_text or "hard acceptance" not in haiku_text:
+    raise SystemExit("Haiku must never own required evidence gates or hard acceptance")
+
+catalog_local_routing_text = " ".join(
+    value
+    for template_id in (
+        "codex-53-spark",
+        "codex-54-mini",
+        "codex-56-luna-medium",
+        "claude-opus-4-8",
+        "claude-sonnet-5",
+        "claude-haiku-4-5",
+    )
+    for value in (templates[template_id]["summary"], templates[template_id]["description"])
+).lower()
+for stale in ("fast", "speed", "cost", "cheap", "cheaper", "best", "latency", "quality"):
+    if stale in catalog_local_routing_text:
+        raise SystemExit(f"catalog must reject stale local performance/routing claim {stale!r}")
+
 spark_text = " ".join((
     templates["codex-53-spark"]["summary"],
     templates["codex-53-spark"]["description"],
 )).lower()
-if "low evidence" in spark_text or "low-evidence" in spark_text:
-    raise SystemExit("Spark must reject low evidence wording")
-if "fast, narrowly frozen mechanical work" not in spark_text:
-    raise SystemExit("Spark must be fast, narrowly frozen mechanical work")
+if "narrowly frozen mechanical work" not in spark_text:
+    raise SystemExit("Spark must remain narrowly frozen mechanical work")
 if "independent review" not in spark_text or "sole acceptance" not in spark_text:
     raise SystemExit("Spark must require independent review and forbid sole acceptance")
-if "low-evidence" in templates["codex-54-mini"]["summary"] or "low-evidence" in templates["codex-54-mini"]["description"]:
-    raise SystemExit("Mini must reject low-evidence wording")
-if "Historical Mini was useful for bounded work" not in templates["codex-54-mini"]["description"]:
-    raise SystemExit("Mini must keep historical bounded-work context")
-if "current Mini-low" not in templates["codex-54-mini"]["description"]:
-    raise SystemExit("Mini must keep current Mini-low context")
-if "evidence-limited" not in templates["codex-54-mini"]["description"]:
-    raise SystemExit("Mini description must use evidence-limited constraint language")
+mini_text = " ".join((
+    templates["codex-54-mini"]["summary"],
+    templates["codex-54-mini"]["description"],
+)).lower()
+if "current mini-low" not in mini_text or "evidence-limited" not in mini_text:
+    raise SystemExit("Mini must retain current Mini-low evidence-limited wording")
+if "cannot own acceptance" not in mini_text:
+    raise SystemExit("Mini must not own acceptance")
+luna_medium_text = " ".join((
+    templates["codex-56-luna-medium"]["summary"],
+    templates["codex-56-luna-medium"]["description"],
+)).lower()
+if "evidence-limited" not in luna_medium_text or "sole acceptance owner" not in luna_medium_text:
+    raise SystemExit("Luna Medium must be evidence-limited and never own sole acceptance")
+opus_text = " ".join((
+    templates["claude-opus-4-8"]["summary"],
+    templates["claude-opus-4-8"]["description"],
+)).lower()
+if "read-only consultation" not in opus_text or "tightly isolated externally bounded execution" not in opus_text:
+    raise SystemExit("Opus must remain read-only or tightly externally bounded")
 if "GPT-5.5 medium" not in templates["codex-55"]["description"]:
     raise SystemExit("GPT-5.5 medium must be explicitly named in its description")
 if "evidence-limited" not in templates["codex-55"]["description"]:
@@ -167,6 +210,20 @@ if "installed event-driven multi-thread wait" not in skill_text:
     raise SystemExit("worker-ops skill must mention installed event-driven multi-thread wait")
 if "complete active catalog" not in skill_text:
     raise SystemExit("worker-ops skill must mention complete active catalog")
+skill_local_routing_text = "\n".join(
+    line for line in skill_text.splitlines()
+    if any(marker in line for marker in (
+        "codex-53-spark", "Mini-low", "Luna Medium", "Opus", "Sonnet",
+        "Haiku", "provider-diverse", "fallback", "quota and substrate",
+    ))
+).lower()
+for stale in ("fast", "speed", "cost", "cheap", "cheaper", "best", "latency", "quality"):
+    if stale in skill_local_routing_text:
+        raise SystemExit(f"worker-ops skill must reject stale local performance/routing claim {stale!r}")
+if "after fable or opus research" in sonnet_text:
+    raise SystemExit("Sonnet must not depend on Fable or Opus research")
+if "after fable or opus research" in skill_text.lower():
+    raise SystemExit("worker-ops skill must not route Sonnet through Fable or Opus research")
 for required in (
     "docs/docs/reports/2026-07-15-bus-worker-model-performance.md",
     "audited local record, not a future probability or universal ranking",
@@ -186,12 +243,6 @@ for unsupported in (
 ):
     if unsupported in normalized_skill_text:
         raise SystemExit(f"worker-ops skill must reject unsupported routing claim {unsupported!r}")
-if "provider-diverse fallback" not in templates["claude-sonnet-5"]["summary"]:
-    raise SystemExit("Sonnet must remain the provider-diverse fallback")
-if "read-only consultation" not in templates["claude-opus-4-8"]["summary"]:
-    raise SystemExit("Opus summary must advertise the read-only consultation limit")
-if "required evidence gate" not in templates["claude-haiku-4-5"]["description"]:
-    raise SystemExit("Haiku must not own required evidence gates")
 PY
 
 public_bin="$tmp_dir/public-bin"
