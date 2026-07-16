@@ -548,6 +548,29 @@ submodule_head_contains_any_known_rev() {
   return 1
 }
 
+fetch_missing_submodule_conflict_revs() {
+  local submodule_dir="$1"
+  shift
+  local rev
+  local missing=0
+
+  for rev in "$@"; do
+    [ -n "$rev" ] || continue
+    if ! git -C "$submodule_dir" cat-file -e "$rev^{commit}" 2>/dev/null; then
+      missing=1
+      break
+    fi
+  done
+
+  [ "$missing" -eq 1 ] || return 0
+  run_git_step "$submodule_dir" "fetch missing submodule conflict revisions" fetch --no-recurse-submodules origin || return 1
+
+  for rev in "$@"; do
+    [ -n "$rev" ] || continue
+    git -C "$submodule_dir" cat-file -e "$rev^{commit}" 2>/dev/null || return 1
+  done
+}
+
 promote_changed_submodule_pins() {
   local dir
   local head_rev
@@ -718,6 +741,9 @@ resolve_rebase_submodule_conflicts() {
     if [ -z "$desired_rev" ] || [ -z "$ours_rev" ] || [ -z "$theirs_rev" ]; then
       return 1
     fi
+    if ! fetch_missing_submodule_conflict_revs "$dir/$path" "$desired_rev" "$ours_rev" "$theirs_rev"; then
+      return 1
+    fi
     candidate_rev=""
     if [ -d "$dir/$path" ] &&
       is_own_worktree "$dir/$path" &&
@@ -730,6 +756,13 @@ resolve_rebase_submodule_conflicts() {
         git -C "$dir/$path" merge-base --is-ancestor "$ours_rev" "$head_rev" 2>/dev/null &&
         git -C "$dir/$path" merge-base --is-ancestor "$theirs_rev" "$head_rev" 2>/dev/null; then
         candidate_rev="$head_rev"
+      fi
+    fi
+    if [ -z "$candidate_rev" ]; then
+      if git -C "$dir/$path" merge-base --is-ancestor "$ours_rev" "$theirs_rev" 2>/dev/null; then
+        candidate_rev="$theirs_rev"
+      elif git -C "$dir/$path" merge-base --is-ancestor "$theirs_rev" "$ours_rev" 2>/dev/null; then
+        candidate_rev="$ours_rev"
       fi
     fi
     allow_branch_head_resolution=0

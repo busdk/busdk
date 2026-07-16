@@ -18,13 +18,6 @@ git_config -C "$tmp_dir/sub-src" add module.txt
 git_config -C "$tmp_dir/sub-src" commit -m 'submodule base' >/dev/null
 sub_base="$(git -C "$tmp_dir/sub-src" rev-parse HEAD)"
 
-git_config -C "$tmp_dir/sub-src" checkout --quiet -b stale-pin
-printf 'module feature\n' >"$tmp_dir/sub-src/module.txt"
-git_config -C "$tmp_dir/sub-src" add module.txt
-git_config -C "$tmp_dir/sub-src" commit -m 'submodule feature stale hash' >/dev/null
-sub_stale="$(git -C "$tmp_dir/sub-src" rev-parse HEAD)"
-
-git_config -C "$tmp_dir/sub-src" checkout --quiet develop
 printf 'module feature\n' >"$tmp_dir/sub-src/module.txt"
 git_config -C "$tmp_dir/sub-src" add module.txt
 git_config -C "$tmp_dir/sub-src" commit -m 'submodule feature rebased hash' >/dev/null
@@ -58,24 +51,40 @@ git_config -C "$tmp_dir/root-src" add module-a
 git_config -C "$tmp_dir/root-src" commit -m 'root pins rebased submodule feature' >/dev/null
 git_config -C "$tmp_dir/root-src" push --quiet origin develop
 
-git_config -C "$tmp_dir/root-checkout/module-a" fetch --quiet origin "$sub_stale" "$sub_accepted"
-git_config -C "$tmp_dir/root-checkout/module-a" checkout --quiet "$sub_stale"
-git_config -C "$tmp_dir/root-checkout" add module-a
-git_config -C "$tmp_dir/root-checkout" commit -m 'root pins stale submodule feature' >/dev/null
+git_config -C "$tmp_dir/root-checkout/module-a" fetch --quiet origin "$sub_remote" "$sub_accepted"
+git_config -C "$tmp_dir/root-checkout/module-a" checkout --quiet "$sub_remote"
+printf 'root local pin\n' >>"$tmp_dir/root-checkout/README.md"
+git_config -C "$tmp_dir/root-checkout" add README.md module-a
+git_config -C "$tmp_dir/root-checkout" commit -m 'root combines content with local submodule pin' >/dev/null
 git_config -C "$tmp_dir/root-checkout/module-a" checkout --quiet -B develop "$sub_accepted"
 git_config -C "$tmp_dir/root-checkout" add module-a
 git_config -C "$tmp_dir/root-checkout" commit -m 'root promotes accepted submodule head' >/dev/null
 
+printf 'module remote latest\n' >"$tmp_dir/sub-src/module.txt"
+git_config -C "$tmp_dir/sub-src" add module.txt
+git_config -C "$tmp_dir/sub-src" commit -m 'submodule latest remote head' >/dev/null
+sub_latest="$(git -C "$tmp_dir/sub-src" rev-parse HEAD)"
+git_config -C "$tmp_dir/root-src/module-a" fetch --quiet origin "$sub_latest"
+git_config -C "$tmp_dir/root-src/module-a" checkout --quiet "$sub_latest"
+git_config -C "$tmp_dir/root-src" add module-a
+git_config -C "$tmp_dir/root-src" commit -m 'root pins latest remote submodule head' >/dev/null
+git_config -C "$tmp_dir/root-src" push --quiet origin develop
+
+if git -C "$tmp_dir/root-checkout/module-a" cat-file -e "$sub_latest^{commit}" 2>/dev/null; then
+	printf 'FAIL sync-submodules fixture: latest remote pin unexpectedly exists locally\n' >&2
+	exit 1
+fi
+
 sync_out="$tmp_dir/sync.out"
-if ! GIT_ALLOW_PROTOCOL=file "$tmp_dir/root-checkout/scripts/sync-submodules.sh" --pull-only --jobs 1 --verbose . >"$sync_out"; then
+if ! GIT_ALLOW_PROTOCOL=file "$tmp_dir/root-checkout/scripts/sync-submodules.sh" --pull-only --jobs 1 --verbose >"$sync_out"; then
 	cat "$sync_out" >&2
 	exit 1
 fi
-grep -Fq 'sync-submodules: ok=1 skipped=0 failed=0 total=1' "$sync_out"
+grep -Fq 'sync-submodules: ok=2 skipped=0 failed=0 total=2' "$sync_out"
 
-test "$(git -C "$tmp_dir/root-checkout/module-a" rev-parse HEAD)" = "$sub_accepted"
+test "$(git -C "$tmp_dir/root-checkout/module-a" rev-parse HEAD)" = "$sub_latest"
 test "$(git -C "$tmp_dir/root-checkout/module-a" branch --show-current)" = "develop"
-test "$(git -C "$tmp_dir/root-checkout" rev-parse HEAD:module-a)" = "$sub_accepted"
+test "$(git -C "$tmp_dir/root-checkout" rev-parse HEAD:module-a)" = "$sub_latest"
 test -z "$(git -C "$tmp_dir/root-checkout" status --porcelain -- module-a)"
 
 printf 'sync submodules rebased pin conflict OK\n'
