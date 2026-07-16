@@ -1,0 +1,813 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+umask 077
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SCRIPT_PATH="$ROOT_DIR/tests/superproject/test_credential_continuity_short_ttl_e2e.sh"
+
+MODE=""
+MODULE_SOURCE_ROOT=""
+MODULE_REPO_ROOT=""
+BUSDK_REF="$(git -C "$ROOT_DIR" rev-parse HEAD 2>/dev/null || true)"
+BUS_SERVICES_REF=""
+BUS_INTEGRATION_SERVICES_REF=""
+BUS_IDENTITIES_REF=""
+BUS_API_REF=""
+BUS_API_PROVIDER_EVENTS_REF=""
+EVENTS_BACKEND=""
+TTL=""
+RENEW_BEFORE=""
+ROTATIONS=""
+RESULT_DIR=""
+BUS_HOST="127.0.0.7"
+PREFLIGHT_ONLY=0
+
+RESULT_ABS=""
+RUNTIME_DIR=""
+SOURCE_DIR=""
+STACK_DIR=""
+STATE_DIR=""
+BIN_DIR=""
+TOKEN_FILE=""
+EVENTS_URL=""
+API_URL=""
+PG_BIN=""
+PG_SOCKET_DIR=""
+SUBSCRIPTION_PID=""
+STACK_STARTED=0
+FINAL_STATUS="failed"
+FAILURE_REASON=""
+
+usage() {
+  cat <<'EOF'
+Usage:
+  test_credential_continuity_short_ttl_e2e.sh --mode parent-fail|candidate-pass \
+    --module-source-root DIR --module-repo-root DIR [--busdk-ref SHA] \
+    --bus-services-ref SHA --bus-integration-services-ref SHA \
+    --bus-identities-ref SHA --bus-api-ref SHA \
+    --bus-api-provider-events-ref SHA --events-backend postgres \
+    --ttl 12s --renew-before 6s --rotations 2 --result-dir DIR \
+    [--host LOOPBACK] [--preflight-only]
+
+The harness builds an exact source closure, starts ordinary nonforeground Bus
+Services on an isolated loopback with native PostgreSQL, observes two atomic
+credential rotations, and probes Thread, Worker, Repos, and an already-open
+Events subscription after each rotation. Token contents are never recorded.
+EOF
+}
+
+die() {
+  FAILURE_REASON="$1"
+  printf 'ERROR: %s\n' "$1" >&2
+  if [[ -n "$RESULT_ABS" && -d "$RESULT_ABS" ]]; then
+    printf '%s\n' "$1" >"$RESULT_ABS/failure.txt"
+  fi
+  exit 1
+}
+
+require_value() {
+  local option="$1"
+  local value="${2:-}"
+  [[ -n "$value" ]] || die "missing value for $option"
+}
+
+while (($# > 0)); do
+  case "$1" in
+    --mode) require_value "$1" "${2:-}"; MODE="$2"; shift 2 ;;
+    --module-source-root) require_value "$1" "${2:-}"; MODULE_SOURCE_ROOT="$2"; shift 2 ;;
+    --module-repo-root) require_value "$1" "${2:-}"; MODULE_REPO_ROOT="$2"; shift 2 ;;
+    --busdk-ref) require_value "$1" "${2:-}"; BUSDK_REF="$2"; shift 2 ;;
+    --bus-services-ref) require_value "$1" "${2:-}"; BUS_SERVICES_REF="$2"; shift 2 ;;
+    --bus-integration-services-ref) require_value "$1" "${2:-}"; BUS_INTEGRATION_SERVICES_REF="$2"; shift 2 ;;
+    --bus-identities-ref) require_value "$1" "${2:-}"; BUS_IDENTITIES_REF="$2"; shift 2 ;;
+    --bus-api-ref) require_value "$1" "${2:-}"; BUS_API_REF="$2"; shift 2 ;;
+    --bus-api-provider-events-ref) require_value "$1" "${2:-}"; BUS_API_PROVIDER_EVENTS_REF="$2"; shift 2 ;;
+    --events-backend) require_value "$1" "${2:-}"; EVENTS_BACKEND="$2"; shift 2 ;;
+    --ttl) require_value "$1" "${2:-}"; TTL="$2"; shift 2 ;;
+    --renew-before) require_value "$1" "${2:-}"; RENEW_BEFORE="$2"; shift 2 ;;
+    --rotations) require_value "$1" "${2:-}"; ROTATIONS="$2"; shift 2 ;;
+    --result-dir) require_value "$1" "${2:-}"; RESULT_DIR="$2"; shift 2 ;;
+    --host) require_value "$1" "${2:-}"; BUS_HOST="$2"; shift 2 ;;
+    --preflight-only) PREFLIGHT_ONLY=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) die "unknown argument: $1" ;;
+  esac
+done
+
+[[ "$MODE" == "parent-fail" || "$MODE" == "candidate-pass" ]] || die "--mode must be parent-fail or candidate-pass"
+[[ "$EVENTS_BACKEND" == "postgres" ]] || die "--events-backend must be postgres"
+[[ "$TTL" =~ ^[0-9]+s$ ]] || die "--ttl must be a positive whole-second duration"
+[[ "$RENEW_BEFORE" =~ ^[0-9]+s$ ]] || die "--renew-before must be a positive whole-second duration"
+[[ "$ROTATIONS" == "2" ]] || die "--rotations must be exactly 2"
+TTL_SECONDS="${TTL%s}"
+RENEW_SECONDS="${RENEW_BEFORE%s}"
+((TTL_SECONDS > 0)) || die "--ttl must be greater than zero"
+((RENEW_SECONDS > 0 && RENEW_SECONDS < TTL_SECONDS)) || die "--renew-before must be greater than zero and less than --ttl"
+
+for required in MODULE_SOURCE_ROOT MODULE_REPO_ROOT BUSDK_REF BUS_SERVICES_REF \
+  BUS_INTEGRATION_SERVICES_REF BUS_IDENTITIES_REF BUS_API_REF \
+  BUS_API_PROVIDER_EVENTS_REF RESULT_DIR; do
+  [[ -n "${!required}" ]] || die "missing required argument for $required"
+done
+
+MODULE_SOURCE_ROOT="$(cd "$MODULE_SOURCE_ROOT" 2>/dev/null && pwd)" || die "module source root is unavailable"
+MODULE_REPO_ROOT="$(cd "$MODULE_REPO_ROOT" 2>/dev/null && pwd)" || die "module repository root is unavailable"
+if [[ "$RESULT_DIR" = /* ]]; then
+  RESULT_ABS="$RESULT_DIR"
+else
+  RESULT_ABS="$ROOT_DIR/$RESULT_DIR"
+fi
+
+command -v git >/dev/null || die "git is required"
+command -v go >/dev/null || die "go is required"
+command -v jq >/dev/null || die "jq is required"
+command -v python3 >/dev/null || die "python3 is required"
+command -v timeout >/dev/null || die "timeout is required"
+command -v tar >/dev/null || die "tar is required"
+command -v sha256sum >/dev/null || die "sha256sum is required"
+
+TOP_LEVEL="$(git -C "$ROOT_DIR" rev-parse --show-toplevel)"
+[[ "$TOP_LEVEL" == "$ROOT_DIR" ]] || die "Git top-level does not match harness root"
+[[ "$(git -C "$ROOT_DIR" rev-parse "$BUSDK_REF^{commit}")" == "$BUSDK_REF" ]] || die "BusDK ref is not an exact full commit"
+[[ -d "$ROOT_DIR/tests/superproject" && -f "$SCRIPT_PATH" ]] || die "target tests/superproject harness path is unavailable"
+GIT_DIR="$(git -C "$ROOT_DIR" rev-parse --git-dir)"
+[[ -w "$GIT_DIR" ]] || die "Git metadata is not writable"
+ROOT_HEAD="$(git -C "$ROOT_DIR" rev-parse HEAD)"
+ROOT_TREE="$(git -C "$ROOT_DIR" rev-parse 'HEAD^{tree}')"
+HARNESS_PATH="${SCRIPT_PATH#"$ROOT_DIR"/}"
+[[ -z "$(git -C "$ROOT_DIR" status --short --untracked-files=all -- "$HARNESS_PATH")" ]] || die "tracked harness bytes differ from HEAD"
+HARNESS_SHA256="$(sha256sum "$SCRIPT_PATH" | awk '{print $1}')"
+
+mapfile -t DIRTY_PATHS < <(git -C "$ROOT_DIR" status --short --untracked-files=all | sed -E 's/^...//')
+for dirty_path in "${DIRTY_PATHS[@]}"; do
+  die "integration worktree has unrelated dirt: $dirty_path"
+done
+
+find_pg_bin() {
+  local candidate
+  if command -v postgres >/dev/null 2>&1; then
+    candidate="$(dirname "$(command -v postgres)")"
+    [[ -x "$candidate/initdb" && -x "$candidate/pg_ctl" && -x "$candidate/pg_isready" ]] && { printf '%s\n' "$candidate"; return; }
+  fi
+  for candidate in /usr/lib/postgresql/*/bin /opt/homebrew/opt/postgresql@*/bin /opt/homebrew/opt/postgresql/bin /usr/local/opt/postgresql@*/bin /usr/local/opt/postgresql/bin; do
+    [[ -x "$candidate/postgres" && -x "$candidate/initdb" && -x "$candidate/pg_ctl" && -x "$candidate/pg_isready" ]] || continue
+    printf '%s\n' "$candidate"
+    return
+  done
+  return 1
+}
+
+PG_BIN="$(find_pg_bin)" || die "native PostgreSQL initdb/postgres/pg_ctl/pg_isready are required"
+
+declare -A OVERRIDE_REFS=(
+  [bus-services]="$BUS_SERVICES_REF"
+  [bus-integration-services]="$BUS_INTEGRATION_SERVICES_REF"
+  [bus-identities]="$BUS_IDENTITIES_REF"
+  [bus-api]="$BUS_API_REF"
+  [bus-api-provider-events]="$BUS_API_PROVIDER_EVENTS_REF"
+)
+
+module_pin() {
+  local module="$1"
+  local pin
+  pin="$(git -C "$ROOT_DIR" ls-tree "$BUSDK_REF" -- "$module" | awk '$1 == "160000" {print $3}')"
+  [[ -n "$pin" ]] || die "BusDK ref does not pin required module $module"
+  printf '%s\n' "$pin"
+}
+
+module_repo_for_ref() {
+  local module="$1"
+  local ref="$2"
+  local candidate
+  for candidate in "$MODULE_SOURCE_ROOT/$module" "$MODULE_REPO_ROOT/$module"; do
+    [[ -d "$candidate" ]] || continue
+    if git -C "$candidate" cat-file -e "$ref^{commit}" 2>/dev/null; then
+      printf '%s\n' "$candidate"
+      return
+    fi
+  done
+  return 1
+}
+
+for module in bus-services bus-integration-services bus-identities bus-api bus-api-provider-events; do
+  ref="${OVERRIDE_REFS[$module]}"
+  repo="$(module_repo_for_ref "$module" "$ref")" || die "required ref $module@$ref is unavailable"
+  [[ "$(git -C "$repo" rev-parse "$ref^{commit}")" == "$ref" ]] || die "$module ref is not an exact full commit: $ref"
+done
+
+RESULT_PARENT="$(dirname "$RESULT_ABS")"
+mkdir -p "$RESULT_PARENT"
+PREFLIGHT_SENTINEL="$RESULT_PARENT/.thread131-preflight-$$"
+: >"$PREFLIGHT_SENTINEL"
+rm -f "$PREFLIGHT_SENTINEL"
+
+python3 - "$BUS_HOST" <<'PY'
+import ipaddress
+import socket
+import sys
+
+host = sys.argv[1]
+address = ipaddress.ip_address(host)
+if not address.is_loopback:
+    raise SystemExit("harness host must be loopback")
+for port in (5432, 8081, 8090, 8091):
+    sock = socket.socket()
+    try:
+        sock.bind((host, port))
+    except OSError as exc:
+        raise SystemExit(f"loopback prerequisite failed for {host}:{port}: {exc}")
+    finally:
+        sock.close()
+PY
+
+printf 'preflight root=%s\n' "$ROOT_DIR"
+printf 'preflight head=%s\n' "$ROOT_HEAD"
+printf 'preflight tree=%s\n' "$ROOT_TREE"
+printf 'preflight harness_sha256=%s\n' "$HARNESS_SHA256"
+printf 'preflight git_dir=%s\n' "$GIT_DIR"
+printf 'preflight postgres_bin=%s\n' "$PG_BIN"
+printf 'preflight result_root=%s\n' "$RESULT_ABS"
+printf 'preflight loopback=%s\n' "$BUS_HOST"
+printf 'preflight status=pass\n'
+((PREFLIGHT_ONLY == 0)) || exit 0
+
+[[ ! -e "$RESULT_ABS" ]] || die "result directory already exists: $RESULT_ABS"
+mkdir -p "$RESULT_ABS"
+RUNTIME_DIR="$RESULT_ABS/runtime"
+SOURCE_DIR="$RUNTIME_DIR/source"
+STACK_DIR="$RUNTIME_DIR/stack"
+STATE_DIR="$STACK_DIR/.bus/services"
+BIN_DIR="$STACK_DIR/bin"
+TOKEN_FILE="$STACK_DIR/.bus/tokens/local-events.jwt"
+EVENTS_URL="http://$BUS_HOST:8081/local/v1"
+API_URL="http://$BUS_HOST:8090/local/v1"
+mkdir -p "$SOURCE_DIR" "$STACK_DIR" "$BIN_DIR" "$RUNTIME_DIR/cache/go-build" "$RUNTIME_DIR/cache/go-mod" "$RUNTIME_DIR/go-tmp" "$RESULT_ABS/operations"
+
+printf 'mode\t%s\nstarted_at\t%s\nbusdk\t%s\nroot_head\t%s\nroot_tree\t%s\nharness_sha256\t%s\nhost\t%s\nttl\t%s\nrenew_before\t%s\nrotations\t%s\n' \
+  "$MODE" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$BUSDK_REF" "$ROOT_HEAD" "$ROOT_TREE" "$HARNESS_SHA256" "$BUS_HOST" "$TTL" "$RENEW_BEFORE" "$ROTATIONS" >"$RESULT_ABS/run.tsv"
+: >"$RESULT_ABS/commands.log"
+: >"$RESULT_ABS/exits.tsv"
+: >"$RESULT_ABS/timings.tsv"
+: >"$RESULT_ABS/refs.tsv"
+: >"$RESULT_ABS/rotations.tsv"
+
+record_command() {
+  local label="$1"
+  shift
+  {
+    printf '%s\t' "$label"
+    printf '%q ' "$@"
+    printf '\n'
+  } >>"$RESULT_ABS/commands.log"
+}
+
+run_capture_with_timeout() {
+  local label="$1"
+  local wait_bound="$2"
+  shift 2
+  local start end rc
+  start="$(date +%s%N)"
+  record_command "$label" "$@"
+  set +e
+  timeout "$wait_bound" "$@" >"$RESULT_ABS/operations/$label.stdout" 2>"$RESULT_ABS/operations/$label.stderr"
+  rc=$?
+  set -e
+  end="$(date +%s%N)"
+  printf '%s\t%s\n' "$label" "$rc" >>"$RESULT_ABS/exits.tsv"
+  printf '%s\t%s\t%s\n' "$label" "$start" "$end" >>"$RESULT_ABS/timings.tsv"
+  if ((rc != 0)); then
+    if grep -Eqi 'HTTP[^[:cntrl:]]*(401|403)|API returned[[:space:]]+(401|403)|401 Unauthorized|403 Forbidden|invalid_token|insufficient_access|invalid api key' "$RESULT_ABS/operations/$label.stderr" "$RESULT_ABS/operations/$label.stdout"; then
+      printf '%s\tcredential_failure\n' "$label" >>"$RESULT_ABS/http-audit.tsv"
+    fi
+    die "$label failed with exit $rc"
+  fi
+}
+
+run_capture() {
+  local label="$1"
+  shift
+  run_capture_with_timeout "$label" 30s "$@"
+}
+
+owned_pid_running() {
+  local pid="$1"
+  [[ "$pid" =~ ^[0-9]+$ ]] || return 1
+  kill -0 "$pid" 2>/dev/null
+}
+
+capture_pids() {
+  local destination="$1"
+  local service pid
+  : >"$destination"
+  pid="$(tr -d '[:space:]' <"$STATE_DIR/bus-integration-services.pid")"
+  printf 'serve\t%s\n' "$pid" >>"$destination"
+  for service in postgres identities events repos workers threads api; do
+    pid="$(jq -r '.pid // empty' "$STATE_DIR/$service.json")"
+    [[ "$pid" =~ ^[0-9]+$ ]] || die "missing process identity for $service"
+    printf '%s\t%s\n' "$service" "$pid" >>"$destination"
+  done
+  if [[ -n "$SUBSCRIPTION_PID" ]]; then
+    printf 'subscription\t%s\n' "$SUBSCRIPTION_PID" >>"$destination"
+  fi
+}
+
+assert_same_pids() {
+  local expected="$1"
+  local observed="$2"
+  local name pid observed_pid
+  while IFS=$'\t' read -r name pid; do
+    observed_pid="$(awk -F '\t' -v name="$name" '$1 == name {print $2}' "$observed")"
+    [[ "$observed_pid" == "$pid" ]] || die "$name process identity changed: $pid -> ${observed_pid:-missing}"
+    owned_pid_running "$pid" || die "$name process $pid is not running"
+  done <"$expected"
+}
+
+audit_retained_artifacts() {
+  local http_status="clean"
+  local secret_status="clean"
+  local -a audit_files=()
+  mapfile -d '' -t audit_files < <(
+    find "$RESULT_ABS/operations" -type f -print0
+    if [[ -d "$STATE_DIR" ]]; then
+      find "$STATE_DIR" -type f \( -name '*.log' -o -name '*.stdout' -o -name '*.stderr' \) -print0
+    fi
+    find "$RESULT_ABS" -maxdepth 1 -type f \( -name '*.tsv' -o -name '*.txt' -o -name '*.log' -o -name '*.ndjson' -o -name '*.stdout' -o -name '*.stderr' \) -print0
+  )
+  if grep -Eqi -- 'HTTP[^[:cntrl:]]*(401|403)|API returned[[:space:]]+(401|403)|401 Unauthorized|403 Forbidden|invalid_token|insufficient_access|invalid api key' "${audit_files[@]}"; then
+    http_status="found"
+  fi
+  if grep -Eq -- 'Authorization:[[:space:]]*Bearer|BUS_API_JWT_SECRET|BUS_AUTH_HS256_SECRET|(^|[^[:alnum:]_-])[[:alnum:]_-]{10,}\.[[:alnum:]_-]{10,}\.[[:alnum:]_-]{10,}([^[:alnum:]_-]|$)' "${audit_files[@]}"; then
+    secret_status="found"
+  fi
+  printf 'credential_http\t%s\nsecret_leak\t%s\n' "$http_status" "$secret_status" >"$RESULT_ABS/audit.tsv"
+  [[ "$http_status" == "clean" && "$secret_status" == "clean" ]]
+}
+
+verify_retained_repositories() {
+  local require_all="${1:-0}"
+  local label timestamp repo_id repo_path
+  local count=0
+  local initial_seen=0
+  local rotation_1_seen=0
+  local rotation_2_seen=0
+  if [[ ! -f "$RESULT_ABS/repos-materialization.tsv" ]]; then
+    ((require_all == 0))
+    return
+  fi
+  while IFS=$'\t' read -r label timestamp repo_id repo_path; do
+    case "$label:$repo_id" in
+      initial:product) initial_seen=1 ;;
+      rotation-1:thread131-rotation-1) rotation_1_seen=1 ;;
+      rotation-2:thread131-rotation-2) rotation_2_seen=1 ;;
+      *) return 1 ;;
+    esac
+    [[ -n "$timestamp" && -f "$repo_path/HEAD" ]] || return 1
+    [[ "$(git --git-dir="$repo_path" rev-parse --is-bare-repository 2>/dev/null)" == "true" ]] || return 1
+    count=$((count + 1))
+  done <"$RESULT_ABS/repos-materialization.tsv"
+  if ((require_all == 1)); then
+    ((count == 3 && initial_seen == 1 && rotation_1_seen == 1 && rotation_2_seen == 1))
+  fi
+}
+
+cleanup() {
+  local original_rc="${1:-1}"
+  local down_rc=0
+  local survivors=0
+  local audit_rc=0
+  local repos_rc=0
+  trap - EXIT INT TERM
+  set +e
+  if [[ -n "$SUBSCRIPTION_PID" ]] && owned_pid_running "$SUBSCRIPTION_PID"; then
+    kill -TERM "$SUBSCRIPTION_PID" 2>/dev/null
+    timeout 5s tail --pid="$SUBSCRIPTION_PID" -f /dev/null 2>/dev/null
+  fi
+  if ((STACK_STARTED == 1)); then
+    record_command cleanup-down "$BIN_DIR/bus-services" down --file "$STACK_DIR/services.yml" --state-dir "$STATE_DIR"
+    timeout 40s "$BIN_DIR/bus-services" down --file "$STACK_DIR/services.yml" --state-dir "$STATE_DIR" >"$RESULT_ABS/cleanup-down.stdout" 2>"$RESULT_ABS/cleanup-down.stderr"
+    down_rc=$?
+    printf 'down_exit\t%s\n' "$down_rc" >"$RESULT_ABS/cleanup.tsv"
+  else
+    down_rc=0
+    printf 'down_exit\tnot_started\n' >"$RESULT_ABS/cleanup.tsv"
+  fi
+  if [[ -f "$RESULT_ABS/pids.initial.tsv" ]]; then
+    while IFS=$'\t' read -r name pid; do
+      if owned_pid_running "$pid"; then
+        printf 'survivor\t%s\t%s\n' "$name" "$pid" >>"$RESULT_ABS/cleanup.tsv"
+        survivors=$((survivors + 1))
+      fi
+    done <"$RESULT_ABS/pids.initial.tsv"
+  fi
+  rm -f "$STACK_DIR/.env"
+  printf 'survivor_count\t%s\n' "$survivors" >>"$RESULT_ABS/cleanup.tsv"
+  if [[ "$FINAL_STATUS" == "passed" ]]; then
+    verify_retained_repositories 1
+  else
+    verify_retained_repositories 0
+  fi
+  repos_rc=$?
+  audit_retained_artifacts
+  audit_rc=$?
+  chmod -R u+w "$RUNTIME_DIR/cache" 2>/dev/null || true
+  rm -rf "$STACK_DIR/.bus/tokens" \
+    "$STACK_DIR/.bus/services/workers/runtime" "$STACK_DIR/postgres" \
+    "$PG_SOCKET_DIR" "$RUNTIME_DIR/cache" "$RUNTIME_DIR/go-tmp" "$SOURCE_DIR"
+  if ((original_rc != 0 || down_rc != 0 || survivors != 0 || repos_rc != 0 || audit_rc != 0)) || [[ "$FINAL_STATUS" != "passed" ]]; then
+    FINAL_STATUS="failed"
+    ((original_rc != 0)) || original_rc=1
+  fi
+  printf 'finished_at\t%s\nstatus\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$FINAL_STATUS" >>"$RESULT_ABS/run.tsv"
+  set -e
+  if ((down_rc != 0 || survivors != 0 || repos_rc != 0 || audit_rc != 0)); then
+    printf 'ERROR: cleanup or retained-artifact audit failed\n' >&2
+  fi
+  exit "$original_rc"
+}
+trap 'cleanup "$?"' EXIT
+trap 'cleanup 130' INT
+trap 'cleanup 143' TERM
+
+materialize_module() {
+  local module="$1"
+  local ref repo
+  if [[ -n "${OVERRIDE_REFS[$module]:-}" ]]; then
+    ref="${OVERRIDE_REFS[$module]}"
+  else
+    ref="$(module_pin "$module")"
+  fi
+  repo="$(module_repo_for_ref "$module" "$ref")" || die "source repository lacks $module@$ref"
+  mkdir -p "$SOURCE_DIR/$module"
+  git -C "$repo" archive "$ref" | tar -x -C "$SOURCE_DIR/$module"
+  printf '%s\t%s\t%s\n' "$module" "$ref" "$repo" >>"$RESULT_ABS/refs.tsv"
+}
+
+declare -A MATERIALIZED=()
+MODULE_QUEUE=(
+  bus bus-services bus-integration-services bus-api bus-api-provider-identities
+  bus-integration bus-integration-thread bus-integration-worker
+  bus-integration-repos bus-thread bus-worker bus-repos bus-events
+)
+queue_index=0
+while ((queue_index < ${#MODULE_QUEUE[@]})); do
+  module="${MODULE_QUEUE[$queue_index]}"
+  queue_index=$((queue_index + 1))
+  [[ -z "${MATERIALIZED[$module]:-}" ]] || continue
+  materialize_module "$module"
+  MATERIALIZED[$module]=1
+  if [[ -f "$SOURCE_DIR/$module/go.mod" ]]; then
+    while IFS= read -r dependency; do
+      dependency="${dependency%%/*}"
+      [[ -n "$dependency" ]] || continue
+      if git -C "$ROOT_DIR" ls-tree "$BUSDK_REF" -- "$dependency" | grep -q '^160000 '; then
+        MODULE_QUEUE+=("$dependency")
+      fi
+    done < <(sed -nE 's|.*=>[[:space:]]+\.\./([^[:space:]]+).*|\1|p' "$SOURCE_DIR/$module/go.mod")
+  fi
+done
+
+git -C "$ROOT_DIR" archive "$BUSDK_REF" profiles scripts .bus/worker agents/worker | tar -x -C "$STACK_DIR"
+
+export GOCACHE="$RUNTIME_DIR/cache/go-build"
+export GOMODCACHE="$RUNTIME_DIR/cache/go-mod"
+export GOTMPDIR="$RUNTIME_DIR/go-tmp"
+export GOMAXPROCS=2
+
+build_binary() {
+  local module="$1"
+  local package="$2"
+  local output="$3"
+  local label="build-${output}"
+  record_command "$label" go build -mod=mod -p=2 -trimpath -buildvcs=false -o "$BIN_DIR/$output" "$package"
+  start="$(date +%s%N)"
+  if ! (cd "$SOURCE_DIR/$module" && timeout 10m go build -mod=mod -p=2 -trimpath -buildvcs=false -o "$BIN_DIR/$output" "$package") >"$RESULT_ABS/operations/$label.stdout" 2>"$RESULT_ABS/operations/$label.stderr"; then
+    printf '%s\t1\n' "$label" >>"$RESULT_ABS/exits.tsv"
+    die "failed to build $output"
+  fi
+  end="$(date +%s%N)"
+  printf '%s\t0\n' "$label" >>"$RESULT_ABS/exits.tsv"
+  printf '%s\t%s\t%s\n' "$label" "$start" "$end" >>"$RESULT_ABS/timings.tsv"
+}
+
+build_binary bus ./cmd/bus bus
+build_binary bus-services ./cmd/bus-services bus-services
+build_binary bus-integration-services ./cmd/bus-integration-services bus-integration-services
+build_binary bus-api ./cmd/bus-api bus-api
+build_binary bus-api-provider-identities ./cmd/bus-api-provider-identities bus-api-provider-identities
+build_binary bus-integration ./cmd/bus-integration bus-integration
+build_binary bus-integration-thread ./cmd/bus-integration-thread bus-integration-thread
+build_binary bus-integration-worker ./cmd/bus-integration-workers bus-integration-workers
+build_binary bus-integration-repos ./cmd/bus-integration-repos bus-integration-repos
+build_binary bus-thread ./cmd/bus-thread bus-thread
+build_binary bus-worker ./cmd/bus-worker bus-worker
+build_binary bus-worker ./cmd/bus-workers bus-workers
+build_binary bus-repos ./cmd/bus-repos bus-repos
+build_binary bus-events ./cmd/bus-events bus-events
+
+SECRET="$(python3 - <<'PY'
+import secrets
+print(secrets.token_hex(32))
+PY
+)"
+PG_SOCKET_DIR="/tmp/busdk-t131-pg-$$"
+mkdir -p "$STACK_DIR/.bus" "$PG_SOCKET_DIR"
+cat >"$STACK_DIR/.env" <<EOF
+BUS_HOST=$BUS_HOST
+BUS_API_JWT_SECRET=$SECRET
+BUS_AUTH_HS256_SECRET=$SECRET
+BUS_SERVICES_BUS_DIR=$STACK_DIR/.bus
+BUS_SERVICES_STACK_DIR=$STACK_DIR
+BUS_SERVICES_LOCAL_EVENTS_TOKEN_TTL_SECONDS=$TTL_SECONDS
+BUS_SERVICES_LOCAL_EVENTS_TOKEN_REFRESH_BEFORE_SECONDS=$RENEW_SECONDS
+BUS_POSTGRES_PORT=5432
+BUS_POSTGRES_PGDATA=$STACK_DIR/postgres/data
+BUS_POSTGRES_SOCKET_DIR=$PG_SOCKET_DIR
+BUS_EVENTS_PORT=8081
+BUS_EVENTS_POSTGRES_DSN=postgres://bus_service@$BUS_HOST:5432/postgres?sslmode=disable
+BUS_EVENTS_URL=$EVENTS_URL
+BUS_IDENTITIES_API_HOST=$BUS_HOST
+BUS_IDENTITIES_API_PORT=8091
+BUS_API_IDENTITIES_API_URL=http://$BUS_HOST:8091
+BUS_API_PORT=8090
+BUS_API_URL=$API_URL
+BUS_WORKERS_API_URL=$API_URL
+BUS_WORKERS_DIRECT_REPO_ROOT=$ROOT_DIR
+BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO=$ROOT_DIR
+BUS_WORKERS_DIRECT_WORKER_ROOT=$STACK_DIR/.bus/services/workers/runtime
+EOF
+unset SECRET
+
+cat >"$STACK_DIR/services.yml" <<EOF
+version: "0"
+env_files:
+  - .env
+profile_dirs:
+  - profiles
+default_services:
+  - postgres
+  - identities
+  - events
+  - repos
+  - workers
+  - threads
+  - api
+services:
+  postgres:
+    profile: postgres/native
+    params:
+      host: $BUS_HOST
+  identities:
+    profile: bus/identities/local
+    params:
+      host: $BUS_HOST
+      listen: $BUS_HOST
+      port: 8091
+  events:
+    profile: bus/events/postgres
+    params:
+      host: $BUS_HOST
+      capability_token: local
+      postgres_host: $BUS_HOST
+      postgres_port: 5432
+    runtime:
+      env:
+        - name: BUS_HOST
+          value: $BUS_HOST
+    depends_on:
+      - identities
+      - postgres
+  repos:
+    profile: bus/repos/local
+    params:
+      host: $BUS_HOST
+      events_url: $EVENTS_URL
+    runtime:
+      options:
+        init:
+          command:
+            - /bin/sh
+          args:
+            - $STACK_DIR/scripts/bus-repos-local-init.sh
+          creates: "{env:BUS_REPOS_CONFIG}"
+    depends_on:
+      - events
+  workers:
+    profile: bus/workers/appserver
+    params:
+      host: $BUS_HOST
+      events_url: $EVENTS_URL
+    depends_on:
+      - events
+      - repos
+  threads:
+    profile: bus/threads/local
+    params:
+      host: $BUS_HOST
+      events_url: $EVENTS_URL
+    depends_on:
+      - events
+  api:
+    profile: bus/api/local
+    params:
+      host: $BUS_HOST
+      capability_token: local
+      providers: workers,thread,repos
+    runtime:
+      env:
+        - name: BUS_HOST
+          value: $BUS_HOST
+    depends_on:
+      - identities
+      - events
+      - repos
+      - workers
+      - threads
+EOF
+
+export PATH="$BIN_DIR:$PG_BIN:$PATH"
+export BUS_INTEGRATION_SERVICES_BIN="$BIN_DIR/bus-integration-services"
+export BUS_SERVICES_TOOL_PATH="$BIN_DIR:$PG_BIN:$PATH"
+export GIT_CEILING_DIRECTORIES="$RESULT_ABS"
+
+if git -C "$STACK_DIR" rev-parse --show-toplevel >/dev/null 2>&1; then
+  die "generated stack fixture unexpectedly resolves inside a Git worktree"
+fi
+
+run_capture fixture-validate "$BIN_DIR/bus-services" stack validate --file "$STACK_DIR/services.yml" --state-dir "$STATE_DIR"
+STACK_STARTED=1
+run_capture_with_timeout services-up 90s "$BIN_DIR/bus-services" up --file "$STACK_DIR/services.yml" --state-dir "$STATE_DIR"
+[[ -s "$TOKEN_FILE" ]] || die "Services did not create the local Events token file"
+
+capture_pids "$RESULT_ABS/pids.initial.tsv"
+cp "$RESULT_ABS/pids.initial.tsv" "$RESULT_ABS/pids.startup.tsv"
+
+run_capture thread-create "$BIN_DIR/bus-thread" --api-url "$EVENTS_URL" --token-file "$TOKEN_FILE" --format json create --title "Thread 131 continuity" --body "short TTL process proof" --author "thread131-harness" --status open
+THREAD_ID="$(jq -r '.thread.thread_id // empty' "$RESULT_ABS/operations/thread-create.stdout")"
+[[ "$THREAD_ID" =~ ^[0-9]+$ ]] || die "Thread create did not return a thread id"
+
+assert_worker_status() {
+  local label="$1"
+  local expected_worker_id="$2"
+  jq -e --arg worker_id "$expected_worker_id" '
+    .id == $worker_id and
+    .environment_id == "local" and
+    (.status | type == "string" and length > 0)
+  ' "$RESULT_ABS/operations/$label.stdout" >/dev/null || die "$label returned unexpected Worker identity"
+}
+
+assert_worker_message() {
+  local label="$1"
+  local expected_worker_id="$2"
+  local expected_message_id="$3"
+  local expected_text="$4"
+  jq -e --arg worker_id "$expected_worker_id" --arg message_id "$expected_message_id" --arg text "$expected_text" '
+    .worker_id == $worker_id and
+    .environment_id == "local" and
+    .message_id == $message_id and
+    .text == $text and
+    .status == "accepted" and
+    .direction == "operator_to_worker" and
+    .role == "operator"
+  ' "$RESULT_ABS/operations/$label.stdout" >/dev/null || die "$label returned unexpected Worker message semantics"
+}
+
+assert_thread_show() {
+  local label="$1"
+  local expected_thread_id="$2"
+  local expected_marker="$3"
+  jq -e --argjson thread_id "$expected_thread_id" --arg marker "$expected_marker" '
+    .thread.thread_id == $thread_id and
+    .thread.root_thread_id == $thread_id and
+    any(.thread.messages[]?;
+      .thread_id == $thread_id and
+      .text == $marker and
+      .author.id == "thread131-harness"
+    )
+  ' "$RESULT_ABS/operations/$label.stdout" >/dev/null || die "$label returned unexpected Thread semantics"
+}
+
+WORKER_ID="thread131-continuity"
+run_capture worker-create "$BIN_DIR/bus-workers" --api-url "$API_URL" --token-file "$TOKEN_FILE" --format json create --id "$WORKER_ID" --label "Thread 131 continuity" --type human --profile human --environment local
+assert_worker_status worker-create "$WORKER_ID"
+run_capture worker-initial-status "$BIN_DIR/bus-workers" --api-url "$API_URL" --token-file "$TOKEN_FILE" --format json status "$WORKER_ID" --environment local
+assert_worker_status worker-initial-status "$WORKER_ID"
+INITIAL_REPO_PATH="$STACK_DIR/.bus/repos/storage/product.git"
+[[ -f "$INITIAL_REPO_PATH/HEAD" ]] && [[ "$(git --git-dir="$INITIAL_REPO_PATH" rev-parse --is-bare-repository 2>/dev/null)" == "true" ]] || die "Repos service did not materialize its initial bare product repository"
+printf 'initial\t%s\tproduct\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$INITIAL_REPO_PATH" >"$RESULT_ABS/repos-materialization.tsv"
+
+record_command subscription-start "$BIN_DIR/bus-events" --api-url "$EVENTS_URL" --token-file "$TOKEN_FILE" --timeout 45s listen --name bus.thread.message
+"$BIN_DIR/bus-events" --api-url "$EVENTS_URL" --token-file "$TOKEN_FILE" --timeout 45s listen --name bus.thread.message >"$RESULT_ABS/subscription.ndjson" 2>"$RESULT_ABS/subscription.stderr" &
+SUBSCRIPTION_PID=$!
+sleep 0.2
+owned_pid_running "$SUBSCRIPTION_PID" || die "subscription process did not remain open"
+
+token_metadata() {
+  local label="$1"
+  local size mtime
+  TOKEN_HASH="$(sha256sum "$TOKEN_FILE" | awk '{print $1}')"
+  read -r TOKEN_INODE size mtime < <(stat -c '%i %s %Y' "$TOKEN_FILE")
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$label" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$TOKEN_HASH" "$TOKEN_INODE" "$size" "$mtime" >>"$RESULT_ABS/rotations.tsv"
+}
+
+wait_for_rotation() {
+  local prior_hash="$1"
+  local deadline=$((SECONDS + TTL_SECONDS + RENEW_SECONDS + 10))
+  local current_hash
+  WAITED_HASH=""
+  while ((SECONDS < deadline)); do
+    if [[ -s "$TOKEN_FILE" ]]; then
+      current_hash="$(sha256sum "$TOKEN_FILE" | awk '{print $1}')"
+      [[ "$current_hash" != "$prior_hash" ]] && { WAITED_HASH="$current_hash"; return; }
+    fi
+    sleep 0.1
+  done
+  return 1
+}
+
+wait_for_subscription_marker() {
+  local marker="$1"
+  local expected_thread_id="$2"
+  local deadline=$((SECONDS + 10))
+  while ((SECONDS < deadline)); do
+    if jq -e --arg marker "$marker" --argjson thread_id "$expected_thread_id" '
+      select(
+        .name == "bus.thread.message" and
+        .payload.thread_id == $thread_id and
+        .payload.text == $marker and
+        .payload.author.id == "thread131-harness"
+      )
+    ' "$RESULT_ABS/subscription.ndjson" >/dev/null 2>&1; then
+      return 0
+    fi
+    owned_pid_running "$SUBSCRIPTION_PID" || return 1
+    sleep 0.1
+  done
+  return 1
+}
+
+wait_for_repo_materialization() {
+  local label="$1"
+  local repo_id="$2"
+  local repo_path="$STACK_DIR/.bus/repos/storage/$repo_id.git"
+  local deadline=$((SECONDS + 15))
+  while ((SECONDS < deadline)); do
+    if [[ -f "$repo_path/HEAD" ]] && [[ "$(git --git-dir="$repo_path" rev-parse --is-bare-repository 2>/dev/null)" == "true" ]]; then
+      printf '%s\t%s\t%s\t%s\n' "$label" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$repo_id" "$repo_path" >>"$RESULT_ABS/repos-materialization.tsv"
+      return 0
+    fi
+    sleep 0.1
+  done
+  return 1
+}
+
+token_metadata initial
+INITIAL_HASH="$TOKEN_HASH"
+INITIAL_INODE="$TOKEN_INODE"
+READINESS_MARKER="thread131-readiness-$THREAD_ID-$(date +%s%N)"
+run_capture subscription-readiness-send "$BIN_DIR/bus-thread" --api-url "$EVENTS_URL" --token-file "$TOKEN_FILE" send "$THREAD_ID" --author thread131-harness "$READINESS_MARKER"
+wait_for_subscription_marker "$READINESS_MARKER" "$THREAD_ID" || die "already-open subscription missed its readiness marker"
+token_metadata subscription-ready
+READY_HASH="$TOKEN_HASH"
+READY_INODE="$TOKEN_INODE"
+[[ "$READY_HASH" == "$INITIAL_HASH" ]] || die "credential changed before subscription readiness was proven"
+printf 'thread_id\t%s\nmarker\t%s\nhash_before\t%s\nhash_after\t%s\nstatus\tobserved\n' \
+  "$THREAD_ID" "$READINESS_MARKER" "$INITIAL_HASH" "$READY_HASH" >"$RESULT_ABS/subscription.tsv"
+capture_pids "$RESULT_ABS/pids.initial.tsv"
+
+previous_hash="$READY_HASH"
+previous_inode="$READY_INODE"
+for rotation in 1 2; do
+  wait_for_rotation "$previous_hash" || die "timed out waiting for credential rotation $rotation"
+  token_metadata "rotation-$rotation"
+  [[ "$WAITED_HASH" == "$TOKEN_HASH" ]] || die "credential changed again while recording rotation $rotation"
+  [[ "$TOKEN_HASH" != "$previous_hash" ]] || die "credential rotation $rotation reused the prior token hash"
+  [[ "$TOKEN_INODE" != "$previous_inode" ]] || die "credential rotation $rotation did not atomically replace the token inode"
+  previous_hash="$TOKEN_HASH"
+  previous_inode="$TOKEN_INODE"
+
+  capture_pids "$RESULT_ABS/pids.rotation-$rotation.tsv"
+  assert_same_pids "$RESULT_ABS/pids.initial.tsv" "$RESULT_ABS/pids.rotation-$rotation.tsv"
+
+  marker="thread131-rotation-$rotation"
+  run_capture "thread-send-$rotation" "$BIN_DIR/bus-thread" --api-url "$EVENTS_URL" --token-file "$TOKEN_FILE" send "$THREAD_ID" --author thread131-harness "$marker"
+  run_capture "thread-show-$rotation" "$BIN_DIR/bus-thread" --api-url "$EVENTS_URL" --token-file "$TOKEN_FILE" --format json show "$THREAD_ID" --latest 2
+  assert_thread_show "thread-show-$rotation" "$THREAD_ID" "$marker"
+  wait_for_subscription_marker "$marker" "$THREAD_ID" || die "already-open subscription missed $marker"
+
+  run_capture "worker-status-$rotation" "$BIN_DIR/bus-workers" --api-url "$API_URL" --token-file "$TOKEN_FILE" --format json status "$WORKER_ID" --environment local
+  assert_worker_status "worker-status-$rotation" "$WORKER_ID"
+  run_capture "worker-message-$rotation" "$BIN_DIR/bus-workers" --api-url "$API_URL" --token-file "$TOKEN_FILE" --format json message "$WORKER_ID" --text "continuity-$rotation" --message-id "thread131-message-$rotation" --environment local
+  assert_worker_message "worker-message-$rotation" "$WORKER_ID" "thread131-message-$rotation" "continuity-$rotation"
+
+  repo_id="thread131-rotation-$rotation"
+  run_capture "repos-create-$rotation" "$BIN_DIR/bus-events" --api-url "$EVENTS_URL" --token-file "$TOKEN_FILE" send --name bus.repos.catalog.repo.create.request --payload "{\"id\":\"$repo_id\",\"group\":\"local\",\"name\":\"Thread 131 rotation $rotation\",\"default_branch\":\"main\"}"
+  run_capture "repos-init-$rotation" "$BIN_DIR/bus-events" --api-url "$EVENTS_URL" --token-file "$TOKEN_FILE" send --name bus.repos.init.request --payload "{\"repo_id\":\"$repo_id\",\"default_base_ref\":\"main\"}"
+  wait_for_repo_materialization "rotation-$rotation" "$repo_id" || die "Repos process did not materialize $repo_id"
+done
+
+verify_retained_repositories 1 || die "retained Repos evidence is incomplete or not bare"
+audit_retained_artifacts || die "retained artifact audit found credential failure or secret leakage"
+
+FINAL_STATUS="passed"
+printf 'PASS credential continuity %s\n' "$MODE"
