@@ -363,6 +363,81 @@ is_dirty() {
   [ -n "$(git -C "$1" status --porcelain 2>/dev/null)" ]
 }
 
+superproject_is_clean_or_has_only_safe_submodule_drift() {
+  local path
+  local head_mode
+  local index_mode
+  local recorded_rev
+  local head_rev
+
+  if ! is_dirty "."; then
+    return 0
+  fi
+
+  for path in "${submodule_paths[@]}"; do
+    [ -d "$path" ] || continue
+    is_own_worktree "$path" || continue
+    if has_rebase_or_merge "$path"; then
+      echo "warning: cannot pull superproject first: submodule $path has merge/rebase/cherry-pick in progress" >&2
+      return 1
+    fi
+    if [ -n "$(git -C "$path" ls-files -u 2>/dev/null)" ]; then
+      echo "warning: cannot pull superproject first: submodule $path has unresolved conflicts" >&2
+      return 1
+    fi
+    if is_dirty "$path"; then
+      echo "warning: cannot pull superproject first: submodule $path has uncommitted or untracked changes" >&2
+      return 1
+    fi
+  done
+
+  if ! git diff --cached --quiet; then
+    echo "warning: cannot pull superproject first: working tree has staged changes" >&2
+    return 1
+  fi
+  if git diff --quiet; then
+    echo "warning: cannot pull superproject first: working tree has uncommitted changes" >&2
+    return 1
+  fi
+
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    head_mode="$(git ls-tree HEAD -- "$path" | awk '{ print $1; exit }')"
+    index_mode="$(git ls-files -s -- "$path" | awk '{ print $1; exit }')"
+    if [ "$head_mode" != "160000" ] || [ "$index_mode" != "160000" ] ||
+      ! submodule_key_for_path "$path" >/dev/null; then
+      echo "warning: cannot pull superproject first: working tree has uncommitted changes" >&2
+      return 1
+    fi
+    if [ ! -d "$path" ] || ! is_own_worktree "$path"; then
+      echo "warning: cannot pull superproject first: submodule $path is not initialized as its own worktree" >&2
+      return 1
+    fi
+    if has_rebase_or_merge "$path"; then
+      echo "warning: cannot pull superproject first: submodule $path has merge/rebase/cherry-pick in progress" >&2
+      return 1
+    fi
+    if [ -n "$(git -C "$path" ls-files -u 2>/dev/null)" ]; then
+      echo "warning: cannot pull superproject first: submodule $path has unresolved conflicts" >&2
+      return 1
+    fi
+    if is_dirty "$path"; then
+      echo "warning: cannot pull superproject first: submodule $path has uncommitted or untracked changes" >&2
+      return 1
+    fi
+    recorded_rev="$(git rev-parse ":$path" 2>/dev/null || true)"
+    head_rev="$(git -C "$path" rev-parse HEAD 2>/dev/null || true)"
+    if [ -z "$recorded_rev" ] || [ -z "$head_rev" ] ||
+      ! git -C "$path" cat-file -e "$recorded_rev^{commit}" 2>/dev/null ||
+      ! git -C "$path" merge-base --is-ancestor "$recorded_rev" "$head_rev" 2>/dev/null; then
+      echo "warning: cannot pull superproject first: submodule $path HEAD is not safely ahead of its recorded gitlink" >&2
+      return 1
+    fi
+  done < <(git diff --name-only)
+
+  return 0
+}
+
 print_log() {
   local file="$1"
   if [ -s "$file" ]; then
@@ -785,8 +860,7 @@ pull_superproject_before_submodules() {
     echo "warning: cannot pull superproject first: branch $branch has no upstream" >&2
     return 1
   fi
-  if is_dirty "."; then
-    echo "warning: cannot pull superproject first: working tree has uncommitted changes" >&2
+  if ! superproject_is_clean_or_has_only_safe_submodule_drift; then
     return 1
   fi
 
