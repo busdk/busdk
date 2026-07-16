@@ -360,7 +360,7 @@ current_upstream() {
 }
 
 is_dirty() {
-  [ -n "$(git -C "$1" status --porcelain 2>/dev/null)" ]
+  [ -n "$(git -C "$1" status --porcelain --ignore-submodules=none 2>/dev/null)" ]
 }
 
 superproject_is_clean_or_has_only_safe_submodule_drift() {
@@ -369,10 +369,6 @@ superproject_is_clean_or_has_only_safe_submodule_drift() {
   local index_mode
   local recorded_rev
   local head_rev
-
-  if ! is_dirty "."; then
-    return 0
-  fi
 
   for path in "${submodule_paths[@]}"; do
     [ -d "$path" ] || continue
@@ -391,11 +387,36 @@ superproject_is_clean_or_has_only_safe_submodule_drift() {
     fi
   done
 
-  if ! git diff --cached --quiet; then
+  if ! is_dirty "."; then
+    return 0
+  fi
+
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    echo "warning: cannot pull superproject first: superproject path $path is untracked" >&2
+    return 1
+  done < <(git ls-files --others --exclude-standard)
+
+  if ! git diff --cached --quiet --ignore-submodules=none; then
+    while IFS= read -r path; do
+      [ -n "$path" ] || continue
+      head_mode="$(git ls-tree HEAD -- "$path" | awk '{ print $1; exit }')"
+      index_mode="$(git ls-files -s -- "$path" | awk '{ print $1; exit }')"
+      if submodule_key_for_path "$path" >/dev/null; then
+        if [ "$head_mode" = "160000" ] && [ "$index_mode" = "160000" ]; then
+          echo "warning: cannot pull superproject first: submodule $path has staged gitlink changes" >&2
+        else
+          echo "warning: cannot pull superproject first: declared submodule $path has staged non-gitlink changes" >&2
+        fi
+      else
+        echo "warning: cannot pull superproject first: superproject path $path has staged changes" >&2
+      fi
+      return 1
+    done < <(git diff --cached --name-only --ignore-submodules=none)
     echo "warning: cannot pull superproject first: working tree has staged changes" >&2
     return 1
   fi
-  if git diff --quiet; then
+  if git diff --quiet --ignore-submodules=none; then
     echo "warning: cannot pull superproject first: working tree has uncommitted changes" >&2
     return 1
   fi
@@ -404,9 +425,12 @@ superproject_is_clean_or_has_only_safe_submodule_drift() {
     [ -n "$path" ] || continue
     head_mode="$(git ls-tree HEAD -- "$path" | awk '{ print $1; exit }')"
     index_mode="$(git ls-files -s -- "$path" | awk '{ print $1; exit }')"
-    if [ "$head_mode" != "160000" ] || [ "$index_mode" != "160000" ] ||
-      ! submodule_key_for_path "$path" >/dev/null; then
-      echo "warning: cannot pull superproject first: working tree has uncommitted changes" >&2
+    if ! submodule_key_for_path "$path" >/dev/null; then
+      echo "warning: cannot pull superproject first: superproject path $path has uncommitted changes" >&2
+      return 1
+    fi
+    if [ "$head_mode" != "160000" ] || [ "$index_mode" != "160000" ]; then
+      echo "warning: cannot pull superproject first: declared submodule $path has unstaged non-gitlink changes" >&2
       return 1
     fi
     if [ ! -d "$path" ] || ! is_own_worktree "$path"; then
@@ -433,7 +457,7 @@ superproject_is_clean_or_has_only_safe_submodule_drift() {
       echo "warning: cannot pull superproject first: submodule $path HEAD is not safely ahead of its recorded gitlink" >&2
       return 1
     fi
-  done < <(git diff --name-only)
+  done < <(git diff --name-only --ignore-submodules=none)
 
   return 0
 }
@@ -574,7 +598,7 @@ cached_changes_are_only_submodule_pins() {
   local head_mode
   local index_mode
 
-  if git diff --cached --quiet; then
+  if git diff --cached --quiet --ignore-submodules=none; then
     return 1
   fi
 
@@ -584,7 +608,7 @@ cached_changes_are_only_submodule_pins() {
     index_mode="$(git ls-files -s -- "$path" | awk '{ print $1; exit }')"
     [ "$head_mode" = "160000" ] || return 1
     [ "$index_mode" = "160000" ] || return 1
-  done < <(git diff --cached --name-only)
+  done < <(git diff --cached --name-only --ignore-submodules=none)
 }
 
 unstaged_changes_are_only_clean_submodule_pins() {
@@ -592,7 +616,7 @@ unstaged_changes_are_only_clean_submodule_pins() {
   local head_mode
   local index_mode
 
-  if git diff --quiet; then
+  if git diff --quiet --ignore-submodules=none; then
     return 1
   fi
 
@@ -607,7 +631,7 @@ unstaged_changes_are_only_clean_submodule_pins() {
     is_own_worktree "$path" || return 1
     has_rebase_or_merge "$path" && return 1
     is_dirty "$path" && return 1
-  done < <(git diff --name-only)
+  done < <(git diff --name-only --ignore-submodules=none)
 
   return 0
 }
@@ -620,7 +644,7 @@ stage_unstaged_submodule_pins() {
   while IFS= read -r path; do
     [ -n "$path" ] || continue
     pathspecs+=("$path")
-  done < <(git diff --name-only)
+  done < <(git diff --name-only --ignore-submodules=none)
 
   [ "${#pathspecs[@]}" -gt 0 ] || return 0
   git add -- "${pathspecs[@]}"
@@ -628,10 +652,10 @@ stage_unstaged_submodule_pins() {
 
 commit_promoted_submodule_pins() {
   [ "$do_push" -eq 1 ] || return 0
-  if ! git diff --cached --quiet && ! cached_changes_are_only_submodule_pins; then
+  if ! git diff --cached --quiet --ignore-submodules=none && ! cached_changes_are_only_submodule_pins; then
     return 0
   fi
-  if ! git diff --quiet; then
+  if ! git diff --quiet --ignore-submodules=none; then
     unstaged_changes_are_only_clean_submodule_pins || return 0
     stage_unstaged_submodule_pins || return 0
   fi
