@@ -51,6 +51,8 @@ tmp/
 .bus/bus-factory/ai-state.json
 .bus/bus-top/
 .bus/services/
+.bus/workers/
+scratch/gocache/
 logs/*.log
 logs/
 work/
