@@ -465,8 +465,14 @@ verify_composed_tip_contains() {
 }
 
 scenario_json() {
-  cat <<EOF
+  if [ "$CASE_ID" = "composed" ]; then
+    cat <<EOF
 {"format":"$(json_escape "$TUPLE_FORMAT")","resolver":"$(json_escape "$BUS_GATE2_RESOLVER_SHA256:$BUS_GATE2_RESOLVER_SIZE")","bundle":"$(json_escape "$BUS_GATE2_BUNDLE_DIR_SHA256:$BUS_GATE2_BUNDLE_DIR_SIZE")","kernel":"$(json_escape "$BUS_GATE2_KERNEL_SHA256:$BUS_GATE2_KERNEL_SIZE")","rootfs":"$(json_escape "$BUS_GATE2_ROOTFS_SHA256:$BUS_GATE2_ROOTFS_SIZE")","qemu_js":"$(json_escape "$BUS_GATE2_QEMU_JS_SHA256:$BUS_GATE2_QEMU_JS_SIZE")","qemu_wasm":"$(json_escape "$BUS_GATE2_QEMU_WASM_SHA256:$BUS_GATE2_QEMU_WASM_SIZE")","heavy_lock_path":"$(json_escape "$(heavy_lock_expected_path)")","heavy_lock_non_overlap":true,"g4_network":"none","g4_timeout_ms":1200000,"g4_outer_seconds":1260,"qemu_args":["-device","virtio-rng-device"],"console_readiness_marker":"bus-engine-os login:","console_duplex_primary_serial":true,"storage_marker":"$(json_escape "$BUS_GATE2_STORAGE_MARKER")"}
+EOF
+    return
+  fi
+  cat <<EOF
+{"format":"$(json_escape "$TUPLE_FORMAT")","resolver":"$(json_escape "$BUS_GATE2_RESOLVER_SHA256:$BUS_GATE2_RESOLVER_SIZE")","bundle":"$(json_escape "$BUS_GATE2_BUNDLE_DIR_SHA256:$BUS_GATE2_BUNDLE_DIR_SIZE")","kernel":"$(json_escape "$BUS_GATE2_KERNEL_SHA256:$BUS_GATE2_KERNEL_SIZE")","rootfs":"$(json_escape "$BUS_GATE2_ROOTFS_SHA256:$BUS_GATE2_ROOTFS_SIZE")","qemu_js":"$(json_escape "$BUS_GATE2_QEMU_JS_SHA256:$BUS_GATE2_QEMU_JS_SIZE")","qemu_wasm":"$(json_escape "$BUS_GATE2_QEMU_WASM_SHA256:$BUS_GATE2_QEMU_WASM_SIZE")","heavy_lock_path":"$(json_escape "$(heavy_lock_expected_path)")","heavy_lock_non_overlap":true,"g4_network":"none","g4_timeout_ms":1200000,"g4_outer_seconds":1260,"qemu_args":["-device","virtio-rng-device"],"serial_after":"QEMU_WASM_SNAPSHOT_READY","serial_text_sha256":"$(json_escape "$BUS_GATE2_G4_SERIAL_INPUT_SHA256")","storage_marker":"$(json_escape "$BUS_GATE2_STORAGE_MARKER")"}
 EOF
 }
 
@@ -690,6 +696,9 @@ validate_identity_inputs() {
   require_40hex BUS_GATE2_T154_CANDIDATE_COMMIT
   require_40hex BUS_GATE2_T66_TIP_COMMIT
   require_docker_id BUS_GATE2_BROWSER_IMAGE_ID
+  if [ "$CASE_ID" != "composed" ]; then
+    require_64hex BUS_GATE2_G4_SERIAL_INPUT_SHA256
+  fi
   validate_case_binding
 
   require_artifact BUS_GATE2_KERNEL BUS_GATE2_KERNEL_SIZE BUS_GATE2_KERNEL_SHA256
@@ -706,6 +715,9 @@ validate_identity_inputs() {
   require_var BUS_GATE2_G4_CONTAINER_NAME
   require_var BUS_GATE2_STORAGE_MARKER
   require_var BUS_GATE2_CHROMIUM_TAG
+  if [ "$CASE_ID" != "composed" ]; then
+    require_path_file BUS_GATE2_G4_SERIAL_INPUT_FILE
+  fi
   validate_heavy_lock_non_overlap >/dev/null
 
   scenario=$(scenario_json | LC_ALL=C tr -d '\n')
@@ -903,9 +915,9 @@ finish_parent_failure() {
 
 write_tuple_from_result() {
   local chromium_dir=$1
-  python3 - "$chromium_dir/result.json" "$chromium_dir/console-runtime.log" "$RESULT_DIR/tuple.json" "$TUPLE_FORMAT" "$BUS_GATE2_SCENARIO_DIGEST" "$BUS_GATE2_BROWSER_IMAGE_ID" "$BUS_GATE2_CHROMIUM_TAG" <<'PY'
+  python3 - "$chromium_dir/result.json" "$chromium_dir/console-runtime.log" "$RESULT_DIR/tuple.json" "$TUPLE_FORMAT" "$BUS_GATE2_SCENARIO_DIGEST" "$BUS_GATE2_BROWSER_IMAGE_ID" "$BUS_GATE2_CHROMIUM_TAG" "$CASE_ID" <<'PY'
 import json, sys
-result_path, console_path, out_path, fmt, digest, image_id, image_tag = sys.argv[1:8]
+result_path, console_path, out_path, fmt, digest, image_id, image_tag, case_id = sys.argv[1:9]
 with open(result_path, encoding="utf-8") as f:
     doc = json.load(f)
 with open(console_path, encoding="utf-8", errors="replace") as f:
@@ -1011,11 +1023,20 @@ if not doc["storage"]["write_read"].get("digest") or not doc["storage"]["write_r
 if not doc.get("chromium", {}).get("version"):
     raise SystemExit("missing chromium version")
 timings = doc.get("timings_ms", {})
-for key in ("container_start", "browser_start", "qemu_start", "multi_user", "login", "storage", "network", "roundtrip", "total"):
+if case_id == "composed":
+    timing_keys = ("container_start", "browser_start", "qemu_start", "multi_user", "login", "storage", "network", "roundtrip", "total")
+else:
+    timing_keys = ("container_start", "browser_start", "qemu_start", "snapshot_ready", "release", "identity", "multi_user", "login", "storage", "network", "roundtrip", "total")
+for key in timing_keys:
     if key not in timings or not isinstance(timings[key], int) or timings[key] < 0:
         raise SystemExit(f"missing timing: {key}")
 if not doc.get("cleanup", {}).get("evidence_files"):
     raise SystemExit("missing cleanup evidence files")
+if case_id != "composed":
+    if doc.get("console", {}).get("release", {}).get("bytes") != 26:
+        raise SystemExit("release bytes invariant failed")
+    if doc["console"]["release"].get("attempts") != 1 or doc["console"]["release"].get("failures") != 0 or doc["console"]["release"].get("write_status") != 26:
+        raise SystemExit("release write invariant failed")
 if any(doc.get("chromium", {}).get("host_ports", [])) or any(doc.get("network", {}).get("host_ports", [])):
     raise SystemExit("host ports must be empty")
 if doc.get("secrets", {}).get("injection_events", []) != []:
@@ -1049,7 +1070,11 @@ run_g1() {
   done
   gate=g1-qemu-wasm-prepare-tuxboot-smoke-guest-test
   gate_argv_at "$BUS_GATE2_QEMU_ROOT" "$gate" "$out" python3 scripts/ci/wasm-prepare-tuxboot-smoke-guest-test.py || finish_parent_failure "$gate" "$out/${gate}.stderr"
-  for flag in --serial-input-after-text --serial-input-text --pre-serial-input-wait-ms --qemu-arg; do
+  local flags=(--qemu-arg)
+  if [ "$CASE_ID" != "composed" ]; then
+    flags=(--serial-input-after-text --serial-input-text --pre-serial-input-wait-ms "${flags[@]}")
+  fi
+  for flag in "${flags[@]}"; do
     gate="g1-qemu-presence-${flag#--}-gate"
     gate_argv_at "$BUS_GATE2_QEMU_ROOT" "$gate" "$out" rg -F -- "$flag" scripts/ci/wasm-browser-cdp-gate.mjs || finish_parent_failure "$gate" "$out/${gate}.stderr"
     gate="g1-qemu-presence-${flag#--}-test"
@@ -1130,7 +1155,11 @@ EOF
   mkdir -p "$RESULT_DIR/chromium"
   gate=g4-chromium
   G4_STARTED=1
-  gate_argv_at "$ROOT_DIR" "$gate" "$RESULT_DIR/chromium" timeout 1260s docker run --rm --name "$BUS_GATE2_G4_CONTAINER_NAME" --label "bus.thread=42" --label "bus.evidence=$TUPLE_FORMAT" --network bridge --user 1000:1000 --cap-add SYS_ADMIN --read-only --tmpfs /tmp:rw,nosuid,nodev,size=1g --shm-size 1g --workdir /workspace --mount type=bind,src="$BUS_GATE2_QEMU_ROOT",dst=/workspace,readonly --mount type=bind,src="$BUS_GATE2_BUNDLE_DIR",dst=/bundle,readonly --mount type=bind,src="$RESULT_DIR/chromium",dst=/out "$BUS_GATE2_BROWSER_IMAGE_ID" node scripts/ci/wasm-browser-cdp-gate.mjs --artifact-dir /bundle/artifacts --guest-manifest /bundle/browser-hosted-manifest.json --firmware-dir /bundle/firmware --kernel /bundle/guest/kernel --rootfs /bundle/guest/rootfs.raw --target-arch riscv64 --machine virt --memory 512M --rootfs-device virtio-mmio --network none --marker 'bus-engine-os login:' --expect-text 'QEMU_WASM_SERVICE_READY' --expect-text 'bus-engine-os-browser-http-proof: http-ok' --expect-text "$BUS_GATE2_STORAGE_MARKER" --timeout-ms 1200000 --max-output-bytes 4000000 --host 127.0.0.1 --port 8160 --cdp-port 9222 --chrome /usr/bin/chromium --qemu-arg -device --qemu-arg virtio-rng-device --out /out/result.json || finish_parent_failure "$gate" "$RESULT_DIR/chromium/${gate}.stderr"
+  if [ "$CASE_ID" = "composed" ]; then
+    gate_argv_at "$ROOT_DIR" "$gate" "$RESULT_DIR/chromium" timeout 1260s docker run --rm --name "$BUS_GATE2_G4_CONTAINER_NAME" --label "bus.thread=42" --label "bus.evidence=$TUPLE_FORMAT" --network bridge --user 1000:1000 --cap-add SYS_ADMIN --read-only --tmpfs /tmp:rw,nosuid,nodev,size=1g --shm-size 1g --workdir /workspace --mount type=bind,src="$BUS_GATE2_QEMU_ROOT",dst=/workspace,readonly --mount type=bind,src="$BUS_GATE2_BUNDLE_DIR",dst=/bundle,readonly --mount type=bind,src="$RESULT_DIR/chromium",dst=/out "$BUS_GATE2_BROWSER_IMAGE_ID" node scripts/ci/wasm-browser-cdp-gate.mjs --artifact-dir /bundle/artifacts --guest-manifest /bundle/browser-hosted-manifest.json --firmware-dir /bundle/firmware --kernel /bundle/guest/kernel --rootfs /bundle/guest/rootfs.raw --target-arch riscv64 --machine virt --memory 512M --rootfs-device virtio-mmio --network none --marker 'bus-engine-os login:' --expect-text 'QEMU_WASM_SERVICE_READY' --expect-text 'bus-engine-os-browser-http-proof: http-ok' --expect-text "$BUS_GATE2_STORAGE_MARKER" --timeout-ms 1200000 --max-output-bytes 4000000 --host 127.0.0.1 --port 8160 --cdp-port 9222 --chrome /usr/bin/chromium --qemu-arg -device --qemu-arg virtio-rng-device --out /out/result.json || finish_parent_failure "$gate" "$RESULT_DIR/chromium/${gate}.stderr"
+  else
+    gate_argv_at "$ROOT_DIR" "$gate" "$RESULT_DIR/chromium" timeout 1260s docker run --rm --name "$BUS_GATE2_G4_CONTAINER_NAME" --label "bus.thread=42" --label "bus.evidence=$TUPLE_FORMAT" --network bridge --user 1000:1000 --cap-add SYS_ADMIN --read-only --tmpfs /tmp:rw,nosuid,nodev,size=1g --shm-size 1g --workdir /workspace --mount type=bind,src="$BUS_GATE2_QEMU_ROOT",dst=/workspace,readonly --mount type=bind,src="$BUS_GATE2_BUNDLE_DIR",dst=/bundle,readonly --mount type=bind,src="$RESULT_DIR/chromium",dst=/out "$BUS_GATE2_BROWSER_IMAGE_ID" node scripts/ci/wasm-browser-cdp-gate.mjs --artifact-dir /bundle/artifacts --guest-manifest /bundle/browser-hosted-manifest.json --firmware-dir /bundle/firmware --kernel /bundle/guest/kernel --rootfs /bundle/guest/rootfs.raw --target-arch riscv64 --machine virt --memory 512M --rootfs-device virtio-mmio --network none --marker 'bus-engine-os login:' --expect-text 'QEMU_WASM_SNAPSHOT_RELEASED' --expect-text 'bus-engine-os-first-resume-identity: identity-evidence' --expect-text 'QEMU_WASM_SERVICE_READY' --expect-text 'bus-engine-os-browser-http-proof: http-ok' --expect-text "$BUS_GATE2_STORAGE_MARKER" --serial-input-after-text 'QEMU_WASM_SNAPSHOT_READY' --serial-input-text $'QEMU_WASM_RESUME_CONTINUE\n' --pre-serial-input-wait-ms 500 --timeout-ms 1200000 --max-output-bytes 4000000 --host 127.0.0.1 --port 8160 --cdp-port 9222 --chrome /usr/bin/chromium --qemu-arg -device --qemu-arg virtio-rng-device --out /out/result.json || finish_parent_failure "$gate" "$RESULT_DIR/chromium/${gate}.stderr"
+  fi
   cleanup_g4
   G4_STARTED=0
   gate=g4-generated-exec-proof
@@ -1195,7 +1224,7 @@ self_test() {
   trap 'rm -rf "$SELF_TMP"' RETURN
   TMPDIR=$SELF_TMP
   export TMPDIR
-  local artifact_dir="$SELF_TMP/artifacts" busdk_root="$SELF_TMP/busdk" qemu_root="$SELF_TMP/qemu" os_root="$SELF_TMP/beo" codex_root="$SELF_TMP/codex" out="$SELF_TMP/out"
+  local harness_root=$ROOT_DIR artifact_dir="$SELF_TMP/artifacts" busdk_root="$SELF_TMP/busdk" qemu_root="$SELF_TMP/qemu" os_root="$SELF_TMP/beo" codex_root="$SELF_TMP/codex" out="$SELF_TMP/out"
   local heavy_lock_dir="$SELF_TMP/busdk-worker-guard-$(id -u)" heavy_lock_fd heavy_lock_path heavy_lock_readback wrong_lock_fd
   local busdk_t50_parent_commit busdk_t50_candidate_commit busdk_t64_candidate_commit busdk_composed_commit
   local h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11
@@ -1268,7 +1297,7 @@ self_test() {
   git -C "$qemu_root" checkout -q "$h11"
   git -C "$busdk_root" checkout -q "$busdk_composed_commit"
   mkdir -p "$artifact_dir" "$qemu_root/scripts/ci" "$os_root/scripts" "$codex_root" "$artifact_dir/bundle"
-  for f in kernel rootfs qemu.js qemu.wasm export.json package.json release.json; do self_write_file "$artifact_dir/$f" "$f"; done
+  for f in kernel rootfs qemu.js qemu.wasm export.json package.json release.json serial.txt; do self_write_file "$artifact_dir/$f" "$f"; done
   cat >"$artifact_dir/ledger.json" <<'EOF'
 {"format":"bus-engine-os-chromium-vertical-slice-evidence-v1","containment":true,"ordered_down":true,"zero_survivors":true,"truthful_telemetry":true,"control_api_responsive":true,"supervisor_accepted":true}
 EOF
@@ -1307,23 +1336,24 @@ EOF
   assert_fail "bundle path contains newline" bundle_identity "$collision_one"
   collision_two_identity=$(bundle_identity "$collision_two")
   [ -n "$collision_two_identity" ] || die "non-delimited bundle identity missing"
-  BUS_GATE2_G4_CONTAINER_NAME=bus-gate2-selftest BUS_GATE2_STORAGE_MARKER=storage-marker
+  BUS_GATE2_G4_CONTAINER_NAME=bus-gate2-selftest BUS_GATE2_STORAGE_MARKER=storage-marker BUS_GATE2_G4_SERIAL_INPUT_FILE=$artifact_dir/serial.txt BUS_GATE2_G4_SERIAL_INPUT_SHA256=$(sha256_file "$artifact_dir/serial.txt")
   export BUS_GATE2_BUSDK_COMMIT BUS_GATE2_BUS_ENGINE_OS_ROOT BUS_GATE2_BUS_ENGINE_OS_COMMIT BUS_GATE2_BUS_ENGINE_OS_SUBMODULE_PATH BUS_GATE2_QEMU_ROOT BUS_GATE2_QEMU_COMMIT BUS_GATE2_OPENAI_CODEX_ROOT BUS_GATE2_OPENAI_CODEX_COMMIT
   export BUS_GATE2_T50_PARENT_COMMIT BUS_GATE2_T50_CANDIDATE_COMMIT BUS_GATE2_T64_PARENT_COMMIT BUS_GATE2_T64_CANDIDATE_COMMIT BUS_GATE2_T65_PARENT_COMMIT BUS_GATE2_T65_CANDIDATE_COMMIT BUS_GATE2_T154_PARENT_COMMIT BUS_GATE2_T154_CANDIDATE_COMMIT BUS_GATE2_T66_TIP_COMMIT BUS_GATE2_ACTIVE_SOURCE_OWNER BUS_GATE2_ACTIVE_SOURCE_COMMIT
-  export BUS_GATE2_BROWSER_IMAGE_ID BUS_GATE2_CHROMIUM_TAG BUS_GATE2_RELEASE_LEDGER BUS_GATE2_HEAVY_LOCK_FD BUS_GATE2_BUNDLE_DIR BUS_GATE2_BUNDLE_DIR_SIZE BUS_GATE2_BUNDLE_DIR_SHA256 BUS_GATE2_G4_CONTAINER_NAME BUS_GATE2_STORAGE_MARKER
+  export BUS_GATE2_BROWSER_IMAGE_ID BUS_GATE2_CHROMIUM_TAG BUS_GATE2_RELEASE_LEDGER BUS_GATE2_HEAVY_LOCK_FD BUS_GATE2_BUNDLE_DIR BUS_GATE2_BUNDLE_DIR_SIZE BUS_GATE2_BUNDLE_DIR_SHA256 BUS_GATE2_G4_CONTAINER_NAME BUS_GATE2_STORAGE_MARKER BUS_GATE2_G4_SERIAL_INPUT_FILE BUS_GATE2_G4_SERIAL_INPUT_SHA256
   self_export_artifact KERNEL "$artifact_dir/kernel"; self_export_artifact ROOTFS "$artifact_dir/rootfs"; self_export_artifact RESOLVER "$artifact_dir/package.json"; self_export_artifact QEMU_JS "$artifact_dir/qemu.js"; self_export_artifact QEMU_WASM "$artifact_dir/qemu.wasm"
   self_export_artifact EXPORT_MANIFEST "$artifact_dir/export.json"; self_export_artifact SHA256SUMS "$artifact_dir/bundle/SHA256SUMS"; self_export_artifact PACKAGE_REPORT "$artifact_dir/package.json"; self_export_artifact RELEASE_REPORT "$artifact_dir/release.json"
   CASE_ID=composed
   ROLE=candidate-pass
   RESULT_DIR=$out
   PLAN_MODE=1
-  unset BUS_GATE2_T50_PARENT_COMMIT BUS_GATE2_T50_CANDIDATE_COMMIT
+  unset BUS_GATE2_T50_PARENT_COMMIT BUS_GATE2_T50_CANDIDATE_COMMIT BUS_GATE2_G4_SERIAL_INPUT_FILE BUS_GATE2_G4_SERIAL_INPUT_SHA256
   validate_role
   validate_identity_inputs
   local saved_heavy_lock_fd=$BUS_GATE2_HEAVY_LOCK_FD
   unset BUS_GATE2_HEAVY_LOCK_FD
   assert_fail "missing required field: BUS_GATE2_HEAVY_LOCK_FD" validate_heavy_lock_non_overlap
   BUS_GATE2_HEAVY_LOCK_FD=$saved_heavy_lock_fd
+  export BUS_GATE2_HEAVY_LOCK_FD
   : >"$SELF_TMP/wrong-heavy.lock"
   chmod 0600 "$SELF_TMP/wrong-heavy.lock"
   exec {wrong_lock_fd}<>"$SELF_TMP/wrong-heavy.lock"
@@ -1392,13 +1422,16 @@ want_containment = {
 if doc.get("composed_containment") != want_containment:
     raise SystemExit("wrong composed containment record")
 PY
-  local d1=$BUS_GATE2_SCENARIO_DIGEST
+  local composed_digest=$BUS_GATE2_SCENARIO_DIGEST
   BUS_GATE2_BUSDK_COMMIT=1e060b120dd1f9396fdd6c1c1d833a8dacb26beb assert_fail "BUS_GATE2_BUSDK_COMMIT mismatch" validate_identity_inputs
   BUS_GATE2_BUSDK_COMMIT=$busdk_composed_commit
   BUS_GATE2_BUS_ENGINE_OS_COMMIT=$h6 assert_fail "BUS_GATE2_BUS_ENGINE_OS_COMMIT mismatch" validate_identity_inputs
   BUS_GATE2_BUS_ENGINE_OS_COMMIT=$h1
   BUS_GATE2_T50_PARENT_COMMIT=$h4
   BUS_GATE2_T50_CANDIDATE_COMMIT=$h5
+  BUS_GATE2_G4_SERIAL_INPUT_FILE=$artifact_dir/serial.txt
+  BUS_GATE2_G4_SERIAL_INPUT_SHA256=$(sha256_file "$artifact_dir/serial.txt")
+  export BUS_GATE2_T50_PARENT_COMMIT BUS_GATE2_T50_CANDIDATE_COMMIT BUS_GATE2_G4_SERIAL_INPUT_FILE BUS_GATE2_G4_SERIAL_INPUT_SHA256
   CASE_ID=T50
   ROLE=parent-fail
   git -C "$os_root" checkout -q "$h4"
@@ -1410,11 +1443,13 @@ PY
   EXPECTED_FAIL_PREDICATE='bus-engine-os login:'
   validate_role
   validate_identity_inputs
+  local t50_parent_digest=$BUS_GATE2_SCENARIO_DIGEST
+  [ "$composed_digest" != "$t50_parent_digest" ] || die "cold composed scenario must differ from standalone T50"
   local bundle_size=$BUS_GATE2_BUNDLE_DIR_SIZE
   BUS_GATE2_BUNDLE_DIR_SIZE=$((bundle_size + 1)) assert_fail "BUS_GATE2_BUNDLE_DIR_SIZE mismatch" validate_identity_inputs
   BUS_GATE2_BUNDLE_DIR_SIZE=$bundle_size
   validate_identity_inputs
-  [ "$d1" = "$BUS_GATE2_SCENARIO_DIGEST" ] || die "scenario digest changed with role"
+  [ "$t50_parent_digest" = "$BUS_GATE2_SCENARIO_DIGEST" ] || die "standalone T50 scenario digest changed with role"
   git -C "$os_root" checkout -q "$h5"
   git -C "$busdk_root" checkout -q "$busdk_t50_candidate_commit"
   BUS_GATE2_BUSDK_COMMIT=$busdk_t50_candidate_commit
@@ -1425,6 +1460,111 @@ PY
   EXPECTED_FAIL_GATE=g2-boot
   EXPECTED_FAIL_PREDICATE='bus-engine-os login:'
   assert_fail "T50 parent-fail must bind the fixed expected commit" validate_identity_inputs
+
+  ROLE=candidate-pass
+  EXPECTED_FAIL_GATE=
+  EXPECTED_FAIL_PREDICATE=
+  local parent_harness="$busdk_root/tests/superproject/test_browser_virtual_server_gate2_e2e.sh" parent_plan="$SELF_TMP/t50-parent-plan" candidate_plan="$SELF_TMP/t50-candidate-plan"
+  mkdir -p "$(dirname "$parent_harness")"
+  git -C "$harness_root" show d7427b6aca890343df9389aa5e0f4ff3c50c7419:tests/superproject/test_browser_virtual_server_gate2_e2e.sh >"$parent_harness"
+  sed -i \
+    -e "s/^ROLE_T50_PARENT=.*/ROLE_T50_PARENT=$h4/" \
+    -e "s/^ROLE_T50_CANDIDATE=.*/ROLE_T50_CANDIDATE=$h5/" \
+    -e "s/^ROLE_T64_PARENT=.*/ROLE_T64_PARENT=$h6/" \
+    -e "s/^ROLE_T64_CANDIDATE=.*/ROLE_T64_CANDIDATE=$h7/" \
+    -e "s/^ROLE_T65_PARENT=.*/ROLE_T65_PARENT=$h8/" \
+    -e "s/^ROLE_T65_CANDIDATE=.*/ROLE_T65_CANDIDATE=$h9/" \
+    -e "s/^ROLE_T154_PARENT=.*/ROLE_T154_PARENT=$h8/" \
+    -e "s/^ROLE_T154_CANDIDATE=.*/ROLE_T154_CANDIDATE=$h10/" \
+    -e "s/^ROLE_T66_TIP=.*/ROLE_T66_TIP=$h1/" \
+    "$parent_harness"
+  bash "$parent_harness" --plan --case T50 --role candidate-pass --result-dir "$parent_plan" >/dev/null
+  RESULT_DIR=$candidate_plan
+  PLAN_MODE=1
+  run_harness >/dev/null
+  python3 - "$parent_plan" "$candidate_plan" <<'PY'
+import json
+from pathlib import Path
+import sys
+
+parent_root, candidate_root = map(Path, sys.argv[1:3])
+
+def load(root, name):
+    with (root / name).open(encoding="utf-8") as handle:
+        return json.load(handle)
+
+for name in ("scenario.json", "artifacts.json", "source-deltas.json"):
+    if load(parent_root, name) != load(candidate_root, name):
+        raise SystemExit(f"standalone T50 {name} diverged from parent")
+
+def canonical_argv(root, relative):
+    lines = (root / relative).read_text(encoding="utf-8").splitlines()
+    return [line.replace(str(root), "<RESULT_DIR>") for line in lines]
+
+for relative in (
+    Path("chromium/g4-chromium.argv.txt"),
+    Path("chromium/g4-generated-exec-proof.argv.txt"),
+):
+    if canonical_argv(parent_root, relative) != canonical_argv(candidate_root, relative):
+        raise SystemExit(f"standalone T50 {relative} diverged from parent")
+
+static_gates = (
+    "g1-qemu-presence-serial-input-after-text-gate",
+    "g1-qemu-presence-serial-input-after-text-test",
+    "g1-qemu-presence-serial-input-text-gate",
+    "g1-qemu-presence-serial-input-text-test",
+    "g1-qemu-presence-pre-serial-input-wait-ms-gate",
+    "g1-qemu-presence-pre-serial-input-wait-ms-test",
+    "g1-qemu-presence-qemu-arg-gate",
+    "g1-qemu-presence-qemu-arg-test",
+)
+for gate in static_gates:
+    relative = Path("static") / f"{gate}.argv.txt"
+    if canonical_argv(parent_root, relative) != canonical_argv(candidate_root, relative):
+        raise SystemExit(f"standalone T50 static option gate diverged: {gate}")
+
+def plan_shape(root):
+    records = [line.split("\t") for line in (root / "status.tsv").read_text(encoding="utf-8").splitlines()]
+    if any(len(record) < 2 or record[1] != "PLAN" for record in records):
+        raise SystemExit("standalone T50 plan did not remain plan-only")
+    return [(record[0], record[1]) for record in records]
+
+if plan_shape(parent_root) != plan_shape(candidate_root):
+    raise SystemExit("standalone T50 plan gate shape diverged from parent")
+
+scenario = load(candidate_root, "scenario.json")
+if scenario.get("serial_after") != "QEMU_WASM_SNAPSHOT_READY" or not scenario.get("serial_text_sha256"):
+    raise SystemExit("standalone T50 lost serial resume scenario fields")
+if "console_readiness_marker" in scenario or "console_duplex_primary_serial" in scenario:
+    raise SystemExit("standalone T50 retained cold-only scenario fields")
+argv = canonical_argv(candidate_root, Path("chromium/g4-chromium.argv.txt"))
+for required in (
+    "QEMU_WASM_SNAPSHOT_RELEASED",
+    "bus-engine-os-first-resume-identity: identity-evidence",
+    "QEMU_WASM_SNAPSHOT_READY",
+    "QEMU_WASM_RESUME_CONTINUE",
+    "--serial-input-after-text",
+    "--serial-input-text",
+    "--pre-serial-input-wait-ms",
+):
+    if required not in argv:
+        raise SystemExit(f"standalone T50 argv lost required term: {required}")
+pins = load(candidate_root, "artifacts.json").get("pins", {})
+if "t50_parent" not in pins or "t50_candidate" not in pins:
+    raise SystemExit("standalone T50 artifacts lost required T50 pins")
+delta = load(candidate_root, "source-deltas.json")
+if "t50" not in delta.get("verified_fixed_roles", {}):
+    raise SystemExit("standalone T50 source delta lost required T50 identity")
+PY
+  local t50_serial_file=$BUS_GATE2_G4_SERIAL_INPUT_FILE t50_serial_sha=$BUS_GATE2_G4_SERIAL_INPUT_SHA256
+  unset BUS_GATE2_G4_SERIAL_INPUT_FILE
+  assert_fail "missing required field: BUS_GATE2_G4_SERIAL_INPUT_FILE" validate_identity_inputs
+  BUS_GATE2_G4_SERIAL_INPUT_FILE=$t50_serial_file
+  BUS_GATE2_G4_SERIAL_INPUT_SHA256=short
+  assert_fail "BUS_GATE2_G4_SERIAL_INPUT_SHA256 must be lowercase 64-hex" validate_identity_inputs
+  BUS_GATE2_G4_SERIAL_INPUT_SHA256=$t50_serial_sha
+  export BUS_GATE2_G4_SERIAL_INPUT_FILE BUS_GATE2_G4_SERIAL_INPUT_SHA256
+
   git -C "$os_root" checkout -q "$h1"
   git -C "$busdk_root" checkout -q "$busdk_composed_commit"
   BUS_GATE2_BUSDK_COMMIT=$busdk_composed_commit
@@ -1546,8 +1686,23 @@ PY
 {"format":"bus-engine-os-chromium-vertical-slice-evidence-v1","release":{"containment":true,"ordered_down":true,"zero_survivors":true,"truthful_telemetry":true,"control_api_responsive":true},"console":{"login_marker":"bus-engine-os login:","duplex_primary_serial":true},"storage":{"source_rootfs_immutable":true,"runtime_backing":"memfs","persistent_across_run":false,"write_read":{"ok":true,"bytes":26,"digest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","marker":"storage-marker"},"source_sha256_after_run_matches":true},"network":{"docker_network":"bridge","host_ports":[],"qemu_nic":"none","route":"network.probe","arbitrary_urls":false,"request_limit":1,"timeout_ms":5000,"dns_tls_termination":"browser-relay","http_status_class":"2xx","marker":"bus-engine-os-browser-http-proof: http-ok"},"app_server":{"package":"codex-app-server","version":"0.144.0","package_manifest":{"path":"pkg","size_bytes":1,"sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},"pid":123,"launch_path":"/usr/bin/codex-app-server","proc_exe":"/usr/bin/codex-app-server","proc_exe_matches_package":true,"elf_machine":"riscv64","binary":{"path":"/usr/bin/codex-app-server","size_bytes":1,"sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"},"inside_guest":true},"frontend_roundtrip":{"operation":"initialize","c_accepted":true,"guest_originated_response":true,"same_request_id":true,"native_jsonrpc_id_match":true,"response_classification":"success","response_body_recorded":false,"duration_ms":5,"late_delivery_after_timeout":false},"secrets":{"mode":"none","credential_required":false,"injection_events":[],"argv_or_environment_secret_fields":false,"scans":{"image":0,"export":0,"result":0,"logs":0,"screenshot":"not_captured","vmstate":"not_used"}},"chromium":{"docker_image_id":"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","tag":"qemu/wasm-browser:node22-bookworm","version":"150.0.7871.100","uid":1000,"sandboxed":true,"no_sandbox_flag":false,"cdp_bind":"127.0.0.1","host_ports":[]},"timings_ms":{"container_start":1,"browser_start":2,"qemu_start":3,"multi_user":4,"login":5,"storage":6,"network":7,"roundtrip":8,"total":9},"failure_controls":{"run_timeout_ms":1200000,"outer_kill_bound_ms":1260000,"max_output_bytes":4000000,"bridge":{"max_payload_bytes":16384,"max_in_flight":1,"timeout_ms":10000,"cancel_undelivered":true,"no_cancel_after_partial_delivery":true},"page_errors":0,"resource_errors":0,"terminal_reason":"success"},"cleanup":{"browser_exited":true,"qemu_exited":true,"container_absent":true,"host_listener_count":0,"ephemeral_profile_removed":true,"evidence_files":[{"path":"result.json","size_bytes":1,"sha256":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}]}}
 EOF
   printf 'bus-engine-os login:\n' >"$SELF_TMP/chromium/console-runtime.log"
-  RESULT_DIR=$SELF_TMP/tuple-out
+  CASE_ID=composed
+  RESULT_DIR=$SELF_TMP/tuple-composed-out
   mkdir -p "$RESULT_DIR"
+  write_tuple_from_result "$SELF_TMP/chromium"
+  test -f "$RESULT_DIR/tuple.json"
+  CASE_ID=T50
+  RESULT_DIR=$SELF_TMP/tuple-t50-out
+  mkdir -p "$RESULT_DIR"
+  assert_fail "missing timing: snapshot_ready" write_tuple_from_result "$SELF_TMP/chromium"
+  python3 - "$SELF_TMP/chromium/result.json" <<'PY'
+import json, sys
+p = sys.argv[1]
+d = json.load(open(p))
+d["console"]["release"] = {"bytes": 26, "attempts": 1, "failures": 0, "write_status": 26}
+d["timings_ms"].update({"snapshot_ready": 4, "release": 5, "identity": 6})
+json.dump(d, open(p, "w"))
+PY
   write_tuple_from_result "$SELF_TMP/chromium"
   test -f "$RESULT_DIR/tuple.json"
   python3 - "$SELF_TMP/chromium/result.json" <<'PY'
@@ -1597,20 +1752,37 @@ PY
   BUS_GATE2_ACTIVE_SOURCE_COMMIT=$h1
   run_harness >/dev/null
   grep -F 'PLAN' "$SELF_TMP/plan/status.tsv" >/dev/null
-  python3 - "$SELF_TMP/plan/status.tsv" <<'PY'
+  python3 - "$candidate_plan/status.tsv" "$SELF_TMP/plan/status.tsv" <<'PY'
 import sys
 
-gates = [line.split("\t", 1)[0] for line in open(sys.argv[1], encoding="utf-8")]
-lock_gate = gates.index("g3-heavy-lock-non-overlap")
-chromium_gate = gates.index("g4-chromium")
+def load_gates(path):
+    with open(path, encoding="utf-8") as f:
+        return [line.split("\t", 1)[0] for line in f]
+
+t50_gates = load_gates(sys.argv[1])
+composed_gates = load_gates(sys.argv[2])
+lock_gate = composed_gates.index("g3-heavy-lock-non-overlap")
+chromium_gate = composed_gates.index("g4-chromium")
 if lock_gate + 1 != chromium_gate:
     raise SystemExit("heavy lock readback gate must immediately precede G4")
+for gate in (
+    "g1-qemu-presence-serial-input-after-text-gate",
+    "g1-qemu-presence-serial-input-after-text-test",
+    "g1-qemu-presence-serial-input-text-gate",
+    "g1-qemu-presence-serial-input-text-test",
+    "g1-qemu-presence-pre-serial-input-wait-ms-gate",
+    "g1-qemu-presence-pre-serial-input-wait-ms-test",
+):
+    if gate not in t50_gates:
+        raise SystemExit(f"standalone T50 lost serial-input support gate: {gate}")
+    if gate in composed_gates:
+        raise SystemExit(f"cold composed retained serial-input support gate: {gate}")
 PY
   grep -F 'g1-qemu-wasm-browser-cdp-proof-gate-test' "$SELF_TMP/plan/status.tsv" >/dev/null
-  python3 - "$SELF_TMP/plan/chromium/g4-generated-exec-proof.argv.txt" "$SELF_TMP/plan/chromium/result.json" "$SELF_TMP/plan/chromium/g4-chromium.argv.txt" "$SELF_TMP/plan/scenario.json" "$SELF_TMP/plan/artifacts.json" "$SELF_TMP/plan/source-deltas.json" <<'PY'
+  python3 - "$SELF_TMP/plan/chromium/g4-generated-exec-proof.argv.txt" "$SELF_TMP/plan/chromium/result.json" "$SELF_TMP/plan/chromium/g4-chromium.argv.txt" "$SELF_TMP/plan/scenario.json" "$SELF_TMP/plan/artifacts.json" "$SELF_TMP/plan/source-deltas.json" "$SELF_TMP/tuple-composed-out/tuple.json" <<'PY'
 import json
 import sys
-proof_path, result_path, chromium_path, scenario_path, artifacts_path, delta_path = sys.argv[1:7]
+proof_path, result_path, chromium_path, scenario_path, artifacts_path, delta_path, tuple_path = sys.argv[1:8]
 with open(proof_path, encoding="utf-8") as f:
     proof = f.read().splitlines()
 expected = [
@@ -1667,6 +1839,18 @@ with open(delta_path, encoding="utf-8") as f:
     delta = json.load(f)
 if "t50" in delta.get("verified_fixed_roles", {}) or "bus_engine_os_t50" in delta.get("composed_containment", {}):
     raise SystemExit("composed result retains T50 containment")
+for label, path in {
+    "scenario": scenario_path,
+    "artifacts": artifacts_path,
+    "source delta": delta_path,
+    "G4 argv": chromium_path,
+    "result predicates": tuple_path,
+}.items():
+    with open(path, encoding="utf-8") as f:
+        text = f.read().lower()
+    for forbidden in ("t50", "resume", "snapshot", "serial-input"):
+        if forbidden in text:
+            raise SystemExit(f"composed {label} retained forbidden term: {forbidden}")
 PY
   if find "$SELF_TMP/plan" -name 'g4-chromium.stdout' -size +0c | grep -q .; then die "plan path unexpectedly executed heavy command"; fi
   mkdir -p "$SELF_TMP/nonempty"; printf keep >"$SELF_TMP/nonempty/evidence"
