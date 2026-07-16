@@ -922,6 +922,24 @@ with open(result_path, encoding="utf-8") as f:
     doc = json.load(f)
 with open(console_path, encoding="utf-8", errors="replace") as f:
     console = f.read()
+if case_id == "composed":
+    forbidden_state_keys = {"t50", "resume", "snapshot", "serial-input", "serial_input"}
+    def reject_composed_state(value, path=()):
+        if isinstance(value, dict):
+            for key in sorted(value):
+                key_path = path + (key,)
+                if key.lower() in forbidden_state_keys:
+                    raise SystemExit(f"forbidden composed result state key: {'.'.join(key_path)}")
+                reject_composed_state(value[key], key_path)
+        elif isinstance(value, list):
+            for index, item in enumerate(value):
+                reject_composed_state(item, path + (str(index),))
+    reject_composed_state(doc)
+    if "release" in doc.get("console", {}):
+        raise SystemExit("forbidden composed result state key: console.release")
+    for key in ("snapshot_ready", "release", "identity"):
+        if key in doc.get("timings_ms", {}):
+            raise SystemExit(f"forbidden composed timing key: timings_ms.{key}")
 def req(path, expected=True):
     cur = doc
     for part in path.split("."):
@@ -1691,6 +1709,42 @@ EOF
   mkdir -p "$RESULT_DIR"
   write_tuple_from_result "$SELF_TMP/chromium"
   test -f "$RESULT_DIR/tuple.json"
+  local composed_fixture=$SELF_TMP/chromium/result.json
+  local composed_fixture_backup=$SELF_TMP/chromium/result.base.json
+  cp "$composed_fixture" "$composed_fixture_backup"
+  local forbidden_state_key
+  for forbidden_state_key in t50 resume snapshot serial-input serial_input; do
+    python3 - "$composed_fixture" "$forbidden_state_key" <<'PY'
+import json, sys
+p, key = sys.argv[1:3]
+d = json.load(open(p))
+d["adversarial"] = {"nested": {key: {"present": True}}}
+json.dump(d, open(p, "w"))
+PY
+    assert_fail "forbidden composed result state key: adversarial.nested.$forbidden_state_key" write_tuple_from_result "$SELF_TMP/chromium"
+    cp "$composed_fixture_backup" "$composed_fixture"
+  done
+  python3 - "$composed_fixture" <<'PY'
+import json, sys
+p = sys.argv[1]
+d = json.load(open(p))
+d["console"]["release"] = {"bytes": 26}
+json.dump(d, open(p, "w"))
+PY
+  assert_fail "forbidden composed result state key: console.release" write_tuple_from_result "$SELF_TMP/chromium"
+  cp "$composed_fixture_backup" "$composed_fixture"
+  local forbidden_timing_key
+  for forbidden_timing_key in snapshot_ready release identity; do
+    python3 - "$composed_fixture" "$forbidden_timing_key" <<'PY'
+import json, sys
+p, key = sys.argv[1:3]
+d = json.load(open(p))
+d["timings_ms"][key] = 0
+json.dump(d, open(p, "w"))
+PY
+    assert_fail "forbidden composed timing key: timings_ms.$forbidden_timing_key" write_tuple_from_result "$SELF_TMP/chromium"
+    cp "$composed_fixture_backup" "$composed_fixture"
+  done
   CASE_ID=T50
   RESULT_DIR=$SELF_TMP/tuple-t50-out
   mkdir -p "$RESULT_DIR"
@@ -1755,12 +1809,15 @@ PY
   python3 - "$candidate_plan/status.tsv" "$SELF_TMP/plan/status.tsv" <<'PY'
 import sys
 
-def load_gates(path):
+def load_gates(path, require_plan=False):
     with open(path, encoding="utf-8") as f:
-        return [line.split("\t", 1)[0] for line in f]
+        records = [line.rstrip("\n").split("\t") for line in f]
+    if require_plan and (not records or any(len(record) < 2 or record[1] != "PLAN" for record in records)):
+        raise SystemExit("composed plan did not remain plan-only")
+    return [record[0] for record in records]
 
 t50_gates = load_gates(sys.argv[1])
-composed_gates = load_gates(sys.argv[2])
+composed_gates = load_gates(sys.argv[2], require_plan=True)
 lock_gate = composed_gates.index("g3-heavy-lock-non-overlap")
 chromium_gate = composed_gates.index("g4-chromium")
 if lock_gate + 1 != chromium_gate:
