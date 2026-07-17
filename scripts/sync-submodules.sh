@@ -577,6 +577,7 @@ promote_changed_submodule_pins() {
   local index_rev
   local pathspecs=()
 
+  promoted_pin_count=0
   [ "$do_pull" -eq 1 ] || return 0
   [ "$promote_pins" -eq 1 ] || return 0
 
@@ -1164,8 +1165,20 @@ exec 3<&-
 exec 4>&-
 rm -rf "$scheduler_tmp_dir"
 
-if [ "$syncs_superproject" -eq 0 ]; then
-  promote_changed_submodule_pins
+promote_changed_submodule_pins
+if [ "$syncs_superproject" -eq 1 ] &&
+  [ "$do_push" -eq 1 ] &&
+  [ "$promoted_pin_count" -gt 0 ]; then
+  final_pin_head="$(git rev-parse HEAD 2>/dev/null || true)"
+  if ! commit_promoted_submodule_pins ||
+    [ "$(git rev-parse HEAD 2>/dev/null || true)" = "$final_pin_head" ]; then
+    echo "warning: failed to commit final promoted submodule pins" >&2
+    fail_count=$((fail_count + 1))
+    status=1
+  elif ! run_git_step "." "push final promoted submodule pins" push; then
+    fail_count=$((fail_count + 1))
+    status=1
+  fi
 fi
 
 if [ "$status" -ne 0 ] || [ "$verbose" -eq 1 ]; then
