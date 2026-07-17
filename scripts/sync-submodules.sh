@@ -710,9 +710,55 @@ checkout_submodule_resolution() {
   git -C "$dir/$path" checkout -q "$desired_rev"
 }
 
+record_rebase_submodule_checkout() {
+  local dir="$1"
+  local path="$2"
+  local snapshot="$3"
+  local head
+  local branch
+
+  if awk -F '\t' -v want="$path" '$1 == want { found = 1 } END { exit !found }' "$snapshot"; then
+    return 0
+  fi
+  head="$(git -C "$dir/$path" rev-parse HEAD 2>/dev/null)" || return 1
+  branch="$(current_branch "$dir/$path" || true)"
+  printf '%s\t%s\t%s\n' "$path" "$head" "$branch" >>"$snapshot"
+}
+
+restore_rebase_submodule_checkouts() {
+  local dir="$1"
+  local snapshot="$2"
+  local path
+  local head
+  local branch
+  local branch_head
+  local status=0
+
+  while IFS="$(printf '\t')" read -r path head branch; do
+    [ -n "$path" ] || continue
+    if ! is_own_worktree "$dir/$path" || has_rebase_or_merge "$dir/$path" || is_dirty "$dir/$path"; then
+      echo "warning: cannot restore rebase submodule checkout: $path is unavailable or dirty" >&2
+      status=1
+      continue
+    fi
+    branch_head=""
+    if [ -n "$branch" ]; then
+      branch_head="$(git -C "$dir/$path" rev-parse --verify "$branch^{commit}" 2>/dev/null || true)"
+    fi
+    if [ -n "$branch" ] && [ "$branch_head" = "$head" ]; then
+      git -C "$dir/$path" checkout -q "$branch" || status=1
+    else
+      git -C "$dir/$path" checkout -q "$head" || status=1
+    fi
+  done <"$snapshot"
+
+  return "$status"
+}
+
 resolve_rebase_submodule_conflicts() {
   local dir="$1"
   local original_head="$2"
+  local snapshot="$3"
   local path
   local desired_rev
   local ours_rev
@@ -793,6 +839,9 @@ resolve_rebase_submodule_conflicts() {
         return 1
       fi
     fi
+    if ! record_rebase_submodule_checkout "$dir" "$path" "$snapshot"; then
+      return 1
+    fi
     if ! checkout_submodule_resolution "$dir" "$path" "$candidate_rev"; then
       return 1
     fi
@@ -809,25 +858,32 @@ rebase_with_submodule_resolution() {
   local upstream="$2"
   local original_head
   local log
+  local snapshot
 
   original_head="$(git -C "$dir" rev-parse HEAD 2>/dev/null)" || return 1
   log="$(mktemp "${TMPDIR:-/tmp}/sync-submodules.XXXXXX")" || return 1
-  if git -C "$dir" rebase "$upstream" >"$log" 2>&1; then
+  snapshot="$(mktemp "${TMPDIR:-/tmp}/sync-submodules-rebase.XXXXXX")" || {
     rm -f "$log"
+    return 1
+  }
+  if git -C "$dir" rebase "$upstream" >"$log" 2>&1; then
+    rm -f "$log" "$snapshot"
     return 0
   fi
 
   while has_rebase_or_merge "$dir"; do
-    if ! resolve_rebase_submodule_conflicts "$dir" "$original_head"; then
+    if ! resolve_rebase_submodule_conflicts "$dir" "$original_head" "$snapshot"; then
       echo "warning: rebase failed for $dir: git rebase $upstream" >&2
       print_log "$log"
       rm -f "$log"
       run_git_step "$dir" "rebase abort" rebase --abort >/dev/null 2>&1 || true
+      restore_rebase_submodule_checkouts "$dir" "$snapshot" || true
+      rm -f "$snapshot"
       return 1
     fi
     : >"$log"
     if git -C "$dir" -c core.editor=true rebase --continue >"$log" 2>&1; then
-      rm -f "$log"
+      rm -f "$log" "$snapshot"
       return 0
     fi
   done
@@ -836,6 +892,8 @@ rebase_with_submodule_resolution() {
   print_log "$log"
   rm -f "$log"
   run_git_step "$dir" "rebase abort" rebase --abort >/dev/null 2>&1 || true
+  restore_rebase_submodule_checkouts "$dir" "$snapshot" || true
+  rm -f "$snapshot"
   return 1
 }
 
