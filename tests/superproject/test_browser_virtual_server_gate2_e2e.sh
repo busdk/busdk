@@ -1389,9 +1389,9 @@ run_harness() {
 
   mkdir -p "$RESULT_DIR/native"
   gate=g2-boot
-  gate_argv_at "$BUS_GATE2_BUS_ENGINE_OS_ROOT" "$gate" "$RESULT_DIR/native" bash scripts/bus-boot-test --target-arch riscv64 --kernel "$BUS_GATE2_KERNEL" --disk-image "$BUS_GATE2_ROOTFS" --serial-log "$RESULT_DIR/native/serial.log" --report "$RESULT_DIR/native/boot.json" --no-network --expect 'Reached target Multi-User System.' --expect 'bus-engine-os login:' --timeout 600 --settle-seconds 5 --append 'console=ttyS0 root=/dev/vda rw' --qemu-arg -device --qemu-arg virtio-rng-device || finish_parent_failure "$gate" "$RESULT_DIR/native/${gate}.stderr"
+  gate_argv_at "$BUS_GATE2_BUS_ENGINE_OS_ROOT" "$gate" "$RESULT_DIR/native" bash scripts/bus-boot-test --target-arch riscv64 --kernel "$BUS_GATE2_KERNEL" --disk-image "$BUS_GATE2_ROOTFS" --serial-log "$RESULT_DIR/native/serial.log" --report "$RESULT_DIR/native/boot.json" --no-network --expect 'Reached target Multi-User System.' --expect 'bus-engine-os login:' --timeout 600 --settle-seconds 5 --append 'console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service' --qemu-arg -device --qemu-arg virtio-rng-device || finish_parent_failure "$gate" "$RESULT_DIR/native/${gate}.stderr"
   gate=g2-check-boot
-  gate_argv_at "$BUS_GATE2_BUS_ENGINE_OS_ROOT" "$gate" "$RESULT_DIR/native" python3 scripts/bus-check-boot-test-report --report "$RESULT_DIR/native/boot.json" --serial-log "$RESULT_DIR/native/serial.log" --kernel "$BUS_GATE2_KERNEL" --disk-image "$BUS_GATE2_ROOTFS" --target-arch riscv64 --append 'console=ttyS0 root=/dev/vda rw' --expect 'Reached target Multi-User System.' --expect 'bus-engine-os login:' || finish_parent_failure "$gate" "$RESULT_DIR/native/${gate}.stderr"
+  gate_argv_at "$BUS_GATE2_BUS_ENGINE_OS_ROOT" "$gate" "$RESULT_DIR/native" python3 scripts/bus-check-boot-test-report --report "$RESULT_DIR/native/boot.json" --serial-log "$RESULT_DIR/native/serial.log" --kernel "$BUS_GATE2_KERNEL" --disk-image "$BUS_GATE2_ROOTFS" --target-arch riscv64 --append 'console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service' --expect 'Reached target Multi-User System.' --expect 'bus-engine-os login:' || finish_parent_failure "$gate" "$RESULT_DIR/native/${gate}.stderr"
   require_artifact BUS_GATE2_KERNEL BUS_GATE2_KERNEL_SIZE BUS_GATE2_KERNEL_SHA256
   require_artifact BUS_GATE2_ROOTFS BUS_GATE2_ROOTFS_SIZE BUS_GATE2_ROOTFS_SHA256
 
@@ -1899,6 +1899,16 @@ def canonical_argv(root, relative):
     lines = (root / relative).read_text(encoding="utf-8").splitlines()
     return [line.replace(str(root), "<RESULT_DIR>") for line in lines]
 
+def require_exact_value(argv, flag, value, label):
+    matches = [argv[i + 1] for i, arg in enumerate(argv[:-1]) if arg == flag]
+    if matches != [value]:
+        raise SystemExit(f"{label} lost exact {flag}={value!r}: {matches!r}")
+
+def require_value_present(argv, flag, value, label):
+    matches = [argv[i + 1] for i, arg in enumerate(argv[:-1]) if arg == flag]
+    if value not in matches:
+        raise SystemExit(f"{label} lost required {flag}={value!r}: {matches!r}")
+
 records = [line.split("\t") for line in (candidate_root / "status.tsv").read_text(encoding="utf-8").splitlines()]
 if any(len(record) < 2 or record[1] != "PLAN" for record in records):
     raise SystemExit("standalone T50 plan did not remain plan-only")
@@ -1906,9 +1916,33 @@ if any(len(record) < 2 or record[1] != "PLAN" for record in records):
 scenario = load(candidate_root, "scenario.json")
 if scenario.get("serial_after") != "QEMU_WASM_SNAPSHOT_READY" or not scenario.get("serial_text_sha256"):
     raise SystemExit("standalone T50 lost serial resume scenario fields")
+if scenario.get("g4_network") != "none" or scenario.get("g4_timeout_ms") != 1200000 or scenario.get("g4_outer_seconds") != 1260:
+    raise SystemExit("standalone T50 lost browser G4 network/timeout policy")
 if "console_readiness_marker" in scenario or "console_duplex_primary_serial" in scenario:
     raise SystemExit("standalone T50 retained cold-only scenario fields")
+native_boot_argv = canonical_argv(candidate_root, Path("native/g2-boot.argv.txt"))
+require_exact_value(
+    native_boot_argv,
+    "--append",
+    "console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service",
+    "standalone T50 native bus-boot-test",
+)
+native_check_argv = canonical_argv(candidate_root, Path("native/g2-check-boot.argv.txt"))
+require_exact_value(
+    native_check_argv,
+    "--append",
+    "console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service",
+    "standalone T50 native bus-check-boot-test-report",
+)
 argv = canonical_argv(candidate_root, Path("chromium/g4-chromium.argv.txt"))
+for flag, value in (
+    ("--marker", "bus-engine-os login:"),
+    ("--service-request-operation", "initialize"),
+    ("--service-request-timeout-ms", "10000"),
+    ("--timeout-ms", "1200000"),
+):
+    require_exact_value(argv, flag, value, "standalone T50 browser G4")
+require_value_present(argv, "--network", "none", "standalone T50 browser G4")
 for required in (
     "QEMU_WASM_SNAPSHOT_RELEASED",
     "bus-engine-os-first-resume-identity: identity-evidence",
@@ -2191,6 +2225,12 @@ PY
 import json
 import sys
 proof_path, result_path, chromium_path, scenario_path, artifacts_path, delta_path, tuple_path, compiled_source, host_source = sys.argv[1:10]
+
+def require_exact_value(argv, flag, value, label):
+    matches = [argv[i + 1] for i, arg in enumerate(argv[:-1]) if arg == flag]
+    if matches != [value]:
+        raise SystemExit(f"{label} lost exact {flag}={value!r}: {matches!r}")
+
 with open(proof_path, encoding="utf-8") as f:
     proof = f.read().splitlines()
 expected = [
@@ -2209,6 +2249,24 @@ expected = [
 ]
 if proof != expected:
     raise SystemExit(f"wrong generated proof argv: {proof!r}")
+native_boot = chromium_path.replace("chromium/g4-chromium.argv.txt", "native/g2-boot.argv.txt")
+with open(native_boot, encoding="utf-8") as f:
+    native_boot_argv = f.read().splitlines()
+require_exact_value(
+    native_boot_argv,
+    "--append",
+    "console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service",
+    "cold composed native bus-boot-test",
+)
+native_check = chromium_path.replace("chromium/g4-chromium.argv.txt", "native/g2-check-boot.argv.txt")
+with open(native_check, encoding="utf-8") as f:
+    native_check_argv = f.read().splitlines()
+require_exact_value(
+    native_check_argv,
+    "--append",
+    "console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service",
+    "cold composed native bus-check-boot-test-report",
+)
 with open(chromium_path, encoding="utf-8") as f:
     chromium = f.read().splitlines()
 disabled = "--no-live-" + "generated-exec"
@@ -2229,6 +2287,8 @@ for forbidden in (
 for required in (
     "--marker",
     "bus-engine-os login:",
+    "--network",
+    "none",
     "QEMU_WASM_SERVICE_READY",
     "bus-engine-os-browser-http-proof: http-ok",
     "storage-marker",
@@ -2236,6 +2296,8 @@ for required in (
     "initialize",
     "--service-request-timeout-ms",
     "10000",
+    "--timeout-ms",
+    "1200000",
     "--qemu-arg",
     "-device",
     "virtio-rng-device",
@@ -2246,6 +2308,8 @@ with open(scenario_path, encoding="utf-8") as f:
     scenario = json.load(f)
 if scenario.get("console_readiness_marker") != "bus-engine-os login:" or scenario.get("console_duplex_primary_serial") is not True:
     raise SystemExit("cold console contract missing from scenario")
+if scenario.get("g4_network") != "none" or scenario.get("g4_timeout_ms") != 1200000 or scenario.get("g4_outer_seconds") != 1260:
+    raise SystemExit("cold browser G4 network/timeout policy missing from scenario")
 if scenario.get("service_request") != {"operation": "initialize", "timeout_ms": 10000}:
     raise SystemExit("cold service request contract missing from scenario")
 if scenario.get("kernel_enablement") != "bus.engine.codex_app_server=1":
