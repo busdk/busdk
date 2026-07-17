@@ -30,8 +30,8 @@ ROLE_T64_PARENT_FAIL_PREDICATE=
 ROLE_T65_OWNER=qemu
 ROLE_T65_PARENT=985d809f1c098623cddf4ca67b117bcc5040979c
 ROLE_T65_CANDIDATE=07aa925ffacac8a56e1d6dd8a0463c61f62706ea
-ROLE_T65_PARENT_FAIL_GATE=g1-qemu-presence-service-request-operation-gate
-ROLE_T65_PARENT_FAIL_PREDICATE=--service-request-operation
+ROLE_T65_PARENT_FAIL_GATE=g1-qemu-wasm-chardev-emscripten-abi-test
+ROLE_T65_PARENT_FAIL_PREDICATE='production source must provide pending_input_token'
 ROLE_T154_OWNER=qemu
 ROLE_T154_PARENT=985d809f1c098623cddf4ca67b117bcc5040979c
 ROLE_T154_CANDIDATE=35ab187f5b853b8d059b9c535b4f95d6e9f0dd07
@@ -742,15 +742,29 @@ validate_identity_inputs() {
 }
 
 require_packet_paths() {
+  local script
+  if [ "$CASE_ID" = "T65" ]; then
+    for script in \
+      scripts/ci/wasm-chardev-emscripten-abi-test.mjs \
+      scripts/ci/wasm-chardev-startup-guard-test.mjs \
+      scripts/ci/wasm-build-smoke-initramfs-test.py; do
+      git -C "$BUS_GATE2_QEMU_ROOT" cat-file -e "$ROLE_T65_CANDIDATE:$script" 2>/dev/null ||
+        die "fixed T65 candidate test missing: $script"
+    done
+  else
+    for script in \
+      "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-browser-smoke-args-test.mjs" \
+      "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-browser-smoke-runner-test.mjs" \
+      "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-browser-cdp-gate-test.mjs" \
+      "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-browser-cdp-proof-gate.mjs" \
+      "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-browser-cdp-proof-gate-test.mjs" \
+      "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-guest-manifest-test.mjs" \
+      "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-prepare-tuxboot-smoke-guest-test.py" \
+      "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-browser-cdp-gate.mjs"; do
+      require_script "$script"
+    done
+  fi
   for script in \
-    "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-browser-smoke-args-test.mjs" \
-    "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-browser-smoke-runner-test.mjs" \
-    "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-browser-cdp-gate-test.mjs" \
-    "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-browser-cdp-proof-gate.mjs" \
-    "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-browser-cdp-proof-gate-test.mjs" \
-    "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-guest-manifest-test.mjs" \
-    "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-prepare-tuxboot-smoke-guest-test.py" \
-    "$BUS_GATE2_QEMU_ROOT/scripts/ci/wasm-browser-cdp-gate.mjs" \
     "$BUS_GATE2_BUS_ENGINE_OS_ROOT/scripts/bus-boot-test" \
     "$BUS_GATE2_BUS_ENGINE_OS_ROOT/scripts/bus-check-boot-test-report" \
     "$BUS_GATE2_BUS_ENGINE_OS_ROOT/scripts/bus-check-browser-hosted-release"; do
@@ -1278,10 +1292,40 @@ with open(out_path, "w", encoding="utf-8") as handle:
 PY
 }
 
+run_t65_g1() {
+  local out=$1 test gate test_path
+  local test_dir="$out/t65-$ROLE_T65_CANDIDATE"
+  mkdir -p "$test_dir"
+  for test in \
+    scripts/ci/wasm-chardev-emscripten-abi-test.mjs \
+    scripts/ci/wasm-chardev-startup-guard-test.mjs \
+    scripts/ci/wasm-build-smoke-initramfs-test.py; do
+    test_path="$test_dir/$(basename "$test")"
+    git -C "$BUS_GATE2_QEMU_ROOT" show "$ROLE_T65_CANDIDATE:$test" >"$test_path"
+    gate="g1-qemu-$(basename "$test")"
+    case "$test" in
+      *.mjs)
+        gate=${gate%.mjs}
+        gate_argv_at "$BUS_GATE2_QEMU_ROOT" "$gate" "$out" env QEMU_TEST_ROOT="$BUS_GATE2_QEMU_ROOT" node "$test_path" ||
+          finish_parent_failure "$gate" "$out/${gate}.stderr"
+        ;;
+      *.py)
+        gate=${gate%.py}
+        gate_argv_at "$BUS_GATE2_QEMU_ROOT" "$gate" "$out" env QEMU_TEST_ROOT="$BUS_GATE2_QEMU_ROOT" python3 "$test_path" ||
+          finish_parent_failure "$gate" "$out/${gate}.stderr"
+        ;;
+    esac
+  done
+}
+
 run_g1() {
   local out="$RESULT_DIR/static"
   local gate
   mkdir -p "$out"
+  if [ "$CASE_ID" = "T65" ]; then
+    run_t65_g1 "$out"
+    return
+  fi
   for test in \
     scripts/ci/wasm-browser-smoke-args-test.mjs \
     scripts/ci/wasm-browser-smoke-runner-test.mjs \
@@ -1293,11 +1337,11 @@ run_g1() {
   done
   gate=g1-qemu-wasm-prepare-tuxboot-smoke-guest-test
   gate_argv_at "$BUS_GATE2_QEMU_ROOT" "$gate" "$out" python3 scripts/ci/wasm-prepare-tuxboot-smoke-guest-test.py || finish_parent_failure "$gate" "$out/${gate}.stderr"
-  gate=g1-qemu-host-only-candidate-range
-  gate_argv_at "$ROOT_DIR" "$gate" "$out" validate_qemu_host_only_range || finish_parent_failure "$gate" "$out/${gate}.stderr"
-  local flags=(--service-request-operation --service-request-timeout-ms --qemu-arg)
-  if [ "$CASE_ID" != "composed" ]; then
-    flags=(--serial-input-after-text --serial-input-text --pre-serial-input-wait-ms "${flags[@]}")
+  local flags=(--serial-input-after-text --serial-input-text --pre-serial-input-wait-ms)
+  if [ "$CASE_ID" = "composed" ]; then
+    gate=g1-qemu-host-only-candidate-range
+    gate_argv_at "$ROOT_DIR" "$gate" "$out" validate_qemu_host_only_range || finish_parent_failure "$gate" "$out/${gate}.stderr"
+    flags=(--service-request-operation --service-request-timeout-ms --qemu-arg)
   fi
   for flag in "${flags[@]}"; do
     gate="g1-qemu-presence-${flag#--}-gate"
@@ -1305,12 +1349,14 @@ run_g1() {
     gate="g1-qemu-presence-${flag#--}-test"
     gate_argv_at "$BUS_GATE2_QEMU_ROOT" "$gate" "$out" rg -F -- "$flag" scripts/ci/wasm-browser-cdp-gate-test.mjs || finish_parent_failure "$gate" "$out/${gate}.stderr"
   done
-  gate=g1-qemu-presence-require-service-roundtrip-gate
-  gate_argv_at "$BUS_GATE2_QEMU_ROOT" "$gate" "$out" rg -F -- --require-service-roundtrip scripts/ci/wasm-browser-cdp-proof-gate.mjs || finish_parent_failure "$gate" "$out/${gate}.stderr"
-  gate=g1-qemu-presence-require-service-roundtrip-test
-  gate_argv_at "$BUS_GATE2_QEMU_ROOT" "$gate" "$out" rg -F -- --require-service-roundtrip scripts/ci/wasm-browser-cdp-proof-gate-test.mjs || finish_parent_failure "$gate" "$out/${gate}.stderr"
-  gate=g1-qemu-cdp-parser-fixture
-  gate_argv_at "$BUS_GATE2_QEMU_ROOT" "$gate" "$out" node scripts/ci/wasm-browser-cdp-gate-test.mjs || finish_parent_failure "$gate" "$out/${gate}.stderr"
+  if [ "$CASE_ID" = "composed" ]; then
+    gate=g1-qemu-presence-require-service-roundtrip-gate
+    gate_argv_at "$BUS_GATE2_QEMU_ROOT" "$gate" "$out" rg -F -- --require-service-roundtrip scripts/ci/wasm-browser-cdp-proof-gate.mjs || finish_parent_failure "$gate" "$out/${gate}.stderr"
+    gate=g1-qemu-presence-require-service-roundtrip-test
+    gate_argv_at "$BUS_GATE2_QEMU_ROOT" "$gate" "$out" rg -F -- --require-service-roundtrip scripts/ci/wasm-browser-cdp-proof-gate-test.mjs || finish_parent_failure "$gate" "$out/${gate}.stderr"
+    gate=g1-qemu-cdp-parser-fixture
+    gate_argv_at "$BUS_GATE2_QEMU_ROOT" "$gate" "$out" node scripts/ci/wasm-browser-cdp-gate-test.mjs || finish_parent_failure "$gate" "$out/${gate}.stderr"
+  fi
 
   gate=g1-beo-pkgbuild
   gate_argv_at "$BUS_GATE2_BUS_ENGINE_OS_ROOT" "$gate" "$out" go test ./pkg/pkgbuild -run 'TestCodexRiscV64|TestRustCargoSourceBuild' -count=1 || finish_parent_failure "$gate" "$out/${gate}.stderr"
@@ -1452,7 +1498,7 @@ self_test() {
   local harness_root=$ROOT_DIR artifact_dir="$SELF_TMP/artifacts" busdk_root="$SELF_TMP/busdk" qemu_root="$SELF_TMP/qemu" os_root="$SELF_TMP/beo" codex_root="$SELF_TMP/codex" out="$SELF_TMP/out"
   local heavy_lock_dir="$SELF_TMP/busdk-worker-guard-$(id -u)" heavy_lock_fd heavy_lock_path heavy_lock_readback wrong_lock_fd
   local busdk_t50_parent_commit busdk_t50_candidate_commit busdk_t64_candidate_commit busdk_composed_commit
-  local h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11
+  local h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12
   local empty_sha collision_name collision_one collision_two collision_two_identity
   local release_ledger_json health_key
   self_init_repo "$os_root" README.md "beo-t50-parent"
@@ -1474,9 +1520,16 @@ self_test() {
   git -C "$os_root" commit -q -m "t66 dependency"
   h1=$(git -C "$os_root" rev-parse HEAD)
   self_init_repo "$qemu_root" README.md "qemu-t65-parent"
+  mkdir -p "$qemu_root/chardev" "$qemu_root/scripts/ci"
+  self_write_file "$qemu_root/chardev/char-wasm.c" "legacy pending input"
+  git -C "$qemu_root" add chardev/char-wasm.c
+  git -C "$qemu_root" commit -q -m "t65 parent source"
   h8=$(git -C "$qemu_root" rev-parse HEAD)
-  self_write_file "$qemu_root/t65-candidate.txt" "qemu-t65-candidate"
-  git -C "$qemu_root" add t65-candidate.txt
+  self_write_file "$qemu_root/chardev/char-wasm.c" "uint64_t pending_input_token;"
+  self_write_file "$qemu_root/scripts/ci/wasm-chardev-emscripten-abi-test.mjs" 'import assert from "node:assert/strict"; import { readFileSync } from "node:fs"; const source = readFileSync(`${process.env.QEMU_TEST_ROOT}/chardev/char-wasm.c`, "utf8"); assert.ok(source.includes("pending_input_token"), "production source must provide pending_input_token"); console.log("wasm-chardev-emscripten-abi-test: ok");'
+  self_write_file "$qemu_root/scripts/ci/wasm-chardev-startup-guard-test.mjs" 'import assert from "node:assert/strict"; import { readFileSync } from "node:fs"; const source = readFileSync(`${process.env.QEMU_TEST_ROOT}/chardev/char-wasm.c`, "utf8"); assert.ok(source.includes("pending_input_token")); console.log("wasm chardev startup guard contract: PASS");'
+  self_write_file "$qemu_root/scripts/ci/wasm-build-smoke-initramfs-test.py" 'import os; from pathlib import Path; assert "pending_input_token" in (Path(os.environ["QEMU_TEST_ROOT"]) / "chardev/char-wasm.c").read_text(); print("wasm-build-smoke-initramfs-test: ok")'
+  git -C "$qemu_root" add chardev/char-wasm.c scripts/ci
   git -C "$qemu_root" commit -q -m "t65 candidate"
   h9=$(git -C "$qemu_root" rev-parse HEAD)
   git -C "$qemu_root" checkout -q "$h8"
@@ -1486,8 +1539,31 @@ self_test() {
   h10=$(git -C "$qemu_root" rev-parse HEAD)
   git -C "$qemu_root" checkout -q "$h9"
   git -C "$qemu_root" merge -q --no-ff "$h10" -m "qemu composed"
+  for f in wasm-browser-smoke-args-test.mjs wasm-browser-smoke-runner-test.mjs wasm-guest-manifest-test.mjs; do
+    self_write_file "$qemu_root/scripts/ci/$f" "console.log('ok')"
+  done
+  self_write_file "$qemu_root/scripts/ci/wasm-prepare-tuxboot-smoke-guest-test.py" "print('ok')"
+  git -C "$qemu_root" add scripts/ci
+  git -C "$qemu_root" commit -q -m "compiled QEMU composition"
   h11=$(git -C "$qemu_root" rev-parse HEAD)
-  h2=$h11
+  for f in wasm-browser-cdp-gate-test.mjs wasm-browser-cdp-gate.mjs wasm-browser-cdp-proof-gate-test.mjs wasm-browser-cdp-proof-gate.mjs; do
+    self_write_file "$qemu_root/scripts/ci/$f" "--qemu-arg --service-request-operation --service-request-timeout-ms --require-service-roundtrip"
+  done
+  git -C "$qemu_root" add scripts/ci
+  git -C "$qemu_root" commit -q -m "host runtime gate candidate"
+  h12=$(git -C "$qemu_root" rev-parse HEAD)
+  h2=$h12
+  [ "$h8" != "$h9" ] && [ "$h9" != "$h11" ] && [ "$h11" != "$h12" ] ||
+    die "T65, compiled QEMU, and host runtime identities must be distinct"
+  git -C "$qemu_root" merge-base --is-ancestor "$h8" "$h9" ||
+    die "synthetic T65 parent must be an ancestor of its candidate"
+  git -C "$qemu_root" merge-base --is-ancestor "$h9" "$h11" ||
+    die "synthetic compiled QEMU must contain the T65 candidate"
+  git -C "$qemu_root" merge-base --is-ancestor "$h11" "$h12" ||
+    die "synthetic host runtime must be based on compiled QEMU"
+  if git -C "$qemu_root" merge-base --is-ancestor "$h11" "$h9"; then
+    die "synthetic standalone T65 candidate unexpectedly contains compiled QEMU"
+  fi
   self_init_repo "$codex_root" README.md "codex"
   h3=$(git -C "$codex_root" rev-parse HEAD)
   ROLE_T50_PARENT=$h4 ROLE_T50_CANDIDATE=$h5
@@ -1497,8 +1573,8 @@ self_test() {
   ROLE_T66_TIP=$h1
   ROLE_T50_PARENT_FAIL_GATE=g2-boot
   ROLE_T50_PARENT_FAIL_PREDICATE='bus-engine-os login:'
-  ROLE_T65_PARENT_FAIL_GATE=g1-qemu-presence-service-request-operation-gate
-  ROLE_T65_PARENT_FAIL_PREDICATE=--service-request-operation
+  ROLE_T65_PARENT_FAIL_GATE=g1-qemu-wasm-chardev-emscripten-abi-test
+  ROLE_T65_PARENT_FAIL_PREDICATE='production source must provide pending_input_token'
   mkdir -p "$busdk_root"
   git -C "$busdk_root" init -q
   git -C "$busdk_root" config user.email selftest@example.invalid
@@ -1519,7 +1595,7 @@ self_test() {
   busdk_composed_commit=$(git -C "$busdk_root" rev-parse HEAD)
   ROOT_DIR=$busdk_root
   git -C "$os_root" checkout -q "$h1"
-  git -C "$qemu_root" checkout -q "$h11"
+  git -C "$qemu_root" checkout -q "$h12"
   git -C "$busdk_root" checkout -q "$busdk_composed_commit"
   mkdir -p "$artifact_dir" "$qemu_root/scripts/ci" "$os_root/scripts" "$codex_root" "$artifact_dir/bundle"
   for f in kernel rootfs qemu.js qemu.wasm serial.txt; do self_write_file "$artifact_dir/$f" "$f"; done
@@ -1527,10 +1603,6 @@ self_test() {
 {"format":"bus-engine-os-chromium-vertical-slice-evidence-v1","containment":true,"ordered_down":true,"zero_survivors":true,"truthful_telemetry":true,"control_api_responsive":true,"supervisor_accepted":true}
 EOF
   self_write_file "$artifact_dir/bundle/SHA256SUMS" "sums"
-  for f in wasm-browser-smoke-args-test.mjs wasm-browser-smoke-runner-test.mjs wasm-browser-cdp-gate-test.mjs wasm-browser-cdp-proof-gate-test.mjs wasm-browser-cdp-proof-gate.mjs wasm-guest-manifest-test.mjs wasm-browser-cdp-gate.mjs; do
-    self_write_file "$qemu_root/scripts/ci/$f" "--serial-input-after-text --serial-input-text --pre-serial-input-wait-ms --qemu-arg --service-request-operation --service-request-timeout-ms --require-service-roundtrip"
-  done
-  self_write_file "$qemu_root/scripts/ci/wasm-prepare-tuxboot-smoke-guest-test.py" "print('ok')"
   for f in bus-boot-test bus-check-boot-test-report bus-check-browser-hosted-release; do self_write_file "$os_root/scripts/$f" "$f"; done
   QEMU_COMPILED_SOURCE_COMMIT=$h11
   QEMU_COMPILED_JS_SHA256=$(sha256_file "$artifact_dir/qemu.js")
@@ -1639,6 +1711,78 @@ json.dump(doc, open(path, "w", encoding="utf-8"))
 PY
   assert_fail "binary SHA-256" validate_codex_package_reports
   cp "$SELF_TMP/package.base.json" "$BUS_GATE2_PACKAGE_REPORT"
+
+  BUS_GATE2_T50_PARENT_COMMIT=$h4
+  BUS_GATE2_T50_CANDIDATE_COMMIT=$h5
+  BUS_GATE2_G4_SERIAL_INPUT_FILE=$artifact_dir/serial.txt
+  BUS_GATE2_G4_SERIAL_INPUT_SHA256=$(sha256_file "$artifact_dir/serial.txt")
+  export BUS_GATE2_T50_PARENT_COMMIT BUS_GATE2_T50_CANDIDATE_COMMIT BUS_GATE2_G4_SERIAL_INPUT_FILE BUS_GATE2_G4_SERIAL_INPUT_SHA256
+  git -C "$qemu_root" checkout -q "$h9"
+  BUS_GATE2_QEMU_COMMIT=$h9
+  QEMU_COMPILED_SOURCE_COMMIT=$h11
+  assert_fail "QEMU host gate candidate is not based on compiled artifact source" validate_qemu_host_only_range
+
+  git -C "$qemu_root" checkout -q "$h8"
+  BUS_GATE2_QEMU_COMMIT=$h8
+  BUS_GATE2_ACTIVE_SOURCE_OWNER=qemu
+  BUS_GATE2_ACTIVE_SOURCE_COMMIT=$h8
+  CASE_ID=T65
+  ROLE=parent-fail
+  EXPECTED_FAIL_GATE=$ROLE_T65_PARENT_FAIL_GATE
+  EXPECTED_FAIL_PREDICATE=$ROLE_T65_PARENT_FAIL_PREDICATE
+  RESULT_DIR=$SELF_TMP/t65-parent
+  PLAN_MODE=0
+  validate_role
+  validate_identity_inputs
+  require_packet_paths
+  mkdir -p "$RESULT_DIR"
+  : >"$RESULT_DIR/status.tsv"
+  printf 'cleanup_policy=exact-container-name-and-labels\n' >"$RESULT_DIR/cleanup.log"
+  ( run_g1 )
+  grep -F '"observed_classification":"parent-fail"' "$RESULT_DIR/final-result.json" >/dev/null
+
+  git -C "$qemu_root" checkout -q "$h9"
+  BUS_GATE2_QEMU_COMMIT=$h9
+  BUS_GATE2_ACTIVE_SOURCE_COMMIT=$h9
+  ROLE=candidate-pass
+  EXPECTED_FAIL_GATE=
+  EXPECTED_FAIL_PREDICATE=
+  RESULT_DIR=$SELF_TMP/t65-candidate
+  validate_role
+  validate_identity_inputs
+  require_packet_paths
+  mkdir -p "$RESULT_DIR"
+  : >"$RESULT_DIR/status.tsv"
+  run_g1
+  python3 - "$RESULT_DIR/status.tsv" <<'PY'
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    records = [line.rstrip("\n").split("\t") for line in handle]
+want = [
+    "g1-qemu-wasm-chardev-emscripten-abi-test",
+    "g1-qemu-wasm-chardev-startup-guard-test",
+    "g1-qemu-wasm-build-smoke-initramfs-test",
+]
+if [record[0] for record in records] != want:
+    raise SystemExit(f"standalone T65 ran wrong gates: {records!r}")
+if any(len(record) < 2 or record[1] != "0" for record in records):
+    raise SystemExit(f"standalone T65 candidate did not pass all gates: {records!r}")
+PY
+
+  git -C "$qemu_root" checkout -q "$h12"
+  BUS_GATE2_QEMU_COMMIT=$h12
+  BUS_GATE2_ACTIVE_SOURCE_OWNER=bus_engine_os
+  BUS_GATE2_ACTIVE_SOURCE_COMMIT=$h1
+  CASE_ID=composed
+  ROLE=candidate-pass
+  RESULT_DIR=$out
+  PLAN_MODE=1
+  unset BUS_GATE2_T50_PARENT_COMMIT BUS_GATE2_T50_CANDIDATE_COMMIT BUS_GATE2_G4_SERIAL_INPUT_FILE BUS_GATE2_G4_SERIAL_INPUT_SHA256
+  validate_role
+  validate_identity_inputs
+  validate_qemu_host_only_range >/dev/null
+
   release_ledger_json=$(cat "$BUS_GATE2_RELEASE_LEDGER")
   validate_release_ledger "$BUS_GATE2_RELEASE_LEDGER" "$TUPLE_FORMAT"
   for health_key in truthful_telemetry control_api_responsive supervisor_accepted; do
@@ -1860,15 +2004,15 @@ PY
   git -C "$qemu_root" commit -q -m "missing t154 side"
   local missing_t154
   missing_t154=$(git -C "$qemu_root" rev-parse HEAD)
-  git -C "$qemu_root" checkout -q "$h11"
+  git -C "$qemu_root" checkout -q "$h12"
   CASE_ID=composed
   BUS_GATE2_ACTIVE_SOURCE_OWNER=qemu
-  BUS_GATE2_ACTIVE_SOURCE_COMMIT=$h11
-  BUS_GATE2_QEMU_COMMIT=$h11
+  BUS_GATE2_ACTIVE_SOURCE_COMMIT=$h12
+  BUS_GATE2_QEMU_COMMIT=$h12
   assert_fail "composed candidate-pass must bind fixed Bus Engine OS owner" validate_identity_inputs
   BUS_GATE2_ACTIVE_SOURCE_OWNER=bus_engine_os
   BUS_GATE2_ACTIVE_SOURCE_COMMIT=$h1
-  BUS_GATE2_QEMU_COMMIT=$h11
+  BUS_GATE2_QEMU_COMMIT=$h12
   CASE_ID=composed
   ROLE_T50_CANDIDATE=$missing_t50
   unset BUS_GATE2_T50_PARENT_COMMIT BUS_GATE2_T50_CANDIDATE_COMMIT
@@ -2043,10 +2187,10 @@ for gate in (
         raise SystemExit(f"cold composed retained serial-input support gate: {gate}")
 PY
   grep -F 'g1-qemu-wasm-browser-cdp-proof-gate-test' "$SELF_TMP/plan/status.tsv" >/dev/null
-  python3 - "$SELF_TMP/plan/chromium/g4-generated-exec-proof.argv.txt" "$SELF_TMP/plan/chromium/result.json" "$SELF_TMP/plan/chromium/g4-chromium.argv.txt" "$SELF_TMP/plan/scenario.json" "$SELF_TMP/plan/artifacts.json" "$SELF_TMP/plan/source-deltas.json" "$SELF_TMP/tuple-composed-out/tuple.json" <<'PY'
+  python3 - "$SELF_TMP/plan/chromium/g4-generated-exec-proof.argv.txt" "$SELF_TMP/plan/chromium/result.json" "$SELF_TMP/plan/chromium/g4-chromium.argv.txt" "$SELF_TMP/plan/scenario.json" "$SELF_TMP/plan/artifacts.json" "$SELF_TMP/plan/source-deltas.json" "$SELF_TMP/tuple-composed-out/tuple.json" "$h11" "$h12" <<'PY'
 import json
 import sys
-proof_path, result_path, chromium_path, scenario_path, artifacts_path, delta_path, tuple_path = sys.argv[1:8]
+proof_path, result_path, chromium_path, scenario_path, artifacts_path, delta_path, tuple_path, compiled_source, host_source = sys.argv[1:10]
 with open(proof_path, encoding="utf-8") as f:
     proof = f.read().splitlines()
 expected = [
@@ -2113,8 +2257,12 @@ with open(artifacts_path, encoding="utf-8") as f:
 if any(key.startswith("t50_") for key in artifacts.get("pins", {})):
     raise SystemExit("composed artifacts retain T50 inputs")
 split = artifacts.get("qemu_source_split", {})
-if split.get("host_gate_candidate") != split.get("compiled_artifact_source"):
-    raise SystemExit("self-test QEMU source split mismatch")
+if split.get("compiled_artifact_source") != compiled_source:
+    raise SystemExit("self-test compiled QEMU source mismatch")
+if split.get("host_gate_candidate") != host_source:
+    raise SystemExit("self-test host runtime source mismatch")
+if split.get("host_gate_candidate") == split.get("compiled_artifact_source"):
+    raise SystemExit("self-test QEMU source split collapsed distinct identities")
 if split.get("compiled_inputs_changed") is not False:
     raise SystemExit("compiled QEMU inputs must remain unchanged")
 with open(delta_path, encoding="utf-8") as f:
