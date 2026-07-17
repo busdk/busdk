@@ -1899,15 +1899,20 @@ def canonical_argv(root, relative):
     lines = (root / relative).read_text(encoding="utf-8").splitlines()
     return [line.replace(str(root), "<RESULT_DIR>") for line in lines]
 
-def require_exact_value(argv, flag, value, label):
-    matches = [argv[i + 1] for i, arg in enumerate(argv[:-1]) if arg == flag]
-    if matches != [value]:
-        raise SystemExit(f"{label} lost exact {flag}={value!r}: {matches!r}")
+def collect_flag_values(argv, flag, label):
+    matches = []
+    for i, arg in enumerate(argv):
+        if arg != flag:
+            continue
+        if i + 1 >= len(argv):
+            raise SystemExit(f"{label} has valueless trailing {flag}")
+        matches.append(argv[i + 1])
+    return matches
 
-def require_value_present(argv, flag, value, label):
-    matches = [argv[i + 1] for i, arg in enumerate(argv[:-1]) if arg == flag]
-    if value not in matches:
-        raise SystemExit(f"{label} lost required {flag}={value!r}: {matches!r}")
+def require_exact_values(argv, flag, expected_values, label):
+    matches = collect_flag_values(argv, flag, label)
+    if matches != expected_values:
+        raise SystemExit(f"{label} lost exact {flag} values {expected_values!r}: {matches!r}")
 
 records = [line.split("\t") for line in (candidate_root / "status.tsv").read_text(encoding="utf-8").splitlines()]
 if any(len(record) < 2 or record[1] != "PLAN" for record in records):
@@ -1921,17 +1926,17 @@ if scenario.get("g4_network") != "none" or scenario.get("g4_timeout_ms") != 1200
 if "console_readiness_marker" in scenario or "console_duplex_primary_serial" in scenario:
     raise SystemExit("standalone T50 retained cold-only scenario fields")
 native_boot_argv = canonical_argv(candidate_root, Path("native/g2-boot.argv.txt"))
-require_exact_value(
+require_exact_values(
     native_boot_argv,
     "--append",
-    "console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service",
+    ["console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service"],
     "standalone T50 native bus-boot-test",
 )
 native_check_argv = canonical_argv(candidate_root, Path("native/g2-check-boot.argv.txt"))
-require_exact_value(
+require_exact_values(
     native_check_argv,
     "--append",
-    "console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service",
+    ["console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service"],
     "standalone T50 native bus-check-boot-test-report",
 )
 argv = canonical_argv(candidate_root, Path("chromium/g4-chromium.argv.txt"))
@@ -1941,8 +1946,8 @@ for flag, value in (
     ("--service-request-timeout-ms", "10000"),
     ("--timeout-ms", "1200000"),
 ):
-    require_exact_value(argv, flag, value, "standalone T50 browser G4")
-require_value_present(argv, "--network", "none", "standalone T50 browser G4")
+    require_exact_values(argv, flag, [value], "standalone T50 browser G4")
+require_exact_values(argv, "--network", ["bridge", "none"], "standalone T50 browser G4")
 for required in (
     "QEMU_WASM_SNAPSHOT_RELEASED",
     "bus-engine-os-first-resume-identity: identity-evidence",
@@ -1971,6 +1976,37 @@ if "t50_parent" not in pins or "t50_candidate" not in pins:
 delta = load(candidate_root, "source-deltas.json")
 if "t50" not in delta.get("verified_fixed_roles", {}):
     raise SystemExit("standalone T50 source delta lost required T50 identity")
+try:
+    require_exact_values(
+        native_boot_argv + ["--append"],
+        "--append",
+        ["console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service"],
+        "standalone T50 native bus-boot-test duplicate append repro",
+    )
+except SystemExit as exc:
+    if "valueless trailing --append" not in str(exc):
+        raise
+else:
+    raise SystemExit("standalone T50 duplicate trailing --append repro stayed green")
+bad_network_argv = argv.copy()
+for i, arg in enumerate(bad_network_argv):
+    if arg == "--network" and i + 1 < len(bad_network_argv) and bad_network_argv[i + 1] == "bridge":
+        bad_network_argv[i + 1] = "host"
+        break
+else:
+    raise SystemExit("standalone T50 missing Docker --network bridge for mutation repro")
+try:
+    require_exact_values(
+        bad_network_argv,
+        "--network",
+        ["bridge", "none"],
+        "standalone T50 browser G4 Docker network repro",
+    )
+except SystemExit as exc:
+    if "--network" not in str(exc):
+        raise
+else:
+    raise SystemExit("standalone T50 Docker --network bridge->host repro stayed green")
 PY
   local t50_serial_file=$BUS_GATE2_G4_SERIAL_INPUT_FILE t50_serial_sha=$BUS_GATE2_G4_SERIAL_INPUT_SHA256
   unset BUS_GATE2_G4_SERIAL_INPUT_FILE
@@ -2226,10 +2262,20 @@ import json
 import sys
 proof_path, result_path, chromium_path, scenario_path, artifacts_path, delta_path, tuple_path, compiled_source, host_source = sys.argv[1:10]
 
-def require_exact_value(argv, flag, value, label):
-    matches = [argv[i + 1] for i, arg in enumerate(argv[:-1]) if arg == flag]
-    if matches != [value]:
-        raise SystemExit(f"{label} lost exact {flag}={value!r}: {matches!r}")
+def collect_flag_values(argv, flag, label):
+    matches = []
+    for i, arg in enumerate(argv):
+        if arg != flag:
+            continue
+        if i + 1 >= len(argv):
+            raise SystemExit(f"{label} has valueless trailing {flag}")
+        matches.append(argv[i + 1])
+    return matches
+
+def require_exact_values(argv, flag, expected_values, label):
+    matches = collect_flag_values(argv, flag, label)
+    if matches != expected_values:
+        raise SystemExit(f"{label} lost exact {flag} values {expected_values!r}: {matches!r}")
 
 with open(proof_path, encoding="utf-8") as f:
     proof = f.read().splitlines()
@@ -2252,19 +2298,19 @@ if proof != expected:
 native_boot = chromium_path.replace("chromium/g4-chromium.argv.txt", "native/g2-boot.argv.txt")
 with open(native_boot, encoding="utf-8") as f:
     native_boot_argv = f.read().splitlines()
-require_exact_value(
+require_exact_values(
     native_boot_argv,
     "--append",
-    "console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service",
+    ["console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service"],
     "cold composed native bus-boot-test",
 )
 native_check = chromium_path.replace("chromium/g4-chromium.argv.txt", "native/g2-check-boot.argv.txt")
 with open(native_check, encoding="utf-8") as f:
     native_check_argv = f.read().splitlines()
-require_exact_value(
+require_exact_values(
     native_check_argv,
     "--append",
-    "console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service",
+    ["console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service"],
     "cold composed native bus-check-boot-test-report",
 )
 with open(chromium_path, encoding="utf-8") as f:
@@ -2304,6 +2350,7 @@ for required in (
   ):
     if required not in chromium:
         raise SystemExit(f"cold composed argv lost required term: {required}")
+require_exact_values(chromium, "--network", ["bridge", "none"], "cold composed browser G4")
 with open(scenario_path, encoding="utf-8") as f:
     scenario = json.load(f)
 if scenario.get("console_readiness_marker") != "bus-engine-os login:" or scenario.get("console_duplex_primary_serial") is not True:
@@ -2345,6 +2392,37 @@ for label, path in {
     for forbidden in ("t50", "resume", "snapshot", "serial-input"):
         if forbidden in text:
             raise SystemExit(f"composed {label} retained forbidden term: {forbidden}")
+try:
+    require_exact_values(
+        native_check_argv + ["--append"],
+        "--append",
+        ["console=ttyS0 root=/dev/vda rw systemd.mask=systemd-networkd-wait-online.service"],
+        "cold composed native bus-check-boot-test-report duplicate append repro",
+    )
+except SystemExit as exc:
+    if "valueless trailing --append" not in str(exc):
+        raise
+else:
+    raise SystemExit("cold composed duplicate trailing --append repro stayed green")
+bad_chromium = chromium.copy()
+for i, arg in enumerate(bad_chromium):
+    if arg == "--network" and i + 1 < len(bad_chromium) and bad_chromium[i + 1] == "bridge":
+        bad_chromium[i + 1] = "host"
+        break
+else:
+    raise SystemExit("cold composed missing Docker --network bridge for mutation repro")
+try:
+    require_exact_values(
+        bad_chromium,
+        "--network",
+        ["bridge", "none"],
+        "cold composed browser G4 Docker network repro",
+    )
+except SystemExit as exc:
+    if "--network" not in str(exc):
+        raise
+else:
+    raise SystemExit("cold composed Docker --network bridge->host repro stayed green")
 PY
   if find "$SELF_TMP/plan" -name 'g4-chromium.stdout' -size +0c | grep -q .; then die "plan path unexpectedly executed heavy command"; fi
   mkdir -p "$SELF_TMP/nonempty"; printf keep >"$SELF_TMP/nonempty/evidence"
