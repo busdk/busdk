@@ -658,3 +658,7 @@
 	path = bus-portal-thread
 	url = git@github.com:busdk/bus-portal-thread.git
 	branch = develop
+[submodule "bus-connect"]
+	path = bus-connect
+	url = git@github.com:busdk/bus-connect.git
+	branch = develop
