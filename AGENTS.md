@@ -1230,6 +1230,13 @@ E2E passes against the exact composition.
 - Use Thread 111 only for cross-lane dependencies and accepted baselines. Keep
   detailed evidence in the owning feature Thread and use Thread 146 for future
   delivery-process audits.
+- Before each new or resumed BusDK feature turn, read the owning module
+  portfolio and latest shared baseline from the Bus Thread board. From the
+  BusDK root, use `bus thread list 231 --depth 2` and
+  `bus thread show 111 --latest 6`. Place every future canonical BusDK feature
+  root under exactly one Thread 231 module portfolio; Thread 111 coordination,
+  Thread 182 active-bug cards, and Thread 3 product branches on that same board
+  remain the explicit cross-module exceptions.
 
 ## Cross-Module Architecture
 
