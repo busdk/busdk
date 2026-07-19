@@ -28,13 +28,62 @@ product_repo=$(abs_path "$product_repo")
 identity_repo=$(abs_path "$identity_repo")
 template_catalog=$(abs_path "$template_catalog")
 
-if [ -f "$config_path" ]; then
-  exit 0
-fi
-
 yaml_quote() {
   printf "'%s'" "$(printf '%s' "$1" | sed "s/'/''/g")"
 }
+
+catalog_repo_id_count() {
+  catalog=$1
+  repo_id=$2
+  awk -v expected="  - id: $repo_id" '$0 == expected { count++ } END { print count + 0 }' "$catalog"
+}
+
+migrate_legacy_product_catalog() {
+  canonical_count=$(catalog_repo_id_count "$config_path" busdk/busdk)
+  legacy_count=$(catalog_repo_id_count "$config_path" product)
+
+  if [ "$canonical_count" -gt 1 ] || [ "$legacy_count" -gt 1 ]; then
+    printf 'bus repos init: catalog has duplicate BusDK repository identities: %s\n' "$config_path" >&2
+    exit 1
+  fi
+  if [ "$canonical_count" -eq 1 ]; then
+    if [ "$legacy_count" -eq 1 ]; then
+      printf 'bus repos init: catalog exposes both busdk/busdk and legacy product repository identities: %s\n' "$config_path" >&2
+      exit 1
+    fi
+    return 0
+  fi
+  if [ "$legacy_count" -eq 0 ]; then
+    return 0
+  fi
+
+  tmp=$(mktemp "$(dirname "$config_path")/.catalog.yml.tmp.XXXXXX")
+  trap 'rm -f "$tmp"' EXIT
+  awk -v canonical_name="'busdk/busdk'" '
+    $0 == "  - id: product" {
+      print "  - id: busdk/busdk"
+      print "    legacyIDs:"
+      print "      - product"
+      in_legacy_product = 1
+      next
+    }
+    in_legacy_product && $0 ~ /^  - id: / {
+      in_legacy_product = 0
+    }
+    in_legacy_product && ($0 == "    name: product" || $0 == "    name: '\''product'\''" || $0 == "    name: \"product\"") {
+      print "    name: " canonical_name
+      next
+    }
+    { print }
+  ' "$config_path" >"$tmp"
+  mv "$tmp" "$config_path"
+  trap - EXIT
+}
+
+if [ -f "$config_path" ]; then
+  migrate_legacy_product_catalog
+  exit 0
+fi
 
 remote_url() {
   repo=$1
@@ -121,9 +170,11 @@ trap 'rm -f "$tmp"' EXIT
   printf '  - id: local\n'
   printf '    name: Local\n'
   printf 'repos:\n'
-  printf '  - id: product\n'
+  printf '  - id: busdk/busdk\n'
+  printf '    legacyIDs:\n'
+  printf '      - product\n'
   printf '    group: local\n'
-  printf '    name: product\n'
+  printf '    name: %s\n' "$(yaml_quote 'busdk/busdk')"
   printf '    defaultBranch: %s\n' "$(yaml_quote "$product_base")"
   printf '    path: %s\n' "$(yaml_quote "$product_path")"
   printf '    remotes:\n'
