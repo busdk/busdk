@@ -59,6 +59,14 @@ init_repo "$identity_repo" 'identity/bootstrap'
 
 catalog="$tmp/catalog.yml"
 run_init "$catalog" "$tmp/storage" env
+expect_line "$catalog" "  - id: busdk/busdk"
+expect_line "$catalog" "    legacyIDs:"
+expect_line "$catalog" "      - product"
+expect_line "$catalog" "    name: 'busdk/busdk'"
+expect_line "$catalog" "    path: '$tmp/storage/product.git'"
+if grep -F -x '  - id: product' "$catalog" >/dev/null; then
+	fail 'legacy product id was exposed as a public catalog identity'
+fi
 expect_line "$catalog" "    defaultBranch: 'product/release'"
 expect_line "$catalog" "    defaultBranch: 'identity/bootstrap'"
 expect_line "$catalog" "  - id: workers/claude-fable-5"
@@ -66,6 +74,50 @@ expect_line "$catalog" "  - id: workers/codex-55-high"
 if [ "$(grep -F -c '  - id: workers/codex-55-high' "$catalog")" -ne 1 ]; then
 	fail 'duplicate template identity refs were not deduplicated'
 fi
+
+legacy_storage="$tmp/legacy-storage"
+mkdir -p "$legacy_storage"
+git clone --bare "$product_repo" "$legacy_storage/product.git" >/dev/null
+legacy_worktree="$tmp/preserved-worktree"
+git --git-dir="$legacy_storage/product.git" worktree add -q -b preserved/worktree "$legacy_worktree" product/release
+legacy_head=$(git -C "$legacy_worktree" rev-parse HEAD)
+legacy_catalog="$tmp/legacy-catalog.yml"
+cat >"$legacy_catalog" <<EOF
+groups:
+  - id: local
+    name: Local
+repos:
+  - id: product
+    group: local
+    name: product
+    defaultBranch: 'product/release'
+    path: '$legacy_storage/product.git'
+    remotes:
+      - name: origin
+        url: '$product_repo'
+EOF
+git --git-dir="$legacy_storage/product.git" worktree list --porcelain >"$tmp/worktrees.before"
+git --git-dir="$legacy_storage/product.git" for-each-ref --format='%(refname) %(objectname)' >"$tmp/refs.before"
+
+run_init "$legacy_catalog" "$legacy_storage" env
+expect_line "$legacy_catalog" "  - id: busdk/busdk"
+expect_line "$legacy_catalog" "    legacyIDs:"
+expect_line "$legacy_catalog" "      - product"
+expect_line "$legacy_catalog" "    name: 'busdk/busdk'"
+expect_line "$legacy_catalog" "    path: '$legacy_storage/product.git'"
+if grep -F -x '  - id: product' "$legacy_catalog" >/dev/null; then
+	fail 'migrated catalog still exposed the legacy product identity'
+fi
+git --git-dir="$legacy_storage/product.git" worktree list --porcelain >"$tmp/worktrees.after"
+git --git-dir="$legacy_storage/product.git" for-each-ref --format='%(refname) %(objectname)' >"$tmp/refs.after"
+cmp "$tmp/worktrees.before" "$tmp/worktrees.after" >/dev/null || fail 'catalog migration changed the managed worktree inventory'
+cmp "$tmp/refs.before" "$tmp/refs.after" >/dev/null || fail 'catalog migration changed repository refs'
+if [ "$(git -C "$legacy_worktree" rev-parse HEAD)" != "$legacy_head" ]; then
+	fail 'catalog migration changed the preserved worktree HEAD'
+fi
+cp "$legacy_catalog" "$tmp/legacy-catalog.once.yml"
+run_init "$legacy_catalog" "$legacy_storage" env
+cmp "$tmp/legacy-catalog.once.yml" "$legacy_catalog" >/dev/null || fail 'canonical catalog initialization was not idempotent'
 
 explicit_catalog="$tmp/explicit.yml"
 run_init "$explicit_catalog" "$tmp/explicit-storage" env \
