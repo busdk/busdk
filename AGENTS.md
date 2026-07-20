@@ -28,6 +28,9 @@ Merged guidance from `.cursor/rules/*.mdc`.
   `sdd/docs/modules/` or the owning module's `AGENTS.md`.
 - Use repo-local skills in `./skills` for detailed operational runbooks. Mount
   those skills into worker containers when practical.
+- Bus CLI implementers and reviewers should read `docs/docs/cli/output-style.md`
+  for the shared human/structured output conventions before adding or changing
+  a command's rendering.
 - Keep public docs free of agent-only process rules. For SDD/public-doc
   architecture candidates, leave compact triggers and follow-up notes unless a
   task explicitly asks for public documentation edits.
