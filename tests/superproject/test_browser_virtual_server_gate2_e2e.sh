@@ -56,6 +56,7 @@ usage:
   test_browser_virtual_server_gate2_e2e.sh --case T50|T64|T65|composed --role candidate-pass --result-dir DIR
   test_browser_virtual_server_gate2_e2e.sh --plan --case composed --role candidate-pass --result-dir DIR
   test_browser_virtual_server_gate2_e2e.sh --self-test
+  test_browser_virtual_server_gate2_e2e.sh --self-test-t65-public-flow
 
 Execution modes require exact BUS_GATE2_* identity fields. The harness owns the
 packet G0-G4 argv, role bindings, and parent-failure predicates.
@@ -1386,6 +1387,17 @@ run_harness() {
   mkdir -p "$RESULT_DIR/preflight"
   gate_argv_at "$ROOT_DIR" "$gate" "$RESULT_DIR/preflight" validate_release_ledger "$BUS_GATE2_RELEASE_LEDGER" "$TUPLE_FORMAT" || finish_parent_failure "$gate" "$RESULT_DIR/preflight/${gate}.stderr"
   run_g1
+  if [ "$CASE_ID" = "T65" ]; then
+    [ "$ROLE" != "parent-fail" ] || die "parent-fail role unexpectedly passed every gate"
+    if [ "$PLAN_MODE" = "1" ]; then
+      write_final_result plan
+      printf 'Browser Product Gate 2 harness plan OK: %s\n' "$RESULT_DIR"
+    else
+      write_final_result candidate-pass
+      printf 'Browser Product Gate 2 candidate harness OK: %s\n' "$RESULT_DIR"
+    fi
+    return
+  fi
 
   mkdir -p "$RESULT_DIR/native"
   gate=g2-boot
@@ -1487,6 +1499,45 @@ self_init_repo() {
   self_write_file "$dir/$file" "$content"
   git -C "$dir" add "$file"
   git -C "$dir" commit -q -m "initial"
+}
+
+self_prepare_public_harness() {
+  local destination=$1 source=$2
+  [ "$destination" = "$source" ] || cp "$source" "$destination"
+  python3 - "$destination" "$h1" "$h3" "$h4" "$h5" "$h6" "$h7" "$h8" "$h9" "$h10" "$h11" "$QEMU_COMPILED_JS_SHA256" "$QEMU_COMPILED_WASM_SHA256" <<'PY'
+import sys
+
+path, h1, h3, h4, h5, h6, h7, h8, h9, h10, h11, js_sha, wasm_sha = sys.argv[1:]
+updates = {
+    "QEMU_COMPILED_SOURCE_COMMIT": h11,
+    "QEMU_COMPILED_JS_SHA256": js_sha,
+    "QEMU_COMPILED_WASM_SHA256": wasm_sha,
+    "ROLE_T50_PARENT": h4,
+    "ROLE_T50_CANDIDATE": h5,
+    "ROLE_T64_PARENT": h6,
+    "ROLE_T64_CANDIDATE": h7,
+    "ROLE_T65_PARENT": h8,
+    "ROLE_T65_CANDIDATE": h9,
+    "ROLE_T154_PARENT": h8,
+    "ROLE_T154_CANDIDATE": h10,
+    "ROLE_T66_TIP": h1,
+}
+seen = set()
+result = []
+for line in open(path, encoding="utf-8"):
+    for key, value in updates.items():
+        if key not in seen and line.startswith(f"{key}="):
+            line = f"{key}={value}\n"
+            seen.add(key)
+            break
+    result.append(line)
+if seen != set(updates):
+    missing = sorted(set(updates) - seen)
+    raise SystemExit(f"public harness role patch missed: {missing}")
+with open(path, "w", encoding="utf-8") as handle:
+    handle.writelines(result)
+PY
+  chmod 0755 "$destination"
 }
 
 self_test() {
@@ -1769,6 +1820,73 @@ if [record[0] for record in records] != want:
 if any(len(record) < 2 or record[1] != "0" for record in records):
     raise SystemExit(f"standalone T65 candidate did not pass all gates: {records!r}")
 PY
+
+  local t65_public_dir="$SELF_TMP/t65-public-flow"
+  local t65_harness_dir="$busdk_root/tests/superproject"
+  local t65_candidate_harness="$t65_harness_dir/t65-candidate-harness.sh"
+  local t65_parent_harness="$t65_harness_dir/t65-parent-harness.sh"
+  local t65_candidate_result="$t65_public_dir/candidate-result"
+  local t65_parent_result="$t65_public_dir/parent-result"
+  mkdir -p "$t65_public_dir" "$t65_harness_dir"
+  self_write_file "$os_root/scripts/bus-boot-test" $'#!/usr/bin/env bash\nprintf "T65_PUBLIC_G2_BOOT_ACTION\\n" >&2\nexit 42\n'
+  chmod 0755 "$os_root/scripts/bus-boot-test"
+  self_prepare_public_harness "$t65_candidate_harness" "$harness_root/tests/superproject/test_browser_virtual_server_gate2_e2e.sh"
+  git -C "$harness_root" show ca902aa27da75567eb8c4f67ce12c43e9c0dba57:tests/superproject/test_browser_virtual_server_gate2_e2e.sh >"$t65_parent_harness"
+  self_prepare_public_harness "$t65_parent_harness" "$t65_parent_harness"
+  if ! bash "$t65_candidate_harness" --case T65 --role candidate-pass --result-dir "$t65_candidate_result" >"$t65_public_dir/candidate.stdout" 2>"$t65_public_dir/candidate.stderr"; then
+    cat "$t65_public_dir/candidate.stderr" >&2
+    die "T65 public candidate flow did not terminate after G1"
+  fi
+  if bash "$t65_parent_harness" --case T65 --role candidate-pass --result-dir "$t65_parent_result" >"$t65_public_dir/parent.stdout" 2>"$t65_public_dir/parent.stderr"; then
+    die "T65 parent control unexpectedly passed"
+  fi
+  python3 - "$t65_candidate_result" "$t65_parent_result" <<'PY'
+import json
+from pathlib import Path
+import sys
+
+candidate, parent = map(Path, sys.argv[1:])
+g1 = [
+    "g1-qemu-wasm-chardev-emscripten-abi-test",
+    "g1-qemu-wasm-chardev-startup-guard-test",
+    "g1-qemu-wasm-build-smoke-initramfs-test",
+]
+
+def gates(root):
+    return [line.split("\t", 1)[0] for line in (root / "status.tsv").read_text(encoding="utf-8").splitlines()]
+
+candidate_gates = gates(candidate)
+if candidate_gates != ["g0-release-ledger", *g1]:
+    raise SystemExit(f"T65 public candidate ran wrong gates: {candidate_gates!r}")
+with (candidate / "final-result.json").open(encoding="utf-8") as handle:
+    final = json.load(handle)
+if final.get("observed_classification") != "candidate-pass":
+    raise SystemExit(f"T65 public candidate final result is wrong: {final!r}")
+if any(gate.startswith(("g2-", "g3-", "g4-")) for gate in candidate_gates):
+    raise SystemExit(f"T65 public candidate entered a later gate: {candidate_gates!r}")
+if (candidate / "native").exists() or (candidate / "chromium").exists():
+    raise SystemExit("T65 public candidate created a later-gate result directory")
+if "T65_PUBLIC_G2_BOOT_ACTION" in "\n".join(
+    path.read_text(encoding="utf-8", errors="replace")
+    for path in candidate.rglob("*") if path.is_file()
+):
+    raise SystemExit("T65 public candidate executed the G2 action stub")
+
+parent_gates = gates(parent)
+if parent_gates != ["g0-release-ledger", *g1, "g2-boot"]:
+    raise SystemExit(f"T65 parent control did not reach G2 after the fixed G1 order: {parent_gates!r}")
+stderr = (parent / "native" / "g2-boot.stderr").read_text(encoding="utf-8")
+if "T65_PUBLIC_G2_BOOT_ACTION" not in stderr:
+    raise SystemExit(f"T65 parent control did not fail at the G2 action stub: {stderr!r}")
+if (parent / "final-result.json").exists():
+    raise SystemExit("T65 parent control unexpectedly emitted a terminal result")
+if any(gate.startswith(("g3-", "g4-")) for gate in parent_gates) or (parent / "chromium").exists():
+    raise SystemExit("T65 parent control reached a later gate after G2")
+PY
+  if [ "${SELF_TEST_T65_PUBLIC_FLOW_ONLY:-0}" = "1" ]; then
+    printf 'Browser Product Gate 2 T65 public-flow self-test OK\n'
+    return
+  fi
 
   git -C "$qemu_root" checkout -q "$h12"
   BUS_GATE2_QEMU_COMMIT=$h12
@@ -2292,6 +2410,7 @@ PY
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --self-test) shift; [ "$#" -eq 0 ] || die "--self-test does not accept extra arguments"; self_test; exit 0 ;;
+    --self-test-t65-public-flow) shift; [ "$#" -eq 0 ] || die "--self-test-t65-public-flow does not accept extra arguments"; SELF_TEST_T65_PUBLIC_FLOW_ONLY=1 self_test; exit 0 ;;
     --plan) PLAN_MODE=1; shift ;;
     --case) [ "$#" -ge 2 ] || die "missing value for --case"; CASE_ID=$2; shift 2 ;;
     --role) [ "$#" -ge 2 ] || die "missing value for --role"; ROLE=$2; shift 2 ;;
