@@ -80,6 +80,18 @@ meta_value() {
 	fi
 }
 
+remove_worker_ephemeral_tmp() {
+	rwet_name=$1
+	rwet_expected="$(worker_dir "$rwet_name")/ephemeral-tmp"
+	rwet_recorded=$(meta_value "$rwet_name" ephemeral_tmp_path)
+	if [ "$rwet_recorded" != "$rwet_expected" ]; then
+		return 0
+	fi
+	if [ -d "$rwet_expected" ]; then
+		rm -rf "$rwet_expected"
+	fi
+}
+
 validate_worker() {
 	case "$1" in
 		''|*[!abcdefghijklmnopqrstuvwxyz0123456789-]*)
@@ -242,14 +254,19 @@ write_runner() {
 	wr_prompt_file=$5
 	wr_log_file=$6
 	wr_codex_home=$7
+	wr_ephemeral_tmp=$8
 	cat >"$wr_runner" <<EOF
 #!/bin/sh
 set -eu
 export CODEX_HOME=$(shell_quote "$wr_codex_home")
 export BUSDK_ROOT=$(shell_quote "$wr_product_worktree")
 export BUS_WORKER_IDENTITY_ROOT=$(shell_quote "$wr_identity_worktree")
+export TMPDIR=$(shell_quote "$wr_ephemeral_tmp")
+export TMP=$(shell_quote "$wr_ephemeral_tmp")
+export TEMP=$(shell_quote "$wr_ephemeral_tmp")
+export GOTMPDIR=$(shell_quote "$wr_ephemeral_tmp")
 export PATH=$(shell_quote "$PATH_PREFIX"):\$PATH
-mkdir -p "\$CODEX_HOME"
+mkdir -p "\$CODEX_HOME" "\$TMPDIR"
 cd $(shell_quote "$wr_product_worktree/$wr_module")
 printf 'manual Spark worker started at %s\n' "\$(date -u '+%Y-%m-%dT%H:%M:%SZ')" >>$(shell_quote "$wr_log_file")
 printf 'workdir=%s\nidentity=%s\nmodel=%s\nsandbox=%s\n' $(shell_quote "$wr_product_worktree/$wr_module") $(shell_quote "$wr_identity_worktree") $(shell_quote "$MODEL") $(shell_quote "$SANDBOX") >>$(shell_quote "$wr_log_file")
@@ -313,6 +330,7 @@ start)
 	identity_worktree="$dir/agent-worker"
 	logs_path="$dir/logs"
 	scratch_path="$dir/scratch"
+	ephemeral_tmp_path="$dir/ephemeral-tmp"
 	codex_home="$dir/codex-home"
 	prompt_file="$dir/prompt.md"
 	live_prompt="$dir/live-prompt.md"
@@ -344,7 +362,7 @@ start)
 		fi
 	fi
 
-	mkdir -p "$dir" "$logs_path" "$scratch_path"
+	mkdir -p "$dir" "$logs_path" "$scratch_path" "$ephemeral_tmp_path"
 	cp "$prompt_source" "$prompt_file"
 	cp "$prompt_source" "$live_prompt"
 
@@ -362,7 +380,7 @@ start)
 	add_worktree "$WORKER_REPO" "$identity_worktree" "$identity_branch" "$WORKER_BASE_REF"
 	write_worker_identity_files "$name" "$module" "$branch" "$identity_worktree" "$prompt_file"
 	prepare_codex_home "$codex_home"
-	write_runner "$runner" "$product_worktree" "$identity_worktree" "$module" "$prompt_file" "$log_file" "$codex_home"
+	write_runner "$runner" "$product_worktree" "$identity_worktree" "$module" "$prompt_file" "$log_file" "$codex_home" "$ephemeral_tmp_path"
 
 	cat >"$meta_file" <<EOF
 worker=$name
@@ -373,6 +391,7 @@ worker_identity_branch=$identity_branch
 worker_identity_worktree_path=$identity_worktree
 logs_path=$logs_path
 scratch_path=$scratch_path
+ephemeral_tmp_path=$ephemeral_tmp_path
 codex_home=$codex_home
 prompt_file=$prompt_file
 live_prompt=$live_prompt
@@ -496,6 +515,7 @@ stop)
 	else
 		printf 'worker session was not live: %s\n' "$name"
 	fi
+	remove_worker_ephemeral_tmp "$name"
 	;;
 
 *)
