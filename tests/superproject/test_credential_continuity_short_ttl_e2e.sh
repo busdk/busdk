@@ -462,31 +462,138 @@ verify_retained_repositories() {
   fi
 }
 
-stop_attempt_owned_children() {
+owned_attempt_pids() {
+  local bin_dir="$1"
+  local pg_bin="$2"
+  local stack_dir="$3"
+  python3 - "$bin_dir" "$pg_bin" "$stack_dir" <<'PY'
+import os
+import pathlib
+import sys
+
+bin_dir = os.path.realpath(sys.argv[1])
+pg_executable = os.path.realpath(os.path.join(sys.argv[2], "postgres"))
+stack_dir = os.path.realpath(sys.argv[3])
+bus_dir_marker = ("BUS_SERVICES_BUS_DIR=" + stack_dir + "/.bus").encode()
+pgdata_marker = ("PGDATA=" + stack_dir + "/postgres/data").encode()
+
+owners = []
+for entry in pathlib.Path("/proc").iterdir():
+    if not entry.name.isdigit():
+        continue
+    try:
+        executable = os.path.realpath(os.readlink(entry / "exe"))
+        environ = (entry / "environ").read_bytes()
+    except (FileNotFoundError, PermissionError, ProcessLookupError, OSError):
+        continue
+    fields = set(environ.split(b"\0"))
+    if executable == pg_executable:
+        if pgdata_marker in fields:
+            owners.append((int(entry.name), executable, "pgdata"))
+        continue
+    if os.path.dirname(executable) == bin_dir and bus_dir_marker in fields:
+        owners.append((int(entry.name), executable, "bus_dir"))
+for pid, executable, marker in sorted(owners):
+    print(f"{pid}\t{executable}\t{marker}")
+PY
+}
+
+attempt_listening_ports() {
+  python3 - "$BUS_HOST" 8081 8090 <<'PY'
+import socket
+import sys
+
+host = sys.argv[1]
+for port in (int(p) for p in sys.argv[2:]):
+    sock = socket.socket()
+    try:
+        sock.bind((host, port))
+    except OSError:
+        print(port)
+    finally:
+        sock.close()
+PY
+}
+
+stop_attempt_owned_processes() {
   local baseline="$1"
-  local name pid remaining=0
-  [[ -f "$baseline" ]] || return 1
-  while IFS=$'\t' read -r name pid; do
-    [[ "$name" == "serve" || "$name" == "subscription" ]] && continue
+  local -A target_pids=()
+  local name pid late_pid late_exe late_marker blocked_port
+  : >"$RESULT_ABS/late-owned.tsv"
+  if [[ -f "$baseline" ]]; then
+    while IFS=$'\t' read -r name pid; do
+      [[ "$name" == "subscription" ]] && continue
+      [[ "$pid" =~ ^[0-9]+$ ]] || continue
+      target_pids["$pid"]=1
+    done <"$baseline"
+  fi
+  while IFS=$'\t' read -r late_pid late_exe late_marker; do
+    [[ "$late_pid" =~ ^[0-9]+$ ]] || continue
+    [[ -n "${target_pids[$late_pid]:-}" ]] || printf 'late_owned\t%s\t%s\t%s\n' "$late_pid" "$late_exe" "$late_marker" >>"$RESULT_ABS/late-owned.tsv"
+    target_pids["$late_pid"]=1
+  done < <(owned_attempt_pids "$BIN_DIR" "$PG_BIN" "$STACK_DIR")
+
+  for pid in "${!target_pids[@]}"; do
     owned_pid_running "$pid" || continue
     kill -TERM "$pid" 2>/dev/null || true
-  done <"$baseline"
-  while IFS=$'\t' read -r name pid; do
-    [[ "$name" == "serve" || "$name" == "subscription" ]] && continue
+  done
+  for pid in "${!target_pids[@]}"; do
     owned_pid_running "$pid" || continue
     timeout 10s tail --pid="$pid" -f /dev/null 2>/dev/null || true
-  done <"$baseline"
-  while IFS=$'\t' read -r name pid; do
-    [[ "$name" == "serve" || "$name" == "subscription" ]] && continue
+  done
+  for pid in "${!target_pids[@]}"; do
     owned_pid_running "$pid" || continue
     kill -KILL "$pid" 2>/dev/null || true
     timeout 5s tail --pid="$pid" -f /dev/null 2>/dev/null || true
-  done <"$baseline"
-  while IFS=$'\t' read -r name pid; do
-    [[ "$name" == "serve" || "$name" == "subscription" ]] && continue
+  done
+
+  local remaining=0
+  for pid in "${!target_pids[@]}"; do
     owned_pid_running "$pid" && remaining=$((remaining + 1))
-  done <"$baseline"
+  done
+  while IFS=$'\t' read -r late_pid late_exe late_marker; do
+    [[ "$late_pid" =~ ^[0-9]+$ ]] || continue
+    remaining=$((remaining + 1))
+  done < <(owned_attempt_pids "$BIN_DIR" "$PG_BIN" "$STACK_DIR")
+  while IFS= read -r blocked_port; do
+    [[ -n "$blocked_port" ]] || continue
+    printf 'blocked_port\t%s\n' "$blocked_port" >>"$RESULT_ABS/late-owned.tsv"
+    remaining=$((remaining + 1))
+  done < <(attempt_listening_ports)
   ((remaining == 0))
+}
+
+regression_test_owned_attempt_pids() {
+  local test_root="$RUNTIME_DIR/selftest-owned-pids"
+  local test_bin="$test_root/bin"
+  local test_stack="$test_root/stack"
+  local other_stack="$test_root/other-stack"
+  rm -rf "$test_root"
+  mkdir -p "$test_bin" "$test_stack/.bus" "$other_stack/.bus"
+  cp "$(command -v sleep)" "$test_bin/bus"
+
+  env BUS_SERVICES_BUS_DIR="$test_stack/.bus" "$test_bin/bus" 300 &
+  local matching_pid=$!
+  sleep 300 &
+  local unrelated_pid=$!
+  env BUS_SERVICES_BUS_DIR="$other_stack/.bus" "$test_bin/bus" 300 &
+  local mismatched_pid=$!
+  sleep 0.2
+
+  local -A found_set=()
+  local found_pid found_exe found_marker
+  while IFS=$'\t' read -r found_pid found_exe found_marker; do
+    [[ "$found_pid" =~ ^[0-9]+$ ]] || continue
+    found_set["$found_pid"]=1
+  done < <(owned_attempt_pids "$test_bin" "$test_root/no-postgres" "$test_stack")
+
+  kill -KILL "$matching_pid" "$unrelated_pid" "$mismatched_pid" 2>/dev/null || true
+  wait "$matching_pid" "$unrelated_pid" "$mismatched_pid" 2>/dev/null || true
+  rm -rf "$test_root"
+
+  [[ -n "${found_set[$matching_pid]:-}" ]] || die "self-test: late attempt-owned child was not discovered"
+  [[ -z "${found_set[$unrelated_pid]:-}" ]] || die "self-test: unrelated same-user process was incorrectly treated as attempt-owned"
+  [[ -z "${found_set[$mismatched_pid]:-}" ]] || die "self-test: identity-mismatched process was incorrectly treated as attempt-owned"
 }
 
 cleanup() {
@@ -508,11 +615,14 @@ cleanup() {
     printf 'down_exit\t%s\n' "$down_rc" >"$RESULT_ABS/cleanup.tsv"
     if ((down_rc != 0)) && grep -q 'open pinned bus-integration-services pid' "$RESULT_ABS/cleanup-down.stderr" 2>/dev/null; then
       printf 'down_stale_pinned_owner\tobserved\n' >>"$RESULT_ABS/cleanup.tsv"
-      if stop_attempt_owned_children "$RESULT_ABS/pids.initial.tsv"; then
+      if stop_attempt_owned_processes "$RESULT_ABS/pids.initial.tsv"; then
         printf 'down_owned_fallback\tzero_survivor\n' >>"$RESULT_ABS/cleanup.tsv"
         down_rc=0
       else
         printf 'down_owned_fallback\tsurvivor_remained\n' >>"$RESULT_ABS/cleanup.tsv"
+      fi
+      if [[ -s "$RESULT_ABS/late-owned.tsv" ]]; then
+        cat "$RESULT_ABS/late-owned.tsv" >>"$RESULT_ABS/cleanup.tsv"
       fi
     fi
   else
@@ -526,6 +636,22 @@ cleanup() {
         survivors=$((survivors + 1))
       fi
     done <"$RESULT_ABS/pids.initial.tsv"
+  fi
+  if [[ -f "$RESULT_ABS/late-owned.tsv" ]]; then
+    while IFS=$'\t' read -r kind late_pid late_rest1 late_rest2; do
+      case "$kind" in
+        late_owned)
+          if owned_pid_running "$late_pid"; then
+            printf 'survivor\tlate\t%s\n' "$late_pid" >>"$RESULT_ABS/cleanup.tsv"
+            survivors=$((survivors + 1))
+          fi
+          ;;
+        blocked_port)
+          printf 'survivor\tport\t%s\n' "$late_pid" >>"$RESULT_ABS/cleanup.tsv"
+          survivors=$((survivors + 1))
+          ;;
+      esac
+    done <"$RESULT_ABS/late-owned.tsv"
   fi
   rm -f "$STACK_DIR/.env"
   printf 'survivor_count\t%s\n' "$survivors" >>"$RESULT_ABS/cleanup.tsv"
@@ -600,6 +726,8 @@ export GOCACHE="$RUNTIME_DIR/cache/go-build"
 export GOMODCACHE="$RUNTIME_DIR/cache/go-mod"
 export GOTMPDIR="$RUNTIME_DIR/go-tmp"
 export GOMAXPROCS=2
+
+regression_test_owned_attempt_pids
 
 build_binary() {
   local module="$1"
