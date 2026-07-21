@@ -51,9 +51,11 @@ Usage:
     [--host LOOPBACK] [--preflight-only]
 
 The harness builds an exact source closure, starts ordinary nonforeground Bus
-Services on an isolated loopback with native PostgreSQL, observes two atomic
-credential rotations, and probes Thread, Worker, Repos, and an already-open
-Events subscription after each rotation. Token contents are never recorded.
+Services on an isolated loopback with native PostgreSQL, kills only the renewal
+controller, exercises ordinary-up reattachment without changing healthy child
+PIDs, observes two atomic credential rotations, and probes Thread, Worker,
+Repos, and an already-open Events subscription after each rotation. Token
+contents are never recorded.
 EOF
 }
 
@@ -320,6 +322,95 @@ assert_same_pids() {
     observed_pid="$(awk -F '\t' -v name="$name" '$1 == name {print $2}' "$observed")"
     [[ "$observed_pid" == "$pid" ]] || die "$name process identity changed: $pid -> ${observed_pid:-missing}"
     owned_pid_running "$pid" || die "$name process $pid is not running"
+  done <"$expected"
+}
+
+owned_pid_active() {
+  local pid="$1"
+  local body rest state
+  owned_pid_running "$pid" || return 1
+  [[ -r "/proc/$pid/stat" ]] || return 0
+  body="$(<"/proc/$pid/stat")"
+  rest="${body##*) }"
+  state="${rest%% *}"
+  [[ "$state" != "Z" ]]
+}
+
+owned_controller_pids() {
+  python3 - "$BIN_DIR/bus-integration-services" "$STATE_DIR" <<'PY'
+import os
+import pathlib
+import sys
+
+expected_executable = os.path.realpath(sys.argv[1])
+expected_state = os.path.realpath(sys.argv[2])
+owners = []
+for entry in pathlib.Path("/proc").iterdir():
+    if not entry.name.isdigit():
+        continue
+    try:
+        raw = (entry / "cmdline").read_bytes()
+        executable = os.path.realpath(os.readlink(entry / "exe"))
+    except (FileNotFoundError, PermissionError, ProcessLookupError, OSError):
+        continue
+    args = raw.rstrip(b"\0").split(b"\0") if raw else []
+    try:
+        decoded = [part.decode() for part in args]
+    except UnicodeDecodeError:
+        continue
+    if executable != expected_executable or "serve" not in decoded:
+        continue
+    state_dir = ""
+    for index, arg in enumerate(decoded):
+        if arg == "--state-dir" and index + 1 < len(decoded):
+            state_dir = decoded[index + 1]
+        elif arg.startswith("--state-dir="):
+            state_dir = arg.split("=", 1)[1]
+    if state_dir and os.path.realpath(state_dir) == expected_state:
+        owners.append(int(entry.name))
+for pid in sorted(owners):
+    print(pid)
+PY
+}
+
+wait_for_controller_exit() {
+  local pid="$1"
+  local deadline=$((SECONDS + 10))
+  while ((SECONDS < deadline)); do
+    owned_pid_active "$pid" || return 0
+    sleep 0.05
+  done
+  return 1
+}
+
+wait_for_replacement_owner() {
+  local old_pid="$1"
+  local deadline=$((SECONDS + 20))
+  local published_pid
+  local -a owners=()
+  REPLACEMENT_OWNER_PID=""
+  while ((SECONDS < deadline)); do
+    published_pid="$(tr -d '[:space:]' <"$STATE_DIR/bus-integration-services.pid" 2>/dev/null || true)"
+    mapfile -t owners < <(owned_controller_pids)
+    if [[ "$published_pid" =~ ^[0-9]+$ && "$published_pid" != "$old_pid" ]] &&
+      owned_pid_active "$published_pid" && ((${#owners[@]} == 1)) && [[ "${owners[0]}" == "$published_pid" ]]; then
+      REPLACEMENT_OWNER_PID="$published_pid"
+      return 0
+    fi
+    sleep 0.05
+  done
+  return 1
+}
+
+child_pids_match() {
+  local expected="$1"
+  local observed="$2"
+  local name pid observed_pid
+  while IFS=$'\t' read -r name pid; do
+    [[ "$name" == "serve" || "$name" == "subscription" ]] && continue
+    observed_pid="$(awk -F '\t' -v name="$name" '$1 == name {print $2}' "$observed")"
+    [[ "$observed_pid" == "$pid" ]] || return 1
+    owned_pid_active "$pid" || return 1
   done <"$expected"
 }
 
@@ -774,6 +865,52 @@ READY_INODE="$TOKEN_INODE"
 printf 'thread_id\t%s\nmarker\t%s\nhash_before\t%s\nhash_after\t%s\nstatus\tobserved\n' \
   "$THREAD_ID" "$READINESS_MARKER" "$INITIAL_HASH" "$READY_HASH" >"$RESULT_ABS/subscription.tsv"
 capture_pids "$RESULT_ABS/pids.initial.tsv"
+
+CONTROLLER_PID="$(awk -F '\t' '$1 == "serve" {print $2}' "$RESULT_ABS/pids.initial.tsv")"
+mapfile -t STARTUP_OWNERS < <(owned_controller_pids)
+if ((${#STARTUP_OWNERS[@]} != 1)) || [[ "${STARTUP_OWNERS[0]}" != "$CONTROLLER_PID" ]]; then
+  die "ordinary up did not leave exactly one owned renewal controller"
+fi
+printf 'controller_before\t%s\nowner_count_before\t%s\n' "$CONTROLLER_PID" "${#STARTUP_OWNERS[@]}" >"$RESULT_ABS/reattach.tsv"
+
+record_command controller-sigkill kill -KILL "$CONTROLLER_PID"
+if ! kill -KILL "$CONTROLLER_PID"; then
+  die "failed to SIGKILL the owned renewal controller"
+fi
+wait_for_controller_exit "$CONTROLLER_PID" || die "owned renewal controller did not exit after SIGKILL"
+printf 'controller_exit\tobserved\n' >>"$RESULT_ABS/reattach.tsv"
+
+run_capture owner-health-after-kill "$BIN_DIR/bus-services" list --file "$STACK_DIR/services.yml" --state-dir "$STATE_DIR" --format json
+DEGRADED_OWNER_STATUS="$(jq -r '.renewal_owner.status // empty' "$RESULT_ABS/operations/owner-health-after-kill.stdout")"
+DEGRADED_OWNER_REASON="$(jq -r '.renewal_owner.reason // empty' "$RESULT_ABS/operations/owner-health-after-kill.stdout")"
+printf 'degraded_status\t%s\ndegraded_reason\t%s\n' "$DEGRADED_OWNER_STATUS" "$DEGRADED_OWNER_REASON" >>"$RESULT_ABS/reattach.tsv"
+
+run_capture_with_timeout services-ordinary-up-reattach 90s "$BIN_DIR/bus-services" up --file "$STACK_DIR/services.yml" --state-dir "$STATE_DIR"
+wait_for_replacement_owner "$CONTROLLER_PID" || die "ordinary up did not leave exactly one replacement renewal owner"
+capture_pids "$RESULT_ABS/pids.reattached.tsv"
+if child_pids_match "$RESULT_ABS/pids.initial.tsv" "$RESULT_ABS/pids.reattached.tsv"; then
+  CHILD_PID_RESULT="unchanged"
+else
+  CHILD_PID_RESULT="changed"
+fi
+cp "$RESULT_ABS/pids.reattached.tsv" "$RESULT_ABS/pids.initial.tsv"
+printf 'controller_after\t%s\nowner_count_after\t1\nchild_pids\t%s\n' "$REPLACEMENT_OWNER_PID" "$CHILD_PID_RESULT" >>"$RESULT_ABS/reattach.tsv"
+
+if [[ "$MODE" == "parent-fail" ]]; then
+  [[ -z "$DEGRADED_OWNER_STATUS" ]] || die "parent unexpectedly reported renewal-owner health"
+  die "parent RED: renewal-owner degraded health and authenticated ordinary-up reattach are unavailable"
+fi
+
+case "$DEGRADED_OWNER_STATUS" in
+  missing|exited|wrong_process|inspection_unavailable) ;;
+  *) die "candidate did not report truthful degraded renewal-owner health" ;;
+esac
+[[ "$REPLACEMENT_OWNER_PID" != "$CONTROLLER_PID" ]] || die "replacement renewal owner reused the killed controller PID"
+[[ "$CHILD_PID_RESULT" == "unchanged" ]] || die "healthy child PIDs changed during ordinary-up reattach"
+run_capture owner-health-after-reattach "$BIN_DIR/bus-services" list --file "$STACK_DIR/services.yml" --state-dir "$STATE_DIR" --format json
+[[ "$(jq -r '.renewal_owner.status // empty' "$RESULT_ABS/operations/owner-health-after-reattach.stdout")" == "running" ]] ||
+  die "replacement renewal owner did not become truthfully healthy"
+printf 'reattach_status\trunning\n' >>"$RESULT_ABS/reattach.tsv"
 
 previous_hash="$READY_HASH"
 previous_inode="$READY_INODE"
