@@ -462,6 +462,33 @@ verify_retained_repositories() {
   fi
 }
 
+stop_attempt_owned_children() {
+  local baseline="$1"
+  local name pid remaining=0
+  [[ -f "$baseline" ]] || return 1
+  while IFS=$'\t' read -r name pid; do
+    [[ "$name" == "serve" || "$name" == "subscription" ]] && continue
+    owned_pid_running "$pid" || continue
+    kill -TERM "$pid" 2>/dev/null || true
+  done <"$baseline"
+  while IFS=$'\t' read -r name pid; do
+    [[ "$name" == "serve" || "$name" == "subscription" ]] && continue
+    owned_pid_running "$pid" || continue
+    timeout 10s tail --pid="$pid" -f /dev/null 2>/dev/null || true
+  done <"$baseline"
+  while IFS=$'\t' read -r name pid; do
+    [[ "$name" == "serve" || "$name" == "subscription" ]] && continue
+    owned_pid_running "$pid" || continue
+    kill -KILL "$pid" 2>/dev/null || true
+    timeout 5s tail --pid="$pid" -f /dev/null 2>/dev/null || true
+  done <"$baseline"
+  while IFS=$'\t' read -r name pid; do
+    [[ "$name" == "serve" || "$name" == "subscription" ]] && continue
+    owned_pid_running "$pid" && remaining=$((remaining + 1))
+  done <"$baseline"
+  ((remaining == 0))
+}
+
 cleanup() {
   local original_rc="${1:-1}"
   local down_rc=0
@@ -479,6 +506,15 @@ cleanup() {
     timeout 40s "$BIN_DIR/bus-services" down --file "$STACK_DIR/services.yml" --state-dir "$STATE_DIR" >"$RESULT_ABS/cleanup-down.stdout" 2>"$RESULT_ABS/cleanup-down.stderr"
     down_rc=$?
     printf 'down_exit\t%s\n' "$down_rc" >"$RESULT_ABS/cleanup.tsv"
+    if ((down_rc != 0)) && grep -q 'open pinned bus-integration-services pid' "$RESULT_ABS/cleanup-down.stderr" 2>/dev/null; then
+      printf 'down_stale_pinned_owner\tobserved\n' >>"$RESULT_ABS/cleanup.tsv"
+      if stop_attempt_owned_children "$RESULT_ABS/pids.initial.tsv"; then
+        printf 'down_owned_fallback\tzero_survivor\n' >>"$RESULT_ABS/cleanup.tsv"
+        down_rc=0
+      else
+        printf 'down_owned_fallback\tsurvivor_remained\n' >>"$RESULT_ABS/cleanup.tsv"
+      fi
+    fi
   else
     down_rc=0
     printf 'down_exit\tnot_started\n' >"$RESULT_ABS/cleanup.tsv"
@@ -868,8 +904,8 @@ capture_pids "$RESULT_ABS/pids.initial.tsv"
 
 CONTROLLER_PID="$(awk -F '\t' '$1 == "serve" {print $2}' "$RESULT_ABS/pids.initial.tsv")"
 mapfile -t STARTUP_OWNERS < <(owned_controller_pids)
-if ((${#STARTUP_OWNERS[@]} != 1)) || [[ "${STARTUP_OWNERS[0]}" != "$CONTROLLER_PID" ]]; then
-  die "ordinary up did not leave exactly one owned renewal controller"
+if ((${#STARTUP_OWNERS[@]} != 1)) || [[ "${STARTUP_OWNERS[0]}" != "$CONTROLLER_PID" ]] || ! owned_pid_active "$CONTROLLER_PID"; then
+  die "ordinary up did not leave exactly one owned, active renewal controller"
 fi
 printf 'controller_before\t%s\nowner_count_before\t%s\n' "$CONTROLLER_PID" "${#STARTUP_OWNERS[@]}" >"$RESULT_ABS/reattach.tsv"
 
@@ -888,6 +924,10 @@ printf 'degraded_status\t%s\ndegraded_reason\t%s\n' "$DEGRADED_OWNER_STATUS" "$D
 run_capture_with_timeout services-ordinary-up-reattach 90s "$BIN_DIR/bus-services" up --file "$STACK_DIR/services.yml" --state-dir "$STATE_DIR"
 wait_for_replacement_owner "$CONTROLLER_PID" || die "ordinary up did not leave exactly one replacement renewal owner"
 capture_pids "$RESULT_ABS/pids.reattached.tsv"
+REATTACHED_SUBSCRIPTION_PID="$(awk -F '\t' '$1 == "subscription" {print $2}' "$RESULT_ABS/pids.reattached.tsv")"
+[[ "$REATTACHED_SUBSCRIPTION_PID" == "$SUBSCRIPTION_PID" ]] ||
+  die "original subscription process identity changed during ordinary-up reattach: $SUBSCRIPTION_PID -> ${REATTACHED_SUBSCRIPTION_PID:-missing}"
+owned_pid_active "$SUBSCRIPTION_PID" || die "original subscription process $SUBSCRIPTION_PID is not active after ordinary-up reattach"
 if child_pids_match "$RESULT_ABS/pids.initial.tsv" "$RESULT_ABS/pids.reattached.tsv"; then
   CHILD_PID_RESULT="unchanged"
 else
