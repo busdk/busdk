@@ -498,6 +498,42 @@ for pid, executable, marker in sorted(owners):
 PY
 }
 
+attempt_pid_still_owned() {
+  local pid="$1"
+  local bin_dir="$2"
+  local pg_bin="$3"
+  local stack_dir="$4"
+  python3 - "$pid" "$bin_dir" "$pg_bin" "$stack_dir" <<'PY'
+import os
+import sys
+
+pid = sys.argv[1]
+bin_dir = os.path.realpath(sys.argv[2])
+pg_executable = os.path.realpath(os.path.join(sys.argv[3], "postgres"))
+stack_dir = os.path.realpath(sys.argv[4])
+bus_dir_marker = ("BUS_SERVICES_BUS_DIR=" + stack_dir + "/.bus").encode()
+pgdata_marker = ("PGDATA=" + stack_dir + "/postgres/data").encode()
+
+try:
+    executable = os.path.realpath(os.readlink(f"/proc/{pid}/exe"))
+    environ = open(f"/proc/{pid}/environ", "rb").read()
+except (FileNotFoundError, PermissionError, ProcessLookupError, OSError):
+    sys.exit(1)
+fields = set(environ.split(b"\0"))
+if executable == pg_executable:
+    sys.exit(0 if pgdata_marker in fields else 1)
+if os.path.dirname(executable) == bin_dir and bus_dir_marker in fields:
+    sys.exit(0)
+sys.exit(1)
+PY
+}
+
+should_signal_attempt_pid() {
+  local pid="$1"
+  owned_pid_running "$pid" || return 1
+  attempt_pid_still_owned "$pid" "$BIN_DIR" "$PG_BIN" "$STACK_DIR"
+}
+
 attempt_listening_ports() {
   python3 - "$BUS_HOST" 8081 8090 <<'PY'
 import socket
@@ -534,17 +570,30 @@ stop_attempt_owned_processes() {
   done < <(owned_attempt_pids "$BIN_DIR" "$PG_BIN" "$STACK_DIR")
 
   for pid in "${!target_pids[@]}"; do
-    owned_pid_running "$pid" || continue
-    kill -TERM "$pid" 2>/dev/null || true
+    if should_signal_attempt_pid "$pid"; then
+      kill -TERM "$pid" 2>/dev/null || true
+    elif owned_pid_running "$pid"; then
+      printf 'identity_rejected\tterm\t%s\n' "$pid" >>"$RESULT_ABS/late-owned.tsv"
+    fi
   done
   for pid in "${!target_pids[@]}"; do
     owned_pid_running "$pid" || continue
     timeout 10s tail --pid="$pid" -f /dev/null 2>/dev/null || true
   done
+
+  while IFS=$'\t' read -r late_pid late_exe late_marker; do
+    [[ "$late_pid" =~ ^[0-9]+$ ]] || continue
+    [[ -n "${target_pids[$late_pid]:-}" ]] || printf 'late_owned\t%s\t%s\t%s\n' "$late_pid" "$late_exe" "$late_marker" >>"$RESULT_ABS/late-owned.tsv"
+    target_pids["$late_pid"]=1
+  done < <(owned_attempt_pids "$BIN_DIR" "$PG_BIN" "$STACK_DIR")
+
   for pid in "${!target_pids[@]}"; do
-    owned_pid_running "$pid" || continue
-    kill -KILL "$pid" 2>/dev/null || true
-    timeout 5s tail --pid="$pid" -f /dev/null 2>/dev/null || true
+    if should_signal_attempt_pid "$pid"; then
+      kill -KILL "$pid" 2>/dev/null || true
+      timeout 5s tail --pid="$pid" -f /dev/null 2>/dev/null || true
+    elif owned_pid_running "$pid"; then
+      printf 'identity_rejected\tkill\t%s\n' "$pid" >>"$RESULT_ABS/late-owned.tsv"
+    fi
   done
 
   local remaining=0
@@ -587,6 +636,11 @@ regression_test_owned_attempt_pids() {
     found_set["$found_pid"]=1
   done < <(owned_attempt_pids "$test_bin" "$test_root/no-postgres" "$test_stack")
 
+  local signal_rc_matching=0 signal_rc_unrelated=0 signal_rc_mismatched=0
+  attempt_pid_still_owned "$matching_pid" "$test_bin" "$test_root/no-postgres" "$test_stack" || signal_rc_matching=$?
+  attempt_pid_still_owned "$unrelated_pid" "$test_bin" "$test_root/no-postgres" "$test_stack" || signal_rc_unrelated=$?
+  attempt_pid_still_owned "$mismatched_pid" "$test_bin" "$test_root/no-postgres" "$test_stack" || signal_rc_mismatched=$?
+
   kill -KILL "$matching_pid" "$unrelated_pid" "$mismatched_pid" 2>/dev/null || true
   wait "$matching_pid" "$unrelated_pid" "$mismatched_pid" 2>/dev/null || true
   rm -rf "$test_root"
@@ -594,6 +648,9 @@ regression_test_owned_attempt_pids() {
   [[ -n "${found_set[$matching_pid]:-}" ]] || die "self-test: late attempt-owned child was not discovered"
   [[ -z "${found_set[$unrelated_pid]:-}" ]] || die "self-test: unrelated same-user process was incorrectly treated as attempt-owned"
   [[ -z "${found_set[$mismatched_pid]:-}" ]] || die "self-test: identity-mismatched process was incorrectly treated as attempt-owned"
+  ((signal_rc_matching == 0)) || die "self-test: late matching child failed the pre-signal identity recheck"
+  ((signal_rc_unrelated != 0)) || die "self-test: unrelated same-user process passed the pre-signal identity recheck"
+  ((signal_rc_mismatched != 0)) || die "self-test: identity-mismatched process passed the pre-signal identity recheck"
 }
 
 cleanup() {
