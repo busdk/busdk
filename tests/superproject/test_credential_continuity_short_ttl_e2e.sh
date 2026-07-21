@@ -518,7 +518,12 @@ try:
     executable = os.path.realpath(os.readlink(f"/proc/{pid}/exe"))
     environ = open(f"/proc/{pid}/environ", "rb").read()
 except (FileNotFoundError, PermissionError, ProcessLookupError, OSError):
-    sys.exit(1)
+    # Identity could not be read for a PID that was (at least momentarily)
+    # alive. This is NOT the same as absence: absence is decided by the
+    # caller via a liveness check before this function ever runs. Any read
+    # failure here fails closed as unresolved (exit 2), never as a silent
+    # mismatch (exit 1).
+    sys.exit(2)
 fields = set(environ.split(b"\0"))
 if executable == pg_executable:
     sys.exit(0 if pgdata_marker in fields else 1)
@@ -528,10 +533,31 @@ sys.exit(1)
 PY
 }
 
+# Tri-state ownership for a PID that is candidate attempt-owned:
+#   absent      - PID is not running (separately clean, never a survivor)
+#   owned       - identity re-read confirms this attempt's executable+marker
+#   mismatched  - identity re-read positively contradicts ownership
+#   unresolved  - PID is running but identity could not be read; fail closed
+attempt_pid_identity_state() {
+  local pid="$1"
+  local bin_dir="$2"
+  local pg_bin="$3"
+  local stack_dir="$4"
+  if ! owned_pid_running "$pid"; then
+    printf 'absent\n'
+    return
+  fi
+  attempt_pid_still_owned "$pid" "$bin_dir" "$pg_bin" "$stack_dir"
+  case $? in
+    0) printf 'owned\n' ;;
+    2) printf 'unresolved\n' ;;
+    *) printf 'mismatched\n' ;;
+  esac
+}
+
 should_signal_attempt_pid() {
   local pid="$1"
-  owned_pid_running "$pid" || return 1
-  attempt_pid_still_owned "$pid" "$BIN_DIR" "$PG_BIN" "$STACK_DIR"
+  [[ "$(attempt_pid_identity_state "$pid" "$BIN_DIR" "$PG_BIN" "$STACK_DIR")" == "owned" ]]
 }
 
 attempt_listening_ports() {
@@ -570,11 +596,12 @@ stop_attempt_owned_processes() {
   done < <(owned_attempt_pids "$BIN_DIR" "$PG_BIN" "$STACK_DIR")
 
   for pid in "${!target_pids[@]}"; do
-    if should_signal_attempt_pid "$pid"; then
-      kill -TERM "$pid" 2>/dev/null || true
-    elif owned_pid_running "$pid"; then
-      printf 'identity_rejected\tterm\t%s\n' "$pid" >>"$RESULT_ABS/late-owned.tsv"
-    fi
+    case "$(attempt_pid_identity_state "$pid" "$BIN_DIR" "$PG_BIN" "$STACK_DIR")" in
+      owned) kill -TERM "$pid" 2>/dev/null || true ;;
+      mismatched) printf 'identity_rejected\tterm\t%s\n' "$pid" >>"$RESULT_ABS/late-owned.tsv" ;;
+      unresolved) printf 'identity_unresolved\tterm\t%s\n' "$pid" >>"$RESULT_ABS/late-owned.tsv" ;;
+      absent) ;;
+    esac
   done
   for pid in "${!target_pids[@]}"; do
     owned_pid_running "$pid" || continue
@@ -588,17 +615,26 @@ stop_attempt_owned_processes() {
   done < <(owned_attempt_pids "$BIN_DIR" "$PG_BIN" "$STACK_DIR")
 
   for pid in "${!target_pids[@]}"; do
-    if should_signal_attempt_pid "$pid"; then
-      kill -KILL "$pid" 2>/dev/null || true
-      timeout 5s tail --pid="$pid" -f /dev/null 2>/dev/null || true
-    elif owned_pid_running "$pid"; then
-      printf 'identity_rejected\tkill\t%s\n' "$pid" >>"$RESULT_ABS/late-owned.tsv"
-    fi
+    case "$(attempt_pid_identity_state "$pid" "$BIN_DIR" "$PG_BIN" "$STACK_DIR")" in
+      owned)
+        kill -KILL "$pid" 2>/dev/null || true
+        timeout 5s tail --pid="$pid" -f /dev/null 2>/dev/null || true
+        ;;
+      mismatched) printf 'identity_rejected\tkill\t%s\n' "$pid" >>"$RESULT_ABS/late-owned.tsv" ;;
+      unresolved) printf 'identity_unresolved\tkill\t%s\n' "$pid" >>"$RESULT_ABS/late-owned.tsv" ;;
+      absent) ;;
+    esac
   done
 
   local remaining=0
   for pid in "${!target_pids[@]}"; do
-    owned_pid_running "$pid" && remaining=$((remaining + 1))
+    case "$(attempt_pid_identity_state "$pid" "$BIN_DIR" "$PG_BIN" "$STACK_DIR")" in
+      owned) remaining=$((remaining + 1)) ;;
+      unresolved)
+        remaining=$((remaining + 1))
+        printf 'identity_unresolved\tfinal\t%s\n' "$pid" >>"$RESULT_ABS/late-owned.tsv"
+        ;;
+    esac
   done
   while IFS=$'\t' read -r late_pid late_exe late_marker; do
     [[ "$late_pid" =~ ^[0-9]+$ ]] || continue
@@ -641,6 +677,22 @@ regression_test_owned_attempt_pids() {
   attempt_pid_still_owned "$unrelated_pid" "$test_bin" "$test_root/no-postgres" "$test_stack" || signal_rc_unrelated=$?
   attempt_pid_still_owned "$mismatched_pid" "$test_bin" "$test_root/no-postgres" "$test_stack" || signal_rc_mismatched=$?
 
+  local state_matching state_unrelated state_mismatched
+  state_matching="$(attempt_pid_identity_state "$matching_pid" "$test_bin" "$test_root/no-postgres" "$test_stack")"
+  state_unrelated="$(attempt_pid_identity_state "$unrelated_pid" "$test_bin" "$test_root/no-postgres" "$test_stack")"
+  state_mismatched="$(attempt_pid_identity_state "$mismatched_pid" "$test_bin" "$test_root/no-postgres" "$test_stack")"
+
+  # A PID that has fully exited and been reaped before this call: attempt_pid_still_owned
+  # must fail closed as unresolved (2), not silently as a mismatch (1), when identity
+  # cannot be read for a PID that was momentarily live. Absence itself is decided
+  # separately by attempt_pid_identity_state's own liveness check, never by this
+  # function's read-failure path.
+  ( : ) &
+  local reaped_pid=$!
+  wait "$reaped_pid" 2>/dev/null || true
+  local unresolved_rc=0
+  attempt_pid_still_owned "$reaped_pid" "$test_bin" "$test_root/no-postgres" "$test_stack" || unresolved_rc=$?
+
   kill -KILL "$matching_pid" "$unrelated_pid" "$mismatched_pid" 2>/dev/null || true
   wait "$matching_pid" "$unrelated_pid" "$mismatched_pid" 2>/dev/null || true
   rm -rf "$test_root"
@@ -651,6 +703,16 @@ regression_test_owned_attempt_pids() {
   ((signal_rc_matching == 0)) || die "self-test: late matching child failed the pre-signal identity recheck"
   ((signal_rc_unrelated != 0)) || die "self-test: unrelated same-user process passed the pre-signal identity recheck"
   ((signal_rc_mismatched != 0)) || die "self-test: identity-mismatched process passed the pre-signal identity recheck"
+  ((unresolved_rc == 2)) || die "self-test: unreadable identity for a momentarily-live PID was not treated as fail-closed unresolved"
+
+  [[ "$state_matching" == "owned" ]] || die "self-test: matching child was not classified as owned"
+  [[ "$state_unrelated" == "mismatched" ]] || die "self-test: unrelated same-user process was not classified as mismatched"
+  [[ "$state_mismatched" == "mismatched" ]] || die "self-test: identity-mismatched process was not classified as mismatched"
+  # The mismatched process must never be counted as an attempt survivor: the
+  # production remaining-count predicate treats only owned/unresolved as a
+  # survivor, so a "mismatched" classification must not be either of those.
+  [[ "$state_mismatched" != "owned" && "$state_mismatched" != "unresolved" ]] ||
+    die "self-test: identity-mismatched process would be counted as an attempt survivor"
 }
 
 cleanup() {
@@ -688,20 +750,31 @@ cleanup() {
   fi
   if [[ -f "$RESULT_ABS/pids.initial.tsv" ]]; then
     while IFS=$'\t' read -r name pid; do
-      if owned_pid_running "$pid"; then
-        printf 'survivor\t%s\t%s\n' "$name" "$pid" >>"$RESULT_ABS/cleanup.tsv"
-        survivors=$((survivors + 1))
+      if [[ "$name" == "subscription" ]]; then
+        if owned_pid_running "$pid"; then
+          printf 'survivor\t%s\t%s\n' "$name" "$pid" >>"$RESULT_ABS/cleanup.tsv"
+          survivors=$((survivors + 1))
+        fi
+        continue
       fi
+      case "$(attempt_pid_identity_state "$pid" "$BIN_DIR" "$PG_BIN" "$STACK_DIR")" in
+        owned|unresolved)
+          printf 'survivor\t%s\t%s\n' "$name" "$pid" >>"$RESULT_ABS/cleanup.tsv"
+          survivors=$((survivors + 1))
+          ;;
+      esac
     done <"$RESULT_ABS/pids.initial.tsv"
   fi
   if [[ -f "$RESULT_ABS/late-owned.tsv" ]]; then
     while IFS=$'\t' read -r kind late_pid late_rest1 late_rest2; do
       case "$kind" in
         late_owned)
-          if owned_pid_running "$late_pid"; then
-            printf 'survivor\tlate\t%s\n' "$late_pid" >>"$RESULT_ABS/cleanup.tsv"
-            survivors=$((survivors + 1))
-          fi
+          case "$(attempt_pid_identity_state "$late_pid" "$BIN_DIR" "$PG_BIN" "$STACK_DIR")" in
+            owned|unresolved)
+              printf 'survivor\tlate\t%s\n' "$late_pid" >>"$RESULT_ABS/cleanup.tsv"
+              survivors=$((survivors + 1))
+              ;;
+          esac
           ;;
         blocked_port)
           printf 'survivor\tport\t%s\n' "$late_pid" >>"$RESULT_ABS/cleanup.tsv"
