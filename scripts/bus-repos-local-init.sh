@@ -421,37 +421,58 @@ rollback_bares=0
 product_config_backup=
 identity_config_backup=
 lock_dir=
+lock_claim_path=
 lock_owner_path=
-lock_owner_id=
+lock_owner_name=
+lock_owner_token=
 lock_owner_uid=
+lock_clock_seconds=
+lock_deadline=
 
-lock_is_owned_by_current_process() {
-	[ -n "$lock_owner_path" ] && [ -f "$lock_owner_path" ] || return 1
-	owner_id=$(cat "$lock_owner_path" 2>/dev/null) || return 1
-	[ "$owner_id" = "$lock_owner_id" ]
+read_migration_lock_clock() {
+	lock_clock_seconds=$(date +%s) || fail "cannot read migration lock clock"
+	case $lock_clock_seconds in
+		''|*[!0-9]*|???????????????????*) fail "migration lock clock is not safely representable: $lock_clock_seconds" ;;
+	esac
+}
+
+migration_lock_deadline_reached() {
+	read_migration_lock_clock
+	[ "$lock_clock_seconds" -ge "$lock_deadline" ]
 }
 
 reclaim_stale_lock() {
-	[ -n "$lock_owner_path" ] && [ -f "$lock_owner_path" ] || return 1
-	owner_id=$(cat "$lock_owner_path" 2>/dev/null) || return 1
+	stale_owner_path=
+	for candidate in "$lock_dir"/owner.*; do
+		[ -d "$candidate" ] || continue
+		[ -z "$stale_owner_path" ] || return 1
+		stale_owner_path=$candidate
+	done
+	[ -n "$stale_owner_path" ] || return 1
+	owner_name=${stale_owner_path##*/}
+	owner_id=${owner_name#owner.}
 	case $owner_id in
-		*:*:*) return 1 ;;
+		*.*.*) ;;
+		*) return 1 ;;
 	esac
-	owner_pid=${owner_id%%:*}
-	owner_uid=${owner_id#*:}
+	owner_uid=${owner_id%%.*}
+	owner_rest=${owner_id#*.}
+	owner_pid=${owner_rest%%.*}
+	owner_token=${owner_rest#*.}
 	case $owner_pid in
-		''|*[!0-9]*) return 1 ;;
+		''|0|0*|*[!0-9]*|??????????*) return 1 ;;
 	esac
 	case $owner_uid in
 		''|*[!0-9]*) return 1 ;;
+	esac
+	case $owner_token in
+		''|*.*|*[!A-Za-z0-9]*) return 1 ;;
 	esac
 	[ "$owner_uid" = "$lock_owner_uid" ] || return 1
 	if kill -0 "$owner_pid" 2>/dev/null; then
 		return 1
 	fi
-	owner_check=$(cat "$lock_owner_path" 2>/dev/null) || return 1
-	[ "$owner_check" = "$owner_id" ] || return 1
-	rm -f "$lock_owner_path" || return 1
+	rmdir "$stale_owner_path" 2>/dev/null || return 1
 	rmdir "$lock_dir" 2>/dev/null
 }
 
@@ -462,40 +483,54 @@ cleanup() {
 	fi
 	[ -z "$product_config_backup" ] || rm -f "$product_config_backup"
 	[ -z "$identity_config_backup" ] || rm -f "$identity_config_backup"
-	if lock_is_owned_by_current_process; then
-		rm -f "$lock_owner_path" || :
+	if [ -n "$lock_owner_path" ] && rmdir "$lock_owner_path" 2>/dev/null; then
 		rmdir "$lock_dir" 2>/dev/null || :
 	fi
+	[ -z "$lock_claim_path" ] || rmdir "$lock_claim_path" 2>/dev/null || :
 }
 
 mkdir -p "$(dirname "$config_path")"
 lock_dir="${config_path}.lock"
-lock_owner_path="$lock_dir/owner"
 lock_owner_uid=$(id -u) || fail "cannot determine migration lock owner"
-lock_owner_id="$$:$lock_owner_uid"
 lock_timeout=${BUS_REPOS_LOCAL_INIT_LOCK_TIMEOUT_SECONDS:-30}
 case $lock_timeout in
-	''|*[!0-9]*) fail "migration lock timeout must be a positive number of seconds: $lock_timeout" ;;
+	[1-9]|[1-9][0-9]|[1-9][0-9][0-9]|[12][0-9][0-9][0-9]|3[0-5][0-9][0-9]|3600) ;;
+	*) fail "migration lock timeout must be an integer from 1 to 3600 seconds: $lock_timeout" ;;
 esac
-if [ "$lock_timeout" -eq 0 ]; then
-	fail "migration lock timeout must be a positive number of seconds: $lock_timeout"
-fi
 trap cleanup EXIT HUP INT TERM
-lock_waited=0
-while ! mkdir "$lock_dir" 2>/dev/null; do
-	if reclaim_stale_lock; then
-		continue
-	fi
-	if [ "$lock_waited" -ge "$lock_timeout" ]; then
-		fail "timed out waiting for migration lock: $lock_dir"
-	fi
-	lock_waited=$((lock_waited + 1))
-	sleep 1
-done
-if ! (umask 077; printf '%s\n' "$lock_owner_id" >"$lock_owner_path"); then
-	rmdir "$lock_dir" 2>/dev/null || :
-	fail "cannot record migration lock owner: $lock_dir"
+read_migration_lock_clock
+lock_deadline=$((lock_clock_seconds + lock_timeout))
+lock_claim_path=$(mktemp -d "${config_path}.lock-owner.$lock_owner_uid.$$.XXXXXX") || fail "cannot create migration lock claim"
+lock_owner_token=${lock_claim_path##*.}
+case $lock_owner_token in
+	''|*[!A-Za-z0-9]*) fail "migration lock claim has an invalid identity: $lock_claim_path" ;;
+esac
+lock_owner_name="owner.$lock_owner_uid.$$.$lock_owner_token"
+lock_owner_path="$lock_dir/$lock_owner_name"
+
+if ! mkdir "$lock_dir" 2>/dev/null; then
+	while :; do
+		if migration_lock_deadline_reached; then
+			fail "timed out waiting for migration lock: $lock_dir"
+		fi
+		reclaim_stale_lock || :
+		if migration_lock_deadline_reached; then
+			fail "timed out waiting for migration lock: $lock_dir"
+		fi
+		if mkdir "$lock_dir" 2>/dev/null; then
+			break
+		fi
+		if migration_lock_deadline_reached; then
+			fail "timed out waiting for migration lock: $lock_dir"
+		fi
+		sleep 1
+	done
 fi
+if ! mv "$lock_claim_path" "$lock_owner_path"; then
+	rmdir "$lock_dir" 2>/dev/null || :
+	fail "cannot install migration lock claim: $lock_dir"
+fi
+lock_claim_path=
 
 product_repo=$(canonical_source_path product "$product_repo")
 identity_repo=$(canonical_source_path worker-identity "$identity_repo")
