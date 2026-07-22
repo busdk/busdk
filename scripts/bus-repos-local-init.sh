@@ -421,6 +421,40 @@ rollback_bares=0
 product_config_backup=
 identity_config_backup=
 lock_dir=
+lock_owner_path=
+lock_owner_id=
+lock_owner_uid=
+
+lock_is_owned_by_current_process() {
+	[ -n "$lock_owner_path" ] && [ -f "$lock_owner_path" ] || return 1
+	owner_id=$(cat "$lock_owner_path" 2>/dev/null) || return 1
+	[ "$owner_id" = "$lock_owner_id" ]
+}
+
+reclaim_stale_lock() {
+	[ -n "$lock_owner_path" ] && [ -f "$lock_owner_path" ] || return 1
+	owner_id=$(cat "$lock_owner_path" 2>/dev/null) || return 1
+	case $owner_id in
+		*:*:*) return 1 ;;
+	esac
+	owner_pid=${owner_id%%:*}
+	owner_uid=${owner_id#*:}
+	case $owner_pid in
+		''|*[!0-9]*) return 1 ;;
+	esac
+	case $owner_uid in
+		''|*[!0-9]*) return 1 ;;
+	esac
+	[ "$owner_uid" = "$lock_owner_uid" ] || return 1
+	if kill -0 "$owner_pid" 2>/dev/null; then
+		return 1
+	fi
+	owner_check=$(cat "$lock_owner_path" 2>/dev/null) || return 1
+	[ "$owner_check" = "$owner_id" ] || return 1
+	rm -f "$lock_owner_path" || return 1
+	rmdir "$lock_dir" 2>/dev/null
+}
+
 cleanup() {
 	if [ "$rollback_bares" -eq 1 ]; then
 		[ -z "$product_config_backup" ] || cp "$product_config_backup" "$product_path/config" || :
@@ -428,15 +462,40 @@ cleanup() {
 	fi
 	[ -z "$product_config_backup" ] || rm -f "$product_config_backup"
 	[ -z "$identity_config_backup" ] || rm -f "$identity_config_backup"
-	[ -z "$lock_dir" ] || rmdir "$lock_dir" 2>/dev/null || :
+	if lock_is_owned_by_current_process; then
+		rm -f "$lock_owner_path" || :
+		rmdir "$lock_dir" 2>/dev/null || :
+	fi
 }
 
 mkdir -p "$(dirname "$config_path")"
 lock_dir="${config_path}.lock"
+lock_owner_path="$lock_dir/owner"
+lock_owner_uid=$(id -u) || fail "cannot determine migration lock owner"
+lock_owner_id="$$:$lock_owner_uid"
+lock_timeout=${BUS_REPOS_LOCAL_INIT_LOCK_TIMEOUT_SECONDS:-30}
+case $lock_timeout in
+	''|*[!0-9]*) fail "migration lock timeout must be a positive number of seconds: $lock_timeout" ;;
+esac
+if [ "$lock_timeout" -eq 0 ]; then
+	fail "migration lock timeout must be a positive number of seconds: $lock_timeout"
+fi
+trap cleanup EXIT HUP INT TERM
+lock_waited=0
 while ! mkdir "$lock_dir" 2>/dev/null; do
+	if reclaim_stale_lock; then
+		continue
+	fi
+	if [ "$lock_waited" -ge "$lock_timeout" ]; then
+		fail "timed out waiting for migration lock: $lock_dir"
+	fi
+	lock_waited=$((lock_waited + 1))
 	sleep 1
 done
-trap cleanup EXIT HUP INT TERM
+if ! (umask 077; printf '%s\n' "$lock_owner_id" >"$lock_owner_path"); then
+	rmdir "$lock_dir" 2>/dev/null || :
+	fail "cannot record migration lock owner: $lock_dir"
+fi
 
 product_repo=$(canonical_source_path product "$product_repo")
 identity_repo=$(canonical_source_path worker-identity "$identity_repo")
