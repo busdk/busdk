@@ -426,19 +426,26 @@ lock_owner_path=
 lock_owner_name=
 lock_owner_token=
 lock_owner_uid=
-lock_clock_seconds=
-lock_deadline=
 
-read_migration_lock_clock() {
-	lock_clock_seconds=$(date +%s) || fail "cannot read migration lock clock"
-	case $lock_clock_seconds in
-		''|*[!0-9]*|???????????????????*) fail "migration lock clock is not safely representable: $lock_clock_seconds" ;;
+is_safely_representable_pid() {
+	case $1 in
+		''|0|0*|*[!0-9]*|??????????*) return 1 ;;
 	esac
 }
 
-migration_lock_deadline_reached() {
-	read_migration_lock_clock
-	[ "$lock_clock_seconds" -ge "$lock_deadline" ]
+process_is_absent() {
+	process_pid=$1
+	if kill -0 "$process_pid" 2>/dev/null; then
+		return 1
+	fi
+	process_snapshot=$(ps -e -o pid= 2>/dev/null) || return 1
+	process_snapshot_seen=0
+	for snapshot_pid in $process_snapshot; do
+		is_safely_representable_pid "$snapshot_pid" || return 1
+		process_snapshot_seen=1
+		[ "$snapshot_pid" = "$process_pid" ] && return 1
+	done
+	[ "$process_snapshot_seen" -eq 1 ]
 }
 
 reclaim_stale_lock() {
@@ -459,9 +466,7 @@ reclaim_stale_lock() {
 	owner_rest=${owner_id#*.}
 	owner_pid=${owner_rest%%.*}
 	owner_token=${owner_rest#*.}
-	case $owner_pid in
-		''|0|0*|*[!0-9]*|??????????*) return 1 ;;
-	esac
+	is_safely_representable_pid "$owner_pid" || return 1
 	case $owner_uid in
 		''|*[!0-9]*) return 1 ;;
 	esac
@@ -469,9 +474,7 @@ reclaim_stale_lock() {
 		''|*.*|*[!A-Za-z0-9]*) return 1 ;;
 	esac
 	[ "$owner_uid" = "$lock_owner_uid" ] || return 1
-	if kill -0 "$owner_pid" 2>/dev/null; then
-		return 1
-	fi
+	process_is_absent "$owner_pid" || return 1
 	rmdir "$stale_owner_path" 2>/dev/null || return 1
 	rmdir "$lock_dir" 2>/dev/null
 }
@@ -498,8 +501,6 @@ case $lock_timeout in
 	*) fail "migration lock timeout must be an integer from 1 to 3600 seconds: $lock_timeout" ;;
 esac
 trap cleanup EXIT HUP INT TERM
-read_migration_lock_clock
-lock_deadline=$((lock_clock_seconds + lock_timeout))
 lock_claim_path=$(mktemp -d "${config_path}.lock-owner.$lock_owner_uid.$$.XXXXXX") || fail "cannot create migration lock claim"
 lock_owner_token=${lock_claim_path##*.}
 case $lock_owner_token in
@@ -509,20 +510,16 @@ lock_owner_name="owner.$lock_owner_uid.$$.$lock_owner_token"
 lock_owner_path="$lock_dir/$lock_owner_name"
 
 if ! mkdir "$lock_dir" 2>/dev/null; then
+	lock_retries_remaining=$lock_timeout
 	while :; do
-		if migration_lock_deadline_reached; then
-			fail "timed out waiting for migration lock: $lock_dir"
-		fi
 		reclaim_stale_lock || :
-		if migration_lock_deadline_reached; then
-			fail "timed out waiting for migration lock: $lock_dir"
-		fi
 		if mkdir "$lock_dir" 2>/dev/null; then
 			break
 		fi
-		if migration_lock_deadline_reached; then
+		if [ "$lock_retries_remaining" -eq 0 ]; then
 			fail "timed out waiting for migration lock: $lock_dir"
 		fi
+		lock_retries_remaining=$((lock_retries_remaining - 1))
 		sleep 1
 	done
 fi
