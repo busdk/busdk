@@ -59,7 +59,6 @@ migrate_legacy_product_catalog() {
   fi
 
 	tmp=$(mktemp "$(dirname "$catalog_path")/.catalog.yml.tmp.XXXXXX")
-	trap 'rm -f "$tmp"' EXIT
   awk -v canonical_name="'busdk/busdk'" '
     $0 == "  - id: product" {
       print "  - id: busdk/busdk"
@@ -78,7 +77,6 @@ migrate_legacy_product_catalog() {
     { print }
 	' "$catalog_path" >"$tmp"
 	mv "$tmp" "$catalog_path"
-	trap - EXIT
 }
 
 fail() {
@@ -229,7 +227,6 @@ rewrite_catalog_remotes() {
 	local_quoted=$(yaml_quote "$local_source")
 	external_quoted=$(yaml_quote "$external_url")
 	tmp=$(mktemp "$(dirname "$catalog_path")/.catalog.yml.tmp.XXXXXX")
-	trap 'rm -f "$tmp"' EXIT
 	awk -v expected="  - id: $repo_id" -v local_url="$local_quoted" -v external_url="$external_quoted" -v add_external="$([ -n "$external_url" ] && printf 1 || printf 0)" '
 		function add_github() {
 			if (add_external == 1 && !seen_github) {
@@ -285,7 +282,6 @@ rewrite_catalog_remotes() {
 		END { if (in_repo && in_remotes) add_github() }
 	' "$catalog_path" >"$tmp"
 	mv "$tmp" "$catalog_path"
-	trap - EXIT
 }
 
 validate_catalog_repo() {
@@ -421,6 +417,27 @@ configure_bare_remotes() {
 	fi
 }
 
+rollback_bares=0
+product_config_backup=
+identity_config_backup=
+lock_dir=
+cleanup() {
+	if [ "$rollback_bares" -eq 1 ]; then
+		[ -z "$product_config_backup" ] || cp "$product_config_backup" "$product_path/config" || :
+		[ -z "$identity_config_backup" ] || cp "$identity_config_backup" "$identity_path/config" || :
+	fi
+	[ -z "$product_config_backup" ] || rm -f "$product_config_backup"
+	[ -z "$identity_config_backup" ] || rm -f "$identity_config_backup"
+	[ -z "$lock_dir" ] || rmdir "$lock_dir" 2>/dev/null || :
+}
+
+mkdir -p "$(dirname "$config_path")"
+lock_dir="${config_path}.lock"
+while ! mkdir "$lock_dir" 2>/dev/null; do
+	sleep 1
+done
+trap cleanup EXIT HUP INT TERM
+
 product_repo=$(canonical_source_path product "$product_repo")
 identity_repo=$(canonical_source_path worker-identity "$identity_repo")
 
@@ -445,9 +462,7 @@ product_external=$(source_external_url "$product_repo")
 identity_external=$(source_external_url "$identity_repo")
 
 if [ -f "$config_path" ]; then
-	mkdir -p "$(dirname "$config_path")"
 	catalog_work=$(mktemp "$(dirname "$config_path")/.catalog.yml.migrate.XXXXXX")
-	trap 'rm -f "$catalog_work"' EXIT
 	cp "$config_path" "$catalog_work"
 	migrate_legacy_product_catalog "$catalog_work"
 	if [ "$(catalog_repo_id_count "$catalog_work" busdk/busdk)" -ne 1 ]; then
@@ -466,10 +481,18 @@ if [ -f "$config_path" ]; then
 
 	ensure_bare_repo product "$product_path" "$product_repo"
 	ensure_bare_repo worker-identity "$identity_path" "$identity_repo"
+	product_config_backup=$(mktemp "$product_path/.config.rollback.XXXXXX")
+	identity_config_backup=$(mktemp "$identity_path/.config.rollback.XXXXXX")
+	cp "$product_path/config" "$product_config_backup"
+	cp "$identity_path/config" "$identity_config_backup"
+	rollback_bares=1
 	product_external=$(bare_external_url product "$product_path" "$product_repo" "$product_external")
 	identity_external=$(bare_external_url worker-identity "$identity_path" "$identity_repo" "$identity_external")
 	configure_bare_remotes product "$product_path" "$product_repo" "$product_external"
 	configure_bare_remotes worker-identity "$identity_path" "$identity_repo" "$identity_external"
+	if [ "${BUS_REPOS_LOCAL_INIT_TEST_FAIL_AFTER_BARE_REMOTES:-}" = 1 ]; then
+		fail "injected failure after managed bare remote migration"
+	fi
 	rewrite_catalog_remotes "$catalog_work" busdk/busdk "$product_repo" "$product_external"
 	for repo_id in $(catalog_repo_ids "$catalog_work"); do
 		case $repo_id in
@@ -477,7 +500,7 @@ if [ -f "$config_path" ]; then
 		esac
 	done
 	mv "$catalog_work" "$config_path"
-	trap - EXIT
+	rollback_bares=0
 	exit 0
 fi
 
@@ -488,9 +511,7 @@ identity_external=$(bare_external_url worker-identity "$identity_path" "$identit
 configure_bare_remotes product "$product_path" "$product_repo" "$product_external"
 configure_bare_remotes worker-identity "$identity_path" "$identity_repo" "$identity_external"
 
-mkdir -p "$(dirname "$config_path")"
 tmp=$(mktemp "$(dirname "$config_path")/.catalog.yml.tmp.XXXXXX")
-trap 'rm -f "$tmp"' EXIT
 
 {
   printf 'groups:\n'
@@ -545,4 +566,3 @@ trap 'rm -f "$tmp"' EXIT
 } >"$tmp"
 
 mv "$tmp" "$config_path"
-trap - EXIT
