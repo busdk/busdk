@@ -802,32 +802,32 @@ regression_test_assert_baseline_pids_owned() {
   local rc_ok rc_wrong_controller rc_multi_controller rc_mismatched_child
 
   owned_controller_pids() { printf '%s\n' "$controller_pid"; }
+  rc_ok=0
   (
     BIN_DIR="$test_bin" PG_BIN="$test_root/no-postgres" STACK_DIR="$test_stack" RESULT_ABS=""
     assert_baseline_pids_owned "$good_pidfile"
-  )
-  rc_ok=$?
+  ) || rc_ok=$?
 
   owned_controller_pids() { printf '%s\n' "$other_pid"; }
+  rc_wrong_controller=0
   (
     BIN_DIR="$test_bin" PG_BIN="$test_root/no-postgres" STACK_DIR="$test_stack" RESULT_ABS=""
     assert_baseline_pids_owned "$good_pidfile"
-  )
-  rc_wrong_controller=$?
+  ) || rc_wrong_controller=$?
 
   owned_controller_pids() { printf '%s\n%s\n' "$controller_pid" "$other_pid"; }
+  rc_multi_controller=0
   (
     BIN_DIR="$test_bin" PG_BIN="$test_root/no-postgres" STACK_DIR="$test_stack" RESULT_ABS=""
     assert_baseline_pids_owned "$good_pidfile"
-  )
-  rc_multi_controller=$?
+  ) || rc_multi_controller=$?
 
   owned_controller_pids() { printf '%s\n' "$controller_pid"; }
+  rc_mismatched_child=0
   (
     BIN_DIR="$test_bin" PG_BIN="$test_root/no-postgres" STACK_DIR="$test_stack" RESULT_ABS=""
     assert_baseline_pids_owned "$mismatched_pidfile"
-  )
-  rc_mismatched_child=$?
+  ) || rc_mismatched_child=$?
 
   eval "$original_owned_controller_pids"
 
