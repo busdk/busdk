@@ -314,6 +314,16 @@ capture_pids() {
   fi
 }
 
+assert_baseline_pids_owned() {
+  local pidfile="$1"
+  local name pid state
+  while IFS=$'\t' read -r name pid; do
+    [[ "$name" == "subscription" ]] && continue
+    state="$(attempt_pid_identity_state "$pid" "$BIN_DIR" "$PG_BIN" "$STACK_DIR")"
+    [[ "$state" == "owned" ]] || die "baseline ownership check failed: $name pid=$pid classified $state, expected owned"
+  done <"$pidfile"
+}
+
 assert_same_pids() {
   local expected="$1"
   local observed="$2"
@@ -560,14 +570,21 @@ should_signal_attempt_pid() {
   [[ "$(attempt_pid_identity_state "$pid" "$BIN_DIR" "$PG_BIN" "$STACK_DIR")" == "owned" ]]
 }
 
-attempt_listening_ports() {
-  python3 - "$BUS_HOST" 8081 8090 <<'PY'
+blocked_listen_ports() {
+  local host="$1"
+  shift
+  python3 - "$host" "$@" <<'PY'
 import socket
 import sys
 
 host = sys.argv[1]
 for port in (int(p) for p in sys.argv[2:]):
     sock = socket.socket()
+    # SO_REUSEADDR must be set before bind: without it, a port left in
+    # TIME_WAIT by a prior server-side close is indistinguishable from a
+    # live LISTEN socket for roughly 60 seconds, and this probe would
+    # misreport the port as blocked.
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
         sock.bind((host, port))
     except OSError:
@@ -575,6 +592,10 @@ for port in (int(p) for p in sys.argv[2:]):
     finally:
         sock.close()
 PY
+}
+
+attempt_listening_ports() {
+  blocked_listen_ports "$BUS_HOST" 8081 8090
 }
 
 stop_attempt_owned_processes() {
@@ -655,10 +676,22 @@ regression_test_owned_attempt_pids() {
   local other_stack="$test_root/other-stack"
   rm -rf "$test_root"
   mkdir -p "$test_bin" "$test_stack/.bus" "$other_stack/.bus"
+  # The real Events and API children run the exact same shared "bus" binary
+  # as every other attempt-owned process (profiles bus/events/postgres and
+  # bus/api/local both use `command: [bus]`); a real ELF copy at this path
+  # is required so /proc/<pid>/exe resolves directly to it, not to a
+  # shebang interpreter or exec() target.
   cp "$(command -v sleep)" "$test_bin/bus"
 
   env BUS_SERVICES_BUS_DIR="$test_stack/.bus" "$test_bin/bus" 300 &
   local matching_pid=$!
+  # A second, independently tracked child of the same attempt-owned
+  # executable+marker shape as the real Events/API children: the ownership
+  # predicate keys only on executable path and the BUS_SERVICES_BUS_DIR
+  # marker, never on argv, so this proves discovery/classification works
+  # when multiple owned children (as Events and API are) exist together.
+  env BUS_SERVICES_BUS_DIR="$test_stack/.bus" "$test_bin/bus" 300 &
+  local events_api_pid=$!
   sleep 300 &
   local unrelated_pid=$!
   env BUS_SERVICES_BUS_DIR="$other_stack/.bus" "$test_bin/bus" 300 &
@@ -672,13 +705,15 @@ regression_test_owned_attempt_pids() {
     found_set["$found_pid"]=1
   done < <(owned_attempt_pids "$test_bin" "$test_root/no-postgres" "$test_stack")
 
-  local signal_rc_matching=0 signal_rc_unrelated=0 signal_rc_mismatched=0
+  local signal_rc_matching=0 signal_rc_events_api=0 signal_rc_unrelated=0 signal_rc_mismatched=0
   attempt_pid_still_owned "$matching_pid" "$test_bin" "$test_root/no-postgres" "$test_stack" || signal_rc_matching=$?
+  attempt_pid_still_owned "$events_api_pid" "$test_bin" "$test_root/no-postgres" "$test_stack" || signal_rc_events_api=$?
   attempt_pid_still_owned "$unrelated_pid" "$test_bin" "$test_root/no-postgres" "$test_stack" || signal_rc_unrelated=$?
   attempt_pid_still_owned "$mismatched_pid" "$test_bin" "$test_root/no-postgres" "$test_stack" || signal_rc_mismatched=$?
 
-  local state_matching state_unrelated state_mismatched
+  local state_matching state_events_api state_unrelated state_mismatched
   state_matching="$(attempt_pid_identity_state "$matching_pid" "$test_bin" "$test_root/no-postgres" "$test_stack")"
+  state_events_api="$(attempt_pid_identity_state "$events_api_pid" "$test_bin" "$test_root/no-postgres" "$test_stack")"
   state_unrelated="$(attempt_pid_identity_state "$unrelated_pid" "$test_bin" "$test_root/no-postgres" "$test_stack")"
   state_mismatched="$(attempt_pid_identity_state "$mismatched_pid" "$test_bin" "$test_root/no-postgres" "$test_stack")"
 
@@ -693,19 +728,22 @@ regression_test_owned_attempt_pids() {
   local unresolved_rc=0
   attempt_pid_still_owned "$reaped_pid" "$test_bin" "$test_root/no-postgres" "$test_stack" || unresolved_rc=$?
 
-  kill -KILL "$matching_pid" "$unrelated_pid" "$mismatched_pid" 2>/dev/null || true
-  wait "$matching_pid" "$unrelated_pid" "$mismatched_pid" 2>/dev/null || true
+  kill -KILL "$matching_pid" "$events_api_pid" "$unrelated_pid" "$mismatched_pid" 2>/dev/null || true
+  wait "$matching_pid" "$events_api_pid" "$unrelated_pid" "$mismatched_pid" 2>/dev/null || true
   rm -rf "$test_root"
 
   [[ -n "${found_set[$matching_pid]:-}" ]] || die "self-test: late attempt-owned child was not discovered"
+  [[ -n "${found_set[$events_api_pid]:-}" ]] || die "self-test: Events/API-shaped attempt-owned child was not discovered"
   [[ -z "${found_set[$unrelated_pid]:-}" ]] || die "self-test: unrelated same-user process was incorrectly treated as attempt-owned"
   [[ -z "${found_set[$mismatched_pid]:-}" ]] || die "self-test: identity-mismatched process was incorrectly treated as attempt-owned"
   ((signal_rc_matching == 0)) || die "self-test: late matching child failed the pre-signal identity recheck"
+  ((signal_rc_events_api == 0)) || die "self-test: Events/API-shaped child failed the pre-signal identity recheck"
   ((signal_rc_unrelated != 0)) || die "self-test: unrelated same-user process passed the pre-signal identity recheck"
   ((signal_rc_mismatched != 0)) || die "self-test: identity-mismatched process passed the pre-signal identity recheck"
   ((unresolved_rc == 2)) || die "self-test: unreadable identity for a momentarily-live PID was not treated as fail-closed unresolved"
 
   [[ "$state_matching" == "owned" ]] || die "self-test: matching child was not classified as owned"
+  [[ "$state_events_api" == "owned" ]] || die "self-test: Events/API-shaped child was not classified as owned"
   [[ "$state_unrelated" == "mismatched" ]] || die "self-test: unrelated same-user process was not classified as mismatched"
   [[ "$state_mismatched" == "mismatched" ]] || die "self-test: identity-mismatched process was not classified as mismatched"
   # The mismatched process must never be counted as an attempt survivor: the
@@ -713,6 +751,82 @@ regression_test_owned_attempt_pids() {
   # survivor, so a "mismatched" classification must not be either of those.
   [[ "$state_mismatched" != "owned" && "$state_mismatched" != "unresolved" ]] ||
     die "self-test: identity-mismatched process would be counted as an attempt survivor"
+}
+
+regression_test_attempt_listening_ports() {
+  local host="127.0.0.1"
+  local time_wait_port live_port port_file listener_pid deadline
+
+  time_wait_port="$(python3 - "$host" <<'PY'
+import socket
+import sys
+
+host = sys.argv[1]
+server = socket.socket()
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server.bind((host, 0))
+port = server.getsockname()[1]
+server.listen(1)
+client = socket.socket()
+client.connect((host, port))
+conn, _ = server.accept()
+# Server-side active close: this is what drives the server's local port into
+# TIME_WAIT, the exact state a plain bind() misclassifies as still listening.
+conn.close()
+client.close()
+server.close()
+print(port)
+PY
+  )"
+  [[ "$time_wait_port" =~ ^[0-9]+$ ]] || die "self-test: failed to produce a TIME_WAIT port for the listener probe"
+
+  local -a time_wait_blocked=()
+  mapfile -t time_wait_blocked < <(blocked_listen_ports "$host" "$time_wait_port")
+  ((${#time_wait_blocked[@]} == 0)) ||
+    die "self-test: TIME_WAIT port $time_wait_port was incorrectly reported as blocked by a live listener"
+
+  port_file="$RUNTIME_DIR/selftest-listener.port"
+  rm -f "$port_file"
+  python3 - "$host" >"$port_file" <<'PY' &
+import socket
+import sys
+import time
+
+host = sys.argv[1]
+server = socket.socket()
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server.bind((host, 0))
+port = server.getsockname()[1]
+server.listen(1)
+print(port, flush=True)
+time.sleep(10)
+PY
+  listener_pid=$!
+
+  live_port=""
+  deadline=$((SECONDS + 5))
+  while ((SECONDS < deadline)); do
+    if [[ -s "$port_file" ]]; then
+      live_port="$(<"$port_file")"
+      break
+    fi
+    sleep 0.05
+  done
+  if [[ ! "$live_port" =~ ^[0-9]+$ ]]; then
+    kill -KILL "$listener_pid" 2>/dev/null || true
+    wait "$listener_pid" 2>/dev/null || true
+    rm -f "$port_file"
+    die "self-test: failed to start a live listener for the listener probe"
+  fi
+
+  local -a live_blocked=()
+  mapfile -t live_blocked < <(blocked_listen_ports "$host" "$live_port")
+  kill -KILL "$listener_pid" 2>/dev/null || true
+  wait "$listener_pid" 2>/dev/null || true
+  rm -f "$port_file"
+
+  ((${#live_blocked[@]} == 1 && live_blocked[0] == live_port)) ||
+    die "self-test: live listener on port $live_port was not reported as blocked"
 }
 
 cleanup() {
@@ -858,6 +972,7 @@ export GOTMPDIR="$RUNTIME_DIR/go-tmp"
 export GOMAXPROCS=2
 
 regression_test_owned_attempt_pids
+regression_test_attempt_listening_ports
 
 build_binary() {
   local module="$1"
@@ -959,6 +1074,8 @@ services:
       env:
         - name: BUS_HOST
           value: $BUS_HOST
+        - name: BUS_SERVICES_BUS_DIR
+          value: $STACK_DIR/.bus
     depends_on:
       - identities
       - postgres
@@ -1002,6 +1119,8 @@ services:
       env:
         - name: BUS_HOST
           value: $BUS_HOST
+        - name: BUS_SERVICES_BUS_DIR
+          value: $STACK_DIR/.bus
     depends_on:
       - identities
       - events
@@ -1025,6 +1144,7 @@ run_capture_with_timeout services-up 90s "$BIN_DIR/bus-services" up --file "$STA
 [[ -s "$TOKEN_FILE" ]] || die "Services did not create the local Events token file"
 
 capture_pids "$RESULT_ABS/pids.initial.tsv"
+assert_baseline_pids_owned "$RESULT_ABS/pids.initial.tsv"
 cp "$RESULT_ABS/pids.initial.tsv" "$RESULT_ABS/pids.startup.tsv"
 
 run_capture thread-create "$BIN_DIR/bus-thread" --api-url "$EVENTS_URL" --token-file "$TOKEN_FILE" --format json create --title "Thread 131 continuity" --body "short TTL process proof" --author "thread131-harness" --status open
