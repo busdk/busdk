@@ -319,6 +319,20 @@ assert_baseline_pids_owned() {
   local name pid state
   while IFS=$'\t' read -r name pid; do
     [[ "$name" == "subscription" ]] && continue
+    if [[ "$name" == "serve" ]]; then
+      # The controller ("serve") is identified by the cmdline/--state-dir
+      # domain via owned_controller_pids, never by the child env-marker
+      # domain that attempt_pid_identity_state applies below: it is not
+      # launched with a BUS_SERVICES_BUS_DIR/PGDATA marker of its own, so
+      # running it through the child identity check false-RED's a live,
+      # correctly owned controller.
+      local -a controller_owners=()
+      mapfile -t controller_owners < <(owned_controller_pids)
+      [[ "$pid" =~ ^[0-9]+$ ]] && owned_pid_active "$pid" &&
+        ((${#controller_owners[@]} == 1)) && [[ "${controller_owners[0]}" == "$pid" ]] ||
+        die "baseline ownership check failed: serve pid=$pid not sole controller owner (owners: ${controller_owners[*]:-none})"
+      continue
+    fi
     state="$(attempt_pid_identity_state "$pid" "$BIN_DIR" "$PG_BIN" "$STACK_DIR")"
     [[ "$state" == "owned" ]] || die "baseline ownership check failed: $name pid=$pid classified $state, expected owned"
   done <"$pidfile"
@@ -753,6 +767,80 @@ regression_test_owned_attempt_pids() {
     die "self-test: identity-mismatched process would be counted as an attempt survivor"
 }
 
+regression_test_assert_baseline_pids_owned() {
+  local test_root="$RUNTIME_DIR/selftest-baseline-owned"
+  local test_bin="$test_root/bin"
+  local test_stack="$test_root/stack"
+  local other_stack="$test_root/other-stack"
+  rm -rf "$test_root"
+  mkdir -p "$test_bin" "$test_stack/.bus" "$other_stack/.bus"
+  cp "$(command -v sleep)" "$test_bin/bus"
+
+  env BUS_SERVICES_BUS_DIR="$test_stack/.bus" "$test_bin/bus" 300 &
+  local owned_child_pid=$!
+  env BUS_SERVICES_BUS_DIR="$other_stack/.bus" "$test_bin/bus" 300 &
+  local mismatched_child_pid=$!
+  sleep 300 &
+  local controller_pid=$!
+  sleep 300 &
+  local other_pid=$!
+  sleep 0.2
+
+  local good_pidfile="$test_root/good.tsv"
+  local mismatched_pidfile="$test_root/mismatched-child.tsv"
+  printf 'serve\t%s\npostgres\t%s\n' "$controller_pid" "$owned_child_pid" >"$good_pidfile"
+  printf 'serve\t%s\npostgres\t%s\n' "$controller_pid" "$mismatched_child_pid" >"$mismatched_pidfile"
+
+  # owned_controller_pids is stubbed to a canned list for this self-test:
+  # exercising the real /proc cmdline scan would require faking
+  # bus-integration-services' exact serve/--state-dir argv shape, but the
+  # role-aware branch under test only depends on what the function returns,
+  # not on how it derives that list. The original definition is restored
+  # afterward so every other call site keeps the real implementation.
+  local original_owned_controller_pids
+  original_owned_controller_pids="$(declare -f owned_controller_pids)"
+  local rc_ok rc_wrong_controller rc_multi_controller rc_mismatched_child
+
+  owned_controller_pids() { printf '%s\n' "$controller_pid"; }
+  (
+    BIN_DIR="$test_bin" PG_BIN="$test_root/no-postgres" STACK_DIR="$test_stack" RESULT_ABS=""
+    assert_baseline_pids_owned "$good_pidfile"
+  )
+  rc_ok=$?
+
+  owned_controller_pids() { printf '%s\n' "$other_pid"; }
+  (
+    BIN_DIR="$test_bin" PG_BIN="$test_root/no-postgres" STACK_DIR="$test_stack" RESULT_ABS=""
+    assert_baseline_pids_owned "$good_pidfile"
+  )
+  rc_wrong_controller=$?
+
+  owned_controller_pids() { printf '%s\n%s\n' "$controller_pid" "$other_pid"; }
+  (
+    BIN_DIR="$test_bin" PG_BIN="$test_root/no-postgres" STACK_DIR="$test_stack" RESULT_ABS=""
+    assert_baseline_pids_owned "$good_pidfile"
+  )
+  rc_multi_controller=$?
+
+  owned_controller_pids() { printf '%s\n' "$controller_pid"; }
+  (
+    BIN_DIR="$test_bin" PG_BIN="$test_root/no-postgres" STACK_DIR="$test_stack" RESULT_ABS=""
+    assert_baseline_pids_owned "$mismatched_pidfile"
+  )
+  rc_mismatched_child=$?
+
+  eval "$original_owned_controller_pids"
+
+  kill -KILL "$owned_child_pid" "$mismatched_child_pid" "$controller_pid" "$other_pid" 2>/dev/null || true
+  wait "$owned_child_pid" "$mismatched_child_pid" "$controller_pid" "$other_pid" 2>/dev/null || true
+  rm -rf "$test_root"
+
+  ((rc_ok == 0)) || die "self-test: baseline assertion rejected a sole controller with an owned child"
+  ((rc_wrong_controller != 0)) || die "self-test: baseline assertion accepted a serve pid that is not the sole controller owner"
+  ((rc_multi_controller != 0)) || die "self-test: baseline assertion accepted serve pid alongside multiple controller owners"
+  ((rc_mismatched_child != 0)) || die "self-test: baseline assertion accepted an identity-mismatched child row"
+}
+
 regression_test_attempt_listening_ports() {
   local host="127.0.0.1"
   local time_wait_port live_port port_file listener_pid deadline
@@ -972,6 +1060,7 @@ export GOTMPDIR="$RUNTIME_DIR/go-tmp"
 export GOMAXPROCS=2
 
 regression_test_owned_attempt_pids
+regression_test_assert_baseline_pids_owned
 regression_test_attempt_listening_ports
 
 build_binary() {
