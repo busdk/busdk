@@ -2,10 +2,11 @@
 
 Read this before any GX/UI cleanup, adopter migration, facade-parity,
 assistantui, terminalui, or `pkg/uikit`-removal work, together with
-`skills/bus-ui-gx-roadmap/SKILL.md`. These rules continue the root `AGENTS.md`
-section `Supervisor Worker Delegation` as items 7a-15. General delegation
-items 4-7 and 17-46 are in `runbooks/worker-delegation.md`; its items 6 and 7
-carry additional GX/UI-specific clauses that also bind GX/UI lanes.
+`skills/bus-ui-gx-roadmap/SKILL.md`. These rules keep their historical item
+identifiers 7a-15 from the original root `AGENTS.md` section `Supervisor
+Worker Delegation`. General delegation items 4-7, 7c, and 17-46 are in
+`runbooks/worker-delegation.md`; its items 6, 7, and 7c carry additional
+GX/UI-specific clauses that also bind GX/UI lanes.
 
 7a. For GX/UI module-owned worker prompts, do not assume the App Server
     product worktree opens at the BusDK superproject root. The first preflight

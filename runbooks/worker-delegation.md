@@ -4,11 +4,16 @@ Read this before any worker dispatch, activation-evidence check, template or
 model routing, environment freshness verification, pause/drain, worktree
 cleanup, or worker-failure diagnostic in the BusDK superproject. It expands
 the binding supervisor/worker boundary in the root `AGENTS.md` section
-`Supervisor Worker Delegation` and keeps the original rule numbering: items
-1-3 and 16 remain in root `AGENTS.md` (item 16 appears there renumbered as
-item 4), items 7a-15 are in `runbooks/gx-ui-delegation.md`, and items 4-7 and
-17-46 follow here. Items 6 and 7 below carry GX/UI-specific clauses that also
-apply to GX/UI lanes.
+`Supervisor Worker Delegation`.
+
+Item numbers below are historical identifiers from the original root file and
+do not restart from the root section's numbering: this file holds original
+items 4-7, 7c, and 17-46. The original file numbered two items 7; the second
+is renumbered 7c here for uniqueness. Original items 1-3 remain in root
+`AGENTS.md` as items 1-3; original item 16 remains in root as its item 4; root
+items 5 and 6 are routing entries, not original items. Original items 7a-15
+are in `runbooks/gx-ui-delegation.md`. Items 6, 7, and 7c below carry
+GX/UI-specific clauses that also apply to GX/UI lanes.
 
 4. Decompose broad work into the smallest independently implementable,
    testable, reviewable, and promotable increments. Require each active lane to
@@ -135,7 +140,7 @@ apply to GX/UI lanes.
    or constructors before writing expected markup, or reuse elements already
    proven in neighboring tests. Do not assume generic HTML tags such as
    `strong` or `em` are available in the GX intrinsic table.
-7. Before adopter workers edit against newly accepted shared facades, require a
+7c. Before adopter workers edit against newly accepted shared facades, require a
    fresh-base preflight in the worker message that names the repository root
    for every SHA check. In nested BusDK/product worktrees, BusDK commits,
    module commits, and supervisor commits live in different repositories; a

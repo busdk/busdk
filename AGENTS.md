@@ -410,11 +410,14 @@ separate from implementation/docs/test changes.
 
 ## Shell And Tool Hygiene
 
-For shell scripts, Docker inspection, readiness probes, search/format commands,
-historical delivery claims, progress reports, or disposable worktrees, use the
-Repo-Local Skills Index and the Supervisor Worker Delegation rules above
-together with `runbooks/worker-delegation.md`. Keep commands simple, portable,
-path-correct, bounded, and redacted.
+Keep commands simple, portable, path-correct, bounded, and redacted. For
+Docker inspection, readiness probes, worker monitoring, and disposable
+worktrees, read `skills/bus-dev-task-worker-ops/SKILL.md` and
+`runbooks/worker-delegation.md`. For historical delivery claims and progress
+reports, read `skills/bus-product-delivery-supervisor/SKILL.md` and
+`runbooks/parallel-supervision.md`. For shell scripts inside a module, follow
+the owning module's `AGENTS.md` and `skills/bus-go-quality-review/SKILL.md`
+when the script supports Go checks.
 
 ## Simplify Before Building
 
