@@ -67,3 +67,68 @@ through those events, never by spawning or dialing engine processes directly.
 The current `bus-integration-codex` `bus.llm.*` one-shot turn path and the
 direct per-worker `codex app-server` spawning in `bus-integration-worker`
 predate this rule and are refactoring targets, not precedent.
+
+## Architecture Change Control
+
+Name the accepted decision IDs and fixed constraints before dispatch or code.
+An implementation problem does not reopen architecture by itself. First repair
+the smallest failing behavior inside the accepted design and inventory existing
+branches, commits, tests, and primitives that can be reused. Changing an
+accepted decision requires all of: the exact failing acceptance evidence, the
+current decision that cannot satisfy it, options considered, the smallest
+replacement delta, migration and compatibility impact, reusable work retained,
+and explicit operator approval when the change alters an operator constraint or
+the active product outcome. Do not implement competing architectures while the
+decision remains unresolved.
+
+## Experiment And Proof Discipline
+
+For performance, build, boot, sync, or browser-proof goals, size work to the
+acceptance path instead of the current session length. Before starting an
+experiment, state the expected effect on the gate metric and the mechanism.
+Use focused deterministic checks for small questions, reserve expensive
+end-to-end proofs for batched changes or gate decisions, and treat a failed
+gate as a re-plan point.
+
+Check new work against rejected approaches by mechanism, not by task name.
+When one lane is blocked on a long build, browser run, or remote proof, advance
+an independent lane from the active plan. When an environment workaround
+repeats, promote the first diagnostic and normal handling rule to the nearest
+`AGENTS.md`, runbook, or module plan instead of re-explaining it in memos.
+
+## Board Intake Commands
+
+Before each new or resumed BusDK feature turn, read the owning module
+portfolio and latest shared baseline from the Bus Thread board. From the
+BusDK root, use `bus thread list 231 --depth 2` and
+`bus thread show 111 --latest 6`. Place every future canonical BusDK feature
+root under exactly one Thread 231 module portfolio. Thread 111 coordination
+and Thread 182 active-bug cards remain explicit cross-module navigation
+surfaces; product work, including Thread 3 and its descendants, belongs
+beneath its semantic product/module hierarchy.
+
+## Root Makefile Contract
+
+When editing the root `Makefile` or adding root orchestration, preserve
+superproject-only orchestration: exactly one root `Makefile`, POSIX shell,
+`git`, POSIX `make`, deterministic discovery of `bus` and `bus-*` module
+Makefiles, delegation via `make -C`, required lifecycle targets, module-local
+`./bin` outputs, `PREFIX`/`BINDIR`/`DESTDIR`, Go variable pass-through, and
+changed-module-scoped root test/e2e defaults. Do not add lockfiles, alternative
+build systems, package-manager integrations, or reimplemented module internals.
+
+## Identities And Authorization Model
+
+For the current identities/auth refactor, authorization is binary resource
+access: an identity either has access or not. Defer fine-grained permission
+bitmaps until a concrete product need appears.
+
+## Worker Backend Registry Detail
+
+Engine choice is the `(runner_kind, runner_provider)` pair resolved through
+the `WorkerRunnerProvider` registry in
+`bus-integration-worker/pkg/workersintegration/runner_provider.go`; providers
+`codex-direct`, `codex-appserver`, and `bus-agent-runtime` coexist today. For
+a Claude-backed provider design (Agent SDK vs persistent stream-json stdio vs
+`ModelProvider`, Codex concept mapping, auth policy), read the research note
+`docs/docs/research/claude-worker-backend.md` before re-researching.

@@ -51,35 +51,19 @@ describe user-visible behavior. Goal pages, plans, threads, memos, rejected
 branches, and historical reports are evidence and history, not architecture
 authority.
 
-Name the accepted decision IDs and fixed constraints before dispatch or code.
-An implementation problem does not reopen architecture by itself. First repair
-the smallest failing behavior inside the accepted design and inventory existing
-branches, commits, tests, and primitives that can be reused. Changing an
-accepted decision requires all of: the exact failing acceptance evidence, the
-current decision that cannot satisfy it, options considered, the smallest
-replacement delta, migration and compatibility impact, reusable work retained,
-and explicit operator approval when the change alters an operator constraint or
-the active product outcome. Do not implement competing architectures while the
-decision remains unresolved.
-
-Before proposing solution options to the operator or composing accepted
-independent fixes, read the solution-brief template and composition discipline
-in `runbooks/delivery-discipline.md`.
+Name the accepted decision IDs and fixed constraints before dispatch or code;
+an implementation problem does not reopen architecture by itself. Before
+changing an accepted decision, proposing solution options to the operator, or
+composing accepted independent fixes, read the architecture change-control
+rules, solution-brief template, and composition discipline in
+`runbooks/delivery-discipline.md`.
 
 ## Experiment And Proof Discipline
 
 For performance, build, boot, sync, or browser-proof goals, size work to the
-acceptance path instead of the current session length. Before starting an
-experiment, state the expected effect on the gate metric and the mechanism.
-Use focused deterministic checks for small questions, reserve expensive
-end-to-end proofs for batched changes or gate decisions, and treat a failed
-gate as a re-plan point.
-
-Check new work against rejected approaches by mechanism, not by task name.
-When one lane is blocked on a long build, browser run, or remote proof, advance
-an independent lane from the active plan. When an environment workaround
-repeats, promote the first diagnostic and normal handling rule to the nearest
-`AGENTS.md`, runbook, or module plan instead of re-explaining it in memos.
+acceptance path and state the expected gate-metric effect before starting an
+experiment; the full experiment and proof discipline is in
+`runbooks/delivery-discipline.md`.
 
 Use the workspace `./tmp` directory for large generated artifacts, copied
 rootfs/disk images, browser/QEMU bundles, build evidence, and anything that may
@@ -90,33 +74,18 @@ from the start instead of moving it from host `/tmp`.
 
 ## Public Surface Naming
 
-Public API names, command names, package-set names, artifact IDs, config schema
-names, service names, event names, and documented user workflows must be named
-for the finished BusDK product, not for temporary milestones or prototype
-phases. Do not put terms such as `mvp`, `prototype`, `temporary`, or
-`experimental` into public surfaces that would become stale or deprecated once
-the product is complete. Milestone wording may appear in planning notes or
-historical evidence, but active user-facing interfaces should use durable
-product concepts such as package, image, profile, release, task, worker,
-service, event, artifact, or acceptance.
-
-For the browser-hosted operating system work, use product names that describe
-the actual shipped shape: QEMU/WASM port, Bus Engine OS, and the
-`virtual-server` or `virtual-desktop` profiles. Do not introduce or revive
-`browser lab` / `browser-lab` as a product, page, artifact, or workflow name;
-that term may appear only when rejecting or migrating an obsolete compatibility
-alias.
+Name public surfaces (APIs, commands, package sets, artifact IDs, config
+schemas, services, events, documented workflows) for the finished BusDK
+product, never for temporary milestones or prototype phases.
 
 ## Agent Communication Style
 
-Avoid formulaic contrast sentences in user-facing replies and public project
-text, especially the pattern `This is <classification>, not <contrast>`.
-Rewrite those statements as direct guidance that says what action, evidence,
-or priority matters. For example, prefer "Handle this as a packaging-policy
-decision after the runtime package work is stable" over "This is a policy
-decision, not a runtime file." Apply the same rule to close variants such as
-`That is ... not ...`, `<thing> is ... rather than ...`, and other phrasing
-that reads like a generated classification followed by a negated contrast.
+Avoid formulaic contrast sentences (`This is X, not Y`) in user-facing replies
+and public project text; state the action, evidence, or priority directly.
+
+Before naming any public surface (including browser-OS work) or writing
+public project text, read `runbooks/naming-and-communication.md` for the full
+naming and style rules.
 
 ## Live Working Memo
 
@@ -170,21 +139,11 @@ numbering; they must be read when their triggers below match.
 
 ## Recipient-Scoped Worker Focus
 
-1. Recipient-scoped implementation workers are not supervisors. They should
-   follow the recipient-local `AGENTS.md` and explicit task brief first. This
-   does not override the parent supervisor's protected live-memo and closeout
-   duties; it only means non-supervisor implementation workers should not
-   inherit broad supervisor habits such as repo-wide memo, PLAN, README, or
-   throughput review unless the task explicitly asks for those.
-2. For minimal implementation or proof lanes, start with the exact failing
-   command, named files, stale text, or acceptance surface given in the task.
-   Do not spend quota reading root hourly memos, unrelated `README.md` files,
-   unrelated `PLAN.md` files, or broad repo guidance unless the named surface
-   is insufficient to complete the task honestly.
-3. Root supervisor guidance about dispatch boards, throughput reviews, memo
-   operating loops, broad plan grooming, and cross-module coordination applies
-   to supervisors and sub-supervisors. It is not default required work for a
-   recipient-local implementation worker turn.
+Recipient-scoped implementation workers are not supervisors: follow the
+recipient-local `AGENTS.md` and explicit task brief first, start from the
+exact named failing surface, and do not spend quota on broad supervisor
+habits (repo-wide memos, PLAN grooming, throughput review) unless the task
+asks for them. Details are in `runbooks/worker-delegation.md`.
 
 ## Parallel Supervisor Operating Standard
 
@@ -203,57 +162,37 @@ and the Service Resource Isolation Standard, both of which remain binding.
 
 ## Repo-Local Skills Index
 
-Read the relevant skill before doing detailed operational work:
-
-Keep this index current. Whenever adding a new repo-local skill, deleting a
-skill, renaming a skill, moving a skill file, or materially changing a skill's
-purpose, trigger conditions, or operating scope, update this root index in the
-same change set with the skill path, basic purpose, and when agents should read
-it. Do not leave skill discovery dependent on memory, chat history, or scanning
-the `skills/` directory.
+Read the relevant skill before detailed operational work. Keep this index
+current: whenever a repo-local skill is added, deleted, renamed, moved, or
+materially changed, update this index in the same change set.
 
 1. `skills/bus-product-delivery-supervisor/SKILL.md`: broad multi-module
-   supervision, worker dispatch, monitoring, review, process improvement,
-   throughput analysis, heartbeat/progress/closeout reporting, and GX/UI
-   roadmap coordination. Use it before running supervisor mode.
-2. `skills/bus-dev-task-worker-ops/SKILL.md`: concrete `bus task` / `bus
-   workers` dispatch, event-driven wait, evidence-based template routing,
-   Compose/App Server workers, monitoring, reopen, closeout, promotion,
-   auth/token handling, write scopes, worker infrastructure troubleshooting,
-   and generated-artifact promotion hazards. Use it before touching worker ops.
+   supervision, dispatch, monitoring, review, throughput, progress and
+   closeout reporting. Read before running supervisor mode.
+2. `skills/bus-dev-task-worker-ops/SKILL.md`: `bus task`/`bus workers`
+   dispatch, event-driven waits, template routing, monitoring, reopen,
+   promotion, auth/token handling, worker troubleshooting. Read before
+   touching worker ops.
 3. `skills/bus-plan-memory-maintainer/SKILL.md`: `PLAN.md`, `AGENTS.md`,
-   Bus Notes/hourly memo practice, tracker-file processing, durable lessons,
-   historical verification, commit/tracker closeout, and planning granularity.
-   Use it before `PLAN.md` or `AGENTS.md` edits, memo closeout, tracker-only
-   commits, or durable lesson capture.
-4. `skills/bus-ui-gx-roadmap/SKILL.md`: GX and Bus UI feature-candidate
-   planning, docs, implementation, semver promotion, and portal migration
-   prerequisites. Use it before planning, dispatching, reviewing, or reporting
-   GX/UI roadmap work, feature-candidate implementation, portal migration, or
-   semver promotion.
-5. `skills/bus-docs-quality/SKILL.md`: public docs and SDD structure, Markdown
-   linting, UI docs page shape, examples, links, and duplicate-content cleanup.
-   Use it before editing public docs, SDD docs, README-style documentation,
-   Markdown examples, docs navigation, or docs lint fixes.
+   hourly memos, trackers, durable lessons, closeout. Read before PLAN or
+   AGENTS edits, memo closeout, or tracker-only commits.
+4. `skills/bus-ui-gx-roadmap/SKILL.md`: GX/Bus UI roadmap, feature
+   candidates, semver promotion, portal migration. Read before GX/UI roadmap
+   or feature-candidate work.
+5. `skills/bus-docs-quality/SKILL.md`: public docs and SDD structure,
+   Markdown lint, examples, links. Read before docs or SDD edits.
 6. `skills/bus-go-quality-review/SKILL.md`: Go implementation/review gates,
-   unit/e2e expectations, module Makefile checks, and final `bus lint
-   path/to/file.go` peer review. Use it before touching Go files.
+   tests, module Makefile checks, `bus lint` peer review. Read before
+   touching Go files.
 7. `skills/bus-generated-artifact-hygiene/SKILL.md`: generated WASM/static
-   artifact tracking, ignore/clean/regenerate rules, and dirty-checkout
-   prevention. Use it before touching generated browser, WASM, static, build
-   output, or other artifact files, and before deciding whether generated
-   changes should be committed, regenerated, ignored, or cleaned.
+   artifact tracking and ignore/clean/regenerate rules. Read before touching
+   generated or build-output files.
 8. `skills/bus-development-retrospective/SKILL.md`: evidence-based
-   development retrospectives for releases, incidents, agent-worker sessions,
-   difficult implementation periods, and public docs reports under
-   `docs/docs/reports/` when the retrospective should be shareable. Use it when
-   source changes, worker performance, `bus dev task` conversations/events,
-   human orchestration, stale next-step claims, and durable guidance/test/doc
-   updates all need review.
+   retrospectives for releases, incidents, and agent sessions, including
+   shareable reports under `docs/docs/reports/`. Read before retrospectives.
 9. `skills/bus-llm-tool-prompt-construction/SKILL.md`: prompt-template
-   construction for BusDK tools that send prompts to LLMs, especially
-   local-model, worker, reviewer, and prompt-sending code. Use it before
-   changing LLM prompt builders or request assembly.
+   construction for BusDK tools that send prompts to LLMs. Read before
+   changing prompt builders or request assembly.
 
 ## Repository Identity
 
@@ -279,13 +218,10 @@ the `skills/` directory.
 
 ## Root Makefile Contract
 
-When editing the root `Makefile` or adding root orchestration, preserve
-superproject-only orchestration: exactly one root `Makefile`, POSIX shell,
-`git`, POSIX `make`, deterministic discovery of `bus` and `bus-*` module
-Makefiles, delegation via `make -C`, required lifecycle targets, module-local
-`./bin` outputs, `PREFIX`/`BINDIR`/`DESTDIR`, Go variable pass-through, and
-changed-module-scoped root test/e2e defaults. Do not add lockfiles, alternative
-build systems, package-manager integrations, or reimplemented module internals.
+Before editing the root `Makefile` or adding root orchestration, read the
+Root Makefile Contract in `runbooks/delivery-discipline.md`; keep
+superproject-only orchestration and add no lockfiles, alternative build
+systems, or reimplemented module internals.
 
 ## Repository Visibility And Secrets
 
@@ -337,24 +273,18 @@ For the detailed gate bullets on lane admission, mechanism-change retries,
 additive repair, promoted-but-unused debt, preflight scope, and Thread 111
 usage, read `runbooks/delivery-discipline.md`.
 
-- Before each new or resumed BusDK feature turn, read the owning module
-  portfolio and latest shared baseline from the Bus Thread board. From the
-  BusDK root, use `bus thread list 231 --depth 2` and
-  `bus thread show 111 --latest 6`. Place every future canonical BusDK feature
-  root under exactly one Thread 231 module portfolio. Thread 111 coordination
-  and Thread 182 active-bug cards remain explicit cross-module navigation
-  surfaces; product work, including Thread 3 and its descendants, belongs
-  beneath its semantic product/module hierarchy.
+Before each new or resumed BusDK feature turn, read the board intake
+commands and thread-placement rules in `runbooks/delivery-discipline.md`
+(`bus thread list 231 --depth 2`, `bus thread show 111 --latest 6`).
 
 ## Cross-Module Architecture
 
 Before changing module boundaries, command ownership, Events/auth/config,
 AI-host behavior, provider/runtime architecture, notes modules, naming,
 private/public coupling, or cross-cutting platform behavior, read
-`docs/docs/sdd-source-index.md` and the owning module `AGENTS.md`.
-For the current identities/auth refactor, authorization is binary resource
-access: an identity either has access or not. Defer fine-grained permission
-bitmaps until a concrete product need appears.
+`docs/docs/sdd-source-index.md` and the owning module `AGENTS.md`. The
+current identities/auth authorization model is recorded in
+`runbooks/delivery-discipline.md`.
 
 ## Product Taxonomy Guidance
 
@@ -376,14 +306,9 @@ Before choosing or changing Bus development worker backend/runtime behavior,
 read `skills/bus-dev-task-worker-ops/SKILL.md` and the owning module
 `AGENTS.md`/`PLAN.md`. Root policy: Codex App Server is the normal development
 worker backend, one-shot Codex is legacy compatibility, and durable worker
-lanes must not use the Events `memory` backend for retained task history.
-Engine choice is the `(runner_kind, runner_provider)` pair resolved through
-the `WorkerRunnerProvider` registry in
-`bus-integration-worker/pkg/workersintegration/runner_provider.go`; providers
-`codex-direct`, `codex-appserver`, and `bus-agent-runtime` coexist today. For
-a Claude-backed provider design (Agent SDK vs persistent stream-json stdio vs
-`ModelProvider`, Codex concept mapping, auth policy), read the research note
-`docs/docs/research/claude-worker-backend.md` before re-researching.
+lanes must not use the Events `memory` backend for retained task history. The
+provider registry detail and Claude-backend research pointer are in
+`runbooks/delivery-discipline.md`.
 
 Before engine-integration work — `bus-integration-<engine>` module boundaries,
 engine process ownership, engine event namespaces, or one-shot turn removal —

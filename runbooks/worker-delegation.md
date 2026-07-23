@@ -422,3 +422,21 @@ GX/UI-specific clauses that also apply to GX/UI lanes.
     matching `bus-api-provider-{name}` module, which validates API requests,
     publishes canonical Events, and serves projections without taking over
     integration runtime ownership.
+
+## Recipient-Scoped Worker Focus
+
+1. Recipient-scoped implementation workers are not supervisors. They should
+   follow the recipient-local `AGENTS.md` and explicit task brief first. This
+   does not override the parent supervisor's protected live-memo and closeout
+   duties; it only means non-supervisor implementation workers should not
+   inherit broad supervisor habits such as repo-wide memo, PLAN, README, or
+   throughput review unless the task explicitly asks for those.
+2. For minimal implementation or proof lanes, start with the exact failing
+   command, named files, stale text, or acceptance surface given in the task.
+   Do not spend quota reading root hourly memos, unrelated `README.md` files,
+   unrelated `PLAN.md` files, or broad repo guidance unless the named surface
+   is insufficient to complete the task honestly.
+3. Root supervisor guidance about dispatch boards, throughput reviews, memo
+   operating loops, broad plan grooming, and cross-module coordination applies
+   to supervisors and sub-supervisors. It is not default required work for a
+   recipient-local implementation worker turn.
