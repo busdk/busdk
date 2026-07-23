@@ -13,6 +13,14 @@ Merged guidance from `.cursor/rules/*.mdc`.
 3. Prefer minimal, deterministic, script-friendly behavior.
 4. For module work, read this file plus the most specific local `AGENTS.md`
    under the target subtree before changing files.
+5. Agent sessions started inside this checkout do not auto-load parent
+   guidance: instruction discovery stops at this repository's `.git`
+   boundary. When this checkout is nested inside a parent workspace (for
+   example an agent-supervisor tree), read `../AGENTS.md` and
+   `../../AGENTS.md` before cross-checkout actions such as parent pin
+   updates, shared coordination, or supervisor-owned workflows. The same
+   applies one level down: sessions started inside a `bus-*` module load only
+   that module's guidance and must read this file for superproject rules.
 
 ## Guidance Layout
 
