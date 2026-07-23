@@ -34,6 +34,10 @@ Merged guidance from `.cursor/rules/*.mdc`.
 - Keep public docs free of agent-only process rules. For SDD/public-doc
   architecture candidates, leave compact triggers and follow-up notes unless a
   task explicitly asks for public documentation edits.
+- Keep detailed, conditional operating guidance in `runbooks/*.md` in this
+  repository. Each root section below names its runbook trigger; read a
+  runbook when its trigger matches the current task instead of loading it by
+  default.
 
 ## Architecture Stability And Decision Briefs
 
@@ -58,24 +62,9 @@ and explicit operator approval when the change alters an operator constraint or
 the active product outcome. Do not implement competing architectures while the
 decision remains unresolved.
 
-Describe proposed solutions to the operator with this compact brief:
-
-1. Current outcome and exact failure.
-2. Fixed constraints and applicable decision IDs.
-3. Existing usable implementation or evidence.
-4. Options, each with capability, limitation, and change required.
-5. Recommended smallest path and why it wins.
-6. Independent work items, each with one behavior, owner module, branch,
-   focused test, and promotion gate.
-7. Composition, user-local install, live acceptance check, and explicitly
-   deferred scope.
-
-Keep independently useful fixes separate through implementation and review.
-Use one branch and focused commit series per behavior, then compose only
-accepted tips in a dedicated integration lane. A rejected optional fix must not
-hold back unrelated accepted value. Do not report architecture work as complete
-until the SDD, implementation, tests, installed composition, and operator brief
-describe the same design.
+Before proposing solution options to the operator or composing accepted
+independent fixes, read the solution-brief template and composition discipline
+in `runbooks/delivery-discipline.md`.
 
 ## Experiment And Proof Discipline
 
@@ -131,98 +120,30 @@ that reads like a generated classification followed by a negated contrast.
 
 ## Live Working Memo
 
-This section is core operating memory for Codex agents in this repository. Do
-not compact it out of root `AGENTS.md`, move it only to a less visible skill, or
-replace it with a pointer. Other guidance may summarize it, but this root file
-must preserve the live memo contract itself.
+Maintain a live hourly working memo during every substantial session in
+`./logs/{YYYYMMDD}-{HH}-agent-memo.md`, using the current local/project time
+and continuing the same file while the hour is unchanged. Write it as a
+truthful editorial engineering diary in Markdown narrative form, not a
+checklist: what was attempted, found, decided, and verified, plus what remains
+uncertain. When the hour changes, finish the memo with a handoff note and
+continue in the new hourly file; end every session with a concise final state.
+Never write secrets, tokens, private customer data, or raw environment dumps
+into memos or committed logs. Do not edit historical memos after their hour
+except to remove sensitive information or undo an accidental inappropriate
+edit.
 
-1. Maintain a live working memo during every substantial work session. The memo
-   is hourly based.
-2. At the start of work, create or update
-   `./logs/{YYYYMMDD}-{HH}-agent-memo.md`, where `YYYYMMDD` is the current
-   local/project date and `HH` is the zero-padded 24-hour hour when that memo
-   period starts. Create `./logs` if it does not exist.
-3. Use the current local/project time when naming memo files. Continue writing
-   to the same memo only while the current hour remains the same.
-4. When the hour changes, finish the current memo with a short handoff note
-   explaining the current state of the work, what is complete, what is still in
-   progress, what was verified, what remains uncertain, and what should happen
-   next. Then create or continue the next hourly memo for the new hour.
-5. Write each memo as an editorial engineering diary in story form. It should
-   read like a clear narrative of the work session, not like a checklist,
-   changelog, or raw activity dump.
-6. The memo should let a future maintainer, human reviewer, or AI agent
-   understand the flow of work: what the agent was trying to accomplish, what
-   it found, why it made certain choices, where it hesitated, what changed,
-   what went wrong, what worked well, and what could be improved next time.
-7. Use Markdown. Prefer narrative paragraphs over lists. Headings may be used
-   when helpful, such as `## Session Context`, `## Work Narrative`,
-   `## Observations`, `## Decisions`, `## Tests and Checks`,
-   `## Problems and Friction`, `## Improvement Ideas`, `## Hourly Handoff`,
-   and `## Final State`.
-8. Lists are allowed only when they genuinely improve readability, for example
-   for compact test results or final next steps.
-9. Update the current hourly memo throughout the hour after meaningful phases
-   of work. Add a short narrative note explaining what just happened and what
-   it means.
-10. Do not merely write "ran tests" or "updated parser." Explain why tests were
-    run, what the result suggested, why a change was needed, whether the change
-    felt clean, and whether any concern remains.
-11. If work changes direction, describe the reason. If an assumption turns out
-    to be wrong, record how that changed the approach. If a command fails,
-    explain the failure, likely cause, and next action.
-12. Before making a risky, broad, or hard-to-reverse change, write a short note
-    explaining the intended change, why it seems necessary, and what risk it
-    carries. After making the change, update the memo with what actually
-    happened.
-13. If no code changes were made during an hour, still write the story of that
-    hour: what was examined, what was learned, what remains uncertain, and what
-    the next useful action would be.
-14. Keep the memo truthful, concise, and useful for later learning. Do not
-    claim planned work as completed. Do not invent successful results. Clearly
-    separate facts from interpretation. Mark uncertainty, failed attempts,
-    skipped checks, and assumptions honestly.
-15. Avoid blame-oriented language. Focus on what the project, tooling,
-    architecture, process, tests, or prompts can learn from the session.
-16. Summarize long command outputs instead of pasting them in full, and mention
-    how the result can be reproduced when useful.
-17. Treat committed logs and memos as public repository content. Never write
-    secrets, API keys, passwords, tokens, private customer data, proprietary
-    customer details, raw `.env` contents, or other sensitive values into memos
-    or committed logs. Summarize or redact sensitive evidence instead.
-18. When investigating environment variables or config files, query only the
-    exact non-secret key needed, or report whether a key exists without
-    displaying unrelated values.
-19. Do not edit historical hourly memos after the hour/session has passed
-    except to remove sensitive information or undo an accidental inappropriate
-    edit. Later lessons from old memos should be captured in the current memo
-    or in durable project guidance.
-20. Before finishing a session, review the current hourly memo. Make sure it
-    explains not only what changed, but how the work unfolded and what can be
-    learned from it.
-21. End the final memo for the session with a concise final state: what is
-    complete, what remains incomplete, what was verified, what was not
-    verified, and what the next agent or maintainer should probably do next.
-22. Every hourly memo should contain enough handoff detail that another agent
-    can resume without re-reading the whole conversation. For broad work,
-    include compact coverage of the current goal, key decisions, modified
-    files, commands and tests run with outcomes, blockers, active follow-ups,
-    and important context.
-23. When Bus Notes is available and configured, delegated workers or
-    long-running agents may also publish concise notes through `bus notes` so
-    the work becomes searchable and attributable. Local
-    `./logs/*-agent-memo.md` files remain the canonical session diary unless
-    this repository explicitly chooses Bus Notes as the primary store.
-24. If Bus Notes is unavailable, unconfigured, or inappropriate for the current
-    repository, continue with local memo files only and mention that limitation
-    in the memo or final handoff when relevant.
+This root file keeps the binding memo contract above. Before substantial
+sessions, memo closeout, or Bus Notes use, read
+`runbooks/live-working-memo.md`; it carries the full memo style contract,
+which expands this core without replacing it.
 
 ## Supervisor Worker Delegation
 
 This section is core operating memory for Codex supervisor agents in this
-repository. Do not compact it out of root `AGENTS.md`, move it only to a less
-visible skill, or replace it with a pointer. Other guidance may expand it, but
-this root file must preserve the supervisor/worker boundary itself.
+repository. The supervisor/worker boundary below is binding and stays in this
+root file. `runbooks/worker-delegation.md` and `runbooks/gx-ui-delegation.md`
+expand it with the detailed operating rules and keep the original rule
+numbering; they must be read when their triggers below match.
 
 1. In supervisor mode, all implementation work that can be delegated must be
    done through Bus task/work workers, not by the supervisor directly editing
@@ -233,737 +154,19 @@ this root file must preserve the supervisor/worker boundary itself.
    accepted commits, and keep the board moving.
 3. The supervisor may edit repo guidance, `PLAN.md`, live memos, and narrow
    coordination artifacts when those edits are themselves supervision work.
-4. Decompose broad work into the smallest independently implementable,
-   testable, reviewable, and promotable increments. Require each active lane to
-   publish an ordered commit queue before broad implementation, with one
-   focused behavior and gate per commit. Run disjoint source-edit and bounded
-   Go-test increments in parallel under the current resource-class admission
-   policy; separately serialize heavyweight builds, images, containers, and
-   stress. Review and promote each compatible slice as soon as it passes
-   instead of waiting for an all-or-nothing module rewrite. Before reusing
-   shared mutable resources, prove the prior process tree is quiescent.
-5. Codex background threads for BusDK superproject work must make the owning
-   repository or module path operationally real before edits. Prefer opening
-   the thread on the exact saved module project when available. If only the
-   supervisor project is a saved Codex project, the thread may start there
-   only when its first product step is to create and use an isolated worktree
-   for the single target module. Split broad cleanup or salvage reviews by
-   module owner when any follow-up edit may be needed.
-6. For local App Server workers on BusDK submodules, send the worker the exact
-   absolute product-worktree path as soon as `bus workers status` reports it,
-   then tell it to `cd <module>` inside that tree before any file edit. Also
-   name the primary checkout path as out of scope. If a worker log or command
-   output references the primary checkout path after that, stop the worker,
-   preserve any leaked patch, restore only the leaked primary files, and
-   relaunch with stricter path guardrails. Do not trust a worker diff until the
-   primary checkout for that module has been checked clean.
-7. Worker creation is not proof of execution. After creating a worker, send an
-   explicit start message unless the worker stream already shows assistant
-   output from the intended prompt. Count a lane as active only after three
-   signals exist: the assistant/event stream has started, the worker-owned
-   worktree has either a diff or a clear no-change diagnosis, and the task
-   thread records the current prompt. A `running`/`ready` worker with no
-   assistant output, command trace, or diff is queued capacity, not progress;
-   inspect session logs and nudge or replace it instead of waiting on elapsed
-   time alone. Treat prompt files as supervisor reference artifacts, not as
-   the worker's primary task context. For every replacement or implementation
-   worker, send a live worker message that includes the complete scoped task,
-   exact paths, accepted base pins, DoD checks, and first concrete action; do
-   not ask the worker to discover a runtime-local prompt file. The first live
-   checkpoint must verify assistant stream, fresh-base/root SHA evidence, and
-   either a first diff or a concrete no-change/facade-gap diagnosis within one
-   short supervision window. For small implementation-only GX/UI lanes, if a
-   worker says it is patching but the owned tree remains clean after the gate,
-   stop counting it as active implementation and either send a minimal inline
-   patch plan or park/replace the worker. If that minimal inline patch plan
-   still leaves the tree clean after the next checkpoint, park or replace the
-   worker instead of sending another broad nudge. After two clean-tree
-   implementation workers on the same GX/UI slice have received complete live
-   context plus a minimal patch plan and still produce no diff or concrete
-   missing-facade diagnosis, stop retrying the same runtime/model/prompt shape;
-   more identical replacements are not active product progress. Before any
-   further implementation retry on that same child slice, simplify first:
-   create a supervisor-owned source-map and patch-target table with direct file
-   paths, exact symbol lists, and no glob-heavy or regex-heavy discovery
-   commands. If a GX/UI micro-slice remains no-diff because it discovers
-   package-owned helper or API-shape questions, convert immediately to this
-   planning gate before the next implementation attempt. The planning artifact
-   must name the exact owner for node types, helper symbols, facade alias
-   removals, file targets, and focused tests. If ownership or API shape is
-   still conceptually ambiguous, use a configured high-capability planning
-   template pass to produce the mechanical patch plan, then delegate that
-   simplified implementation to the normal supported worker template first.
-   Escalate the implementation worker to a stronger configured template only
-   after the simplified task still fails because of reasoning or API-shape
-   complexity, not because of checkout materialization, prompt shape, or
-   tool-router errors. Otherwise escalate the execution path: choose a
-   different runtime known to apply patches, route a narrow worker-infrastructure
-   diagnosis for App Server or tool-router clean-tree behavior, or ask the
-   operator for a narrow supervisor exception to implement the already-scoped
-   patch in a worker-owned worktree with normal review and promotion. Keep the
-   product backlog count stable unless a concrete missing facade or
-   infrastructure repair task is created with its own definition of done, and
-   preserve the accepted table and mechanical patch plan as the next attempt's
-   starting material. When using that reviewed worker-owned exception path for
-   GX/UI, preflight the exact edit context first: read the current alias/import
-   blocks and target helper files, patch new implementation files separately
-   from alias removals, verify `git status --short` after each chunk, and only
-   then run gofmt, tests, and scoped audits. Do not start a large multi-file
-   exception patch before the exact context is known, because one stale hunk
-   must not erase otherwise-ready progress.
-   For the GX/UI form-controls split, treat `pkg/ui/control_uikit_bridge.go`
-   as a temporary split aid, not a durable compatibility layer. Every remaining
-   form-controls child review must say whether that child shrinks, deletes, or
-   leaves each bridge conversion unchanged; if a conversion remains, name the
-   exact not-yet-moved boundary that still requires it. By the final
-   form-controls alias-removal/deletion-probe child, the bridge must either be
-   gone or explicitly reduced to only still-compiler-derived non-form-control
-   work from the latest deletion matrix.
-   GX/UI planning/source-map workers must satisfy the same owning-module
-   hydration gate before their output counts as evidence: prove `pwd`,
-   `git rev-parse --show-toplevel`, `git status --short`, and the target files
-   from the planning prompt in the exact module root. If a planning worker has
-   an empty module checkout or cannot see the target files, stop it as a
-   materialization failure; do not treat its no-file diagnosis as a product
-   source-map result.
-   Before launching another GX/UI product worker after a worker/service
-   execution repair, run a local worker health gate across the full
-   storage/control-plane chain: prove there is enough disk for service writes;
-   prove Postgres is running or recovered; prove a direct Events publish
-   succeeds; prove Repos is running and materializes a product workspace; prove
-   Workers and API respond from a live PID rather than only a stale status
-   file; prove the launched command resolves to the checked-out BusDK
-   dispatcher or module binary and supports the profile flags, especially
-   `--token-file`; prove the deployed worker integration code includes any
-   required evidence-window repair such as the three-minute direct message
-   timeout, or state explicitly that it has not reloaded; and run one tiny
-   non-product worker/message smoke that produces assistant output inside the
-   evidence window. Until Workers API message projections include assistant
-   response text, do not count `message.response` with `status=delivered` as
-   assistant progress. For product workers, require assistant text in the
-   worker Codex session JSONL, a real worker-owned git diff or commit plus
-   required check output, or explicit runtime error evidence; `ready`, a clean
-   worktree row, and delivered-only messages are transport evidence only. For
-   tonight's GX/UI local App Server work, use `--environment local-dev` only
-   unless the worker system is repaired and a smoke proves another environment.
-   `--environment local` has accepted create requests that did not materialize
-   in the live local pool or produced unusable module roots. Treat an
-   accidental `local` create as an environment-routing mistake, stop or ignore
-   it immediately, and do not wait on it as product capacity. For tonight's
-   GX/UI data/evidence lanes, prefer the configured local mini/evidence worker
-   template on the local App Server substrate unless the default implementation
-   template first passes a fresh assistant-output smoke; materialization without
-   assistant text is false-active capacity.
-   For GX/UI render tests, verify the target package's GX intrinsic elements
-   or constructors before writing expected markup, or reuse elements already
-   proven in neighboring tests. Do not assume generic HTML tags such as
-   `strong` or `em` are available in the GX intrinsic table.
-7. Before adopter workers edit against newly accepted shared facades, require a
-   fresh-base preflight in the worker message that names the repository root
-   for every SHA check. In nested BusDK/product worktrees, BusDK commits,
-   module commits, and supervisor commits live in different repositories; a
-   correct preflight prints `pwd`, `git rev-parse --show-toplevel`, the BusDK
-   superproject HEAD from the worker's product-worktree root, the target module
-   root and module HEAD from the module directory, and relevant submodule pins
-   from the BusDK root when the task depends on a core facade commit. Do not
-   write generic "must include commit X" prompts without stating which repo is
-   expected to contain that commit. If a core facade lands while an adopter
-   worker is already running, treat stale-base promotion as a review risk and
-   rebase, recreate, or explicitly justify acceptance before promoting its
-   patch.
-7a. For GX/UI module-owned worker prompts, do not assume the App Server
-    product worktree opens at the BusDK superproject root. The first preflight
-    must prove whether the effective cwd/root is the BusDK root or the target
-    module root with `pwd`, `git rev-parse --show-toplevel`, and a small
-    path-existence check for the scoped files and goal doc. Include an explicit
-    path map in the live worker message: `product_worktree_root`, `busdk_root`
-    if different or available, `target_module_root`, `goal_doc_absolute_path`,
-    and `scoped_file_paths_relative_to_target_module_root`. Do not tell a
-    worker to blindly `cd <module>` unless the proved product-worktree root is
-    the BusDK superproject; if the worker is already in the module root, use
-    paths such as `internal/run/run.go`, not
-    `bus-chat/internal/run/run.go`. For goal-doc lookup from a module-root
-    worker, provide the absolute `projects/busdk/docs/docs/goals/gx-ui.md`
-    path or a preverified relative path such as
-    `../docs/docs/goals/gx-ui.md`, instead of making each worker rediscover it.
-    Before creating a GX/UI worker prompt, run a tiny supervisor-side path
-    preflight against the actual worker base and nested module cwd for every
-    referenced target, source, and test file. Use `test -f` or `rg --files`
-    evidence from the target module root. Prompt tables must include only
-    verified existing source files plus files explicitly labeled as desired-new
-    targets. Remove stale paths instead of leaving them as hints; one
-    nonexistent path can turn a mechanical Mini implementation slice into an
-    avoidable source-map investigation turn.
-7b. For GX/UI worker lanes, do not count the lane as active implementation and
-    do not allow product edits until the worker proves the exact owning module
-    source tree is populated. The first hard gate must include `pwd`,
-    `git rev-parse --show-toplevel`, `git status --short`, and
-    `test -f <scoped target file>` from the target module root, such as
-    `test -f pkg/ui/ai_upload_facade.go` for the AI-upload facade blocker. If
-    the checkout is only an empty submodule/gitlink, if `--module bus-ui` does
-    not expose the expected `pkg/ui` tree, or if hydration requires GitHub SSH
-    access the worker does not have, stop the implementation lane and
-    repair/route worker materialization or local-reference hydration first.
-    Do not spend repeated nudges on code patches inside wrong nested checkouts
-    or unproven module roots.
-8. For GX/UI API refactors, split mixed adopter cleanup by semantic surface and
-   prefer one-surface or one-file verification rhythms over broad mechanical
-   loops. Action/resource cleanup, WASM browser cleanup, terminal generic
-   imports, and terminal stream/container request conversion should normally be
-   separate worker slices with narrow commands and tests, so failures identify
-   the component, facade, or adopter surface that broke.
-9. In GX/UI architecture, `Action`, `Resource`, and `Effect` are shared public
-   boundaries. For unpublished/internal-only GX/UI APIs, backward
-   compatibility is not a goal by itself: do not keep `pkg/uikit`, `*Checked`
-   compatibility wrappers, old string-first aliases, or local wrapper layers
-   merely to preserve old call sites. Move or rewrite behavior into the
-   correct public package or a new non-compatibility internal package owned by
-   the node-first architecture.
-9a. GX/UI facade parity must preserve behavior while matching the target public
-    architecture, not blindly copying legacy `pkg/uikit` API shapes. Render
-    and composition APIs should be node-first on the primary public facade;
-    data and control-plane APIs should expose typed DTO/helper boundaries; raw
-    HTML, string, or unsafe boundaries should exist only where intentionally
-    part of the new design, not for unpublished backward compatibility. For a
-    legacy renderer that only has HTML/string output, move or rewrite the
-    implementation into the correct public or internal package first; then add
-    a node-first public facade such as `RenderX` returning the new public node
-    type, and an explicit boundary such as `RenderXHTML` only when callers
-    intentionally need string output. Tests should prove the architecture
-    shape and output behavior where it matters. Core facade review gates must
-    reject green-test patches that merely wrap or alias `pkg/uikit` as the new
-    implementation layer.
-9b. For GX/UI core migrations that remove `pkg/uikit` as a backing
-    implementation, do not dispatch a broad "move the whole facade" worker
-    without a source-map table. The planning artifact must name the old
-    `pkg/uikit` file/symbol group, the target owning package/file, the exported
-    API that must remain, the behavior or test invariant, and the first focused
-    test. Implement in this order: add or move real implementation into the new
-    owner package first; add or preserve focused owner tests; then replace
-    facade aliases or wrappers group-by-group. Do not delete or shrink the
-    public facade file until the new owner implementation compiles and the
-    public API compatibility is proven. For `assistantui`, split the
-    uikit-removal blocker into micro-slices if a worker stalls or drifts:
-    DTO/model types, event/status/history helpers, AI panel render and
-    client-script behavior, and the js render-props adapter. Each micro-slice
-    must end with `go test ./pkg/assistantui` or the exact first compile error,
-    plus a scoped no-production-`pkg/uikit` audit for the touched assistantui
-    files. A `PLAN.md`-only diff, deleted facade file, or package-comment-only
-    facade is negative evidence; park that worker path quickly and relaunch
-    with a smaller source-map slice. After each accepted micro-slice or full
-    assistantui slice, rerun the hydrated deletion/build-exclusion probe to
-    prove the matrix advances beyond `assistantui_ai_facade.go`.
-10. In GX/UI adopter audits, production direct `pkg/uikit` imports and
-    production `uikit.` references are blockers until classified or removed.
-    Test harness `uikit`/`uikittest` usage and accepted asset URL strings such
-    as `assets/uikit.css` must be classified separately, not blindly removed.
-    Do not accept a local wrapper layer whose only purpose is hiding `uikit`.
-10a. For GX/UI adopter implementation, do not mechanically replace
-    `uikit.X(...)` with `ui.XChecked(...)` without reading the public helper
-    signature and tests. Public `Checked` helpers are explicit
-    string-boundary APIs with validation contracts, not drop-in replacements
-    for old convenience helpers. Before broad patching, worker prompts should
-    include a checked-boundary contract review step: list each old string
-    helper, the chosen public node-first or checked boundary, required
-    props/IDs/actions, and exact test invariant. For checked navigation,
-    panel, and form helpers, preserve behavior by supplying stable IDs,
-    action tokens, `ControlID`, `ControlName`, and matching rendered child
-    `id`/`name` fields where required. If the product module already has an
-    internal package named `ui`, deliberately alias the imported
-    `bus-ui/pkg/ui` package, such as `busui`, to avoid import-name churn. If
-    tests fail only on byte-fragile markup after the public checked contract
-    is correct, update assertions narrowly around stable visible behavior,
-    routes, and semantics rather than weakening the behavior check.
-11. If a GX/UI adopter lane discovers a missing public facade needed to preserve
-    accepted behavior, stop or return a no-change diagnosis and create a
-    narrow core facade parity lane. Do not invent local wrappers, direct
-    internal imports, or adopter-specific aliases to bypass the missing public
-    boundary.
-12. When a remaining GX/UI item is broad enough to hide facade parity or
-    semantic-contract unknowns, pause before implementation workers and create
-    a short planning or probe artifact in the task thread or goal document.
-    The artifact should name exact files in scope, map old symbols or APIs to
-    public facades, list behavior invariants, identify missing public facade
-    gaps, split implementation slices, classify critical-path app-readiness
-    work versus post-core cleanup/docs/tests, and state acceptance checks for
-    each slice.
-13. Before resuming a GX/UI adopter lane after a core facade parity patch, run
-    or require a bounded facade and behavior parity probe for the exact files
-    in that adopter slice. The probe prompt and task DoD must require an
-    explicit table schema. Each old symbol or call-site must be classified as
-    one of: public `ui`, public `terminalui`, explicit adopter adapter,
-    test-only accepted, accepted asset/string, or missing public core facade.
-    For every scoped test or behavior-sensitive call site, the table must also
-    name the old behavior under `pkg/uikit` or existing adopter tests, the
-    public facade symbol/type expected to preserve it, whether parity is
-    already proven by a core test, whether the adopter may update only package
-    types/imports or whether changed expectations mean a missing core parity
-    lane, and the exact invariant to preserve. Risky invariants include
-    request path, method, resource kind, result kind, callback invocation,
-    `Done()` channel behavior, reconnect attempt behavior, provider/client
-    error semantics, and no double-prefix paths. An inventory-only response,
-    file dump, or generic "no missing facades" statement is not accepted probe
-    evidence. Do not resume implementation until the supervisor has reviewed
-    the classification table and it has no missing public core facade or
-    missing behavior parity entries, or until those entries are split into
-    narrow core facade tasks. If an adopter test expectation fails because the
-    public facade regressed old behavior, pause the adopter and split a narrow
-    core parity lane rather than weakening the test. If the worker probe is
-    incomplete, reopen or nudge the probe for the table, or produce and review
-    the table as a supervisor planning artifact before launching
-    implementation.
-13a. At the start of any broad GX/UI cleanup goal, and before reporting a
-    "final" remaining lane or ETA, run a repository-wide production-surface
-    audit for the target smell, not only the modules already active on the
-    board. For GX/UI, audit production direct `pkg/uikit` imports, production
-    `uikit.` references, `Checked`/`NodeChecked` helpers, raw HTML slot
-    patterns, and docs/examples that teach deprecated APIs across all BusDK
-    modules that apps may use. Turn the audit into an explicit inventory table
-    grouped by module family with files/symbol patterns, production versus
-    test/docs classification, app-readiness criticality, expected public
-    facade, behavior invariants, immediate milestone versus deferred status,
-    and whether a facade-parity probe is required. Tie ETA and backlog language
-    to that inventory. If a surface is out of the immediate milestone, name it
-    as deferred instead of leaving it undiscovered. After each accepted lane,
-    refresh the repo-wide audit before saying cleanup is closed; the DoD should
-    either show no remaining production hits in scope or name the deferred
-    inventory with task refs.
-13b. Keep broad GX/UI module-family probes output-bounded and table-first.
-    The first worker turn must receive exact file scope and the supervisor's
-    known hit list, then produce a compact classification table plus concise
-    missing-facade list. Do not ask these workers to dump large file contents,
-    paste broad `rg` output, or rerun repository-wide discovery when the
-    supervisor already has the scoped inventory. If the surface is too large
-    for one compact answer, require partial tables by category, such as
-    CLI/server, browser/WASM, AI/render, and docs/tests; the accepted artifact
-    is the table, not the search log. If a broad probe completes with
-    `last_agent_message=null`, malformed output, or an oversized transcript,
-    and one corrective nudge still produces no usable table, park that
-    worker/runtime shape immediately and relaunch with a smaller prompt or a
-    different configured template/runtime shape. When a probe table creates
-    core follow-up tasks, rebaseline the inventory at once with those task refs
-    and mark which module-family rows are blocked on each core task, so backlog
-    and velocity reporting count newly split architecture work explicitly.
-13c. Keep GX/UI backlog and dispatch reporting scope-gated against the active
-    milestone. Every unfinished item counted in velocity or backlog should
-    cite a goal-document inventory row, accepted/pending core slice, or task
-    ref that is inside the active app-readiness milestone. When a worker or
-    probe finds a new surface, first classify it against the goal document as
-    active milestone, deferred cleanup, test/docs-only, or out of scope before
-    adding it to the count. Before dispatching a new implementation worker,
-    state which goal-doc row or core slice the work unblocks; if no row or
-    slice exists, update the inventory or explicitly mark the work deferred or
-    out of scope. After each accepted core slice, refresh the goal inventory
-    and recalculate the active backlog so accepted work, deferred cleanup, and
-    still-blocked adopter work are not double-counted.
-13d. Once an active GX/UI adopter row has been probed enough to name
-    implementation-sized surfaces, maintain a small explicit slice queue for
-    that row before dispatching more workers. Each slice should name scoped
-    files, accepted facade dependencies, behavior invariants, DoD checks, and
-    whether the slice is active, deferred, or probe-needed. Velocity and ETA
-    reporting should count those implementation slices, not only broad module
-    family rows, while still summarizing related slices as one supervision lane
-    when useful. After accepting a partial slice, update the goal row by
-    removing completed files and confirming the remaining pre-listed slices
-    instead of treating the remainder as newly discovered work at the next
-    monitor sample. If a sub-slice depends on unclear facade ownership, mark
-    it `probe-needed` with a concrete probe DoD rather than hiding it inside a
-    broad row count.
-13e. GX/UI ETA and "remaining work" reports must distinguish visible active
-    workers, known active implementation slices, and total discovered or
-    enumerated slices since the baseline. Do not use worker count or broad
-    module-family row count as the ETA denominator once probes reveal multiple
-    implementation-sized surfaces inside a row. For GX/UI or any broad cleanup
-    goal, the initial planning artifact must show the exact canonical module
-    set from the goal document, the exact audit commands, and a row for every
-    matching production surface before dispatching implementation workers or
-    reporting ETA. A repo-wide audit is not satisfied by checking only active
-    workers, dirty modules, or the first-wave worker queue; it must cover the
-    full goal-doc module set. If the supervisor deliberately starts a smaller
-    tactical wave, status must label it as "first-wave execution queue only,"
-    not "unfinished work" or "final backlog." When the operator explicitly
-    requests the broad audit first, include a proof line in the next report:
-    "Full goal-scope audit completed over modules X; excluded Y as
-    test/docs/deferred; current implementation-slice count Z." If that proof
-    is missing, do not claim an ETA. Require facade-parity probes before
-    adopter implementation estimates when scoped files still depend on
-    `pkg/uikit` for behavior-rich helpers. Treat newly revealed sub-slices
-    inside a known row as estimation debt and an instruction-following failure
-    when a broad audit was requested, not random surprise; update the row's
-    sub-slice queue immediately so the next monitor sample does not rediscover
-    it.
-13f. For GX/UI, derive the end-user module set mechanically from Go module
-    dependencies before relying on remembered goal rows. The first/current
-    inventory step must scan `go.mod` files for dependencies on
-    `github.com/busdk/bus-ui` and `github.com/busdk/bus-gx`, compare that
-    dependency-derived set with `docs/docs/goals/gx-ui.md`, and classify every
-    module in either set as active, accepted, deferred/test-docs-only, or out
-    of scope. For each dependency user, run or delegate two independent gates:
-    `go test ./...` for public facade/API compatibility, and a production
-    static audit for forbidden old-surface imports/usages such as direct
-    `github.com/busdk/bus-ui/pkg/uikit` in non-test app code. Tests alone are
-    not enough while compatibility shims still compile. Use the
-    dependency-derived module set as the denominator for "all end users
-    counted," then use the implementation-slice queue as the denominator for
-    ETA. When core `bus-ui` or `bus-gx` work is believed complete, prove it by
-    testing every dependency user and separately proving the old-surface
-    production audit is clean or has named active/deferred slices.
-13g. Use a throwaway `pkg/uikit` deletion or build-exclusion compile-break
-    probe as the authoritative sequencing gate for GX/UI compiler blockers,
-    not as the whole scope or ETA denominator. The full repo/module static
-    inventory defines remaining scope: dependency-derived module set,
-    production direct `pkg/uikit` imports, production `uikit.` calls, owner
-    `pkg/ui`/`pkg/assistantui`/`pkg/terminalui` facades still backed by
-    `uikit`, and separate tests/docs/examples rows.
-    The probe must run in a worker-owned branch/worktree and must not be
-    promoted until all replacement tasks are accepted. Remove or build-exclude
-    `bus-ui/pkg/uikit` and `bus-ui/pkg/uikit/uikittest`, then run
-    `go test ./...` in `bus-ui` first and across every dependency user
-    discovered by the `bus-ui`/`bus-gx` go.mod scan. Convert compiler failures
-    into an inventory split by owner: core `bus-ui` public facade
-    implementation still backed by uikit, adopter direct imports, test harness
-    replacement, docs/examples/catalog residue, and truly deferred or
-    out-of-scope items. Do not count "adopters stop importing uikit" as the
-    whole remaining scope; removing `uikit` as a backing implementation layer
-    from `bus-ui` itself is part of the end state unless a specific behavior is
-    moved into a new non-compatibility internal package.
-    Before reporting ETA, update the goal document with concrete source-map
-    rows for every currently visible core and adopter surface, mark parent or
-    planning rows non-counting once split, and classify tests/docs/examples
-    separately from production. For unpublished internal code, do not preserve
-    compatibility layers as a finish strategy; move behavior into the intended
-    public facade or a deliberate non-compatibility internal owner.
-    During the same inventory pass, classify repeated work for automation:
-    deterministic audit/probe runners and alias/import codemods, generated
-    patch skeletons that still require review, or reasoning-heavy/manual rows.
-    Prefer the smallest temporary local tool only when it replaces repeated
-    worker turns or repeated supervisor scans; do not build broad tooling
-    before the inventory proves it will save quota.
-    Before interpreting `go test ./...` output from a deletion/build-exclusion
-    probe, hydrate the owner module's full local `replace ../...` graph in the
-    worker-owned product worktree. For `bus-ui`, prove replacement siblings
-    such as `bus-gx`, `bus-help`, and `bus-update` are present at the
-    BusDK-pinned SHAs before treating compile output as product evidence. For
-    downstream dependency-user modules, first scan that module's `go.mod`
-    `replace ../...` entries and either hydrate those siblings or classify the
-    row explicitly as environment/hydration-only, not GX/UI product work. The
-    accepted deletion-probe inventory must include a short setup-proof header:
-    owner module, local replace modules hydrated, pinned SHAs or explicit
-    environment gaps, then the real post-deletion compiler failures.
-    After each accepted core blocker exposed by this probe, immediately rerun
-    the hydrated deletion/build-exclusion probe far enough to prove the matrix
-    advanced past that blocker. Normal `go test ./...` in `bus-ui` is not the
-    whole DoD for a deletion-probe-derived core slice; update the inventory row
-    with the next compiler failure, or with a "clean through this owner/module"
-    proof if the probe no longer stops there. Apply the same cadence after
-    assistant/core facade fixes before dispatching more adopter work, so the
-    active backlog follows the authoritative compiler matrix rather than stale
-    rows.
-    After every hydrated deletion-probe advance, also run a static production
-    audit in the owner module for remaining `pkg/uikit` imports and `uikit.`
-    calls. For `bus-ui` core work, audit `pkg/ui` non-test Go files and add
-    or refresh table-first goal rows for each visible future facade/file with
-    a concrete source-map or DoD. Report the next compiler blocker separately
-    from the remaining known core backlog; the deletion probe still chooses
-    sequencing, but backlog and ETA must not compress known future core facade
-    work into a single row. Keep adopter lanes parked until the core
-    production owner-module audit is clean or every remaining hit is
-    explicitly scoped, deferred, and counted with a row and definition of done.
-14. After a core facade or behavior parity blocker is accepted, any GX/UI
-    adopter worker carrying an old dirty diff must prove a fresh product
-    root/module base and produce the bounded symbol-plus-behavior table before
-    implementation continues. Timebox that fresh-base gate in the next short
-    supervision window: count only fresh-base proof plus table, output, or
-    reviewable diff as active progress. If the worker cannot move from the old
-    base to the new pinned base promptly, preserve its diff as reference
-    evidence, stop or park it, and launch a clean worker on the accepted BusDK
-    pin unless the attempt exposes a concrete infrastructure or rebase failure
-    that needs its own task.
-15. For GX/UI WASM adopter slices, separate product failures from verifier-host
-    or toolchain proof gaps. Before treating a `GOOS=js GOARCH=wasm` failure as
-    product work, record the exact `go` binary, `go version`,
-    `GOOS=js GOARCH=wasm go env GOROOT GOOS GOARCH GOEXPERIMENT`, and a tiny
-    control such as `GOOS=js GOARCH=wasm go list std` or a minimal package that
-    imports `syscall/js`. If the control fails broadly across standard library
-    packages, route WASM proof to a known-good worker, host, or toolchain, or
-    record a named environment proof exception while keeping product acceptance
-    grounded in native tests, scoped no-legacy-surface audits, worker diff
-    review, and any available WASM-side worker result. If the control succeeds
-    but the module fails, keep it as product work and name the first compile
-    error, file, and symbol. Record the environment used for final WASM proof
-    in the goal or memo.
-16. The only normal exception for direct implementation edits is when there is a
+4. The only normal exception for direct implementation edits is when there is a
    real blocker and the infrastructure needed to run Bus task workers is not
    available, and the direct edit is the narrowest safe change to restore that
    worker infrastructure.
-17. If the worker substrate is partially usable, prefer dispatching an
-   infrastructure worker or reviewer worker over local implementation. Use the
-   supervisor checkout for investigation and evidence gathering, not for
-   absorbing product implementation.
-18. When the supervisor must make an exception, record the reason in the current
-   hourly memo, including why worker delegation was unavailable, what exact
-   infrastructure path was restored, what verification was run, and which tasks
-   should be reopened or dispatched afterward.
-19. Periodically compare recent hourly memos, task statistics, and active-worker
-   evidence against the active goal. If independent parallel capacity is
-   underused, explicitly dispatch/refill unblocked work or record the concrete
-   blocker; report utilization truthfully instead of implying full capacity
-   when the board is idle or thinly staffed.
-20. Treat each periodic memo/task-stat review as an operating-control loop, not
-   as a retrospective note. The review must end with one of these concrete
-   outcomes: updated PLAN/tasks, new or reopened worker dispatch, promoted or
-   rejected worker output, a documented automation improvement, or a specific
-   reason why no safe parallel work can be started. If the review finds
-   underutilization, stale workers, repeated manual steps, or evidence gaps,
-   convert that finding into the next supervisor action before returning to
-   ordinary status reporting.
-21. For every substantial supervisor session and every progress report on an
-   active multi-worker goal, do a compact goal-health review before answering:
-   recent memo evidence, active workers per environment, independent unblocked
-   work topics, accepted/promoted output since the previous review, current
-   bottleneck, and the next dispatch/reopen/promote action. If the review shows
-   idle capacity on H100, dev-hg, local, or other configured environments, fill
-   it with scoped work unless a concrete blocker prevents it.
-22. Measure the supervisor process by accepted work and learning rate, not by
-    activity. Record when actual parallelism is materially below available
-    capacity, when the supervisor absorbed work that should have been delegated,
-    when a worker lane failed because of platform friction, and what guidance,
-    PLAN item, automation task, or worker dispatch was created to prevent the
-    same stall from recurring.
-23. For broad goals, use delegated supervisor agents as the normal scaling
-    unit. The lead supervisor should own global priority, acceptance, pinning,
-    and operator communication, while sub-supervisors own work lines such as
-    remote freshness/proof, parallel lane refill, review/promote triage, or a
-    specific module family. A sub-supervisor should not merely write a one-shot
-    report: it should start safe workers, monitor them, refill the lane when a
-    worker exits, and leave accept/reopen guidance with evidence.
-24. Lead supervisors and delegated sub-supervisors must read and apply
-    `skills/bus-product-delivery-supervisor/SKILL.md` and
-    `skills/bus-dev-task-worker-ops/SKILL.md` before running broad supervisor
-    loops, dispatching workers, or reporting progress on multi-worker goals.
-    Sub-supervisor prompts must include these skill paths so the scaling loop
-    is not lost when work is delegated to another agent.
-25. After accepting and pinning changes that affect worker launch, Events sync,
-    remote credentials, worker images, model/runtime configuration, or Bus
-    developer tooling, update configured remote environments before using them
-    as proof. Verify the remote checkout commit, affected submodule SHAs, and
-    rebuilt/installed binaries or images. If a remote still runs stale software,
-    treat that as an operating issue to fix or delegate, not as product
-    evidence.
-26. Permission prompts are exceptional. Supervisors must first use already
-    approved commands, remote workers, and configured Bus services. Do not ask
-    the operator for permission for routine Markdown edits, worker monitoring,
-    SSH status checks, remote dispatch, or deterministic verification. If the
-    local sandbox blocks Git metadata writes or another required operation,
-    continue independent remote/worktree work where possible and request
-    permission only when that exact operation is required to finish an accepted
-    change.
-27. Do not keep broad, vague checklist items as the active operating plan.
-    Before reporting a goal checklist or dispatching workers, split fuzzy items
-    into module-owned `PLAN.md` entries with concrete DoD: the command or user
-    workflow that must work, the service/runtime owner, the required evidence,
-    the verification command, and the condition that lets the checkbox be
-    closed. Remove or explicitly defer items that are not required for the
-    current minimum goal.
-    - Do not label general remote-worker features as H100-only unless H100 has
-      a genuinely different implementation path. Use H100/dev-hg as test
-      environments for the same product feature.
-    - Treat configuration/proof work as verification for a feature, not as a
-      vague implementation item. If the implementation is really systemd
-      service install, remote freshness, credential resolution, or App Server
-      model switching, name that feature directly.
-    - Split statistics and operator-path work by the exact facts collected or
-      command made usable, such as attempt identity, requested/observed model,
-      failure reason, recovery/intervention attribution, install command,
-      refresh command, status command, or evidence command.
-28. When the operator corrects the architecture or priority, update durable
-    guidance or the owning `PLAN.md` in the same work session. Do not rely on
-    chat memory for repeated lessons such as single-binary/systemd deployment
-    shape, per-remote credential sources instead of process-global tokens,
-    App Server as the normal worker backend, or H100/dev-hg capacity usage.
-    For local Bus worker services, the supported Codex path is the Codex App
-    Server protocol, normally launched as a host process so macOS supervisor
-    hosts do not require Docker or nested virtualization. Do not reintroduce
-    `codex exec`, `direct-exec`, `direct` runner kind, or `codex-direct`
-    provider as the operator-facing worker path; add new providers such as
-    `bus-agent-runtime` behind the worker provider/App Server-style contract.
-    When a normal implementation worker stalls, simplify the task before
-    switching templates: split planning from implementation, narrow the files,
-    and make the implementation DoD mechanical. For hard or unclear
-    architecture/source-map work, use the environment's configured
-    high-capability planning template when needed, then delegate the simplified
-    implementation to the normal supported implementation template first.
-    Escalate implementation to a stronger configured template only after the
-    simplified implementation still fails because of reasoning or behavior
-    complexity, not because of checkout materialization, unsupported template
-    mapping, bad prompt shape, missing hard gates, or quota state.
-29. Treat important operator corrections, focus reminders, naming lessons, and
-    repeated “don’t do that” guidance as durable memory work, not just chat.
-    When the lesson is expected to matter again, write it into the most
-    specific relevant `AGENTS.md` in the same session, and update the current
-    hourly memo to record why it mattered. Use `PLAN.md` alongside `AGENTS.md`
-    when the lesson also changes execution order or acceptance criteria.
-    Stage and commit `PLAN.md` changes directly on `develop` in the owning
-    repository before moving on; do not leave planning edits as uncommitted
-    supervisor checkout drift.
-30. For the H100/remote-worker goal, prioritize the minimum real-work loop over
-    adjacent product polish: one configured model can be enough, private image
-    delivery can be deferred when source-checkout/App Server works, and stats
-    can be improved while testing instead of blocking the first accepted loop.
-    Keep the checklist focused on work that directly makes remote workers
-    productive and repeatable.
-31. For unfinished BusDK goals, do not report "not proven" or "not done" as a
-    blocker. Before stopping or asking the operator, decompose the remaining
-    work into concrete module-owned items with DoD: the command or workflow
-    that must succeed, the owner module, required evidence, expected files or
-    services touched, and the verification command. For each item, ask whether
-    it is truly in the current goal scope or should be deferred. Use the live
-    memos to estimate how long the current approach has failed; if the answer
-    is hours of unsuccessful work, ask the operator for scope refinement or
-    supervisor help with the precise decision needed. When rereading memos,
-    check whether the work repeated mistakes the operator had already
-    corrected, and immediately improve `AGENTS.md`, `PLAN.md`, or the relevant
-    runbook when the instruction was too easy to miss.
-32. At BusDK session closeout, review the current hourly memo against these
-    operating rules and the operator corrections recorded during the session.
-    If the work drifted from the rules, say so in the memo and improve the
-    smallest relevant `AGENTS.md`, `PLAN.md`, or skill runbook before
-    finishing the session.
-33. Use precise acceptance vocabulary. A worker that is `created`, `claimed`,
-    `running`, `done`, or even promoted inside an isolated/remote checkout is
-    not accepted project progress until supervisor-side review verifies the
-    diff, required checks pass, the owning branch is promoted or repaired, and
-    the superproject pin is updated when applicable. Reports and memos must
-    distinguish: task created, worker claimed, worker produced a diff, worker
-    branch promoted, supervisor accepted, root pinned, pushed, and released.
-34. When a worker result is partly useful but fails review, prefer the normal
-    iterative production loop: reopen with exact findings, hand the repair to a
-    stronger model or reviewer lane when useful, or make the smallest
-    supervisor acceptance repair only when delegation is blocked. Do not
-    describe a first-attempt failure as H100/model failure when the overall
-    attempt-review-repair-promote loop is still producing accepted work.
-35. Treat pause/release mode as a hard drain-and-collect workflow. When the
-    operator pauses new development or asks for a release, stop scheduling new
-    work; inspect local, dev-hg, H100, and other configured environments for
-    queued/claimed/running tasks; cancel stale queued or false-active streams
-    with evidence; collect useful remote patches/logs before stopping
-    services; verify no environment has commits ahead of its upstream that need
-    retrieval; verify the root checkout is clean; then run the requested
-    release command.
-36. Treat worktree cleanup as review-first. Prefer first-class Bus prune
-    commands and dry-run reports over manual deletion. Do not run destructive
-    cleanup while task refs are active or while Git locks may still represent
-    live work; use `--apply`-style cleanup only after reviewing the dry-run
-    candidates, active-task refusal evidence, and submodule worktree registry
-    behavior.
-37. After solving a BusDK infrastructure issue, record the reusable diagnostic
-    path in the current memo and the most specific `AGENTS.md`. The note must
-    include the original symptom, the wrong or stale assumption, the decisive
-    command/log/observation, the invariant that fixed it, the verification
-    command or proof, and the first check to run next time. This is required
-    for worker launch, App Server, Events relay, service startup, install or
-    version skew, route pairing, credential, and local safety-filter failures.
-38. When a worker or App Server path fails with a vague execution error such as
-    "no such file or directory", do not guess at task/worker architecture
-    first. Check the exact service process argv, selected binary path, worker
-    workdir, App Server allowed directories, sandbox/network policy,
-    environment id, and the installed-vs-source commit. Add narrow diagnostics
-    that expose paths, ids, booleans, and command names without secrets; then
-    reproduce with a fresh worker message before accepting the fix.
-39. When a locally built fix does not affect a service or remote proof, assume
-    release skew until disproved. Verify the executable that `bus services up`
-    launches, the superproject commit, affected submodule SHA, install target,
-    and remote checkout before changing product logic. If `make clean build
-    install` or submodule refresh is the intended release step, run it before
-    judging runtime behavior.
-39a. When a Bus tool, service, or worker command behaves inconsistently, check
-     freshness in order before adding product workarounds: verify the installed
-     CLI/binary was rebuilt from the current owning module source, verify the
-     running service process was restarted and is using that installed binary
-     and current source config, then inspect or fix the owning Bus module
-     source. Treat `dev` or stale version output as a release-skew symptom.
-40. When Events relay behavior surprises task or worker flows, inspect Event
-    metadata first: origin environment, destination environment,
-    sync-target ids, recipient ids, task ref, worker id, correlation id, route
-    owner, and durable cursor namespace. Product relay eligibility must not
-    depend on event names. Add hermetic fake-transport tests for the Event
-    metadata and cursor behavior that caused the surprise, and use live SSH
-    proof only as an end-to-end acceptance layer.
-41. After the service-owned Events relay MVP is accepted, BusDK product work
-    must use Bus tasks and persistent Bus worker identities as the normal and
-    exclusive execution infrastructure. Supervisors define task refs, pick or
-    create worker identities, send guidance with `bus workers message`, monitor
-    Events/status/log evidence, review diffs, reopen incomplete work, and
-    promote accepted branches. Supervisors do not directly implement product
-    changes or run direct compile/test/install loops as a substitute for worker
-    work.
-42. Use configured Bus worker templates for all normal BusDK worker identities
-    and dispatches. The active environment's template catalog, such as
-    `.bus/worker/templates.json`, is the only source of truth for exact
-    provider model names, profile names, reasoning effort, verbosity, sandbox,
-    runner provider, and identity repo settings. Supervisor goals, PLAN items,
-    worker briefs, scripts, and live `bus workers create` commands must select
-    a template id discovered from the target environment and describe the
-    capability needed; they must not hard-code provider model IDs, assume
-    portable template ids across environments, or pass individual model
-    settings. Do not compose ad hoc model IDs, template IDs, or command flags to
-    encode effort or runtime policy, such as adding `-high` to a model name. If
-    a suitable template is missing, add or request the environment template
-    first, then dispatch through that template and record the reason in the
-    task stream or memo. Reuse
-    `docs/docs/research/worker-template-model-selection.md` when choosing
-    Codex/Claude profiles or splitting a deep-research workflow across
-    extraction, synthesis, implementation, and review phases.
-42a. Treat model capability, provider quota, and cost as separate routing
-     inputs. Read the dated performance report and Worker-ops skill before
-     dispatch, then choose the least expensive available configured template
-     whose observed evidence fits the bounded role. Reserve high-cost or
-     high-reasoning templates for ambiguous architecture, difficult
-     implementation that exceeded a simpler suitable template, or
-     acceptance-critical adversarial review. When the operator declares one
-     provider pool low, move suitable new work to another provider and record
-     that temporary pool policy in Thread 111 and the current memo; do not
-     interrupt nearly finished work merely to rebalance quota. When OpenAI
-     capacity is the constrained pool, make Claude the first provider for
-     suitable new lanes, subject to the Sonnet/Fable/Haiku/Opus role and safety
-     boundaries in `skills/bus-dev-task-worker-ops/SKILL.md`.
-43. Use the default local dispatch surfaces first. The normal local Services
-    stack owns API URLs and generated local Events credentials, so local Bus
-    task and worker commands should not need explicit `--api-url`,
-    `--token-file`, `BUS_API_URL`, or `BUS_API_TOKEN` arguments. Start or
-    refresh the stack with `bus services up`, verify it with `bus services ps`
-    and `bus workers list`, and use `bus configure` for `.env` changes. The
-    working directory for every `bus ...` command is the BusDK checkout root;
-    running it from a supervisor or module root can select the wrong `.env`,
-    token directory, and Services runtime and must not be used as evidence of
-    an infrastructure failure. The local environment should be the default
-    environment; pass `--environment`
-    only when targeting another environment or when a temporary diagnostic
-    needs explicit disambiguation. Only pass explicit API URLs or token files
-    for a documented non-default remote/proof path, and record why the default
-    dispatcher settings were insufficient. Live worker prompts must use the
-    supported `bus workers message ... --text <prompt>` shape, not guessed
-    positional prompt text.
-44. The default local Services stack must not require SSH access to
-    `dev.hg.fi` or any other remote worker host. `bus services up` must start
-    the local control-plane services needed for task submission, review, and
-    local worker orchestration without Events relay credentials. Keep
-    `events-relay` and remote sync/proof services optional, for example behind
-    `--all` or explicit profile selection, so missing remote host keys or SSH
-    credentials cannot block local development.
-45. Temporary supervisor, worker, proof, and scratch worktrees must live under
-    an ignored scratch path, normally `tmp/worktrees/` in this superproject or
-    the Services-owned `.bus/services/workers/...` runtime paths. Do not create
-    new temporary worktrees, symlink farms, or proof checkouts under
-    `projects/busdk/worktrees`; that path is visible to Git status and should
-    stay empty unless a future tracked product feature explicitly owns it.
-46. `bus-integration-{name}` modules provide their services through the Bus
-    Events API only. They may own business logic, durable/runtime state,
-    background processing, and integration-side event handling, but they must
-    not expose HTTP APIs directly. HTTP/controller surfaces belong in the
-    matching `bus-api-provider-{name}` module, which validates API requests,
-    publishes canonical Events, and serves projections without taking over
-    integration runtime ownership.
+5. For any worker dispatch, activation-evidence check, template or model
+   routing, environment freshness verification, pause/drain, worktree cleanup,
+   or worker-failure diagnostic decision, read
+   `runbooks/worker-delegation.md` before acting; it continues these rules as
+   items 4-7 and 17-46.
+6. Before any GX/UI cleanup, adopter migration, facade-parity, assistantui,
+   terminalui, or `pkg/uikit`-removal work, read
+   `runbooks/gx-ui-delegation.md` (items 7a-15) together with
+   `skills/bus-ui-gx-roadmap/SKILL.md` from the skills index.
 
 ## Recipient-Scoped Worker Focus
 
@@ -985,100 +188,18 @@ this root file must preserve the supervisor/worker boundary itself.
 
 ## Parallel Supervisor Operating Standard
 
-This section is core operating memory for broad BusDK goals. Do not compact it
-out of root `AGENTS.md` or move it only to a skill. It exists because repeated
-memo evidence showed the supervisor could reach high throughput for one hour
-and then fall back to one-worker-at-a-time execution.
+This standard is core operating memory for broad BusDK goals: broad goals run
+from a ready queue of scoped, unblocked, module-owned tasks; review is
+asynchronous work and must not stop dispatch; claimed or running workers count
+as capacity only when they emit meaningful task-stream progress, reviewable
+diffs, or exact failure evidence; and hourly memos for broad goals record
+numeric utilization and name the concrete bottleneck whenever safe capacity
+sits idle.
 
-### Service Resource Isolation Standard
-
-Bus Services must prevent any one service, worker, tenant, task, container, or
-descendant process tree from exhausting host resources or denying service to
-the rest of the control plane. Enforce this deterministically in service and
-worker infrastructure rather than through agent prompts.
-
-- Put every service and worker execution tree in an owned resource domain;
-  Docker or other delegated runtimes must not escape that ownership boundary.
-- Protect control-plane capacity and apply per-domain memory high/max, swap,
-  CPU, I/O, process-count, and concurrency limits. Allow bounded idle-capacity
-  bursts without allowing aggregate host exhaustion.
-- Admit heavyweight work through a host/environment-wide lease and resource
-  preflight. Queue competing heavyweight jobs fairly instead of starting them
-  concurrently; interactive and control-plane work outrank background builds.
-- Apply backpressure at request and task boundaries, with per-identity and
-  per-service budgets so one hot resource cannot fan out into dependent-service
-  overload.
-- Treat OOM, swap exhaustion, admission failure, or limit breach as terminal
-  evidence for that attempt. Do not retry until the resource plan changes.
-- Record the owner, resource class, cgroup/container identity, configured
-  limits, peak CPU/RSS/swap/I/O/process count, throttle events, OOM/exit reason,
-  and cleanup result in lifecycle evidence.
-- Provide separate quiesce, drain, and emergency-stop semantics. Normal service
-  shutdown must stop new dispatch, allow only its bounded grace period, and
-  then terminate the complete Bus-owned resource domain: every service process,
-  worker, task process, descendant, and container launched through that service,
-  including detached processes re-parented to PID 1. A successful shutdown must
-  verify that the domain is empty; report surviving owned work as a shutdown
-  failure. Only an explicit drain operation may let existing owned work continue.
-
-Resource scheduling must use explicit policy and measured state, not LLM
-judgment. Resource isolation is an availability and correctness requirement,
-not an optional performance optimization.
-
-1. Broad goals must run from a ready queue, not from a single next task. At any
-   time the supervisor should maintain a short list of scoped, unblocked,
-   module-owned tasks that can be started as soon as capacity exists.
-2. Review is asynchronous work, not a reason to stop dispatch. While accepted
-   or terminal worker output is being reviewed, the supervisor must keep
-   independent lanes filled unless the checkout is dirty in a way that would
-   make dispatch unsafe.
-3. Each hour of a broad active goal must record numeric utilization in the
-   memo: tasks accepted/promoted, task refs actively worked, peak active worker
-   count, environments used, and the reason any available safe environment had
-   no workers.
-4. Use recent best throughput as a floor to challenge the next hour. If an
-   earlier hour achieved multiple accepted items or several useful parallel
-   lanes, later hours should either keep comparable independent work moving or
-   record the concrete bottleneck that prevents it.
-5. Do not let one platform hiccup idle the whole board. A failed token, stale
-   checkout, sandbox, Docker, SSH, Events, or model issue should become a
-   scoped infrastructure task while unrelated local, dev-hg, H100, or other
-   configured lanes continue when safe.
-6. Do not confuse "active worker" with throughput. Claimed/running workers are
-   only useful capacity when they emit meaningful task-stream progress, produce
-   reviewable diffs, or create actionable failure evidence. False-active lanes
-   must be routed quickly while other lanes keep moving.
-   A queued task, SSH-runner request, container-status event, or stale remote
-   process alone is not an active lane. Count it separately as queued,
-   request-only, launched-only, stale, or false-active until task Events show
-   claim, App Server/model progress, terminal evidence, a commit, or an exact
-   failure.
-7. When H100 is paused for cost, immediately compensate with local and dev-hg
-   worker lanes for work that does not require the GPU. When H100 is approved
-   for use, keep it fed with real scoped work and scheduler/backlog tasks
-   rather than sequential proof-only attempts.
-8. Use delegated supervisor agents as soon as the lead supervisor has more than
-   one independent work line to track. At minimum, split review/promote triage,
-   remote freshness/readiness, and implementation-lane refill when all are
-   active.
-9. If an hour ends with zero or one worker despite multiple unblocked topics,
-   the memo must call that out as underutilization and must include the next
-   dispatch, plan split, or infrastructure fix that will prevent repeating it.
-10. Do not report broad-goal status without the numbers. Progress reports must
-    include completed task count, active task count, queued/refill candidates,
-    environments in use, and blockers with owner tasks. If the numbers are weak,
-    say so plainly and change the operating plan before the next report.
-11. Compare each hour to the best recent proven throughput, not to a low-effort
-    baseline. Memo evidence showed this project can sustain many parallel
-    workers when scopes are independent and review is asynchronous; later
-    one-lane operation must be justified by concrete constraints such as paused
-    H100 cost, dirty checkout, blocked worker substrate, or lack of scoped work.
-12. Keep remote proof and product work separate in reports. Testing on H100,
-    dev-hg, or another environment is verification of the same product flow
-    unless the environment truly needs different implementation. Avoid vague
-    "prove H100" checklist items; name the product feature being verified, such
-    as scheduler claiming, service readiness, credential resolution, relay
-    sync, App Server model switching, or terminal evidence collection.
+Before running a broad multi-worker goal, sizing parallel lanes, judging
+utilization or throughput, or designing service and worker resource limits,
+read `runbooks/parallel-supervision.md`; it carries the full numbered standard
+and the Service Resource Isolation Standard, both of which remain binding.
 
 ## Repo-Local Skills Index
 
@@ -1212,27 +333,10 @@ candidate-pass scenario. Keep unfinished source on immutable feature refs.
 Do not merge, pin, install as accepted, or call the feature complete until that
 E2E passes against the exact composition.
 
-- Choose the smallest owner module and independently reviewable change. Add no
-  provider, protocol, framework, or cleanup without a failing acceptance check
-  that requires it.
-- Prepare implementation, E2E evidence, and review in parallel when their
-  write scopes do not overlap. Count a lane active only from verified runtime
-  and turn evidence plus a task-relevant diff, result, or diagnosis.
-- After one failed execution and one materially changed retry, stop repeating
-  the mechanism. Preserve the handoff and change runtime, model, environment,
-  materialization, or task shape.
-- Resolve findings with one additive repair and exact delta review, then return
-  immediately to the frozen composed E2E instead of reopening architecture.
-- When a reviewed composition passes E2E, integration, install, use, and live
-  acceptance are the next default actions. Report promoted-but-unused work as
-  finishable debt; do not start adjacent source work ahead of it.
-- Preflight repository identity, full SHA, writable clean Git metadata, prompt
-  boundaries, credential freshness, runtime truth, and durable result paths.
-  Keep heavy work admitted and resource-bounded while independent lightweight
-  lanes continue.
-- Use Thread 111 only for cross-lane dependencies and accepted baselines. Keep
-  detailed evidence in the owning feature Thread and use Thread 146 for future
-  delivery-process audits.
+For the detailed gate bullets on lane admission, mechanism-change retries,
+additive repair, promoted-but-unused debt, preflight scope, and Thread 111
+usage, read `runbooks/delivery-discipline.md`.
+
 - Before each new or resumed BusDK feature turn, read the owning module
   portfolio and latest shared baseline from the Bus Thread board. From the
   BusDK root, use `bus thread list 231 --depth 2` and
@@ -1281,23 +385,16 @@ a Claude-backed provider design (Agent SDK vs persistent stream-json stdio vs
 `ModelProvider`, Codex concept mapping, auth policy), read the research note
 `docs/docs/research/claude-worker-backend.md` before re-researching.
 
-Engine-integration architecture (operator, 2026-07-06): each AI engine gets
-its own `bus-integration-<engine>` module that OWNS that engine's main App
-Server / agent process instance and exposes it to the rest of Bus through the
-Bus Events API under a matching `bus.<engine>.*` event namespace
-(`bus-integration-codex` -> `bus.codex.*`, `bus-integration-claude` ->
-`bus.claude.*`). Naming must stay aligned module <-> namespace. No one-shot
-engine turns anywhere in the codebase: sessions are persistent and steerable.
-Other modules (workers, chat, LLM API providers) integrate with engines only
-through those events, never by spawning or dialing engine processes directly.
-The current `bus-integration-codex` `bus.llm.*` one-shot turn path and the
-direct per-worker `codex app-server` spawning in `bus-integration-worker`
-predate this rule and are refactoring targets, not precedent.
+Before engine-integration work — `bus-integration-<engine>` module boundaries,
+engine process ownership, engine event namespaces, or one-shot turn removal —
+read the accepted engine-integration architecture decision in
+`runbooks/delivery-discipline.md`.
 
 ## Supervisor Host And Remote Environment
 
 When operating BusDK from the parent supervisor host, read the parent
-`AGENTS.md` and `runbooks/supervisor-host-troubleshooting.md`. Root BusDK
+`AGENTS.md` and the parent checkout's
+`runbooks/supervisor-host-troubleshooting.md`. Root BusDK
 policy: environment names, remote ids, and host aliases are deployment data,
 not product constants; do not hardcode SSH usernames, ports, gateway details,
 keys, host-key policy, or environment-specific names into product code, tests,
@@ -1315,8 +412,9 @@ separate from implementation/docs/test changes.
 
 For shell scripts, Docker inspection, readiness probes, search/format commands,
 historical delivery claims, progress reports, or disposable worktrees, use the
-Repo-Local Skills Index and protected Supervisor Worker Delegation rules above.
-Keep commands simple, portable, path-correct, bounded, and redacted.
+Repo-Local Skills Index and the Supervisor Worker Delegation rules above
+together with `runbooks/worker-delegation.md`. Keep commands simple, portable,
+path-correct, bounded, and redacted.
 
 ## Simplify Before Building
 
