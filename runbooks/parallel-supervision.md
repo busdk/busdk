@@ -8,7 +8,7 @@ Service Resource Isolation Standard, expanding the binding core in the root
 supervisor could reach high throughput for one hour and then fall back to
 one-worker-at-a-time execution.
 
-### Service Resource Isolation Standard
+## Service Resource Isolation Standard
 
 Bus Services must prevent any one service, worker, tenant, task, container, or
 descendant process tree from exhausting host resources or denying service to
@@ -42,6 +42,8 @@ worker infrastructure rather than through agent prompts.
 Resource scheduling must use explicit policy and measured state, not LLM
 judgment. Resource isolation is an availability and correctness requirement,
 not an optional performance optimization.
+
+## Parallel Supervisor Operating Standard
 
 1. Broad goals must run from a ready queue, not from a single next task. At any
    time the supervisor should maintain a short list of scoped, unblocked,

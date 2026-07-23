@@ -20,8 +20,9 @@ GX/UI-specific clauses that also bind GX/UI lanes.
     the BusDK superproject; if the worker is already in the module root, use
     paths such as `internal/run/run.go`, not
     `bus-chat/internal/run/run.go`. For goal-doc lookup from a module-root
-    worker, provide the absolute `projects/busdk/docs/docs/goals/gx-ui.md`
-    path or a preverified relative path such as
+    worker, provide the goal-doc path resolved from the supervisor checkout
+    root (`projects/busdk/docs/docs/goals/gx-ui.md`, as a full filesystem
+    path) or a preverified relative path such as
     `../docs/docs/goals/gx-ui.md`, instead of making each worker rediscover it.
     Before creating a GX/UI worker prompt, run a tiny supervisor-side path
     preflight against the actual worker base and nested module cwd for every
