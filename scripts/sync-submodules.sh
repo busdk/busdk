@@ -937,6 +937,28 @@ sync_pull() {
   return 1
 }
 
+sync_push() {
+  local dir="$1"
+  local upstream="$2"
+  local label="${3:-push}"
+
+  if run_git_step "$dir" "$label" push; then
+    return 0
+  fi
+
+  [ "$do_pull" -eq 1 ] || return 1
+  [ -n "$upstream" ] || return 1
+  if is_dirty "$dir"; then
+    return 1
+  fi
+
+  if [ "$verbose" -eq 1 ]; then
+    echo "retrying push for $dir after fetching $upstream"
+  fi
+  sync_pull "$dir" "$upstream" || return 1
+  run_git_step "$dir" "push retry" push
+}
+
 targets_include_superproject() {
   local dir
 
@@ -1050,7 +1072,7 @@ sync_one() {
     fi
   fi
   if [ "$do_push" -eq 1 ]; then
-    if ! run_git_step "$dir" push push; then
+    if ! sync_push "$dir" "$upstream"; then
       return 1
     fi
   fi
@@ -1175,7 +1197,7 @@ if [ "$syncs_superproject" -eq 1 ] &&
     echo "warning: failed to commit final promoted submodule pins" >&2
     fail_count=$((fail_count + 1))
     status=1
-  elif ! run_git_step "." "push final promoted submodule pins" push; then
+  elif ! sync_push "." "$(current_upstream ".")" "push final promoted submodule pins"; then
     fail_count=$((fail_count + 1))
     status=1
   fi
