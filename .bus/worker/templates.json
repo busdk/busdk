@@ -382,6 +382,28 @@
       "identity_base_ref": "refs/heads/main"
     },
     {
+      "id": "claude-opus-5",
+      "label": "Claude Opus 5",
+      "summary": "Opus 5: evidence-limited high-effort managed lane pending an audited local record; requires independent review.",
+      "description": "Use for bounded high-depth implementation, review, and analysis trials on the exact model claude-opus-5 at default high effort. Opus 5 is evidence-limited until an audited local record exists; acceptance-relevant output requires independent review, and this lane cannot be the sole acceptance owner.",
+      "default_profile": "claude",
+      "default_model": "claude-opus-5",
+      "reasoning_effort": "high",
+      "runner_kind": "appserver",
+      "runner_provider": "claude-appserver",
+      "sandbox": "workspace-write",
+      "capability_tags": [
+        "go",
+        "shell"
+      ],
+      "eligible_environments": [
+        "local"
+      ],
+      "worker_home_policy": "managed-repo",
+      "identity_repo_ref": "repos://workers/claude-opus-5",
+      "identity_base_ref": "refs/heads/main"
+    },
+    {
       "id": "claude-sonnet-5",
       "label": "Claude Sonnet 5",
       "summary": "Sonnet: provider-diverse fallback for balanced coding, planning, and follow-through.",

@@ -86,6 +86,54 @@ for required in ("bounded implementation and follow-through", "medium-depth code
         raise SystemExit(f"Sonnet must retain {required!r} role wording")
 if "read-only consultation" not in templates["claude-opus-4-8"]["summary"]:
     raise SystemExit("Opus summary must advertise the read-only consultation limit")
+
+claude_expected = {
+    "claude-fable-5": ("claude-fable-5", "high"),
+    "claude-opus-4-8": ("claude-opus-4-8", "high"),
+    "claude-opus-5": ("claude-opus-5", "high"),
+    "claude-sonnet-5": ("claude-sonnet-5", "medium"),
+    "claude-haiku-4-5": ("claude-haiku-4-5", "low"),
+}
+actual_claude = {
+    template_id
+    for template_id, template in templates.items()
+    if template.get("runner_provider") == "claude-appserver"
+}
+if actual_claude != set(claude_expected):
+    raise SystemExit(f"Claude template set mismatch: got {sorted(actual_claude)}, want {sorted(claude_expected)}")
+for template_id, (model, effort) in claude_expected.items():
+    template = templates[template_id]
+    checks = {
+        "default_profile": "claude",
+        "default_model": model,
+        "reasoning_effort": effort,
+        "runner_kind": "appserver",
+        "runner_provider": "claude-appserver",
+        "sandbox": "workspace-write",
+        "worker_home_policy": "managed-repo",
+        "identity_repo_ref": f"repos://workers/{template_id}",
+        "identity_base_ref": "refs/heads/main",
+    }
+    for key, want in checks.items():
+        got = template.get(key)
+        if got != want:
+            raise SystemExit(f"{template_id} {key}: got {got!r}, want {want!r}")
+    if "local" not in template.get("eligible_environments", []):
+        raise SystemExit(f"{template_id} is not eligible for local")
+
+opus5_text = " ".join((
+    templates["claude-opus-5"]["summary"],
+    templates["claude-opus-5"]["description"],
+))
+if templates["claude-opus-5"]["default_model"] != "claude-opus-5":
+    raise SystemExit("Opus 5 must keep the exact model id claude-opus-5 with no alias or rewrite")
+for required in ("evidence-limited", "independent review", "exact model claude-opus-5", "default high effort"):
+    if required not in opus5_text:
+        raise SystemExit(f"Opus 5 must retain {required!r} wording")
+if "read-only consultation" in opus5_text:
+    raise SystemExit("Opus 5 is the first-class managed lane; the read-only consultation limit belongs to claude-opus-4-8 only")
+if "cannot be the sole acceptance owner" not in opus5_text:
+    raise SystemExit("Opus 5 must not be the sole acceptance owner")
 haiku_text = " ".join((
     templates["claude-haiku-4-5"]["summary"],
     templates["claude-haiku-4-5"]["description"],
@@ -236,7 +284,8 @@ for required in (
     "docs/docs/reports/2026-07-15-bus-worker-model-performance.md",
     "audited local record, not a future probability or universal ranking",
     "Terra High: complex implementation",
-    "Historical Mini/GPT-5.5 and Spark-family evidence supports bounded trials; exact current Mini-low/GPT-5.5-medium are evidence-limited; current Spark-low is incomplete and cannot solely accept; Sonnet medium has direct accepted bounded evidence",
+    "Spark Low: directly validated narrowly frozen mechanical implementation and review-driven repair; require independent review and separate final acceptance",
+    "Exact current Mini Low and GPT-5.5 Medium remain evidence-limited bounded trials. Sonnet Medium has direct accepted bounded implementation, documentation/synthesis, and provider-diverse review evidence",
     "Sol XHigh: architecture/root cause",
     "Sol Max, Luna Max, Terra Max, and Fable: risk-matched review",
     "Luna Low: docs, diagnosis, and smoke",
@@ -275,6 +324,22 @@ printf '%s\n' "$real_resolver_output" | awk -F '	' '$1 == "default_model" && $2 
 printf '%s\n' "$real_resolver_output" | awk -F '	' '$1 == "reasoning_effort" && $2 == "ultra" { found = 1 } END { exit found ? 0 : 1 }'
 printf '%s\n' "$real_resolver_output" | awk -F '	' '$1 == "reasoning_summary" && $2 == "auto" { found = 1 } END { exit found ? 0 : 1 }'
 printf '%s\n' "$real_resolver_output" | awk -F '	' '$1 == "model_verbosity" && $2 == "medium" { found = 1 } END { exit found ? 0 : 1 }'
+
+real_opus5_output=$(
+  PATH="$public_bin:$PATH" BUS_HOST=127.0.0.2 \
+    bus workers template show claude-opus-5
+)
+printf '%s\n' "$real_opus5_output" | awk -F '	' '$1 == "default_model" && $2 == "claude-opus-5" { found = 1 } END { exit found ? 0 : 1 }'
+printf '%s\n' "$real_opus5_output" | awk -F '	' '$1 == "reasoning_effort" && $2 == "high" { found = 1 } END { exit found ? 0 : 1 }'
+printf '%s\n' "$real_opus5_output" | awk -F '	' '$1 == "runner_kind" && $2 == "appserver" { found = 1 } END { exit found ? 0 : 1 }'
+printf '%s\n' "$real_opus5_output" | awk -F '	' '$1 == "runner_provider" && $2 == "claude-appserver" { found = 1 } END { exit found ? 0 : 1 }'
+
+real_opus48_output=$(
+  PATH="$public_bin:$PATH" BUS_HOST=127.0.0.2 \
+    bus workers template show claude-opus-4-8
+)
+printf '%s\n' "$real_opus48_output" | awk -F '	' '$1 == "default_model" && $2 == "claude-opus-4-8" { found = 1 } END { exit found ? 0 : 1 }'
+printf '%s\n' "$real_opus48_output" | awk -F '	' '$1 == "reasoning_effort" && $2 == "high" { found = 1 } END { exit found ? 0 : 1 }'
 
 cat >"$tmp_dir/bin/bus" <<'SH'
 #!/usr/bin/env sh
