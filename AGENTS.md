@@ -11,13 +11,9 @@
 3. Prefer minimal, deterministic, script-friendly behavior.
 4. For module work, read this file plus the most specific local `AGENTS.md`
    under the target subtree before changing files.
-5. Agent sessions started inside this checkout do not auto-load parent
-   guidance: instruction discovery stops at this repository's `.git`
-   boundary. When this checkout is nested inside a parent workspace (for
-   example an agent-supervisor tree), read `../AGENTS.md` and
-   `../../AGENTS.md` before cross-checkout actions such as parent pin
-   updates, shared coordination, or supervisor-owned workflows. The same
-   applies one level down: sessions started inside a `bus-*` module load only
+5. Instruction discovery stops at each repository's `.git` boundary. Nested
+   inside a parent workspace, read `../AGENTS.md` and `../../AGENTS.md`
+   before cross-checkout actions; sessions inside a `bus-*` module load only
    that module's guidance and must read this file for superproject rules.
 
 ## Guidance Layout
@@ -54,14 +50,11 @@ deployment authority, process lifecycle, resource control, provider/runtime
 boundaries, cross-module contracts, command ownership, Events/auth/config,
 AI-host behavior, notes modules, naming, private/public coupling, or
 cross-cutting platform behavior, read
-`sdd/docs/architecture/architecture-decision-register.md`,
-`docs/docs/sdd-source-index.md`, and the owning module SDD and `AGENTS.md`.
-The register is the cross-module architecture authority; module SDDs refine
-it, module `AGENTS.md` files provide operational rules, and public docs
-describe user-visible behavior. Goal pages, plans, threads, memos, rejected
-branches, and historical reports are evidence, not architecture authority.
-The current identities/auth model is in
-`runbooks/identities-authorization-model.md`.
+`sdd/docs/architecture/architecture-decision-register.md` (the cross-module
+authority), `docs/docs/sdd-source-index.md`, and the owning module SDD and
+`AGENTS.md`. Goal pages, plans, threads, memos, rejected branches, and
+historical reports are evidence, not architecture authority. Identities/auth
+model: `runbooks/identities-authorization-model.md`.
 
 Name the accepted decision IDs and fixed constraints before dispatch or code;
 an implementation problem does not reopen architecture by itself. See
@@ -118,10 +111,9 @@ original rule numbering.
 1. In supervisor mode, all implementation work that can be delegated must be
    done through Bus task/work workers, not by the supervisor directly editing
    product or module code in the primary checkout.
-2. The supervisor's default job is to define work, update PLAN/memo guidance,
-   dispatch workers with clear scopes and acceptance criteria, monitor
-   progress, provide guidance, review results, reopen incomplete work, promote
-   accepted commits, and keep the board moving.
+2. The supervisor's default job: define work, dispatch workers with clear
+   scopes and acceptance criteria, monitor, review, reopen, promote, and
+   keep the board moving.
 3. The supervisor may edit repo guidance, `PLAN.md`, live memos, and narrow
    coordination artifacts when those edits are themselves supervision work.
 4. The only normal exception for direct implementation edits is when there is a
@@ -138,23 +130,18 @@ original rule numbering.
 ## Recipient-Scoped Worker Focus
 
 Recipient-scoped implementation workers are not supervisors: follow the
-recipient-local `AGENTS.md` and explicit task brief first, start from the
-exact named failing surface, and do not spend quota on broad supervisor
-habits (repo-wide memos, PLAN grooming, throughput review) unless the task
-asks for them. Details are in `runbooks/worker-delegation.md`.
+recipient-local `AGENTS.md` and explicit task brief, start from the exact
+named failing surface, and skip broad supervisor habits unless the task asks
+(`runbooks/worker-delegation.md`).
 
 ## Parallel Supervisor Operating Standard
 
-This standard is core operating memory for broad BusDK goals: broad goals run
-from a ready queue of scoped, unblocked, module-owned tasks; review is
-asynchronous work and must not stop dispatch; claimed or running workers count
-as capacity only when they emit meaningful task-stream progress, reviewable
-diffs, or exact failure evidence; and hourly memos for broad goals record
-numeric utilization and name the concrete bottleneck whenever safe capacity
-sits idle.
-
-Full standard: `runbooks/parallel-supervision.md`. Service and worker
-resource limits: `runbooks/service-resource-isolation.md`.
+Broad goals run from a ready queue of scoped, unblocked, module-owned tasks;
+review is asynchronous and must not stop dispatch; workers count as capacity
+only with meaningful progress, diffs, or exact failure evidence; hourly memos
+record numeric utilization and the concrete bottleneck when capacity idles.
+Full standard: `runbooks/parallel-supervision.md`; resource limits:
+`runbooks/service-resource-isolation.md`.
 
 ## Repo-Local Skills Index
 
@@ -162,35 +149,26 @@ Read the relevant skill before detailed operational work. Keep this index
 current: whenever a repo-local skill is added, deleted, renamed, moved, or
 materially changed, update this index in the same change set.
 
-1. `skills/bus-product-delivery-supervisor/SKILL.md`: broad multi-module
-   supervision, dispatch, monitoring, review, throughput, progress and
-   closeout reporting. Read before running supervisor mode.
-2. `skills/bus-dev-task-worker-ops/SKILL.md`: `bus task`/`bus workers`
-   dispatch, event-driven waits, template routing, monitoring, reopen,
-   promotion, auth/token handling, worker troubleshooting. Read before
-   touching worker ops.
-3. `skills/bus-plan-memory-maintainer/SKILL.md`: `PLAN.md`, `AGENTS.md`,
-   hourly memos, trackers, durable lessons, closeout. Read before PLAN or
-   AGENTS edits, memo closeout, or tracker-only commits.
-4. `skills/bus-ui-gx-roadmap/SKILL.md`: GX/Bus UI roadmap, feature
-   candidates, semver promotion, portal migration. Read before GX/UI roadmap
-   or feature-candidate work.
-5. `skills/bus-docs-quality/SKILL.md`: public docs and SDD structure,
-   Markdown lint, examples, links. Read before docs or SDD edits.
-6. `skills/bus-go-quality-review/SKILL.md`: Go implementation/review gates,
-   tests, module Makefile checks, `bus lint` peer review. Read before
-   touching Go files.
-7. `skills/bus-generated-artifact-hygiene/SKILL.md`: generated WASM/static
-   artifact tracking and ignore/clean/regenerate rules. Read before touching
-   generated or build-output files.
-8. `skills/bus-development-retrospective/SKILL.md`: evidence-based
-   retrospectives for releases, incidents, and agent sessions, including
-   shareable reports under `docs/docs/reports/`. Read before retrospectives.
-9. `skills/bus-llm-tool-prompt-construction/SKILL.md`: prompt-template
-   construction for BusDK tools that send prompts to LLMs. Read before
-   changing prompt builders or request assembly; keep stable prompt
-   instructions before per-run dynamic context unless the skill or owning
-   module documents a narrower exception.
+1. `skills/bus-product-delivery-supervisor/SKILL.md`: supervisor mode —
+   multi-module supervision, dispatch, monitoring, review, throughput,
+   reporting.
+2. `skills/bus-dev-task-worker-ops/SKILL.md`: worker ops — dispatch, waits,
+   template routing, reopen, promotion, auth, troubleshooting.
+3. `skills/bus-plan-memory-maintainer/SKILL.md`: PLAN/AGENTS edits, memos,
+   trackers, durable lessons, closeout.
+4. `skills/bus-ui-gx-roadmap/SKILL.md`: GX/UI roadmap, feature candidates,
+   semver promotion, portal migration.
+5. `skills/bus-docs-quality/SKILL.md`: public docs and SDD structure, lint,
+   examples, links.
+6. `skills/bus-go-quality-review/SKILL.md`: Go files — implementation and
+   review gates, tests, Makefile checks, `bus lint` peer review.
+7. `skills/bus-generated-artifact-hygiene/SKILL.md`: generated or
+   build-output files — tracking and ignore/clean/regenerate rules.
+8. `skills/bus-development-retrospective/SKILL.md`: retrospectives for
+   releases, incidents, and agent sessions.
+9. `skills/bus-llm-tool-prompt-construction/SKILL.md`: prompt builders and
+   request assembly; keep stable prompt instructions before per-run dynamic
+   context unless a narrower exception is documented.
 
 ## Repository Identity
 
@@ -216,30 +194,14 @@ materially changed, update this index in the same change set.
 
 ## Repository Visibility And Secrets
 
-1. Public/open-source repos: `./` (superproject), `./bus`, `./docs`,
-   `./busdk.com`.
-2. Private/commercial-customer repos: every `./bus-*` module unless that
-   module's own repository documents otherwise.
-3. In public repos, do not introduce in-process coupling to private module
-   internals; use stable CLI/library/API boundaries only.
-4. This public superproject and its public docs/examples must never contain real
-   SMTP, database, JWT, API, AI provider, webhook, signing, password, private
-   key, DSN-with-password, or customer secrets.
-5. Do not accept secret values as command-line arguments in BusDK tools or
-   services. Secrets must come from environment variables, user config secret
-   files, deployment secret files, OS credential storage, or standard input
-   where explicitly designed.
-6. Treat committed `AGENTS.md`, docs, and examples as public unless they are
-   explicitly inside a private repository. Logs, memos, and notes are internal
-   operator records; never write secrets into them.
-7. Never print broad `.env` contents. Query only exact non-secret keys or report
-   key presence with values redacted.
-8. Never auto-write JWTs, API tokens, refresh tokens, or auth-session files
-   under repository-local `.bus/` paths or any other working-tree-relative
-   default. Use the unified user config root, explicit operator-supplied paths,
-   environment variables, or OS credential storage.
-9. For multi-remote worker credential design, keep root metadata non-secret and
-   read `skills/bus-dev-task-worker-ops/SKILL.md`.
+The superproject, `./bus`, `./docs`, and `./busdk.com` are public; every
+`./bus-*` module is private unless its own repository documents otherwise,
+and public repos couple to private modules only through stable
+CLI/library/API boundaries. Never put real secrets in public repos, docs,
+examples, memos, logs, or notes; never accept secrets as command-line
+arguments; never auto-write tokens or auth files under `.bus/` or any
+working-tree path; never print broad `.env` contents. Full rules:
+`runbooks/repository-visibility-and-secrets.md`.
 
 ## Definition Of Done
 
