@@ -49,13 +49,17 @@
 
 Before planning or implementing a change that affects module ownership,
 deployment authority, process lifecycle, resource control, provider/runtime
-boundaries, or cross-module contracts, read
-`sdd/docs/architecture/architecture-decision-register.md` and the owning module
-SDD. The register is the current cross-module architecture authority. Module
-SDDs refine it; module `AGENTS.md` files provide operational rules; public docs
+boundaries, cross-module contracts, command ownership, Events/auth/config,
+AI-host behavior, notes modules, naming, private/public coupling, or
+cross-cutting platform behavior, read
+`sdd/docs/architecture/architecture-decision-register.md`,
+`docs/docs/sdd-source-index.md`, and the owning module SDD and `AGENTS.md`.
+The register is the cross-module architecture authority; module SDDs refine
+it, module `AGENTS.md` files provide operational rules, and public docs
 describe user-visible behavior. Goal pages, plans, threads, memos, rejected
-branches, and historical reports are evidence and history, not architecture
-authority.
+branches, and historical reports are evidence, not architecture authority.
+The current identities/auth model is in
+`runbooks/identities-authorization-model.md`.
 
 Name the accepted decision IDs and fixed constraints before dispatch or code;
 an implementation problem does not reopen architecture by itself. See
@@ -186,7 +190,9 @@ materially changed, update this index in the same change set.
    shareable reports under `docs/docs/reports/`. Read before retrospectives.
 9. `skills/bus-llm-tool-prompt-construction/SKILL.md`: prompt-template
    construction for BusDK tools that send prompts to LLMs. Read before
-   changing prompt builders or request assembly.
+   changing prompt builders or request assembly; keep stable prompt
+   instructions before per-run dynamic context unless the skill or owning
+   module documents a narrower exception.
 
 ## Repository Identity
 
@@ -244,8 +250,9 @@ Production, bug-fix, and user-visible behavior changes require deterministic
 automated tests, appropriate e2e coverage, formatting/lint/static/security
 checks, docs/help/SDD updates when behavior changes, backward compatibility
 unless explicitly approved, and tracker follow-up for any approved exception.
-Before module command, test, runtime, CLI, docs, restricted API, or Go changes,
-read the owning module guidance and the relevant skill or SDD source.
+Before module command, test, runtime, CLI, docs, restricted API, or Go
+changes, read the owning module guidance, the matching Repo-Local Skills
+Index entry, and `docs/docs/sdd-source-index.md`.
 
 ### Finish-First Delivery Gate
 
@@ -259,27 +266,12 @@ E2E passes against the exact composition.
 Details: `runbooks/finish-first-delivery-gate.md`. Before each new or
 resumed BusDK feature turn, run `runbooks/board-intake-commands.md`.
 
-## Cross-Module Architecture
-
-Before changing module boundaries, command ownership, Events/auth/config,
-AI-host behavior, provider/runtime architecture, notes modules, naming,
-private/public coupling, or cross-cutting platform behavior, read
-`docs/docs/sdd-source-index.md` and the owning module `AGENTS.md`. The
-current model is in `runbooks/identities-authorization-model.md`.
-
 ## Product Taxonomy Guidance
 
 Before editing `PRODUCTS.md`, public product pages, product-line module
 mappings, or taxonomy exclusions, read
 `docs/docs/product-taxonomy-guidance.md`. Root policy: keep `PRODUCTS.md` as a
 user-facing product taxonomy, not a module inventory or agent process note.
-
-## LLM Tool Prompt Construction
-
-Before changing BusDK tools that build or send LLM prompts, read
-`skills/bus-llm-tool-prompt-construction/SKILL.md`. Root reminder: keep stable
-prompt instructions before per-run dynamic context unless the skill or owning
-module documents a narrower exception.
 
 ## Worker Backend Policy
 
@@ -312,14 +304,10 @@ separate from implementation/docs/test changes.
 
 ## Shell And Tool Hygiene
 
-Keep commands simple, portable, path-correct, bounded, and redacted. For
-Docker inspection, readiness probes, worker monitoring, and disposable
-worktrees, read `skills/bus-dev-task-worker-ops/SKILL.md` and
-`runbooks/worker-delegation.md`. For historical delivery claims and progress
-reports, read `skills/bus-product-delivery-supervisor/SKILL.md` and
-`runbooks/parallel-supervision.md`. For shell scripts inside a module, follow
-the owning module's `AGENTS.md` and `skills/bus-go-quality-review/SKILL.md`
-when the script supports Go checks.
+Keep commands simple, portable, path-correct, bounded, and redacted. The
+Repo-Local Skills Index rows above own the detailed shell, Docker, probe,
+worktree, and reporting workflows; module shell scripts follow the owning
+module's `AGENTS.md`.
 
 ## Simplify Before Building
 
