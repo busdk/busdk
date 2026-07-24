@@ -38,12 +38,14 @@
   for the shared human/structured output conventions before adding or changing
   a command's rendering.
 - Keep public docs free of agent-only process rules. For SDD/public-doc
-  architecture candidates, leave compact triggers and follow-up notes unless a
-  task explicitly asks for public documentation edits.
+  architecture candidates, leave compact triggers and follow-up notes in the
+  owning module `AGENTS.md` or `PLAN.md` unless a task explicitly asks for
+  public documentation edits.
 - Keep detailed, conditional operating guidance in `runbooks/*.md` in this
   repository, one topic per file. Runbook filenames name their topic and are
   the trigger: before acting on a topic, read the runbook whose filename
-  matches the current task, plus any runbook a root section names explicitly.
+  matches the current task, plus any runbook a root section names explicitly;
+  when unsure, list `runbooks/` and match filenames against the task.
 
 ## Architecture Stability And Decision Briefs
 
@@ -96,16 +98,12 @@ Full rules: `runbooks/public-surface-naming.md` and
 ## Live Working Memo
 
 Maintain a live hourly working memo during every substantial session in
-`./logs/{YYYYMMDD}-{HH}-agent-memo.md`, using the current local/project time
-and continuing the same file while the hour is unchanged. Write it as a
-truthful editorial engineering diary in Markdown narrative form, not a
-checklist: what was attempted, found, decided, and verified, plus what remains
-uncertain. When the hour changes, finish the memo with a handoff note and
-continue in the new hourly file; end every session with a concise final state.
-Never write secrets, tokens, private customer data, or raw environment dumps
-into memos or committed logs. Do not edit historical memos after their hour
-except to remove sensitive information or undo an accidental inappropriate
-edit.
+`./logs/{YYYYMMDD}-{HH}-agent-memo.md` (current local/project time, same file
+while the hour is unchanged), written as a truthful editorial engineering
+diary in Markdown narrative form. When the hour changes, finish the memo with
+a handoff note and continue in the new hourly file; end every session with a
+concise final state. Never write secrets, tokens, private customer data, or
+raw environment dumps into memos or committed logs.
 
 This root file keeps the binding memo contract; the full style contract is
 `runbooks/live-working-memo.md`.
@@ -220,8 +218,8 @@ materially changed, update this index in the same change set.
 
 1. Public/open-source repos: `./` (superproject), `./bus`, `./docs`,
    `./busdk.com`.
-2. Private/commercial-customer repos: every `./bus-*` module unless explicitly
-   documented otherwise.
+2. Private/commercial-customer repos: every `./bus-*` module unless that
+   module's own repository documents otherwise.
 3. In public repos, do not introduce in-process coupling to private module
    internals; use stable CLI/library/API boundaries only.
 4. This public superproject and its public docs/examples must never contain real
@@ -233,8 +231,7 @@ materially changed, update this index in the same change set.
    where explicitly designed.
 6. Treat committed `AGENTS.md`, docs, and examples as public unless they are
    explicitly inside a private repository. Logs, memos, and notes are internal
-   operator records, but still avoid writing secrets unless the owning
-   repository explicitly documents a private secret-handling surface.
+   operator records; never write secrets into them.
 7. Never print broad `.env` contents. Query only exact non-secret keys or report
    key presence with values redacted.
 8. Never auto-write JWTs, API tokens, refresh tokens, or auth-session files
@@ -256,15 +253,14 @@ Index entry, and `docs/docs/sdd-source-index.md`.
 
 ### Finish-First Delivery Gate
 
-Thread 146 is the process-retrospective reference for this gate. Before new or
-resumed source work, name one user/operator outcome and freeze the exact local
-composed E2E command; bug fixes also freeze the identical parent-fail and
-candidate-pass scenario. Keep unfinished source on immutable feature refs.
-Do not merge, pin, install as accepted, or call the feature complete until that
-E2E passes against the exact composition.
+Before new or resumed source work, name one user/operator outcome and freeze
+the exact local composed E2E command; bug fixes also freeze the identical
+parent-fail and candidate-pass scenario. Keep unfinished source on immutable
+feature refs. Do not merge, pin, install as accepted, or call the feature
+complete until that E2E passes against the exact composition.
 
 Details: `runbooks/finish-first-delivery-gate.md`. Before each new or
-resumed BusDK feature turn, run `runbooks/board-intake-commands.md`.
+resumed BusDK feature turn, apply `runbooks/board-intake-commands.md`.
 
 ## Product Taxonomy Guidance
 
@@ -297,10 +293,11 @@ profiles, or product documentation.
 ## Commit And Deletion Safety
 
 Read `skills/bus-plan-memory-maintainer/SKILL.md` before tracker-only commits
-or memory closeout. Root safety context: commit only when asked or explicitly
-allowed, commit staged scope only, never push/tag/sync without request, use
-tracked/untracked deletion commands deliberately, and keep tracker-only commits
-separate from implementation/docs/test changes.
+or memory closeout. Root safety context: commit only with direct operator
+authorization (or a guidance rule naming the exact repository and scope),
+commit staged scope only, never push, tag, or sync without a direct operator
+request, use tracked/untracked deletion commands deliberately, and keep
+tracker-only commits separate from implementation/docs/test changes.
 
 ## Shell And Tool Hygiene
 
@@ -323,4 +320,5 @@ service-freshness, credential, or remote-runtime failures, read
 `skills/bus-dev-task-worker-ops/SKILL.md` before changing product behavior.
 Root evidence policy: enable enough non-secret observability to prove the
 failing boundary, never log secrets or raw customer-sensitive data, and record
-the reusable diagnostic sequence in the memo and owning guidance after a fix.
+the reusable diagnostic sequence in the memo and the owning module's
+`AGENTS.md` or matching skill after a fix.

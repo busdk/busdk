@@ -1,5 +1,8 @@
 # Finish-First Delivery Gate Details
 
+Thread 146 on the Bus Thread board is the process-retrospective reference for
+this gate.
+
 
 These bullets expand the Finish-First Delivery Gate core in the root
 `AGENTS.md`; the board-intake commands are in
