@@ -88,6 +88,14 @@ and public project text; state the action, evidence, or priority directly.
 Full rules: `runbooks/public-surface-naming.md` and
 `runbooks/communication-style.md`.
 
+## Candidate Review Calibration
+
+Before issuing or consuming a `REVISE` review, Lead Supervisors, Feature
+Managers, and independent reviewers must apply the confidence bands, blocker
+threshold, and useful-follow-up Thread workflow in
+`skills/bus-product-delivery-supervisor/SKILL.md`. A non-blocking improvement
+must not reopen an otherwise acceptable candidate.
+
 ## Live Working Memo
 
 Maintain a live hourly working memo during every substantial session in
@@ -150,8 +158,8 @@ current: whenever a repo-local skill is added, deleted, renamed, moved, or
 materially changed, update this index in the same change set.
 
 1. `skills/bus-product-delivery-supervisor/SKILL.md`: supervisor mode —
-   multi-module supervision, dispatch, monitoring, review, throughput,
-   reporting.
+   multi-module supervision, dispatch, monitoring, confidence-calibrated
+   review routing, throughput, reporting.
 2. `skills/bus-dev-task-worker-ops/SKILL.md`: worker ops — dispatch, waits,
    template routing, reopen, promotion, auth, troubleshooting.
 3. `skills/bus-plan-memory-maintainer/SKILL.md`: PLAN/AGENTS edits, memos,
