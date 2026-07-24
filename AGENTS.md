@@ -43,9 +43,9 @@ Merged guidance from `.cursor/rules/*.mdc`.
   architecture candidates, leave compact triggers and follow-up notes unless a
   task explicitly asks for public documentation edits.
 - Keep detailed, conditional operating guidance in `runbooks/*.md` in this
-  repository. Each root section below names its runbook trigger; read a
-  runbook when its trigger matches the current task instead of loading it by
-  default.
+  repository, one topic per file. Runbook filenames name their topic and are
+  the trigger: before acting on a topic, read the runbook whose filename
+  matches the current task, plus any runbook a root section names explicitly.
 
 ## Architecture Stability And Decision Briefs
 
@@ -60,18 +60,15 @@ branches, and historical reports are evidence and history, not architecture
 authority.
 
 Name the accepted decision IDs and fixed constraints before dispatch or code;
-an implementation problem does not reopen architecture by itself. Before
-changing an accepted decision, proposing solution options to the operator, or
-composing accepted independent fixes, read the architecture change-control
-rules, solution-brief template, and composition discipline in
-`runbooks/delivery-discipline.md`.
+an implementation problem does not reopen architecture by itself. See
+`runbooks/architecture-change-control.md` and
+`runbooks/operator-solution-briefs.md`.
 
 ## Experiment And Proof Discipline
 
 For performance, build, boot, sync, or browser-proof goals, size work to the
 acceptance path and state the expected gate-metric effect before starting an
-experiment; the full experiment and proof discipline is in
-`runbooks/delivery-discipline.md`.
+experiment; see `runbooks/experiment-and-proof-discipline.md`.
 
 Use the workspace `./tmp` directory for large generated artifacts, copied
 rootfs/disk images, browser/QEMU bundles, build evidence, and anything that may
@@ -91,9 +88,8 @@ product, never for temporary milestones or prototype phases.
 Avoid formulaic contrast sentences (`This is X, not Y`) in user-facing replies
 and public project text; state the action, evidence, or priority directly.
 
-Before naming any public surface (including browser-OS work) or writing
-public project text, read `runbooks/naming-and-communication.md` for the full
-naming and style rules.
+Full rules: `runbooks/public-surface-naming.md` and
+`runbooks/communication-style.md`.
 
 ## Live Working Memo
 
@@ -109,18 +105,15 @@ into memos or committed logs. Do not edit historical memos after their hour
 except to remove sensitive information or undo an accidental inappropriate
 edit.
 
-This root file keeps the binding memo contract above. Before substantial
-sessions, memo closeout, or Bus Notes use, read
-`runbooks/live-working-memo.md`; it carries the full memo style contract,
-which expands this core without replacing it.
+This root file keeps the binding memo contract; the full style contract is
+`runbooks/live-working-memo.md`.
 
 ## Supervisor Worker Delegation
 
 This section is core operating memory for Codex supervisor agents in this
-repository. The supervisor/worker boundary below is binding and stays in this
-root file. `runbooks/worker-delegation.md` and `runbooks/gx-ui-delegation.md`
-expand it with the detailed operating rules and keep the original rule
-numbering; they must be read when their triggers below match.
+repository; the binding supervisor/worker boundary stays here, expanded by
+`runbooks/worker-delegation.md` and `runbooks/gx-ui-delegation.md` under the
+original rule numbering.
 
 1. In supervisor mode, all implementation work that can be delegated must be
    done through Bus task/work workers, not by the supervisor directly editing
@@ -135,15 +128,12 @@ numbering; they must be read when their triggers below match.
    real blocker and the infrastructure needed to run Bus task workers is not
    available, and the direct edit is the narrowest safe change to restore that
    worker infrastructure.
-5. For any worker dispatch, activation-evidence check, template or model
-   routing, environment freshness verification, pause/drain, worktree cleanup,
-   or worker-failure diagnostic decision, read
-   `runbooks/worker-delegation.md` before acting; it continues these rules as
-   items 4-7 and 17-46.
-6. Before any GX/UI cleanup, adopter migration, facade-parity, assistantui,
-   terminalui, or `pkg/uikit`-removal work, read
-   `runbooks/gx-ui-delegation.md` (items 7a-15) together with
-   `skills/bus-ui-gx-roadmap/SKILL.md` from the skills index.
+5. Before worker dispatch, monitoring, template or model routing, environment
+   freshness checks, pause/drain, worktree cleanup, or failure diagnosis,
+   read `runbooks/worker-delegation.md` (items 4-7, 7c, 17-46).
+6. Before GX/UI cleanup, adopter, facade-parity, or `pkg/uikit`-removal work,
+   read `runbooks/gx-ui-delegation.md` (items 7a-15) and
+   `skills/bus-ui-gx-roadmap/SKILL.md`.
 
 ## Recipient-Scoped Worker Focus
 
@@ -163,10 +153,8 @@ diffs, or exact failure evidence; and hourly memos for broad goals record
 numeric utilization and name the concrete bottleneck whenever safe capacity
 sits idle.
 
-Before running a broad multi-worker goal, sizing parallel lanes, judging
-utilization or throughput, or designing service and worker resource limits,
-read `runbooks/parallel-supervision.md`; it carries the full numbered standard
-and the Service Resource Isolation Standard, both of which remain binding.
+Full standard: `runbooks/parallel-supervision.md`. Service and worker
+resource limits: `runbooks/service-resource-isolation.md`.
 
 ## Repo-Local Skills Index
 
@@ -215,21 +203,14 @@ materially changed, update this index in the same change set.
    that specific request. GitHub default branches remain `main` by design:
    `main` is the stable previous-release branch, not the normal active
    promotion target.
-6. Before editing the root `Makefile` or adding root orchestration, read the
-   `Root Makefile Contract` below.
+6. Before editing the root `Makefile` or adding root orchestration, read
+   `runbooks/root-makefile-contract.md`.
 7. Do not add root CLI binaries or network features to this superproject.
 8. The `.bus/` directory is a tracked project directory. Never add `.bus` or
    `.bus/` ignore rules. Runtime lock artifacts such as `.bus-dev.lock` may be
    ignored.
 9. Do not treat `.bus/`, `Makefile.local`, `./tests`, or `FEATURES.md` as
    temporary files unless a repository explicitly documents an exception.
-
-## Root Makefile Contract
-
-Before editing the root `Makefile` or adding root orchestration, read the
-Root Makefile Contract in `runbooks/delivery-discipline.md`; keep
-superproject-only orchestration and add no lockfiles, alternative build
-systems, or reimplemented module internals.
 
 ## Repository Visibility And Secrets
 
@@ -277,13 +258,8 @@ candidate-pass scenario. Keep unfinished source on immutable feature refs.
 Do not merge, pin, install as accepted, or call the feature complete until that
 E2E passes against the exact composition.
 
-For the detailed gate bullets on lane admission, mechanism-change retries,
-additive repair, promoted-but-unused debt, preflight scope, and Thread 111
-usage, read `runbooks/delivery-discipline.md`.
-
-Before each new or resumed BusDK feature turn, read the board intake
-commands and thread-placement rules in `runbooks/delivery-discipline.md`
-(`bus thread list 231 --depth 2`, `bus thread show 111 --latest 6`).
+Details: `runbooks/finish-first-delivery-gate.md`. Before each new or
+resumed BusDK feature turn, run `runbooks/board-intake-commands.md`.
 
 ## Cross-Module Architecture
 
@@ -291,8 +267,7 @@ Before changing module boundaries, command ownership, Events/auth/config,
 AI-host behavior, provider/runtime architecture, notes modules, naming,
 private/public coupling, or cross-cutting platform behavior, read
 `docs/docs/sdd-source-index.md` and the owning module `AGENTS.md`. The
-current identities/auth authorization model is recorded in
-`runbooks/delivery-discipline.md`.
+current model is in `runbooks/identities-authorization-model.md`.
 
 ## Product Taxonomy Guidance
 
@@ -314,14 +289,10 @@ Before choosing or changing Bus development worker backend/runtime behavior,
 read `skills/bus-dev-task-worker-ops/SKILL.md` and the owning module
 `AGENTS.md`/`PLAN.md`. Root policy: Codex App Server is the normal development
 worker backend, one-shot Codex is legacy compatibility, and durable worker
-lanes must not use the Events `memory` backend for retained task history. The
-provider registry detail and Claude-backend research pointer are in
-`runbooks/delivery-discipline.md`.
-
-Before engine-integration work — `bus-integration-<engine>` module boundaries,
-engine process ownership, engine event namespaces, or one-shot turn removal —
-read the accepted engine-integration architecture decision in
-`runbooks/delivery-discipline.md`.
+lanes must not use the Events `memory` backend for retained task history.
+Registry detail: `runbooks/worker-backend-registry.md`. Before
+engine-integration work, read
+`runbooks/engine-integration-architecture.md`.
 
 ## Supervisor Host And Remote Environment
 

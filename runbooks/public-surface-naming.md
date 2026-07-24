@@ -1,10 +1,5 @@
-# Naming And Communication Runbook
+# Public Surface Naming
 
-Read this before naming any public surface (APIs, commands, package sets,
-artifacts, config schemas, services, events, documented workflows) and before
-writing user-facing replies or public project text.
-
-## Public Surface Naming
 
 Public API names, command names, package-set names, artifact IDs, config schema
 names, service names, event names, and documented user workflows must be named
@@ -23,13 +18,3 @@ the actual shipped shape: QEMU/WASM port, Bus Engine OS, and the
 that term may appear only when rejecting or migrating an obsolete compatibility
 alias.
 
-## Agent Communication Style
-
-Avoid formulaic contrast sentences in user-facing replies and public project
-text, especially the pattern `This is <classification>, not <contrast>`.
-Rewrite those statements as direct guidance that says what action, evidence,
-or priority matters. For example, prefer "Handle this as a packaging-policy
-decision after the runtime package work is stable" over "This is a policy
-decision, not a runtime file." Apply the same rule to close variants such as
-`That is ... not ...`, `<thing> is ... rather than ...`, and other phrasing
-that reads like a generated classification followed by a negated contrast.

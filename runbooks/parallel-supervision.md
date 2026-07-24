@@ -1,49 +1,8 @@
-# Parallel Supervision Runbook
+# Parallel Supervisor Operating Standard
 
-Read this before running broad multi-worker goals, sizing parallel lanes,
-judging utilization or throughput, or designing service and worker resource
-limits. It carries the full Parallel Supervisor Operating Standard and the
-Service Resource Isolation Standard, expanding the binding core in the root
-`AGENTS.md`. This standard exists because repeated memo evidence showed the
+This standard exists because repeated memo evidence showed the
 supervisor could reach high throughput for one hour and then fall back to
 one-worker-at-a-time execution.
-
-## Service Resource Isolation Standard
-
-Bus Services must prevent any one service, worker, tenant, task, container, or
-descendant process tree from exhausting host resources or denying service to
-the rest of the control plane. Enforce this deterministically in service and
-worker infrastructure rather than through agent prompts.
-
-- Put every service and worker execution tree in an owned resource domain;
-  Docker or other delegated runtimes must not escape that ownership boundary.
-- Protect control-plane capacity and apply per-domain memory high/max, swap,
-  CPU, I/O, process-count, and concurrency limits. Allow bounded idle-capacity
-  bursts without allowing aggregate host exhaustion.
-- Admit heavyweight work through a host/environment-wide lease and resource
-  preflight. Queue competing heavyweight jobs fairly instead of starting them
-  concurrently; interactive and control-plane work outrank background builds.
-- Apply backpressure at request and task boundaries, with per-identity and
-  per-service budgets so one hot resource cannot fan out into dependent-service
-  overload.
-- Treat OOM, swap exhaustion, admission failure, or limit breach as terminal
-  evidence for that attempt. Do not retry until the resource plan changes.
-- Record the owner, resource class, cgroup/container identity, configured
-  limits, peak CPU/RSS/swap/I/O/process count, throttle events, OOM/exit reason,
-  and cleanup result in lifecycle evidence.
-- Provide separate quiesce, drain, and emergency-stop semantics. Normal service
-  shutdown must stop new dispatch, allow only its bounded grace period, and
-  then terminate the complete Bus-owned resource domain: every service process,
-  worker, task process, descendant, and container launched through that service,
-  including detached processes re-parented to PID 1. A successful shutdown must
-  verify that the domain is empty; report surviving owned work as a shutdown
-  failure. Only an explicit drain operation may let existing owned work continue.
-
-Resource scheduling must use explicit policy and measured state, not LLM
-judgment. Resource isolation is an availability and correctness requirement,
-not an optional performance optimization.
-
-## Parallel Supervisor Operating Standard
 
 1. Broad goals must run from a ready queue, not from a single next task. At any
    time the supervisor should maintain a short list of scoped, unblocked,
