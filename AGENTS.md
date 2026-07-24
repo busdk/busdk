@@ -1,7 +1,5 @@
 # AGENTS.md
 
-Merged guidance from `.cursor/rules/*.mdc`.
-
 ## Scope And Precedence
 
 1. Apply this file to the whole BusDK superproject.
