@@ -380,7 +380,8 @@ GX/UI-specific clauses that also apply to GX/UI lanes.
      implementation that exceeded a simpler suitable template, or
      acceptance-critical adversarial review. When the operator declares one
      provider pool low, move suitable new work to another provider and record
-     that temporary pool policy in Thread 111 and the current memo; do not
+     that temporary pool policy in the shared co-work coordination thread and
+     the current memo; do not
      interrupt nearly finished work merely to rebalance quota. When OpenAI
      capacity is the constrained pool, make Claude the first provider for
      suitable new lanes, subject to the Sonnet/Fable/Haiku/Opus role and safety

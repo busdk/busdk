@@ -1,8 +1,5 @@
 # Finish-First Delivery Gate Details
 
-Thread 146 on the Bus Thread board is the process-retrospective reference for
-this gate.
-
 
 These bullets expand the Finish-First Delivery Gate core in the root
 `AGENTS.md`; the board-intake commands are in
@@ -26,7 +23,7 @@ These bullets expand the Finish-First Delivery Gate core in the root
   boundaries, credential freshness, runtime truth, and durable result paths.
   Keep heavy work admitted and resource-bounded while independent lightweight
   lanes continue.
-- Use Thread 111 only for cross-lane dependencies and accepted baselines. Keep
-  detailed evidence in the owning feature Thread and use Thread 146 for future
-  delivery-process audits.
+- Use the shared co-work coordination thread only for cross-lane dependencies
+  and accepted baselines. Keep detailed evidence in the owning feature Thread
+  and keep delivery-process retrospective evidence on its own thread.
 
