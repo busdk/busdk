@@ -189,8 +189,8 @@ materially changed, update this index in the same change set.
 8. The `.bus/` directory is a tracked project directory. Never add `.bus` or
    `.bus/` ignore rules. Runtime lock artifacts such as `.bus-dev.lock` may be
    ignored.
-9. Do not treat `.bus/`, `Makefile.local`, `./tests`, or `FEATURES.md` as
-   temporary files unless a repository explicitly documents an exception.
+9. Do not treat `.bus/`, `Makefile.local`, `./tests`, or FEATURES.md files
+   as temporary unless a repository explicitly documents an exception.
 
 ## Repository Visibility And Secrets
 
