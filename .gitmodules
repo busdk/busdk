@@ -662,3 +662,7 @@
 	path = bus-connect
 	url = git@github.com:busdk/bus-connect.git
 	branch = develop
+[submodule "bus-x402"]
+	path = bus-x402
+	url = git@github.com:busdk/bus-x402.git
+	branch = develop
