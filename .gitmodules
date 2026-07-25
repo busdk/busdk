@@ -674,3 +674,7 @@
 	path = bus-sanctions
 	url = git@github.com:busdk/bus-sanctions.git
 	branch = develop
+[submodule "bus-gleif"]
+	path = bus-gleif
+	url = git@github.com:busdk/bus-gleif.git
+	branch = develop
