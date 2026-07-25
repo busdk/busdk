@@ -678,3 +678,7 @@
 	path = bus-gleif
 	url = git@github.com:busdk/bus-gleif.git
 	branch = develop
+[submodule "bus-edgar"]
+	path = bus-edgar
+	url = git@github.com:busdk/bus-edgar.git
+	branch = develop
