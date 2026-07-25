@@ -670,3 +670,7 @@
 	path = bus-ytj
 	url = git@github.com:busdk/bus-ytj.git
 	branch = develop
+[submodule "bus-sanctions"]
+	path = bus-sanctions
+	url = git@github.com:busdk/bus-sanctions.git
+	branch = develop
