@@ -682,3 +682,7 @@
 	path = bus-edgar
 	url = git@github.com:busdk/bus-edgar.git
 	branch = develop
+[submodule "bus-geoip"]
+	path = bus-geoip
+	url = git@github.com:busdk/bus-geoip.git
+	branch = develop
