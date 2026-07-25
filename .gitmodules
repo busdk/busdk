@@ -666,3 +666,7 @@
 	path = bus-x402
 	url = git@github.com:busdk/bus-x402.git
 	branch = develop
+[submodule "bus-ytj"]
+	path = bus-ytj
+	url = git@github.com:busdk/bus-ytj.git
+	branch = develop
