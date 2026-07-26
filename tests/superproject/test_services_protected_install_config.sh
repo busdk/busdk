@@ -5,8 +5,18 @@ root_dir=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 source_script="$root_dir/scripts/bus-services-protected-run"
 config="$root_dir/config/services-protected.env"
 services="$root_dir/services.yml"
-tmp_dir=$(mktemp -d)
+# The launcher validates every ancestor of its own path against the fixed
+# trusted-directory list in the fake stat below, so the disposable tool root
+# must sit under /tmp on every host. A bare `mktemp -d` honours TMPDIR, which
+# on macOS points at /var/folders/..., and the ancestor walk then fails on
+# /var. Files created here are small and short-lived.
+tmp_dir=$(mktemp -d /tmp/bus-services-protected-install-config.XXXXXX)
 trap 'rm -rf "$tmp_dir"' EXIT
+
+# GNU stat spells the permission bits `-c %a`; BSD stat spells them `-f %Lp`.
+file_mode() {
+	stat -c %a -- "$1" 2>/dev/null || stat -f %Lp -- "$1"
+}
 
 # The disposable launcher changes only the fixed host utility paths after the
 # production source has asserted them. Production has no test-time tool root.
@@ -308,7 +318,7 @@ grep -Fq 'scripts/bus-services-protected-run' "$tmp_dir/install-dry-run"
 make -C "$root_dir" install DESTDIR="$tmp_dir/install-root" BINDIR=/usr/local/bin
 installed_launcher="$tmp_dir/install-root/usr/local/bin/bus-services-protected-run"
 [ -f "$installed_launcher" ]
-[ "$(stat -c %a "$installed_launcher")" = 755 ]
+[ "$(file_mode "$installed_launcher")" = 755 ]
 
 assert_command_not_run() {
 	[ ! -s "$command_args" ]
