@@ -6,7 +6,7 @@ usage() {
 usage: scripts/test-local-worker-service-cycle-smoke.sh
 
 Starts a disposable local Bus Events API from source, creates one open task,
-and runs one bus-integration-workers observed scheduler cycle that publishes
+and runs one bus-integration-worker observed scheduler cycle that publishes
 worker-create/progress/health evidence for that exact task.
 
 Configuration via environment:
@@ -110,13 +110,13 @@ run_bus_identities_provider() {
 }
 
 run_bus_integration_workers() {
-  if [ -x "$ROOT/bus-integration-worker/bin/bus-integration-workers" ]; then
-    "$ROOT/bus-integration-worker/bin/bus-integration-workers" "$@"
+  if [ -x "$ROOT/bus-integration-worker/bin/bus-integration-worker" ]; then
+    "$ROOT/bus-integration-worker/bin/bus-integration-worker" "$@"
     return
   fi
   (
     cd "$ROOT/bus-integration-worker"
-    go run ./cmd/bus-integration-workers "$@"
+    go run ./cmd/bus-integration-worker "$@"
   )
 }
 

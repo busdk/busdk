@@ -1086,7 +1086,7 @@ build_binary bus-api ./cmd/bus-api bus-api
 build_binary bus-api-provider-identities ./cmd/bus-api-provider-identities bus-api-provider-identities
 build_binary bus-integration ./cmd/bus-integration bus-integration
 build_binary bus-integration-thread ./cmd/bus-integration-thread bus-integration-thread
-build_binary bus-integration-worker ./cmd/bus-integration-workers bus-integration-workers
+build_binary bus-integration-worker ./cmd/bus-integration-worker bus-integration-worker
 build_binary bus-integration-repos ./cmd/bus-integration-repos bus-integration-repos
 build_binary bus-thread ./cmd/bus-thread bus-thread
 build_binary bus-worker ./cmd/bus-worker bus-worker
