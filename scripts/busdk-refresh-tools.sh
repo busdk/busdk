@@ -58,7 +58,21 @@ mkdir -p "$wrapper_dir" "$tool_bin_dir"
 created=0
 for module in "$workspace_root"/bus "$workspace_root"/bus-*; do
   [ -d "$module" ] || continue
-  tool=${module##*/}
+
+  # A module ships the tool named after its directory, and may declare further
+  # host binaries in Makefile.local. `make install` installs both, so wrappers
+  # must cover both: a subcommand backed only by an extra binary, such as
+  # `bus workers` from bus-worker/cmd/bus-workers, is otherwise unresolvable
+  # wherever the module has not been installed system-wide.
+  module_extra_binaries=
+  if [ -f "$module/Makefile.local" ]; then
+    module_extra_binaries=$(
+      sed -n 's/^MODULE_EXTRA_BINARIES[[:space:]]*:\{0,1\}=[[:space:]]*//p' \
+        "$module/Makefile.local"
+    )
+  fi
+
+  for tool in "${module##*/}" $module_extra_binaries; do
   [ -f "$module/cmd/$tool/main.go" ] || continue
 
   wrapper=$wrapper_dir/$tool
@@ -123,6 +137,7 @@ EOF
   chmod +x "$tmp_wrapper"
   mv "$tmp_wrapper" "$wrapper"
   created=$((created + 1))
+  done
 done
 
 if [ "$created" -eq 0 ]; then
