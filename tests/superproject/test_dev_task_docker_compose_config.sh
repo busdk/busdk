@@ -26,14 +26,14 @@ if grep -Fq 'golang:1.24' compose.yaml; then
   printf 'unexpected stale golang:1.24 default in root compose files\n' >&2
   exit 1
 fi
-grep -Fq 'image: golang:1.26.3' "$tmp_dir/compose.config"
-grep -Fq 'GO_VERSION: 1.26.3' "$tmp_dir/compose.config"
+grep -Fq 'image: golang:1.26.5' "$tmp_dir/compose.config"
+grep -Fq 'GO_VERSION: 1.26.5' "$tmp_dir/compose.config"
 grep -Fq 'CODEX_VERSION: 0.135.0' "$tmp_dir/compose.config"
 grep -Fq 'CODEX_NPM_VERSION: ""' "$tmp_dir/compose.config"
 grep -Fq 'CODEX_LINUX_AMD64_SHA256: a15e7dad657da4a0e120eede29556fee6d50e8c919759cc2ecba3c99099363e2' "$tmp_dir/compose.config"
 grep -Fq 'CODEX_LINUX_ARM64_SHA256: 568bce1d593ef25ffdf5549369a8606085652294646a5c4961547a894ea2f76d' "$tmp_dir/compose.config"
-grep -Fq 'image: golang:1.26.3' "$tmp_dir/local-ai-platform.compose.config"
-grep -Fq 'GO_VERSION: 1.26.3' "$tmp_dir/local-ai-platform.compose.config"
+grep -Fq 'image: golang:1.26.5' "$tmp_dir/local-ai-platform.compose.config"
+grep -Fq 'GO_VERSION: 1.26.5' "$tmp_dir/local-ai-platform.compose.config"
 grep -Fq 'CODEX_VERSION: 0.135.0' "$tmp_dir/local-ai-platform.compose.config"
 grep -Fq 'CODEX_NPM_VERSION: ""' "$tmp_dir/local-ai-platform.compose.config"
 grep -Fq 'CODEX_LINUX_AMD64_SHA256: a15e7dad657da4a0e120eede29556fee6d50e8c919759cc2ecba3c99099363e2' "$tmp_dir/local-ai-platform.compose.config"

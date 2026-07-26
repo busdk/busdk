@@ -1,7 +1,7 @@
 name: ${BUS_LOCAL_AI_PLATFORM_PROJECT_NAME:-bus-local-ai-platform}
 
 x-go-service: &go-service
-  image: ${BUS_LOCAL_GO_IMAGE:-golang:1.26.3}
+  image: ${BUS_LOCAL_GO_IMAGE:-golang:1.26.5}
   working_dir: /workspace
   volumes:
     - .:/workspace
@@ -33,7 +33,7 @@ x-go-service: &go-service
 x-codex-image-build: &codex-image-build
   context: ./deploy/local-ai-platform/codex
   args:
-    GO_VERSION: ${BUS_LOCAL_GO_VERSION:-1.26.3}
+    GO_VERSION: ${BUS_LOCAL_GO_VERSION:-1.26.5}
     CODEX_VERSION: ${BUS_LOCAL_CODEX_VERSION:-0.135.0}
     CODEX_NPM_PACKAGE: ${BUS_LOCAL_CODEX_NPM_PACKAGE:-@openai/codex}
     CODEX_NPM_VERSION: ${BUS_LOCAL_CODEX_NPM_VERSION:-}
