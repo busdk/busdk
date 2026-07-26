@@ -42,7 +42,7 @@ trap 'rm -f "$tmp_modules"' EXIT
 
   if [ -n "$dates" ]; then
     active_days="$(printf "%s\n" "$dates" | LC_ALL=C sort -u | wc -l | tr -d ' ')"
-    first_date="$(printf "%s\n" "$dates" | LC_ALL=C sort | head -n 1)"
+    first_date="$(printf "%s\n" "$dates" | LC_ALL=C sort | awk 'NR==1')"
     last_date="$(printf "%s\n" "$dates" | LC_ALL=C sort | tail -n 1)"
   else
     active_days="0"
@@ -59,7 +59,7 @@ if [ "$INCLUDE_ROOT" = "1" ] && "$GIT_BIN" rev-parse --is-inside-work-tree >/dev
 
   if [ -n "$root_dates" ]; then
     root_active_days="$(printf "%s\n" "$root_dates" | LC_ALL=C sort -u | wc -l | tr -d ' ')"
-    root_first_date="$(printf "%s\n" "$root_dates" | LC_ALL=C sort | head -n 1)"
+    root_first_date="$(printf "%s\n" "$root_dates" | LC_ALL=C sort | awk 'NR==1')"
     root_last_date="$(printf "%s\n" "$root_dates" | LC_ALL=C sort | tail -n 1)"
   else
     root_active_days="0"
