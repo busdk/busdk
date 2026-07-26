@@ -72,7 +72,11 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: "1.26.3"
+          # Keep at or above the highest `go` directive across the submodules.
+          # bus-api, bus-api-provider-worker, and bus-books require 1.26.4, and
+          # module builds run under GOTOOLCHAIN=local, so an older pin fails
+          # here instead of fetching the newer toolchain.
+          go-version: "1.26.4"
           cache: false
 
       - name: Configure Git for module tests
