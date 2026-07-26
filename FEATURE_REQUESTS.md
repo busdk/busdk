@@ -40,7 +40,7 @@ Requested capability:
     `agents/worker:gpt54`
   - optional product base defaults and module-family hints
   - durable guidance/memory policy for what may be copied into new workers
-- Allow `bus workers create` and the workers API to choose an environment-local
+- Allow `bus worker create` and the workers API to choose an environment-local
   template explicitly, for example `--template <template-id>`. Template ids are
   stable operator handles; exact provider model names, profile names, reasoning
   settings, sandbox policy, runner provider, and identity refs belong inside
@@ -56,7 +56,7 @@ Requested capability:
   archived or indexed before bulky runtime cache cleanup.
 
 Acceptance:
-- `bus workers create` and the Workers API can select a template explicitly
+- `bus worker create` and the Workers API can select a template explicitly
   from the active environment template catalog; a missing or unavailable
   template fails with a stable diagnostic that tells the operator to configure
   the environment template before dispatch.

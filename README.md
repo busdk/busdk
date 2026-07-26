@@ -126,7 +126,7 @@ Engine artifacts.
 
 ```bash
 bus services stack validate --file services.yml
-bus workers list --environment local-dev
+bus worker list --environment local-dev
 ```
 
 ```bash
@@ -159,7 +159,7 @@ Local worker launches should choose an environment-local template from
 task prompts or shell commands. Inspect a configured template before dispatch:
 
 ```bash
-bus workers template show codex-56-sol-ultra
+bus worker template show codex-56-sol-ultra
 ```
 
 The GPT-5.6 catalog uses exact model IDs and explicit effort in every template:
@@ -175,7 +175,7 @@ Choose the role-based template id, such as `codex-56-terra-high` or
 summary, verbosity, and identity settings from the catalog. Use Sol `max` for
 deep review and Sol `ultra` for orchestration lanes.
 
-This template UX is scoped to supported `bus workers` dispatch and
+This template UX is scoped to supported `bus worker` dispatch and
 `bus-integration-worker` App Server paths. Dev-task container entrypoints stay
 out of scope until the owning `bus-integration-task` contract exposes and
 verifies worker-launch model, reasoning, summary, and verbosity behavior.
@@ -191,7 +191,7 @@ Useful top-level paths:
 - `bus/`: the `bus <command> ...` dispatcher;
 - `bus-services/`: Services CLI;
 - `bus-integration-services/`: local Services runtime supervisor;
-- `bus-worker/`: Workers CLI, installed as `bus-workers`;
+- `bus-worker/`: Workers CLI, installed as `bus-worker`;
 - `bus-api/`: local API gateway;
 - `bus-api-provider-events/`: Events API provider;
 - `bus-api-provider-worker/`: Workers API provider;

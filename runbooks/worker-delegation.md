@@ -32,7 +32,7 @@ GX/UI-specific clauses that also apply to GX/UI lanes.
    for the single target module. Split broad cleanup or salvage reviews by
    module owner when any follow-up edit may be needed.
 6. For local App Server workers on BusDK submodules, send the worker the exact
-   absolute product-worktree path as soon as `bus workers status` reports it,
+   absolute product-worktree path as soon as `bus worker status` reports it,
    then tell it to `cd <module>` inside that tree before any file edit. Also
    name the primary checkout path as out of scope. If a worker log or command
    output references the primary checkout path after that, stop the worker,
@@ -350,7 +350,7 @@ GX/UI-specific clauses that also apply to GX/UI lanes.
 41. After the service-owned Events relay MVP is accepted, BusDK product work
     must use Bus tasks and persistent Bus worker identities as the normal and
     exclusive execution infrastructure. Supervisors define task refs, pick or
-    create worker identities, send guidance with `bus workers message`, monitor
+    create worker identities, send guidance with `bus worker message`, monitor
     Events/status/log evidence, review diffs, reopen incomplete work, and
     promote accepted branches. Supervisors do not directly implement product
     changes or run direct compile/test/install loops as a substitute for worker
@@ -360,7 +360,7 @@ GX/UI-specific clauses that also apply to GX/UI lanes.
     `.bus/worker/templates.json`, is the only source of truth for exact
     provider model names, profile names, reasoning effort, verbosity, sandbox,
     runner provider, and identity repo settings. Supervisor goals, PLAN items,
-    worker briefs, scripts, and live `bus workers create` commands must select
+    worker briefs, scripts, and live `bus worker create` commands must select
     a template id discovered from the target environment and describe the
     capability needed; they must not hard-code provider model IDs, assume
     portable template ids across environments, or pass individual model
@@ -391,7 +391,7 @@ GX/UI-specific clauses that also apply to GX/UI lanes.
     task and worker commands should not need explicit `--api-url`,
     `--token-file`, `BUS_API_URL`, or `BUS_API_TOKEN` arguments. Start or
     refresh the stack with `bus services up`, verify it with `bus services ps`
-    and `bus workers list`, and use `bus configure` for `.env` changes. The
+    and `bus worker list`, and use `bus configure` for `.env` changes. The
     working directory for every `bus ...` command is the BusDK checkout root;
     running it from a supervisor or module root can select the wrong `.env`,
     token directory, and Services runtime and must not be used as evidence of
@@ -401,7 +401,7 @@ GX/UI-specific clauses that also apply to GX/UI lanes.
     needs explicit disambiguation. Only pass explicit API URLs or token files
     for a documented non-default remote/proof path, and record why the default
     dispatcher settings were insufficient. Live worker prompts must use the
-    supported `bus workers message ... --text <prompt>` shape, not guessed
+    supported `bus worker message ... --text <prompt>` shape, not guessed
     positional prompt text.
 44. The default local Services stack must not require SSH access to
     `dev.hg.fi` or any other remote worker host. `bus services up` must start

@@ -147,7 +147,7 @@ or dev-hg evidence needed to make that proof repeatable.
 `docs/docs/goals/codex-fork.md` owns the cross-module goal for the Bus-owned
 Go implementation of the headless Codex App Server worker-runtime surface. The
 completed worker-provider bridge made `bus-agent-runtime` available through
-`bus workers` while keeping explicit Codex providers intact.
+`bus worker` while keeping explicit Codex providers intact.
 
 ## Service Tool Freshness And Runtime Proof Gate
 
@@ -172,7 +172,7 @@ Implementation-ready split:
   `make superproject-source-selftest` if the new test is included there.
 - Service-critical build metadata: workers split by module family. First add a
   shared version metadata contract to the dispatcher/critical binaries, then
-  wire `bus`, `bus-api`, `bus-integration`, `bus-worker`/`bus-workers`,
+  wire `bus`, `bus-api`, `bus-integration`, `bus-worker`/`bus-worker`,
   `bus-services`, `bus-integration-services`, and service-critical integration
   commands. Checks: focused `--version --format json` or equivalent tests in
   each owning module plus a root installed-binary current-commit proof.

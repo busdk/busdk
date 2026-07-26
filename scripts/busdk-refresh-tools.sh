@@ -61,9 +61,10 @@ for module in "$workspace_root"/bus "$workspace_root"/bus-*; do
 
   # A module ships the tool named after its directory, and may declare further
   # host binaries in Makefile.local. `make install` installs both, so wrappers
-  # must cover both: a subcommand backed only by an extra binary, such as
-  # `bus workers` from bus-worker/cmd/bus-workers, is otherwise unresolvable
-  # wherever the module has not been installed system-wide.
+  # must cover both: a subcommand backed only by an extra binary is otherwise
+  # unresolvable wherever the module has not been installed system-wide, which
+  # fails on a clean CI runner while passing on a developer machine that still
+  # has the binary installed.
   module_extra_binaries=
   if [ -f "$module/Makefile.local" ]; then
     module_extra_binaries=$(

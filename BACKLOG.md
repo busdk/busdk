@@ -47,16 +47,16 @@ These unchecked entries were moved out of PLAN.md because they are not part of t
 
 - [ ] Clean up stale local worker registry/projection behavior while removing
   deprecated direct Codex runner support.
-  Current local `bus workers list` can still show old `runner_kind=direct` /
-  `runner_provider=codex-direct` records as `running` after `bus workers stop`
-  returns success, while `bus workers status` reports zero workers and the
+  Current local `bus worker list` can still show old `runner_kind=direct` /
+  `runner_provider=codex-direct` records as `running` after `bus worker stop`
+  returns success, while `bus worker status` reports zero workers and the
   recorded PIDs are no longer alive. Acceptance: lifecycle mutations require
   no hidden direct-exec compatibility path, stopped workers are reflected
   consistently by list/status/show, stale runtime records are marked stopped or
   pruned with auditable events, and new worker creation supports only Codex App
   Server or Bus-owned runtime providers such as `bus-agent-runtime`.
   Reproduced during the Repos materialization normal-services proof on
-  2026-06-11: `bus workers stop repos-normal-proof-mini-20260611e` returned
+  2026-06-11: `bus worker stop repos-normal-proof-mini-20260611e` returned
   success and published `bus.workers.stop.request`
   `evt_1781193793271936000`, but no stopped snapshot followed, the App Server
   process remained live until manual teardown, and duplicate parentless
@@ -79,7 +79,7 @@ These unchecked entries were moved out of PLAN.md because they are not part of t
     owner/name targets map to the same `{org}/{repo}` id shape. Supported
     targets include BusDK modules, nested BusDK submodules, standalone Git
     repositories, and GitHub-hosted repositories such as QEMU.
-  - Acceptance: `bus workers create` can launch a worker whose product
+  - Acceptance: `bus worker create` can launch a worker whose product
     worktree is the requested `repo_id`, with the requested branch checked out,
     non-secret status metadata recording repo id/selected remote name/base/
     worktree/current module or path/resolver, and unsafe repo/path/ref inputs
@@ -123,7 +123,7 @@ This is the active BusDK superproject work tracker.
 
 - [ ] Add service-critical build metadata end to end across the dispatcher and
   Services stack binaries: reuse the `bus-agent-runtime` pattern so `bus`,
-  `bus-api`, `bus-integration`, `bus-worker`/`bus-workers`, `bus-services`,
+  `bus-api`, `bus-integration`, `bus-worker`/`bus-worker`, `bus-services`,
   `bus-integration-services`, and service-critical integration commands expose
   stable text plus JSON version metadata with module name, version, commit, and
   build time. Add module e2e coverage that packaged and installed binaries

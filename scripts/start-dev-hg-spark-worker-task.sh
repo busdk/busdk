@@ -2,7 +2,7 @@
 set -eu
 
 # Starts one manual dev-hg SSH-Docker Codex App Server worker task.
-# This is a bootstrap launcher, not the final bus-workers control plane.
+# This is a bootstrap launcher, not the final bus-worker control plane.
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 

@@ -318,7 +318,7 @@ fi
 
 real_resolver_output=$(
   PATH="$public_bin:$PATH" BUS_HOST=127.0.0.2 \
-    bus workers template show codex-56-sol-ultra
+    bus worker template show codex-56-sol-ultra
 )
 printf '%s\n' "$real_resolver_output" | awk -F '	' '$1 == "default_model" && $2 == "gpt-5.6-sol" { found = 1 } END { exit found ? 0 : 1 }'
 printf '%s\n' "$real_resolver_output" | awk -F '	' '$1 == "reasoning_effort" && $2 == "ultra" { found = 1 } END { exit found ? 0 : 1 }'
@@ -327,7 +327,7 @@ printf '%s\n' "$real_resolver_output" | awk -F '	' '$1 == "model_verbosity" && $
 
 real_opus5_output=$(
   PATH="$public_bin:$PATH" BUS_HOST=127.0.0.2 \
-    bus workers template show claude-opus-5
+    bus worker template show claude-opus-5
 )
 printf '%s\n' "$real_opus5_output" | awk -F '	' '$1 == "default_model" && $2 == "claude-opus-5" { found = 1 } END { exit found ? 0 : 1 }'
 printf '%s\n' "$real_opus5_output" | awk -F '	' '$1 == "reasoning_effort" && $2 == "high" { found = 1 } END { exit found ? 0 : 1 }'
@@ -336,7 +336,7 @@ printf '%s\n' "$real_opus5_output" | awk -F '	' '$1 == "runner_provider" && $2 =
 
 real_opus48_output=$(
   PATH="$public_bin:$PATH" BUS_HOST=127.0.0.2 \
-    bus workers template show claude-opus-4-8
+    bus worker template show claude-opus-4-8
 )
 printf '%s\n' "$real_opus48_output" | awk -F '	' '$1 == "default_model" && $2 == "claude-opus-4-8" { found = 1 } END { exit found ? 0 : 1 }'
 printf '%s\n' "$real_opus48_output" | awk -F '	' '$1 == "reasoning_effort" && $2 == "high" { found = 1 } END { exit found ? 0 : 1 }'

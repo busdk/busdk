@@ -84,7 +84,7 @@ Owning items:
 
 ## Workstream 3: Worker Runtime, Claims, Capacity, And Remote Execution
 
-Use case: `bus workers` and task APIs can start real autonomous workers across
+Use case: `bus worker` and task APIs can start real autonomous workers across
 local/dev-hg/H100 environments, avoid duplicate claims, expose capacity and
 status, and produce reviewable evidence without shell spelunking.
 

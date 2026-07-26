@@ -1090,7 +1090,7 @@ build_binary bus-integration-worker ./cmd/bus-integration-workers bus-integratio
 build_binary bus-integration-repos ./cmd/bus-integration-repos bus-integration-repos
 build_binary bus-thread ./cmd/bus-thread bus-thread
 build_binary bus-worker ./cmd/bus-worker bus-worker
-build_binary bus-worker ./cmd/bus-workers bus-workers
+build_binary bus-worker ./cmd/bus-worker bus-worker
 build_binary bus-repos ./cmd/bus-repos bus-repos
 build_binary bus-events ./cmd/bus-events bus-events
 
@@ -1282,9 +1282,9 @@ assert_thread_show() {
 }
 
 WORKER_ID="thread131-continuity"
-run_capture worker-create "$BIN_DIR/bus-workers" --api-url "$API_URL" --token-file "$TOKEN_FILE" --format json create --id "$WORKER_ID" --label "Thread 131 continuity" --type human --profile human --environment local
+run_capture worker-create "$BIN_DIR/bus-worker" --api-url "$API_URL" --token-file "$TOKEN_FILE" --format json create --id "$WORKER_ID" --label "Thread 131 continuity" --type human --profile human --environment local
 assert_worker_status worker-create "$WORKER_ID"
-run_capture worker-initial-status "$BIN_DIR/bus-workers" --api-url "$API_URL" --token-file "$TOKEN_FILE" --format json status "$WORKER_ID" --environment local
+run_capture worker-initial-status "$BIN_DIR/bus-worker" --api-url "$API_URL" --token-file "$TOKEN_FILE" --format json status "$WORKER_ID" --environment local
 assert_worker_status worker-initial-status "$WORKER_ID"
 INITIAL_REPO_PATH="$STACK_DIR/.bus/repos/storage/product.git"
 [[ -f "$INITIAL_REPO_PATH/HEAD" ]] && [[ "$(git --git-dir="$INITIAL_REPO_PATH" rev-parse --is-bare-repository 2>/dev/null)" == "true" ]] || die "Repos service did not materialize its initial bare product repository"
@@ -1439,9 +1439,9 @@ for rotation in 1 2; do
   assert_thread_show "thread-show-$rotation" "$THREAD_ID" "$marker"
   wait_for_subscription_marker "$marker" "$THREAD_ID" || die "already-open subscription missed $marker"
 
-  run_capture "worker-status-$rotation" "$BIN_DIR/bus-workers" --api-url "$API_URL" --token-file "$TOKEN_FILE" --format json status "$WORKER_ID" --environment local
+  run_capture "worker-status-$rotation" "$BIN_DIR/bus-worker" --api-url "$API_URL" --token-file "$TOKEN_FILE" --format json status "$WORKER_ID" --environment local
   assert_worker_status "worker-status-$rotation" "$WORKER_ID"
-  run_capture "worker-message-$rotation" "$BIN_DIR/bus-workers" --api-url "$API_URL" --token-file "$TOKEN_FILE" --format json message "$WORKER_ID" --text "continuity-$rotation" --message-id "thread131-message-$rotation" --environment local
+  run_capture "worker-message-$rotation" "$BIN_DIR/bus-worker" --api-url "$API_URL" --token-file "$TOKEN_FILE" --format json message "$WORKER_ID" --text "continuity-$rotation" --message-id "thread131-message-$rotation" --environment local
   assert_worker_message "worker-message-$rotation" "$WORKER_ID" "thread131-message-$rotation" "continuity-$rotation"
 
   repo_id="thread131-rotation-$rotation"
