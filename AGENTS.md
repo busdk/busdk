@@ -120,7 +120,7 @@ This root file keeps the binding memo contract; the full style contract is
 
 ## Supervisor Worker Delegation
 
-This section is core operating memory for Codex supervisor agents in this
+This section is core operating memory for BusDK supervisor agents in this
 repository; the binding supervisor/worker boundary stays here, expanded by
 `runbooks/worker-delegation.md` and `runbooks/gx-ui-delegation.md` under the
 original rule numbering.
