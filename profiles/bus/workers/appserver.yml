@@ -128,6 +128,10 @@ runtime:
       description: Git repository used for worker identity project data.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
       default: "{env:BUS_SERVICES_STACK_DIR}/agents/worker"
+    - name: BUS_WORKERS_LEGACY_IDENTITY_REPOSITORIES_JSON
+      description: Optional bounded legacy identity repository anchors used to merge historical Worker identities.
+      value_from: env:BUS_WORKERS_LEGACY_IDENTITY_REPOSITORIES_JSON
+      default: " "
     - name: BUS_WORKERS_DIRECT_MODEL
       description: Optional default model assigned to App Server workers when a worker create request does not provide one.
       value_from: env:BUS_WORKERS_DIRECT_MODEL
