@@ -12,10 +12,47 @@ cd "$root_dir"
 
 python3 - <<'PY'
 import json
+import re
 from pathlib import Path
 
 catalog = json.loads(Path(".bus/worker/templates.json").read_text())
 templates = {template["id"]: template for template in catalog["templates"]}
+CODEX_KEYS = (
+    "capability_tags",
+    "default_model",
+    "default_profile",
+    "description",
+    "eligible_environments",
+    "id",
+    "identity_base_ref",
+    "identity_repo_ref",
+    "label",
+    "model_verbosity",
+    "reasoning_effort",
+    "reasoning_summary",
+    "runner_kind",
+    "runner_provider",
+    "sandbox",
+    "summary",
+    "worker_home_policy",
+)
+CLAUDE_KEYS = (
+    "capability_tags",
+    "default_model",
+    "default_profile",
+    "description",
+    "eligible_environments",
+    "id",
+    "identity_base_ref",
+    "identity_repo_ref",
+    "label",
+    "reasoning_effort",
+    "runner_kind",
+    "runner_provider",
+    "sandbox",
+    "summary",
+    "worker_home_policy",
+)
 expected = {
     "codex-56-sol-high": ("codex-56-sol", "gpt-5.6-sol", "high"),
     "codex-56-sol-xhigh": ("codex-56-sol", "gpt-5.6-sol", "xhigh"),
@@ -28,10 +65,96 @@ expected = {
     "codex-56-luna-medium": ("codex-56-luna", "gpt-5.6-luna", "medium"),
     "codex-56-luna-max": ("codex-56-luna", "gpt-5.6-luna", "max"),
 }
+if set(templates) != set(expected).union({
+    "codex-53-spark",
+    "codex-54-mini",
+    "codex-55",
+    "codex-55-high",
+    "claude-fable-5",
+    "claude-opus-4-8",
+    "claude-opus-5",
+    "claude-sonnet-5",
+    "claude-haiku-4-5",
+}):
+    raise SystemExit("catalog must contain exactly the expected 19 entries")
 
-actual_56 = {template_id for template_id in templates if template_id.startswith("codex-56-")}
-if actual_56 != set(expected):
-    raise SystemExit(f"GPT-5.6 template set mismatch: got {sorted(actual_56)}, want {sorted(expected)}")
+EXPECTED_SUMMARIES = {
+    "codex-53-spark": "Spark: narrowly frozen mechanical work with independent review.",
+    "codex-54-mini": "Mini: bounded implementation and support work with compact evidence.",
+    "codex-55": "GPT-5.5 medium: evidence-limited bounded implementation lane with independent review.",
+    "codex-55-high": "GPT-5.5 High: hard bounded source/rescue candidate with independent review and composed E2E.",
+    "codex-56-sol-high": "Sol High: focused repair and bounded diagnostics.",
+    "codex-56-sol-xhigh": "Sol XHigh: architecture and root-cause diagnosis before patching.",
+    "codex-56-sol-max": "Sol Max: concurrency, replay, process, and exact-contract review.",
+    "codex-56-sol-ultra": "Sol Ultra: split work, produce candidates, and compose evidence without self-acceptance.",
+    "codex-56-terra-medium": "Terra Medium: evidence-limited bounded follow-through with independent review.",
+    "codex-56-terra-high": "Terra High: complex implementation and review-driven integration debugging.",
+    "codex-56-terra-max": "Terra Max: lifecycle, security, migration, and regression review.",
+    "codex-56-luna-low": "Luna Low: docs, bounded diagnosis, and smoke checks.",
+    "codex-56-luna-medium": "Luna Medium: evidence-limited implementation with practical review.",
+    "codex-56-luna-max": "Luna Max: convergence and order review before promotion.",
+    "claude-fable-5": "Fable: architecture, supply-chain, and exact-byte challenge review.",
+    "claude-opus-4-8": "Opus: read-only consultation or tightly bounded external execution with exact stop conditions.",
+    "claude-opus-5": "Opus 5: evidence-limited high-effort managed lane pending an audited local record; requires independent review.",
+    "claude-sonnet-5": "Sonnet: provider-diverse fallback for balanced coding, planning, and follow-through.",
+    "claude-haiku-4-5": "Haiku: evidence-limited experimental trial for low-risk extraction or triage.",
+}
+if set(templates) != set(EXPECTED_SUMMARIES):
+    raise SystemExit(f"Catalog ID set mismatch: got {sorted(templates)}, want {sorted(EXPECTED_SUMMARIES)}")
+for template_id, expected_summary in EXPECTED_SUMMARIES.items():
+    template = templates[template_id]
+    if template["summary"] != expected_summary:
+        raise SystemExit(f"{template_id} summary mismatch: got {template['summary']!r}, want {expected_summary!r}")
+
+for template_id, template in templates.items():
+    if template["runner_provider"] == "codex-appserver":
+        required_keys = CODEX_KEYS
+    elif template["runner_provider"] == "claude-appserver":
+        required_keys = CLAUDE_KEYS
+    else:
+        raise SystemExit(f"unknown runner_provider for {template_id}: {template['runner_provider']!r}")
+    if tuple(sorted(template.keys())) != required_keys:
+        raise SystemExit(f"{template_id} key-set changed: got {tuple(sorted(template.keys()))}, want {required_keys}")
+    if "\t" in template["description"] or "\r" in template["description"] or "\n" in template["description"]:
+        raise SystemExit(f"{template_id} description contains a forbidden newline/tab/CR")
+    if len(template["description"].encode("utf-8")) > 1200:
+        raise SystemExit(f"{template_id} description exceeds 1200 UTF-8 bytes")
+    if template_id == "codex-56-luna-low":
+        if re.findall(r"\$[0-9]+\.[0-9]{2}", template["description"]) != ["$0.20", "$0.02", "$0.25", "$1.20"]:
+            raise SystemExit("codex-56-luna-low price list mismatch")
+    elif template_id == "codex-56-luna-medium":
+        if re.findall(r"\$[0-9]+\.[0-9]{2}", template["description"]) != ["$0.20", "$0.02", "$0.25", "$1.20"]:
+            raise SystemExit("codex-56-luna-medium price list mismatch")
+    elif template_id == "codex-56-luna-max":
+        if re.findall(r"\$[0-9]+\.[0-9]{2}", template["description"]) != ["$0.20", "$0.02", "$0.25", "$1.20"]:
+            raise SystemExit("codex-56-luna-max price list mismatch")
+    elif template_id == "codex-56-terra-medium":
+        if re.findall(r"\$[0-9]+\.[0-9]{2}", template["description"]) != ["$2.00", "$0.20", "$2.50", "$12.00"]:
+            raise SystemExit("codex-56-terra-medium price list mismatch")
+    elif template_id == "codex-56-terra-high":
+        if re.findall(r"\$[0-9]+\.[0-9]{2}", template["description"]) != ["$2.00", "$0.20", "$2.50", "$12.00"]:
+            raise SystemExit("codex-56-terra-high price list mismatch")
+    elif template_id == "codex-56-terra-max":
+        if re.findall(r"\$[0-9]+\.[0-9]{2}", template["description"]) != ["$2.00", "$0.20", "$2.50", "$12.00"]:
+            raise SystemExit("codex-56-terra-max price list mismatch")
+    elif template_id in {
+        "codex-56-sol-high",
+        "codex-56-sol-xhigh",
+        "codex-56-sol-max",
+        "codex-56-sol-ultra",
+    }:
+        if re.search(r"\$", template["description"]):
+            raise SystemExit(f"{template_id} Sol description must not contain dollar values")
+        for required in (
+            "Sol Standard pricing is unchanged",
+            "Sol Fast replaces Priority Processing",
+            "2.5 times Standard speed",
+            "twice the Standard API price",
+            "does not change intelligence",
+            "does not select a processing mode",
+        ):
+            if required not in template["description"]:
+                raise SystemExit(f"{template_id} missing Sol required claim: {required!r}")
 
 for template_id, (profile, model, effort) in expected.items():
     template = templates[template_id]
