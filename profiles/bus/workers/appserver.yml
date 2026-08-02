@@ -124,6 +124,10 @@ runtime:
       description: Runtime directory for local host-process App Server workers.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_ROOT
       default: .bus/services/workers/runtime
+    - name: BUS_ATTACHED_WORKSPACE_LOCK_DIR
+      description: Shared attached-workspace lock directory used by Workers and engine integrations.
+      value_from: env:BUS_ATTACHED_WORKSPACE_LOCK_DIR
+      default: "{env:BUS_SERVICES_BUS_DIR}/services/workers/runtime/attached-workspace-locks"
     - name: BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO
       description: Git repository used for worker identity project data.
       value_from: env:BUS_WORKERS_DIRECT_WORKER_IDENTITY_REPO

@@ -93,6 +93,33 @@ services:
     profile: bus/claude/engine
     params:
       events_url: "{env:BUS_EVENTS_URL}"
+    runtime:
+      args:
+        - --events-url
+        - "{param:events_url}"
+        - --token-file
+        - "{param:token_file}"
+        - --provider
+        - "{env:BUS_CLAUDE_PROVIDER}"
+        - --base-dir
+        - "{env:BUS_CLAUDE_BASE_DIR}"
+        - --attached-workspace-allow
+        - "{env:BUS_CLAUDE_ATTACHED_WORKSPACE_ALLOW}"
+        - --attached-workspace-lock-dir
+        - "{env:BUS_ATTACHED_WORKSPACE_LOCK_DIR}"
+      env:
+        - name: BUS_CLAUDE_BASE_DIR
+          description: Per-session Claude configuration root required by attached workspaces.
+          value_from: env:BUS_CLAUDE_BASE_DIR
+          default: "{env:BUS_SERVICES_BUS_DIR}/services/claude-sessions"
+        - name: BUS_CLAUDE_ATTACHED_WORKSPACE_ALLOW
+          description: Canonical root authorized for attached Claude sessions in this local stack.
+          value_from: env:BUS_CLAUDE_ATTACHED_WORKSPACE_ALLOW
+          default: "{env:BUS_SERVICES_STACK_DIR}"
+        - name: BUS_ATTACHED_WORKSPACE_LOCK_DIR
+          description: Shared attached-workspace lock directory used by Claude and Workers.
+          value_from: env:BUS_ATTACHED_WORKSPACE_LOCK_DIR
+          default: "{env:BUS_SERVICES_BUS_DIR}/services/workers/runtime/attached-workspace-locks"
     depends_on:
       - events
   api:
